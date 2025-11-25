@@ -90,21 +90,8 @@ export default function MobileSwipeablePanes({
     return Math.max(0, Math.min(2, index)) as PaneIndex;
   });
 
-  // Update current pane when dragging ends (only during actual drag, not initialization)
-  useEffect(() => {
-    // Skip if paneWidth is not initialized yet
-    if (paneWidth <= 0) return;
-    
-    const unsubscribe = paneIndex.on("change", (latest) => {
-      // Only update if we're actually dragging and the pane changed
-      // This prevents false triggers during initialization
-      if (isDragging && latest !== currentPane && latest >= 0 && latest <= 2) {
-        // Don't navigate during drag - let handleDragEnd handle it
-        // This effect is mainly for monitoring, not navigation
-      }
-    });
-    return unsubscribe;
-  }, [paneIndex, isDragging, currentPane, navigateToPane, paneWidth]);
+  // Note: Removed the paneIndex.on("change") effect as it was causing issues during initialization
+  // Navigation is handled entirely by handleDragEnd, which is more reliable
 
   // Snap to current pane position with smooth animation
   useEffect(() => {
@@ -139,6 +126,14 @@ export default function MobileSwipeablePanes({
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     setIsDragging(false);
+    
+    // Guard against division by zero if paneWidth is not yet initialized
+    if (paneWidth <= 0) {
+      // If width not initialized, just ensure we're at the current pane position
+      x.set(-currentPane * (typeof window !== "undefined" ? window.innerWidth : 0));
+      return;
+    }
+    
     const offset = info.offset.x;
     const velocity = info.velocity.x;
     const currentX = x.get();
