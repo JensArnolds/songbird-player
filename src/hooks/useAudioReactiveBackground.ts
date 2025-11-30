@@ -31,7 +31,7 @@ export function useAudioReactiveBackground(
   const previousAnalysisRef = useRef<{ overallVolume: number; bass: number } | null>(null);
 
   useEffect(() => {
-    // Toggle visualizer class on html and body elements
+    // Only hide backgrounds when explicitly disabled (not when just not playing)
     if (!enabled) {
       document.documentElement.classList.add('visualizer-disabled');
       document.body.classList.add('visualizer-disabled');
@@ -40,6 +40,7 @@ export function useAudioReactiveBackground(
       document.body.classList.remove('visualizer-disabled');
     }
 
+    // Don't show dark screen when not playing - just reset variables
     if (!enabled || !isPlaying || !isInitialized || !audioElement) {
       // Reset to default when not playing or disabled
       document.documentElement.style.setProperty("--audio-intensity", "0");
