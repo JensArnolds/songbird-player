@@ -708,7 +708,8 @@ export function AudioVisualizer({
         style={{
           width: dimensions.width,
           height: dimensions.height,
-          mixBlendMode: blendWithBackground ? "screen" : "normal",
+          mixBlendMode: blendWithBackground ? "screen" : "screen", // Always use screen for more vibrant visuals
+          opacity: 1.0, // Full opacity for less subtle visuals
         }}
         title="Click to cycle visualizer type"
       />

@@ -83,11 +83,11 @@ export class SpectrumRenderer {
     }
     ctx.putImageData(imageData, 0, 0);
 
-    // Kaleidoscope effect - save context for symmetry
+    // Kaleidoscope effect - save context for symmetry - more segments
     ctx.save();
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const segments = 6;
+    const segments = 10; // More segments for more kaleidoscopic effect
 
     for (let seg = 0; seg < segments; seg++) {
       ctx.save();
@@ -124,21 +124,21 @@ export class SpectrumRenderer {
           }
         }
 
-        // Calculate colors with bitwise color cycling
+        // Calculate colors with bitwise color cycling - more vibrant
         const colorShift = ((Math.floor(this.time * 30) ^ i) & 0xFF) / 255;
-        const hue = (i / this.barCount) * 240 + 200 + colorShift * 60 + seg * 10;
-        const saturation = 70 + normalizedValue * 30;
-        const lightness = 45 + normalizedValue * 25;
+        const hue = (i / this.barCount) * 360 + 200 + colorShift * 80 + seg * 15; // Wider spectrum
+        const saturation = 90 + normalizedValue * 10; // Higher base saturation
+        const lightness = 55 + normalizedValue * 35; // Brighter
 
-        // Draw bar with gradient
+        // Draw bar with gradient - more opaque
         const barGradient = ctx.createLinearGradient(x, y, x, canvas.height);
-        barGradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness + 20}%, 0.9)`);
-        barGradient.addColorStop(0.5, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.8)`);
-        barGradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness - 10}%, 0.6)`);
+        barGradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness + 25}%, 1)`);
+        barGradient.addColorStop(0.5, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.95)`);
+        barGradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness - 10}%, 0.85)`);
 
-        // Glow effect
-        ctx.shadowBlur = 20 * normalizedValue;
-        ctx.shadowColor = `hsla(${hue}, 100%, 60%, ${normalizedValue})`;
+        // Glow effect - more intense
+        ctx.shadowBlur = 30 * normalizedValue;
+        ctx.shadowColor = `hsla(${hue}, 100%, 70%, ${0.9 + normalizedValue * 0.1})`;
 
         ctx.fillStyle = barGradient;
         ctx.fillRect(x, y, barWidth, barHeight);
