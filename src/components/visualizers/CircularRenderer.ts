@@ -185,8 +185,10 @@ export class CircularRenderer {
     for (let seg = 0; seg < segments; seg++) {
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.rotate((seg * Math.PI * 2) / segments);
-      ctx.scale(seg % 2 === 0 ? 1 : -1, 1); // Mirror alternate segments
+      ctx.rotate((seg * Math.PI * 2) / segments + this.kaleidoscopeRotation); // Add rotation
+      const mirrorX = seg % 4 < 2 ? 1 : -1;
+      const mirrorY = seg % 2 === 0 ? 1 : -1;
+      ctx.scale(mirrorX, mirrorY);
       ctx.translate(-centerX, -centerY);
       ctx.globalCompositeOperation = 'screen'; // Use screen blend for maximum vibrant effect
       ctx.globalAlpha = 1.0;

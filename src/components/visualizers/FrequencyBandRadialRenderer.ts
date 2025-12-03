@@ -39,6 +39,7 @@ export class FrequencyBandRadialRenderer {
   ): void {
     if (audioAnalysis) {
       this.time += 0.02;
+      this.kaleidoscopeRotation += 0.01; // Rotate the entire kaleidoscope
 
       // Vibrant radial gradient background
       const centerX = canvas.width / 2;
@@ -70,7 +71,7 @@ export class FrequencyBandRadialRenderer {
       offCtx.fillStyle = 'rgba(0, 0, 0, 0)';
       offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
 
-      const segments = 10; // Kaleidoscopic segments
+      const segments = 16; // Many more segments for strong kaleidoscopic effect
 
       const bands = [
         audioAnalysis.frequencyBands.bass,
@@ -83,13 +84,27 @@ export class FrequencyBandRadialRenderer {
       const baseRadius = maxRadius * 0.15;
       const ringSpacing = (maxRadius - baseRadius) / 5;
 
-      // Draw rings in kaleidoscopic segments
+      // Draw rings in kaleidoscopic segments with rotation
       for (let seg = 0; seg < segments; seg++) {
         offCtx.save();
         offCtx.translate(centerX, centerY);
-        offCtx.rotate((seg * Math.PI * 2) / segments);
-        offCtx.scale(seg % 2 === 0 ? 1 : -1, 1); // Mirror alternate segments
+        offCtx.rotate((seg * Math.PI * 2) / segments + this.kaleidoscopeRotation); // Add rotation
+        // More complex mirroring pattern
+        const mirrorX = seg % 4 < 2 ? 1 : -1;
+        const mirrorY = seg % 2 === 0 ? 1 : -1;
+        offCtx.scale(mirrorX, mirrorY);
         offCtx.translate(-centerX, -centerY);
+        
+        // Clip to segment for cleaner edges
+        offCtx.beginPath();
+        offCtx.moveTo(centerX, centerY);
+        const angle1 = (seg * Math.PI * 2) / segments;
+        const angle2 = ((seg + 1) * Math.PI * 2) / segments;
+        const radius = Math.max(canvas.width, canvas.height);
+        offCtx.lineTo(centerX + Math.cos(angle1) * radius, centerY + Math.sin(angle1) * radius);
+        offCtx.lineTo(centerX + Math.cos(angle2) * radius, centerY + Math.sin(angle2) * radius);
+        offCtx.closePath();
+        offCtx.clip();
 
       // Draw rings from inside to outside
       bands.forEach((bandValue, index) => {
@@ -187,12 +202,14 @@ export class FrequencyBandRadialRenderer {
       offCtx.lineWidth = 3;
       offCtx.stroke();
 
-      // Apply kaleidoscopic mirroring to main canvas
+      // Apply kaleidoscopic mirroring to main canvas with rotation
       for (let seg = 0; seg < segments; seg++) {
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate((seg * Math.PI * 2) / segments);
-        ctx.scale(seg % 2 === 0 ? 1 : -1, 1); // Mirror alternate segments
+        ctx.rotate((seg * Math.PI * 2) / segments + this.kaleidoscopeRotation); // Add rotation
+        const mirrorX = seg % 4 < 2 ? 1 : -1;
+        const mirrorY = seg % 2 === 0 ? 1 : -1;
+        ctx.scale(mirrorX, mirrorY);
         ctx.translate(-centerX, -centerY);
         ctx.globalCompositeOperation = 'screen'; // Use screen blend for maximum vibrant effect
         ctx.globalAlpha = 1.0;
