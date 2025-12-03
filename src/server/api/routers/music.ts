@@ -333,7 +333,7 @@ export const musicRouter = createTRPCRouter({
     }),
 
   getPlaylists: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db.query.playlists.findMany({
+    const playlists = await ctx.db.query.playlists.findMany({
       where: eq(playlists.userId, ctx.session.user.id),
       orderBy: [desc(playlists.createdAt)],
       with: {
@@ -343,6 +343,16 @@ export const musicRouter = createTRPCRouter({
         },
       },
     });
+
+    return playlists.map((playlist) => ({
+      ...playlist,
+      tracks: playlist.tracks.map((t: { id: number; trackData: unknown; position: number; addedAt: Date }) => ({
+        id: t.id,
+        track: t.trackData as Track,
+        position: t.position,
+        addedAt: t.addedAt,
+      })),
+    }));
   }),
 
   getPlaylist: protectedProcedure
