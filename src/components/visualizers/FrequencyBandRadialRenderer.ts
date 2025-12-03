@@ -55,9 +55,9 @@ export class FrequencyBandRadialRenderer {
         centerY,
         maxRadius
       );
-      bgGradient.addColorStop(0, `hsla(${275 + hueShift}, 95%, 28%, 1)`);
-      bgGradient.addColorStop(0.5, `hsla(${265 + hueShift}, 90%, 22%, 1)`);
-      bgGradient.addColorStop(1, `hsla(${255 + hueShift}, 85%, 15%, 1)`);
+      bgGradient.addColorStop(0, `hsla(${275 + hueShift}, 100%, 45%, 1)`);
+      bgGradient.addColorStop(0.5, `hsla(${265 + hueShift}, 100%, 38%, 1)`);
+      bgGradient.addColorStop(1, `hsla(${255 + hueShift}, 100%, 30%, 1)`);
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -103,9 +103,9 @@ export class FrequencyBandRadialRenderer {
         this.rotationOffsets[index] = currentOffset + 0.005 * (1 + index * 0.2);
 
         const color = this.bandColors[index]!;
-        const hueShift = Math.sin(this.time * 0.4 + index) * 20 + seg * 10;
-        const saturation = Math.min(100, color.saturation + bandValue * 30); // Higher saturation
-        const lightness = Math.min(90, color.lightness + bandValue * 35); // Brighter
+        const hueShift = Math.sin(this.time * 0.4 + index) * 30 + seg * 15;
+        const saturation = 100; // Maximum saturation always
+        const lightness = Math.min(95, 75 + bandValue * 20); // Much brighter
 
         // Draw ring with gradient - ensure inner radius is always positive
         const innerRadius = Math.max(0.1, newRadius - 8);
@@ -118,17 +118,17 @@ export class FrequencyBandRadialRenderer {
           centerY,
           outerRadius
         );
-        ringGradient.addColorStop(0, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness + 20}%, 1)`);
-        ringGradient.addColorStop(0.5, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, 1)`);
-        ringGradient.addColorStop(1, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness - 5}%, 0.9)`);
+        ringGradient.addColorStop(0, `hsla(${color.hue + hueShift}, 100%, ${lightness + 30}%, 1)`);
+        ringGradient.addColorStop(0.5, `hsla(${color.hue + hueShift}, 100%, ${lightness}%, 1)`);
+        ringGradient.addColorStop(1, `hsla(${color.hue + hueShift}, 100%, ${lightness - 5}%, 1)`);
 
-        // Draw ring - more visible
+        // Draw ring - maximum visibility
         offCtx.beginPath();
         offCtx.arc(centerX, centerY, newRadius, 0, Math.PI * 2);
         offCtx.strokeStyle = ringGradient;
-        offCtx.lineWidth = 6 + bandValue * 8;
-        offCtx.shadowBlur = 30 + bandValue * 50;
-        offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 70%, ${0.9 + bandValue * 0.1})`;
+        offCtx.lineWidth = 8 + bandValue * 12;
+        offCtx.shadowBlur = 50 + bandValue * 80;
+        offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 90%, 1)`;
         offCtx.stroke();
 
         // Draw rotating particles along ring
@@ -142,9 +142,9 @@ export class FrequencyBandRadialRenderer {
 
           offCtx.beginPath();
           offCtx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
-          offCtx.fillStyle = `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness + 25}%, ${0.95 + bandValue * 0.05})`;
-          offCtx.shadowBlur = 15;
-          offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 70%, ${0.95 + bandValue * 0.05})`;
+          offCtx.fillStyle = `hsla(${color.hue + hueShift}, 100%, ${lightness + 35}%, 1)`;
+          offCtx.shadowBlur = 25;
+          offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 90%, 1)`;
           offCtx.fill();
         }
 
@@ -163,10 +163,10 @@ export class FrequencyBandRadialRenderer {
             offCtx.beginPath();
             offCtx.moveTo(startX, startY);
             offCtx.lineTo(endX, endY);
-            offCtx.strokeStyle = `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, ${0.6 + bandValue * 0.4})`;
-            offCtx.lineWidth = 2;
-            offCtx.shadowBlur = 5;
-            offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 60%, ${bandValue * 0.5})`;
+            offCtx.strokeStyle = `hsla(${color.hue + hueShift}, 100%, ${lightness}%, ${0.9 + bandValue * 0.1})`;
+            offCtx.lineWidth = 3;
+            offCtx.shadowBlur = 15;
+            offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 80%, ${0.9 + bandValue * 0.1})`;
             offCtx.stroke();
           }
         }
@@ -193,8 +193,8 @@ export class FrequencyBandRadialRenderer {
         ctx.rotate((seg * Math.PI * 2) / segments);
         ctx.scale(seg % 2 === 0 ? 1 : -1, 1); // Mirror alternate segments
         ctx.translate(-centerX, -centerY);
-        ctx.globalCompositeOperation = 'screen'; // Use screen blend for more vibrant effect
-        ctx.globalAlpha = 0.9;
+        ctx.globalCompositeOperation = 'screen'; // Use screen blend for maximum vibrant effect
+        ctx.globalAlpha = 1.0;
         ctx.drawImage(offCanvas, 0, 0);
         ctx.restore();
       }
