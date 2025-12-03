@@ -25,6 +25,10 @@ const log = (...args) => {
   console.log("[Electron]", ...args);
 };
 
+/**
+ * @param {number} startPort
+ * @returns {Promise<number>}
+ */
 const findAvailablePort = (startPort) => {
   return new Promise((resolve) => {
     const server = http.createServer();
