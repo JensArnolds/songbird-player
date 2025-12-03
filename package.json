@@ -59,10 +59,10 @@
     "start": "next start --port 3222",
     "typecheck": "tsc --noEmit",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3222 && electron .\"",
-    "electron:build": "next build && electron-builder",
-    "electron:build:win": "next build && electron-builder --win",
-    "electron:build:mac": "next build && electron-builder --mac",
-    "electron:build:linux": "next build && electron-builder --linux"
+    "electron:build": "cross-env ELECTRON_BUILD=true next build && electron-builder",
+    "electron:build:win": "cross-env ELECTRON_BUILD=true next build && electron-builder --win",
+    "electron:build:mac": "cross-env ELECTRON_BUILD=true next build && electron-builder --mac",
+    "electron:build:linux": "cross-env ELECTRON_BUILD=true next build && electron-builder --linux"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
@@ -89,7 +89,7 @@
     "tone": "^15.1.22",
     "zod": "^3.25.76"
   },
-  "main": "electron/main.cjs",
+  "main": "electron/main.js",
   "devDependencies": {
     "@next/bundle-analyzer": "^16.0.1",
     "@svgr/cli": "^8.1.0",
