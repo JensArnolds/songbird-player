@@ -1,3 +1,5 @@
+// File: src/constants/visualizer.ts
+
 export const VISUALIZER_TYPES = [
   "bars",
   "spectrum",
@@ -58,4 +60,3 @@ export const VISUALIZER_DIMENSIONS = {
   MAX_EXPANDED_WIDTH: 960,
   MAX_EXPANDED_HEIGHT: 520,
 } as const;
-

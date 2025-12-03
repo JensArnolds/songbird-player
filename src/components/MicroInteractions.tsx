@@ -242,4 +242,3 @@ export function PulseBadge({ count, className = "" }: PulseBadgeProps) {
     </motion.div>
   );
 }
-

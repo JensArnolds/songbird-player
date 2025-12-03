@@ -149,4 +149,3 @@ export const listItemAnimation = {
     transition: springPresets.smooth,
   },
 };
-

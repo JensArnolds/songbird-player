@@ -94,4 +94,3 @@ export function usePullToRefresh(config: PullToRefreshConfig) {
     },
   };
 }
-

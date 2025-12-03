@@ -405,4 +405,3 @@ export default function SwipeableTrackCard({
     </motion.div>
   );
 }
-

@@ -1,3 +1,5 @@
+// File: src/utils/visualizerState.ts
+
 import { STORAGE_KEYS } from "@/config/storage";
 import {
   DEFAULT_VISUALIZER_STATE,
@@ -59,4 +61,3 @@ export const extractLayoutState = (
   isExpanded: state.isExpanded,
   type: state.type,
 });
-

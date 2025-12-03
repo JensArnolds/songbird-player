@@ -44,4 +44,3 @@ export function AnimatedListItem({ children, className = "", index }: AnimatedLi
 }
 
 export default AnimatedList;
-

@@ -152,4 +152,3 @@ export function useAudioReactiveBackground(
     };
   }, [enabled, isPlaying, isInitialized, audioElement, getFrequencyData, audioContext, getFFTSize, initialize, resumeContext]);
 }
-

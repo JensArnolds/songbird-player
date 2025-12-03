@@ -1,12 +1,4 @@
 // File: src/services/songbird.ts
-//
-// Songbird API Service
-// 
-// Songbird is a unified API that combines Spotify, Deezer, Last.fm, and other music APIs
-// for enhanced recommendations and music discovery.
-//
-// This service is prepared for future use. The full API specification will be implemented
-// when the API is ready.
 
 import { env } from "@/env";
 
@@ -68,4 +60,3 @@ export const songbird = {
   // - getAlbumInfo()
   // - etc.
 };
-

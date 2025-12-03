@@ -1,7 +1,4 @@
 // File: src/app/api/album/[id]/route.ts
-//
-// Proxy endpoint for Deezer album info
-// This fixes CORS issues by proxying the request through our backend
 
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -66,4 +63,3 @@ export async function GET(
     );
   }
 }
-
