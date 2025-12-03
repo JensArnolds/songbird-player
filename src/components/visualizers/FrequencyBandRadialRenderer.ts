@@ -55,11 +55,21 @@ export class FrequencyBandRadialRenderer {
         centerY,
         maxRadius
       );
-      bgGradient.addColorStop(0, `hsla(${275 + hueShift}, 80%, 25%, 0.95)`);
-      bgGradient.addColorStop(0.5, `hsla(${265 + hueShift}, 75%, 20%, 0.97)`);
-      bgGradient.addColorStop(1, `hsla(${255 + hueShift}, 70%, 12%, 1)`);
+      bgGradient.addColorStop(0, `hsla(${275 + hueShift}, 95%, 28%, 1)`);
+      bgGradient.addColorStop(0.5, `hsla(${265 + hueShift}, 90%, 22%, 1)`);
+      bgGradient.addColorStop(1, `hsla(${255 + hueShift}, 85%, 15%, 1)`);
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Create off-screen canvas for kaleidoscopic rendering
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = canvas.width;
+      offCanvas.height = canvas.height;
+      const offCtx = offCanvas.getContext('2d')!;
+      offCtx.fillStyle = 'rgba(0, 0, 0, 0)';
+      offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+
+      const segments = 10; // Kaleidoscopic segments
 
       const bands = [
         audioAnalysis.frequencyBands.bass,
@@ -71,6 +81,14 @@ export class FrequencyBandRadialRenderer {
 
       const baseRadius = maxRadius * 0.15;
       const ringSpacing = (maxRadius - baseRadius) / 5;
+
+      // Draw rings in kaleidoscopic segments
+      for (let seg = 0; seg < segments; seg++) {
+        offCtx.save();
+        offCtx.translate(centerX, centerY);
+        offCtx.rotate((seg * Math.PI * 2) / segments);
+        offCtx.scale(seg % 2 === 0 ? 1 : -1, 1); // Mirror alternate segments
+        offCtx.translate(-centerX, -centerY);
 
       // Draw rings from inside to outside
       bands.forEach((bandValue, index) => {
@@ -85,14 +103,14 @@ export class FrequencyBandRadialRenderer {
         this.rotationOffsets[index] = currentOffset + 0.005 * (1 + index * 0.2);
 
         const color = this.bandColors[index]!;
-        const hueShift = Math.sin(this.time * 0.4 + index) * 15;
-        const saturation = color.saturation + bandValue * 25;
-        const lightness = color.lightness + bandValue * 25;
+        const hueShift = Math.sin(this.time * 0.4 + index) * 20 + seg * 10;
+        const saturation = Math.min(100, color.saturation + bandValue * 30); // Higher saturation
+        const lightness = Math.min(90, color.lightness + bandValue * 35); // Brighter
 
         // Draw ring with gradient - ensure inner radius is always positive
         const innerRadius = Math.max(0.1, newRadius - 8);
         const outerRadius = Math.max(innerRadius + 0.1, newRadius + 8);
-        const ringGradient = ctx.createRadialGradient(
+        const ringGradient = offCtx.createRadialGradient(
           centerX,
           centerY,
           innerRadius,
@@ -100,18 +118,18 @@ export class FrequencyBandRadialRenderer {
           centerY,
           outerRadius
         );
-        ringGradient.addColorStop(0, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness + 15}%, 0.8)`);
-        ringGradient.addColorStop(0.5, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, 0.9)`);
-        ringGradient.addColorStop(1, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness - 10}%, 0.7)`);
+        ringGradient.addColorStop(0, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness + 20}%, 1)`);
+        ringGradient.addColorStop(0.5, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, 1)`);
+        ringGradient.addColorStop(1, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness - 5}%, 0.9)`);
 
-        // Draw ring
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, newRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = ringGradient;
-        ctx.lineWidth = 4 + bandValue * 6;
-        ctx.shadowBlur = 20 + bandValue * 35;
-        ctx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 60%, ${bandValue * 0.7})`;
-        ctx.stroke();
+        // Draw ring - more visible
+        offCtx.beginPath();
+        offCtx.arc(centerX, centerY, newRadius, 0, Math.PI * 2);
+        offCtx.strokeStyle = ringGradient;
+        offCtx.lineWidth = 6 + bandValue * 8;
+        offCtx.shadowBlur = 30 + bandValue * 50;
+        offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 70%, ${0.9 + bandValue * 0.1})`;
+        offCtx.stroke();
 
         // Draw rotating particles along ring
         const particleCount = 12 + Math.floor(bandValue * 8);
@@ -122,12 +140,12 @@ export class FrequencyBandRadialRenderer {
           const particleY = centerY + Math.sin(angle) * newRadius;
           const particleSize = 2 + bandValue * 4;
 
-          ctx.beginPath();
-          ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness + 20}%, ${0.8 + bandValue * 0.2})`;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 60%, ${bandValue * 0.9})`;
-          ctx.fill();
+          offCtx.beginPath();
+          offCtx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+          offCtx.fillStyle = `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness + 25}%, ${0.95 + bandValue * 0.05})`;
+          offCtx.shadowBlur = 15;
+          offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 70%, ${0.95 + bandValue * 0.05})`;
+          offCtx.fill();
         }
 
         // Draw connecting lines between rings
@@ -142,27 +160,47 @@ export class FrequencyBandRadialRenderer {
             const endX = centerX + Math.cos(angle) * newRadius;
             const endY = centerY + Math.sin(angle) * newRadius;
 
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
-            ctx.strokeStyle = `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, ${0.3 + bandValue * 0.4})`;
-            ctx.lineWidth = 1;
-            ctx.shadowBlur = 0;
-            ctx.stroke();
+            offCtx.beginPath();
+            offCtx.moveTo(startX, startY);
+            offCtx.lineTo(endX, endY);
+            offCtx.strokeStyle = `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, ${0.6 + bandValue * 0.4})`;
+            offCtx.lineWidth = 2;
+            offCtx.shadowBlur = 5;
+            offCtx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 60%, ${bandValue * 0.5})`;
+            offCtx.stroke();
           }
         }
       });
 
-      ctx.shadowBlur = 0;
+      offCtx.restore(); // End kaleidoscopic segment
+      }
 
-      // Draw center circle
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, baseRadius * 0.8, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      offCtx.shadowBlur = 0;
+
+      // Draw center circle on off-screen canvas
+      offCtx.beginPath();
+      offCtx.arc(centerX, centerY, baseRadius * 0.8, 0, Math.PI * 2);
+      offCtx.fillStyle = "rgba(0, 0, 0, 0.95)";
+      offCtx.fill();
+      offCtx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      offCtx.lineWidth = 3;
+      offCtx.stroke();
+
+      // Apply kaleidoscopic mirroring to main canvas
+      for (let seg = 0; seg < segments; seg++) {
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate((seg * Math.PI * 2) / segments);
+        ctx.scale(seg % 2 === 0 ? 1 : -1, 1); // Mirror alternate segments
+        ctx.translate(-centerX, -centerY);
+        ctx.globalCompositeOperation = 'screen'; // Use screen blend for more vibrant effect
+        ctx.globalAlpha = 0.9;
+        ctx.drawImage(offCanvas, 0, 0);
+        ctx.restore();
+      }
+
+      ctx.globalAlpha = 1.0;
+      ctx.globalCompositeOperation = 'source-over';
     } else {
       // Fallback: clear canvas if no analysis
       ctx.clearRect(0, 0, canvas.width, canvas.height);

@@ -35,8 +35,8 @@ export class FrequencyBandLayeredRenderer {
       const avgIntensity = (audioAnalysis.frequencyBands.bass + audioAnalysis.frequencyBands.mid + audioAnalysis.frequencyBands.treble) / 3;
       const hueShift = Math.min(60, avgIntensity * 40); // Clamp to max 60 degrees
       const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      bgGradient.addColorStop(0, `hsla(${265 + hueShift}, 75%, 22%, 0.92)`);
-      bgGradient.addColorStop(1, `hsla(${245 + hueShift}, 70%, 15%, 1)`);
+      bgGradient.addColorStop(0, `hsla(${265 + hueShift}, 90%, 25%, 1)`);
+      bgGradient.addColorStop(1, `hsla(${245 + hueShift}, 85%, 18%, 1)`);
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -70,20 +70,20 @@ export class FrequencyBandLayeredRenderer {
         const layerOffset = (layerIndex - 2) * (canvas.height / 8);
         const amplitude = newAmplitude * maxAmplitude;
 
-        const hueShift = Math.sin(this.time * 0.4 + layerIndex) * 10;
-        const saturation = color.saturation + newAmplitude * 20;
-        const lightness = color.lightness + newAmplitude * 20;
+        const hueShift = Math.sin(this.time * 0.4 + layerIndex) * 15;
+        const saturation = Math.min(100, color.saturation + newAmplitude * 25); // Higher saturation
+        const lightness = Math.min(90, color.lightness + newAmplitude * 30); // Brighter
 
-        // Create gradient for wave
+        // Create gradient for wave - more opaque
         const waveGradient = ctx.createLinearGradient(0, centerY - amplitude, 0, centerY + amplitude);
-        waveGradient.addColorStop(0, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness + 15}%, 0.8)`);
-        waveGradient.addColorStop(0.5, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, 0.9)`);
-        waveGradient.addColorStop(1, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness - 10}%, 0.7)`);
+        waveGradient.addColorStop(0, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness + 20}%, 1)`);
+        waveGradient.addColorStop(0.5, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, 1)`);
+        waveGradient.addColorStop(1, `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness - 10}%, 0.9)`);
 
         ctx.strokeStyle = waveGradient;
-        ctx.lineWidth = 2 + newAmplitude * 3;
-        ctx.shadowBlur = 15 + newAmplitude * 25;
-        ctx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 60%, ${newAmplitude * 0.6})`;
+        ctx.lineWidth = 3 + newAmplitude * 4;
+        ctx.shadowBlur = 25 + newAmplitude * 40;
+        ctx.shadowColor = `hsla(${color.hue + hueShift}, 100%, 70%, ${0.9 + newAmplitude * 0.1})`;
 
         ctx.beginPath();
 
@@ -112,7 +112,7 @@ export class FrequencyBandLayeredRenderer {
         ctx.lineTo(canvas.width, canvas.height);
         ctx.lineTo(0, canvas.height);
         ctx.closePath();
-        ctx.fillStyle = `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, ${newAmplitude * 0.15})`;
+        ctx.fillStyle = `hsla(${color.hue + hueShift}, ${saturation}%, ${lightness}%, ${newAmplitude * 0.3})`;
         ctx.fill();
       }
 
