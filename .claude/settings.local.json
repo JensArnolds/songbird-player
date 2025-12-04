@@ -10,7 +10,12 @@
       "Bash(curl:*)",
       "Bash(command -v:*)",
       "Bash(npm run db:generate:*)",
-      "Bash(npm install:*)"
+      "Bash(find:*)",
+      "Bash(dir:*)",
+      "Bash(test:*)",
+      "Bash(node electron/prepare-package.js:*)",
+      "Bash(grep:*)",
+      "Bash(npm run format:write:*)"
     ],
     "deny": [],
     "ask": []

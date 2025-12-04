@@ -1,16 +1,13 @@
 // File: next.config.js
 
-/**
- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
- * for Docker builds.
- */
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: true,
-  // For Electron: output standalone server for production builds
-  output: process.env.ELECTRON_BUILD === 'true' ? 'standalone' : undefined,
+  output: process.env.ELECTRON_BUILD === "true" ? "standalone" : undefined,
+  // Electron runs a bundled Next.js server with standalone output
+  // This allows API routes to work in the Electron app
   images: {
     remotePatterns: [
       {
@@ -29,6 +26,7 @@ const config = {
         pathname: "/**",
       },
     ],
+    unoptimized: process.env.ELECTRON_BUILD === "true", // Required for Electron
   },
 };
 

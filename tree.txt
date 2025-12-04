@@ -5,6 +5,7 @@ starchild-music-frontend
 ├───.gitignore
 ├───.markdownlint-cli2.jsonc
 ├───.pm2ignore
+├───CHANGELOG.md
 ├───drizzle.config.ts
 ├───drizzle.env.ts
 ├───ecosystem.config.cjs
@@ -23,20 +24,24 @@ starchild-music-frontend
 ├───tailwind.config.js
 ├───tree.txt
 ├───tsconfig.json
-├───tsconfig.tsbuildinfo
 ├───.claude/
 │   └───settings.local.json
+├───.cursor/
+│   └───worktrees.json
 ├───.github/
-│   ├───copilot-instructions.md
+│   ├───CONTRIBUTING.md
 │   ├───assets/
 │   │   ├───AppIcons.zip
 │   │   └───emily-the-strange_vivid.png
 │   └───docs/
 │       ├───DATABASE_CONNECTION_FIX.md
 │       ├───DATABASE_MIGRATION_GUIDE.md
+│       ├───ELECTRON_IMPROVEMENTS.md
+│       ├───ELECTRON_PERSISTENCE.md
 │       ├───IMPLEMENTATION_GUIDE.md
 │       ├───IMPLEMENTATION_SUMMARY.md
 │       ├───MOBILE_ENHANCEMENTS.md
+│       ├───MOBILE_OPTIMIZATION.md
 │       ├───MOBILE_OPTIMIZATION_SUMMARY.md
 │       ├───PM2_GUIDE.md
 │       ├───PM2_QUICK_REFERENCE.md
@@ -45,6 +50,7 @@ starchild-music-frontend
 │       ├───SMART_QUEUE_IMPROVEMENTS.md
 │       ├───SMART_QUEUE_QUICKSTART.md
 │       ├───SMART_QUEUE_ROADMAP.md
+│       ├───TROUBLESHOOTING_BLACK_SCREEN_ELECTRON.md
 │       └───UNAUTHORIZED_ERRORS_FIX.md
 ├───certs/
 │   └───ca.pem
@@ -78,17 +84,20 @@ starchild-music-frontend
 │       └───_journal.json
 ├───electron/
 │   ├───main.js
+│   ├───package.json
 │   ├───preload.js
-│   └───README.md
+│   ├───prepare-package.js
+│   ├───README.md
+│   ├───types.d.ts
+│   └───verify-build.js
 ├───logs/
 │   └───pm2/
-│       ├───.gitkeep
-│       ├───combined.log
-│       ├───error.log
-│       └───out.log
+│       └───.gitkeep
 ├───public/
-│   ├───fallback--Myq0giLLeocuJSFLu_Ct.js
+│   ├───fallback-urA3Ro15d6GNfWNSz80Y1.js
 │   ├───favicon.ico
+│   ├───icon.ico
+│   ├───icon.png
 │   ├───AppIcons/
 │   │   ├───appstore.png
 │   │   ├───playstore.png
@@ -160,6 +169,11 @@ starchild-music-frontend
     │   ├───_components/
     │   │   └───post.tsx
     │   ├───api/
+    │   │   ├───album/
+    │   │   │   └───[id]/
+    │   │   │       ├───route.ts
+    │   │   │       └───tracks/
+    │   │   │           └───route.ts
     │   │   ├───auth/
     │   │   │   └───[...nextauth]/
     │   │   │       └───route.ts
@@ -181,19 +195,23 @@ starchild-music-frontend
     │   ├───AudioVisualizer.tsx
     │   ├───BottomSheet.tsx
     │   ├───Button.tsx
+    │   ├───ElectronStorageInit.tsx
     │   ├───EmptyState.tsx
     │   ├───EnhancedPlayer.tsx
     │   ├───EnhancedQueue.tsx
     │   ├───EnhancedTrackCard.tsx
     │   ├───Equalizer.tsx
     │   ├───ErrorBoundary.tsx
+    │   ├───FloatingActionButton.tsx
     │   ├───Header.tsx
+    │   ├───LightweightParticleBackground.tsx
     │   ├───LoadingSpinner.tsx
     │   ├───MicroInteractions.tsx
     │   ├───MiniPlayer.tsx
     │   ├───MobileContentWrapper.tsx
     │   ├───MobileNavigation.tsx
     │   ├───MobilePlayer.tsx
+    │   ├───MobileSearchBar.tsx
     │   ├───MobileSwipeablePanes.tsx
     │   ├───OptimizedTrackList.tsx
     │   ├───PersistentPlayer.tsx
@@ -205,6 +223,8 @@ starchild-music-frontend
     │   ├───SessionProvider.tsx
     │   ├───SkeletonGrid.tsx
     │   ├───SnappyButton.tsx
+    │   ├───SuppressExtensionErrors.tsx
+    │   ├───SwipeableTrackCard.tsx
     │   ├───SwipeableTrackItem.tsx
     │   ├───Toast.tsx
     │   ├───TrackCard.tsx
@@ -232,12 +252,15 @@ starchild-music-frontend
     │   ├───features.ts
     │   ├───player.ts
     │   └───storage.ts
+    ├───constants/
+    │   └───visualizer.ts
     ├───contexts/
     │   ├───AudioPlayerContext.tsx
     │   ├───MobilePanesContext.tsx
     │   └───ToastContext.tsx
     ├───hooks/
     │   ├───useAudioPlayer.ts
+    │   ├───useAudioReactiveBackground.ts
     │   ├───useAudioVisualizer.ts
     │   ├───useEqualizer.ts
     │   ├───useHapticCallbacks.ts
@@ -268,6 +291,7 @@ starchild-music-frontend
     │       └───recommendations.ts
     ├───services/
     │   ├───smartQueue.ts
+    │   ├───songbird.ts
     │   └───storage.ts
     ├───styles/
     │   └───globals.css
@@ -282,9 +306,11 @@ starchild-music-frontend
         ├───api.ts
         ├───audioAnalysis.ts
         ├───colorExtractor.ts
+        ├───electronStorage.ts
         ├───errorHandling.ts
         ├───haptics.ts
         ├───images.ts
         ├───logger.ts
         ├───spring-animations.ts
-        └───time.ts
+        ├───time.ts
+        └───visualizerState.ts

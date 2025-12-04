@@ -1,26 +1,36 @@
 // File: electron/preload.js
 
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require("electron");
 
-// Expose protected methods that allow the renderer process to use
-// the ipcRenderer without exposing the entire object
-contextBridge.exposeInMainWorld('electron', {
-  // App info
-  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
-  getPlatform: () => ipcRenderer.invoke('get-platform'),
-  
-  // Media keys
+contextBridge.exposeInMainWorld("electron", {
+  platform: process.platform,
+  /**
+   * @param {string} channel
+   * @param {unknown} data
+   */
+  send: (channel, data) => {
+    const validChannels = ["toMain"];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.send(channel, data);
+    }
+  },
+  /**
+   * @param {string} channel
+   * @param {(...args: unknown[]) => void} func
+   */
+  receive: (channel, func) => {
+    const validChannels = ["fromMain"];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.on(channel, (event, ...args) => func(...args));
+    }
+  },
   /**
    * @param {(key: string) => void} callback
    */
   onMediaKey: (callback) => {
-    ipcRenderer.on('media-key', (_, key) => callback(key));
+    ipcRenderer.on("media-key", (_event, key) => callback(key));
   },
   removeMediaKeyListener: () => {
-    ipcRenderer.removeAllListeners('media-key');
+    ipcRenderer.removeAllListeners("media-key");
   },
-  
-  // Platform detection
-  isElectron: true,
-  platform: process.platform,
 });

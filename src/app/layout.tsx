@@ -5,6 +5,7 @@ import "@/styles/globals.css";
 import { Geist } from "next/font/google";
 import { type ReactNode } from "react";
 
+import { ElectronStorageInit } from "@/components/ElectronStorageInit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import Header from "@/components/Header";
@@ -25,11 +26,10 @@ const geist = Geist({
 
 export const metadata = {
   title: "Starchild Music Stream",
-  description: "Modern music streaming and discovery platform with smart recommendations",
+  description:
+    "Modern music streaming and discovery platform with smart recommendations",
   applicationName: "Starchild Music",
-  icons: [
-    { rel: "icon", url: "/favicon.ico" },
-  ],
+  icons: [{ rel: "icon", url: "/favicon.ico" }],
   other: {
     // Enhanced mobile meta tags
     "format-detection": "telephone=no", // Prevent auto-linking phone numbers
@@ -55,6 +55,7 @@ export default function RootLayout({
       </head>
       <body>
         <SuppressExtensionErrors />
+        <ElectronStorageInit />
         <ErrorBoundary>
           <SessionProvider>
             <TRPCReactProvider>

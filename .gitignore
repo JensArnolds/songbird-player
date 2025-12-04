@@ -70,3 +70,7 @@ public/**/*.js
 *.deb
 *.rpm
 *.snap
+
+.github/docs/*.md
+
+nul

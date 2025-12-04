@@ -1,22 +1,36 @@
 // File: src/server/db/index.ts
 
-import { neonConfig, Pool } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { readFileSync } from "fs";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { existsSync, readFileSync } from "fs";
 import path from "path";
 import * as schema from "./schema";
 
-// Configure Neon to use standard PostgreSQL compatible mode
-neonConfig.fetchConnectionCache = true;
+// Determine certificate path based on environment
+function getCertPath(): string {
+  // Try multiple possible locations
+  const possiblePaths = [
+    path.join(process.cwd(), "certs/ca.pem"), // Development
+    path.join(__dirname, "../../certs/ca.pem"), // Relative to build output
+    path.join(__dirname, "../../../certs/ca.pem"), // Another build variant
+  ];
 
-const connectionString = process.env.DATABASE_URL!;
+  for (const certPath of possiblePaths) {
+    if (existsSync(certPath)) {
+      console.log(`[DB] Using certificate from: ${certPath}`);
+      return certPath;
+    }
+  }
 
-// Create Neon pool with SSL configuration
+  throw new Error(
+    `[DB] Certificate not found. Searched paths: ${possiblePaths.join(", ")}`,
+  );
+}
+
 const pool = new Pool({
   connectionString,
   ssl: {
     rejectUnauthorized: true,
-    ca: readFileSync(path.join(process.cwd(), "certs/ca.pem")).toString(),
+    ca: readFileSync(getCertPath()).toString(),
   },
   // Connection pool configuration to prevent exhaustion
   max: 5, // Maximum number of connections
@@ -25,14 +39,14 @@ const pool = new Pool({
 });
 
 // Graceful shutdown - close pool when process exits
-if (typeof process !== 'undefined') {
-  process.on('SIGTERM', () => {
-    console.log('SIGTERM received, closing database pool...');
+if (typeof process !== "undefined") {
+  process.on("SIGTERM", () => {
+    console.log("SIGTERM received, closing database pool...");
     void pool.end();
   });
 
-  process.on('SIGINT', () => {
-    console.log('SIGINT received, closing database pool...');
+  process.on("SIGINT", () => {
+    console.log("SIGINT received, closing database pool...");
     void pool.end();
   });
 }
