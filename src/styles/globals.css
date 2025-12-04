@@ -62,7 +62,12 @@ body.visualizer-disabled::after {
   animation: none !important;
 }
 
-/* Simple dark background - let canvas kaleidoscope shine */
+/* Dark base background for html */
+html {
+  background: #000000;
+}
+
+/* Disable pseudo-elements */
 html::before {
   display: none;
 }
@@ -75,7 +80,7 @@ body {
   margin: 0;
   color: var(--color-text);
   position: relative;
-  background: radial-gradient(circle at 50% 50%, #000000 0%, #050010 100%);
+  background: transparent;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -83,7 +88,6 @@ body {
   -webkit-text-size-adjust: 100%;
   -webkit-overflow-scrolling: touch;
   min-height: 100vh;
-  transition: background 0.5s ease;
 }
 
 /* Hide body pseudo-elements - canvas only */
