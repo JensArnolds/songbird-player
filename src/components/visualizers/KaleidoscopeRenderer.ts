@@ -39,7 +39,7 @@ export class KaleidoscopeRenderer {
   }
 
   private initializeParticles(): void {
-    const particleCount = 50;
+    const particleCount = 100;
     const segmentAngle = (Math.PI * 2) / this.segments;
 
     for (let i = 0; i < particleCount; i++) {
@@ -71,8 +71,8 @@ export class KaleidoscopeRenderer {
     const midIntensity = this.getFrequencyBandIntensity(dataArray, bufferLength, 0.3, 0.6);
     const trebleIntensity = this.getFrequencyBandIntensity(dataArray, bufferLength, 0.7, 1.0);
 
-    // Clear main canvas with slight fade for trails
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    // Clear main canvas with slight fade for trails (darker for more vibrant trails)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Adjust segment count based on audio
@@ -174,7 +174,7 @@ export class KaleidoscopeRenderer {
     midIntensity: number,
     segmentAngle: number
   ): void {
-    const rayCount = 8;
+    const rayCount = 12;
 
     for (let i = 0; i < rayCount; i++) {
       const angle = (segmentAngle * i) / rayCount;
