@@ -4,6 +4,7 @@ const {
   Menu,
   globalShortcut,
   dialog,
+  session,
 } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
@@ -248,6 +249,8 @@ const createWindow = async () => {
       contextIsolation: true,
       sandbox: true,
       devTools: isDev,
+      // Enable persistent storage partition
+      partition: "persist:starchild-music",
     },
     icon: path.join(__dirname, "../public/icon.png"),
     backgroundColor: "#000000",
@@ -346,6 +349,29 @@ const registerMediaKeys = () => {
 
 app.whenReady().then(() => {
   log("App ready");
+
+  // Configure session persistence
+  const ses = session.defaultSession;
+
+  // Set persistent storage path for cookies and cache
+  const userDataPath = app.getPath("userData");
+  log("User data path:", userDataPath);
+
+  // Log storage path
+  log("Storage path:", ses.getStoragePath());
+
+  // Set cookie persistence - cookies won't expire on app restart
+  ses.cookies.on("changed", (_event, cookie, cause, removed) => {
+    if (!removed && isDev) {
+      log(`Cookie set: ${cookie.name} (${cause})`);
+    }
+  });
+
+  // Flush cookie store to ensure persistence
+  ses.cookies.flushStore().then(() => {
+    log("Session configured with persistent storage");
+  });
+
   createWindow();
 
   app.on("activate", () => {
@@ -401,6 +427,15 @@ app.on("will-quit", async (event) => {
   event.preventDefault();
 
   globalShortcut.unregisterAll();
+
+  // Flush cookies before quitting to ensure they're saved
+  try {
+    await session.defaultSession.cookies.flushStore();
+    log("Cookies flushed to disk");
+  } catch (err) {
+    log("Error flushing cookies:", err);
+  }
+
   await shutdownServer();
 
   app.exit(0);

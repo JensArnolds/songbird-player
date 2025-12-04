@@ -5,6 +5,7 @@ import "@/styles/globals.css";
 import { Geist } from "next/font/google";
 import { type ReactNode } from "react";
 
+import { ElectronStorageInit } from "@/components/ElectronStorageInit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import Header from "@/components/Header";
@@ -55,6 +56,7 @@ export default function RootLayout({
       </head>
       <body>
         <SuppressExtensionErrors />
+        <ElectronStorageInit />
         <ErrorBoundary>
           <SessionProvider>
             <TRPCReactProvider>
