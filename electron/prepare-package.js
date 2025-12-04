@@ -1,3 +1,5 @@
+// File: electron/prepare-package.js
+
 // Prepare Next.js standalone package for Electron
 // This script copies static files and public folder into the standalone directory
 // as required by Next.js standalone output
