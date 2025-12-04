@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Electron Desktop Application
 
 #### Core Electron Integration
+
 - **Electron Desktop App**: Full desktop application support with packaging for Windows, macOS, and Linux
 - **Production Build System**: Optimized standalone Next.js build with Electron integration
 - **Build Scripts**: Comprehensive build pipeline with platform-specific scripts
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `electron:prod:win` - Build and run Windows installer
 
 #### Persistence & State Management
+
 - **OAuth Session Persistence**: Login state persists across app restarts (30-day sessions)
 - **User Preferences Persistence**: All settings saved and restored automatically
   - Audio: Volume, playback rate, equalizer settings
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Storage Verification**: Automatic verification of storage persistence on startup
 
 #### Electron Features
+
 - **Media Key Support**: Global media key controls (play/pause, next, previous)
 - **Native Window Controls**: Proper window management with state saving
 - **Dynamic Port Assignment**: Automatic port detection and allocation
@@ -39,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Resource Bundling**: Automated copying of static assets, public files, and SSL certificates
 
 #### Developer Experience
+
 - **Storage Utilities**: Comprehensive Electron storage helpers
   - Storage verification and testing
   - Preference export/import for backup
@@ -49,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build Preparation**: Automated standalone package preparation script
 
 #### Technical Improvements
+
 - **Database Session Strategy**: NextAuth configured for 30-day database sessions
 - **Cookie Configuration**: Secure, httpOnly cookies with CSRF protection
 - **Error Handling**: Comprehensive error dialogs and logging
@@ -56,12 +61,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Graceful Shutdown**: Proper cleanup of server processes and resources
 
 ### Changed
+
 - **Authentication**: Extended session duration from default to 30 days
 - **Cookie Settings**: Custom cookie configuration for better persistence
 - **Package Configuration**: Updated main entry point and build configuration
 - **Environment Detection**: Improved production/development mode detection
 
 ### Fixed
+
 - **Session Loss**: Fixed issue where users had to log in on every app restart
 - **Preference Loss**: Fixed settings not persisting between app sessions
 - **Build Process**: Resolved standalone build issues with missing resources
@@ -71,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Core Application
 
 #### Music Streaming Platform
+
 - **Deezer Integration**: Full integration with Deezer API for music streaming
 - **Audio Player**: Advanced audio player with full playback controls
 - **Queue Management**: Comprehensive queue system with drag-and-drop reordering
@@ -78,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Playlists**: Create, manage, and play custom playlists
 
 #### Smart Features
+
 - **Smart Queue**: Intelligent auto-queue with similarity-based recommendations
 - **Smart Mix**: Generate personalized mixes from seed tracks
 - **HexMusic API Integration**: Advanced recommendation engine
@@ -85,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Similarity Filtering**: Adjustable similarity levels (strict, balanced, diverse)
 
 #### Audio Features
+
 - **9-Band Equalizer**: Professional equalizer with custom and preset options
   - 8 built-in presets (Rock, Pop, Jazz, Classical, etc.)
   - Custom band adjustment
@@ -107,6 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Skip forward/backward (10 seconds)
 
 #### User Interface
+
 - **Responsive Design**: Full mobile and desktop support
 - **Mobile Navigation**: Bottom navigation bar with swipeable panes
 - **Swipe Gestures**: Natural mobile interactions
@@ -122,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - And more...
 
 #### Backend & Infrastructure
+
 - **Next.js 15**: Latest Next.js with App Router
 - **tRPC**: Type-safe API layer
 - **PostgreSQL**: Reliable database with Drizzle ORM
@@ -129,6 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Drizzle ORM**: Type-safe database queries and migrations
 
 #### Data Management
+
 - **User Profiles**: User accounts with authentication
 - **Listening History**: Track playback history
 - **Playlist Management**: CRUD operations for playlists
@@ -137,6 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Smart Queue Settings**: Configurable auto-queue behavior
 
 #### Developer Features
+
 - **TypeScript**: Full type safety across the stack
 - **ESLint**: Code quality and consistency
 - **Prettier**: Code formatting
@@ -148,6 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Storage Abstraction**: Type-safe localStorage wrapper
 
 #### Performance
+
 - **React Query**: Efficient data fetching and caching
 - **Audio Context**: Optimized Web Audio API usage
 - **Debounced Updates**: Performance-optimized user interactions
@@ -156,6 +171,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bundle Analysis**: Build size monitoring
 
 #### Testing & Quality
+
 - **Type Checking**: Strict TypeScript configuration
 - **Linting**: Comprehensive ESLint rules
 - **Error Suppression**: Extension error filtering
@@ -164,6 +180,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Stack
 
 #### Frontend
+
 - Next.js 15.5.6
 - React 19.2.0
 - TypeScript 5.9.3
@@ -173,6 +190,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TanStack Query 5.90.5
 
 #### Backend
+
 - Next.js API Routes
 - NextAuth 5.0.0-beta.30
 - Drizzle ORM 0.41.0
@@ -180,12 +198,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tRPC Server 11.0.0
 
 #### Audio & Visualization
+
 - Tone.js 15.1.22
 - Web Audio API
 - Canvas API
 - react-audio-visualize 1.2.0
 
 #### Development
+
 - Electron 39.2.1
 - Electron Builder 25.1.8
 - ESLint 9.38.0
@@ -194,6 +214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-env 7.0.3
 
 #### Build & Deploy
+
 - PM2 Ecosystem
 - Standalone Next.js Output
 - Webpack 5.102.1
@@ -204,7 +225,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Release Notes
 
 ### Version 0.3.0 - Electron Desktop Application
+
 This release transforms Starchild Music into a full-featured desktop application with complete state persistence. Users can now:
+
 - Install Starchild Music as a native desktop app on Windows, macOS, and Linux
 - Enjoy seamless login that persists across app restarts
 - Have all preferences, settings, and UI state automatically saved and restored
@@ -212,7 +235,9 @@ This release transforms Starchild Music into a full-featured desktop application
 - Experience native window management with state persistence
 
 ### Version 0.2.0 - Initial Release
+
 The initial release of Starchild Music provides a comprehensive music streaming platform with intelligent recommendations, advanced audio features, and a modern user interface. Key highlights:
+
 - Stream music from Deezer's extensive catalog
 - Intelligent auto-queue with similarity-based recommendations
 - Professional 9-band equalizer with multiple visualization options
@@ -226,12 +251,14 @@ The initial release of Starchild Music provides a comprehensive music streaming 
 ### From 0.2.0 to 0.3.0
 
 **For End Users:**
+
 1. Download the installer for your platform from the releases page
 2. Run the installer
 3. Your first login will require Discord OAuth
 4. After login, all preferences will persist automatically
 
 **For Developers:**
+
 1. Pull the latest changes
 2. Install dependencies: `npm install`
 3. Set up environment variables (see `.env.example`)
@@ -247,11 +274,13 @@ No database migrations required for this release.
 ## Known Issues
 
 ### Version 0.3.0
+
 - First-time setup requires manual Discord OAuth configuration in environment variables
 - Windows installer requires manual uninstallation of previous versions
 - macOS may require security preferences adjustment for first launch (unsigned builds)
 
 ### Version 0.2.0
+
 - Mobile Safari may have issues with audio autoplay due to browser restrictions
 - Some visualizers may have performance issues on lower-end devices
 - Database migrations require manual execution via Drizzle Kit
@@ -261,6 +290,7 @@ No database migrations required for this release.
 ## Future Roadmap
 
 ### Planned Features
+
 - [ ] Offline mode with local caching
 - [ ] Cross-device sync
 - [ ] Last.fm scrobbling
@@ -273,6 +303,7 @@ No database migrations required for this release.
 - [ ] Radio stations
 
 ### Under Consideration
+
 - [ ] Spotify integration
 - [ ] Apple Music integration
 - [ ] Collaborative playlists

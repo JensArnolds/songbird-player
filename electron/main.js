@@ -1,3 +1,5 @@
+// File: electron/main.js
+
 const {
   app,
   BrowserWindow,
@@ -82,7 +84,10 @@ const findAvailablePort = (startPort) => {
     const server = http.createServer();
     server.listen(startPort, () => {
       const address = server.address();
-      const port = typeof address === 'object' && address !== null ? address.port : startPort;
+      const port =
+        typeof address === "object" && address !== null
+          ? address.port
+          : startPort;
       server.close(() => {
         log(`Found available port: ${port}`);
         resolve(port);

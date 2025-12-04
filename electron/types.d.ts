@@ -1,3 +1,5 @@
+// File: electron/types.d.ts
+
 export interface ElectronAPI {
   platform: string;
   send: (channel: string, data: unknown) => void;
