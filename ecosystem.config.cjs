@@ -9,7 +9,7 @@ module.exports = {
       // ============================================
       name: 'starchild-music-frontend-prod',
       script: 'node_modules/next/dist/bin/next',
-      args: 'start --port 3222',
+      args: 'start --port 3222 --update-env',
 
       // ============================================
       // CLUSTER & PERFORMANCE
@@ -96,7 +96,7 @@ module.exports = {
       ref: 'origin/main',
       repo: 'git@github.com:soulwax/starchild-music-frontend.git',
       path: '/home/soulwax/workspace/Web/Frontends/starchild-music-frontend',
-      'post-deploy': 'npm install && npm run build && pm2 reload ecosystem.config.cjs --env production',
+      'post-deploy': 'npm install && npm run build && pm2 reload ecosystem.config.cjs --env production --update-env',
       'pre-setup': '',
       env: {
         NODE_ENV: 'production',
