@@ -10,13 +10,12 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
 // import { extractColorsFromImage, type ColorPalette } from "@/utils/colorExtractor";
 // import { getCoverImage } from "@/utils/images";
+import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
-import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
-import { LightweightParticleBackground } from "./LightweightParticleBackground";
 import { FlowFieldBackground } from "./FlowFieldBackground";
-import { WelcomeHero } from "./WelcomeHero";
+import { LightweightParticleBackground } from "./LightweightParticleBackground";
 import MaturePlayer from "./Player";
 
 const Equalizer = dynamic(
