@@ -462,7 +462,7 @@ export default function MaturePlayer({
                 </svg>
               )}
             </button>
-            <div className="w-24">
+            <div className="flex w-24 items-center">
               <input
                 type="range"
                 min={0}
