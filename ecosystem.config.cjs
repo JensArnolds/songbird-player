@@ -30,8 +30,8 @@ module.exports = {
       // PRODUCTION CONFIGURATION
       // ============================================
       name: 'starchild-music-frontend-prod',
-      script: 'node_modules/next/dist/bin/next',
-      args: `start --port ${process.env.PORT || 3412}`,
+      script: 'scripts/server.js',
+      args: '',
 
       // ============================================
       // CLUSTER & PERFORMANCE
@@ -111,8 +111,8 @@ module.exports = {
       // DEVELOPMENT CONFIGURATION
       // ============================================
       name: 'starchild-music-frontend-dev',
-      script: 'node_modules/next/dist/bin/next',
-      args: 'dev --turbo --port 3412',
+      script: 'scripts/server.js',
+      args: '',
 
       // ============================================
       // CLUSTER & PERFORMANCE
