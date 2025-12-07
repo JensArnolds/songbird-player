@@ -15,7 +15,8 @@
       "Bash(test:*)",
       "Bash(node electron/prepare-package.js:*)",
       "Bash(grep:*)",
-      "Bash(npm run format:write:*)"
+      "Bash(npm run format:write:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
