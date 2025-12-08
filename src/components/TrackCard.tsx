@@ -2,8 +2,7 @@
 
 "use client";
 
-import type { Track } from "@/types";
-import type { PlaylistWithTracks } from "@/types/playlist";
+import type { Track, PlaylistWithTracks } from "@/types";
 import { getCoverImage } from "@/utils/images";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import Image from "next/image";
