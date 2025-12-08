@@ -112,9 +112,9 @@ module.exports = {
       // DEVELOPMENT CONFIGURATION
       // ============================================
       name: 'starchild-music-frontend-dev',
-      script: 'scripts/server.js',
-      args: '',
-      interpreter: 'node',
+      script: 'npm',
+      args: 'run dev',
+      interpreter: 'none',
 
       // ============================================
       // CLUSTER & PERFORMANCE
