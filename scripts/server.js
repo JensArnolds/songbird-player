@@ -7,7 +7,7 @@
  */
 
 import chalk from 'chalk';
-import { spawn } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import { existsSync } from 'fs';
 import os from 'os';
@@ -20,25 +20,21 @@ const __dirname = path.dirname(__filename);
 // ============================================
 // ENVIRONMENT LOADING
 // ============================================
-// Load .env first (base config)
+// Load only .env file
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
-// Load environment-specific file based on NODE_ENV
-const nodeEnv = process.env.NODE_ENV || 'development';
-if (nodeEnv === 'development') {
-  dotenv.config({ path: path.resolve(__dirname, '../.env.development') });
-} else if (nodeEnv === 'production') {
-  dotenv.config({ path: path.resolve(__dirname, '../.env.production') });
-}
-
-// Load .env.local last (overrides everything, never commit this file)
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 // ============================================
 // CONFIGURATION
 // ============================================
+const nodeEnv = process.env.NODE_ENV || 'production';
 const isDev = nodeEnv === 'development';
-const port = process.env.PORT || (isDev ? 3412 : 3222);
+
+// PORT is required from .env
+if (!process.env.PORT) {
+  console.error('Error: PORT environment variable is required. Please set it in .env file.');
+  process.exit(1);
+}
+const port = process.env.PORT;
 // In dev mode, bind to all interfaces (0.0.0.0) to allow network access
 // In production, use localhost or HOSTNAME from env
 const hostname = process.env.HOSTNAME || (isDev ? '0.0.0.0' : 'localhost');
@@ -161,13 +157,13 @@ function printStartupBanner() {
 }
 
 // ============================================
-// BUILD VALIDATION
+// BUILD VALIDATION & AUTO-RECOVERY
 // ============================================
 /**
- * Validates that a production build exists before starting the server
- * @returns {boolean} True if build is valid, false otherwise
+ * Ensures production build exists, building automatically if missing
+ * @returns {boolean} True if build is valid or was built successfully, false otherwise
  */
-function validateProductionBuild() {
+function ensureProductionBuild() {
   if (isDev) {
     return true; // No validation needed in development
   }
@@ -176,26 +172,34 @@ function validateProductionBuild() {
   const nextDirPath = path.resolve(__dirname, '../.next');
   const serverDirPath = path.resolve(__dirname, '../.next/server');
 
-  // Check if .next directory exists
-  if (!existsSync(nextDirPath)) {
-    logger.error('Production build not found: .next directory does not exist');
-    logger.error('Please run "npm run build" before starting the production server');
-    return false;
-  }
+  // Check if build exists and is complete
+  const buildExists = existsSync(buildIdPath) && existsSync(nextDirPath) && existsSync(serverDirPath);
 
-  // Check if BUILD_ID file exists (required by Next.js)
-  if (!existsSync(buildIdPath)) {
-    logger.error('Production build is incomplete: BUILD_ID file is missing');
-    logger.error('The .next directory exists but the build is not complete');
-    logger.error('Please run "npm run build" to create a complete production build');
-    return false;
-  }
-
-  // Check if server directory exists
-  if (!existsSync(serverDirPath)) {
-    logger.error('Production build is incomplete: .next/server directory does not exist');
-    logger.error('Please run "npm run build" to create a complete production build');
-    return false;
+  if (!buildExists) {
+    logger.warn('Production build not found or incomplete');
+    
+    // Try to build automatically
+    logger.info('Attempting to build automatically...');
+    try {
+      execSync('npm run build', {
+        cwd: path.resolve(__dirname, '..'),
+        stdio: 'inherit',
+        env: { ...process.env, NODE_ENV: 'production' },
+      });
+      
+      // Verify build was successful
+      if (existsSync(buildIdPath) && existsSync(serverDirPath)) {
+        logger.success('Production build created successfully');
+        return true;
+      } else {
+        logger.error('Build completed but BUILD_ID or server directory still missing');
+        return false;
+      }
+    } catch (error) {
+      logger.error('Automatic build failed');
+      logger.error('Please run "npm run build" manually to create a production build');
+      return false;
+    }
   }
 
   logger.success('Production build validated successfully');
@@ -206,8 +210,8 @@ function validateProductionBuild() {
 // START SERVER
 // ============================================
 function startServer() {
-  // Validate production build before starting
-  if (!validateProductionBuild()) {
+  // Ensure production build exists (builds automatically if missing)
+  if (!ensureProductionBuild()) {
     logger.error('Cannot start production server without a valid build');
     logger.error('Exiting to prevent crash loop. Please build the application first.');
     process.exit(1);
