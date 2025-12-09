@@ -30,7 +30,7 @@
     }
   ],
   "scripts": {
-    "build": "next build || (echo 'Build completed with warnings (expected App Router page errors)' && exit 0)",
+    "build": "next build",
     "check": "eslint . && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
