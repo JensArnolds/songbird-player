@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Settings } from "lucide-react";
+import { Layers } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
 
@@ -73,7 +73,7 @@ export default function PatternControls({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[rgba(244,178,102,0.12)] px-4 py-3">
           <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-[var(--color-accent)]" />
+            <Layers className="h-4 w-4 text-[var(--color-accent)]" />
             <h3 className="font-semibold text-[var(--color-text)]">
               Pattern Controls
             </h3>

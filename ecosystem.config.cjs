@@ -147,11 +147,13 @@ module.exports = {
       // ============================================
       env: {
         NODE_ENV: "development",
-        PORT: 3412, // Use fixed port 3412 for dev
+        // Explicitly set PORT to 3412 for dev, ignoring any PORT from .env files
+        PORT: "3412",
       },
       env_development: {
         NODE_ENV: "development",
-        PORT: 3412, // Use fixed port 3412 for dev
+        // Explicitly set PORT to 3412 for dev, ignoring any PORT from .env files
+        PORT: "3412",
       },
 
       // ============================================
