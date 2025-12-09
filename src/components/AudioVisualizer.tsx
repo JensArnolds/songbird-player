@@ -516,6 +516,7 @@ export function AudioVisualizer({
 
     const renderFrame = (data: Uint8Array) => {
       // Render kaleidoscope visualization with audio data
+      console.log(`[Visualizer] Currently rendering: ${currentType}`);
       kaleidoscopeRendererRef.current?.render(data, data.length);
     };
 
