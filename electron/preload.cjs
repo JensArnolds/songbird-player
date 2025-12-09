@@ -1,4 +1,4 @@
-// File: electron/preload.js
+// File: electron/preload.cjs
 
 const { contextBridge, ipcRenderer } = require("electron");
 

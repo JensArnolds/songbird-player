@@ -1,3 +1,5 @@
+// File: src/components/visualizers/FlowFieldRenderer.ts
+
 interface Particle {
   x: number;
   y: number;

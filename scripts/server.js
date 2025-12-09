@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// File: scripts/server.js
+
 /**
  * Custom Next.js server wrapper
  * Provides centralized logging and startup configuration with chalk

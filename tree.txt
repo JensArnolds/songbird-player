@@ -6,9 +6,11 @@ starchild-music-frontend
 ├───.markdownlint-cli2.jsonc
 ├───.pm2ignore
 ├───CHANGELOG.md
+├───config1.1
 ├───drizzle.config.ts
 ├───drizzle.env.ts
 ├───ecosystem.config.cjs
+├───ecosystem.config.js
 ├───eslint.config.js
 ├───LICENSE.md
 ├───next-env.d.ts
@@ -24,20 +26,19 @@ starchild-music-frontend
 ├───tailwind.config.js
 ├───tree.txt
 ├───tsconfig.json
+├───tsconfig.tsbuildinfo
 ├───.claude/
 │   └───settings.local.json
 ├───.cursor/
 │   └───worktrees.json
 ├───.github/
-│   ├───CONTRIBUTING.md
+│   ├───copilot-instructions.md
 │   ├───assets/
 │   │   ├───AppIcons.zip
 │   │   └───emily-the-strange_vivid.png
 │   └───docs/
 │       ├───DATABASE_CONNECTION_FIX.md
 │       ├───DATABASE_MIGRATION_GUIDE.md
-│       ├───ELECTRON_IMPROVEMENTS.md
-│       ├───ELECTRON_PERSISTENCE.md
 │       ├───IMPLEMENTATION_GUIDE.md
 │       ├───IMPLEMENTATION_SUMMARY.md
 │       ├───MOBILE_ENHANCEMENTS.md
@@ -50,7 +51,6 @@ starchild-music-frontend
 │       ├───SMART_QUEUE_IMPROVEMENTS.md
 │       ├───SMART_QUEUE_QUICKSTART.md
 │       ├───SMART_QUEUE_ROADMAP.md
-│       ├───TROUBLESHOOTING_BLACK_SCREEN_ELECTRON.md
 │       └───UNAUTHORIZED_ERRORS_FIX.md
 ├───certs/
 │   └───ca.pem
@@ -68,6 +68,8 @@ starchild-music-frontend
 │   ├───0010_nostalgic_human_cannonball.sql
 │   ├───0011_populate_user_hash.sql
 │   ├───0011_useful_the_enforcers.sql
+│   ├───0012_remarkable_ronan.sql
+│   ├───0013_outgoing_sumo.sql
 │   └───meta/
 │       ├───0000_snapshot.json
 │       ├───0001_snapshot.json
@@ -81,19 +83,30 @@ starchild-music-frontend
 │       ├───0009_snapshot.json
 │       ├───0010_snapshot.json
 │       ├───0011_snapshot.json
+│       ├───0012_snapshot.json
+│       ├───0013_snapshot.json
 │       └───_journal.json
 ├───electron/
-│   ├───main.js
+│   ├───main.cjs
 │   ├───package.json
-│   ├───preload.js
+│   ├───preload.cjs
 │   ├───prepare-package.js
 │   ├───README.md
+│   ├───sign.js
+│   ├───SIGNING.md
 │   ├───types.d.ts
 │   └───verify-build.js
 ├───logs/
 │   └───pm2/
-│       └───.gitkeep
+│       ├───.gitkeep
+│       ├───combined.log
+│       ├───dev-combined.log
+│       ├───dev-error.log
+│       ├───dev-out.log
+│       ├───error.log
+│       └───out.log
 ├───public/
+│   ├───fallback--Myq0giLLeocuJSFLu_Ct.js
 │   ├───fallback-urA3Ro15d6GNfWNSz80Y1.js
 │   ├───favicon.ico
 │   ├───icon.ico
@@ -156,7 +169,9 @@ starchild-music-frontend
 │       └───placeholder-cover.svg
 ├───scripts/
 │   ├───check-users.ts
+│   ├───load-env-build.js
 │   ├───populate-userhash.ts
+│   ├───server.js
 │   └───set-profile-public.ts
 └───src/
     ├───env.js
@@ -203,6 +218,7 @@ starchild-music-frontend
     │   ├───Equalizer.tsx
     │   ├───ErrorBoundary.tsx
     │   ├───FloatingActionButton.tsx
+    │   ├───FlowFieldBackground.tsx
     │   ├───Header.tsx
     │   ├───LightweightParticleBackground.tsx
     │   ├───LoadingSpinner.tsx
@@ -228,24 +244,10 @@ starchild-music-frontend
     │   ├───SwipeableTrackItem.tsx
     │   ├───Toast.tsx
     │   ├───TrackCard.tsx
+    │   ├───WelcomeHero.tsx
     │   └───visualizers/
-    │       ├───BarsRenderer.ts
-    │       ├───CircularRenderer.ts
-    │       ├───FrequencyBandBarsRenderer.ts
-    │       ├───FrequencyBandCircularRenderer.ts
-    │       ├───FrequencyBandLayeredRenderer.ts
-    │       ├───FrequencyBandParticlesRenderer.ts
-    │       ├───FrequencyBandRadialRenderer.ts
-    │       ├───FrequencyBandWaterfallRenderer.ts
-    │       ├───FrequencyRingsRenderer.ts
-    │       ├───ParticleRenderer.ts
-    │       ├───RadialSpectrumRenderer.ts
-    │       ├───SpectralWavesRenderer.ts
-    │       ├───SpectrumRenderer.ts
-    │       ├───WaveRenderer.ts
-    │       └───utils/
-    │           ├───MathUtils.ts
-    │           └───PerlinNoise.ts
+    │       ├───FlowFieldRenderer.ts
+    │       └───KaleidoscopeRenderer.ts
     ├───config/
     │   ├───audioDefaults.ts
     │   ├───constants.ts

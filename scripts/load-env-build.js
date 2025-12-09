@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// File: scripts/load-env-build.js
+
 // Script to load .env.local and run a command with those environment variables
 // @ts-check
 

@@ -1,6 +1,6 @@
-// File: electron/main.js
-
+// File: electron/main.cjs
 // Load environment variables from .env.local first
+
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 

@@ -1,3 +1,5 @@
+// File: src/components/visualizers/KaleidoscopeRenderer.ts
+
 interface Particle {
   x: number;
   y: number;
