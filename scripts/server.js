@@ -38,7 +38,9 @@ dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 // ============================================
 const isDev = nodeEnv === 'development';
 const port = process.env.PORT || (isDev ? 3412 : 3222);
-const hostname = process.env.HOSTNAME || 'localhost';
+// In dev mode, bind to all interfaces (0.0.0.0) to allow network access
+// In production, use localhost or HOSTNAME from env
+const hostname = process.env.HOSTNAME || (isDev ? '0.0.0.0' : 'localhost');
 
 // ============================================
 // CENTRALIZED LOGGING WITH CHALK
@@ -172,9 +174,9 @@ function startServer() {
     '--hostname', hostname,
   ];
 
-  // Add turbo flag only in development and expose to all interfaces
+  // Add turbo flag only in development
   if (isDev) {
-    args.push('--turbo', '--hostname', '0.0.0.0');
+    args.push('--turbo');
   }
 
   logger.info(`Starting Next.js ${isDev ? 'development' : 'production'} server...`);
