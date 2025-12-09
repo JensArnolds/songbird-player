@@ -107,9 +107,6 @@ export class FlowFieldRenderer {
   private currentPattern: Pattern = "rays";
   private nextPattern: Pattern = "fractal";
   private patternTimer = 0;
-  private patternDuration = 300; // Frames before transition (5 seconds at 60fps) - faster transitions
-  private transitionProgress = 0;
-  private transitionSpeed = 0.04; // Faster transition speed
   private patternDuration = 300; // Halved from 600 to 300
   private transitionProgress = 0;
   private transitionSpeed = 0.015;
