@@ -70,7 +70,27 @@ type Pattern =
   | "metatron"
   | "vesicaPiscis"
   | "torusField"
-  | "cosmicEgg";
+  | "cosmicEgg"
+  | "enochian"
+  | "labyrinth"
+  | "cosmicWeb"
+  | "vortexSpiral"
+  | "sacredSpiral"
+  | "elementalCross"
+  | "dragonEye"
+  | "ancientGlyphs"
+  | "timeWheel"
+  | "astralProjection"
+  | "ethericField"
+  | "platonic"
+  | "infinityKnot"
+  | "cosmicLotus"
+  | "voidMandala"
+  | "stellarMap"
+  | "wyrdWeb"
+  | "spiritualGateway"
+  | "akashicRecords"
+  | "sacredGeometry";
 
 export class FlowFieldRenderer {
   private canvas: HTMLCanvasElement;
@@ -137,6 +157,26 @@ export class FlowFieldRenderer {
     "vesicaPiscis",
     "torusField",
     "cosmicEgg",
+    "enochian",
+    "labyrinth",
+    "cosmicWeb",
+    "vortexSpiral",
+    "sacredSpiral",
+    "elementalCross",
+    "dragonEye",
+    "ancientGlyphs",
+    "timeWheel",
+    "astralProjection",
+    "ethericField",
+    "platonic",
+    "infinityKnot",
+    "cosmicLotus",
+    "voidMandala",
+    "stellarMap",
+    "wyrdWeb",
+    "spiritualGateway",
+    "akashicRecords",
+    "sacredGeometry",
   ];
   private patternSequence: Pattern[] = [];
   private patternIndex = 0;
@@ -174,6 +214,8 @@ export class FlowFieldRenderer {
     y: number;
     connections: number[];
   }[] = [];
+
+  private stellarMapStars: { x: number; y: number; size: number; hue: number }[] = [];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -379,11 +421,11 @@ export class FlowFieldRenderer {
     this.fractalZoom +=
       (0.02 + audioIntensity * 0.05) * (1 + Math.sin(this.time * 0.002) * 0.5);
 
-    const maxIter = 50 + Math.floor(audioIntensity * 50);
+    const maxIter = 30 + Math.floor(audioIntensity * 30);
     const zoom = Math.pow(1.5, this.fractalZoom);
 
-    for (let py = 0; py < this.height; py += 2) {
-      for (let px = 0; px < this.width; px += 2) {
+    for (let py = 0; py < this.height; py += 3) {
+      for (let px = 0; px < this.width; px += 3) {
         const x0 =
           (px - this.centerX) / (this.width * 0.25) / zoom +
           this.fractalOffsetX;
@@ -409,8 +451,8 @@ export class FlowFieldRenderer {
 
         const rgb = this.hslToRgb(hue / 360, saturation / 100, lightness / 100);
 
-        for (let dy = 0; dy < 2 && py + dy < this.height; dy++) {
-          for (let dx = 0; dx < 2 && px + dx < this.width; dx++) {
+        for (let dy = 0; dy < 3 && py + dy < this.height; dy++) {
+          for (let dx = 0; dx < 3 && px + dx < this.width; dx++) {
             const i = ((py + dy) * this.width + (px + dx)) * 4;
             data[i] = rgb[0] ?? 0;
             data[i + 1] = rgb[1] ?? 0;
@@ -2303,6 +2345,66 @@ export class FlowFieldRenderer {
       case "cosmicEgg":
         this.renderCosmicEgg(audioIntensity, bassIntensity, midIntensity);
         break;
+      case "enochian":
+        this.renderEnochian(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "labyrinth":
+        this.renderLabyrinth(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "cosmicWeb":
+        this.renderCosmicWeb(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "vortexSpiral":
+        this.renderVortexSpiral(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "sacredSpiral":
+        this.renderSacredSpiral(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "elementalCross":
+        this.renderElementalCross(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "dragonEye":
+        this.renderDragonEye(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "ancientGlyphs":
+        this.renderAncientGlyphs(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "timeWheel":
+        this.renderTimeWheel(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "astralProjection":
+        this.renderAstralProjection(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "ethericField":
+        this.renderEthericField(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "platonic":
+        this.renderPlatonic(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "infinityKnot":
+        this.renderInfinityKnot(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "cosmicLotus":
+        this.renderCosmicLotus(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "voidMandala":
+        this.renderVoidMandala(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "stellarMap":
+        this.renderStellarMap(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "wyrdWeb":
+        this.renderWyrdWeb(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "spiritualGateway":
+        this.renderSpiritualGateway(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "akashicRecords":
+        this.renderAkashicRecords(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "sacredGeometry":
+        this.renderSacredGeometry(audioIntensity, bassIntensity, midIntensity);
+        break;
     }
   }
 
@@ -2717,7 +2819,7 @@ export class FlowFieldRenderer {
   private renderOuroboros(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
     const ctx = this.ctx;
     const radius = 250 + bassIntensity * 100;
-    const segments = 100;
+    const segments = 60;
     const thickness = 15 + audioIntensity * 10;
 
     ctx.save();
@@ -2742,7 +2844,7 @@ export class FlowFieldRenderer {
       ctx.fill();
 
       // Add scales
-      if (i % 5 === 0) {
+      if (i % 8 === 0) {
         const scaleSize = thickness * 0.5;
         ctx.fillStyle = `hsla(${hue + 30}, 85%, 70%, 0.5)`;
         ctx.fillRect(x - scaleSize / 2, y - scaleSize / 2, scaleSize, scaleSize);
@@ -2813,7 +2915,7 @@ export class FlowFieldRenderer {
       ctx.stroke();
 
       // Petals
-      const petalCount = i + 4;
+      const petalCount = Math.min(i + 3, 8);
       for (let j = 0; j < petalCount; j++) {
         const angle = (Math.PI * 2 * j) / petalCount + this.time * 0.002;
         const petalX = this.centerX + Math.cos(angle) * (size + 15);
@@ -3970,7 +4072,7 @@ export class FlowFieldRenderer {
   private renderFlowerOfLife(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
     const ctx = this.ctx;
     const radius = 50 + midIntensity * 20;
-    const rings = 3;
+    const rings = 2;
 
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -3998,12 +4100,10 @@ export class FlowFieldRenderer {
         const y = Math.sin(angle) * distance;
 
         ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${0.6 + audioIntensity * 0.2})`;
-        ctx.fillStyle = `hsla(${hue}, 75%, 60%, 0.1)`;
         ctx.lineWidth = 2;
 
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
         ctx.stroke();
 
         // Add pulsing center dots
@@ -4223,10 +4323,11 @@ export class FlowFieldRenderer {
 
     const circleRadius = radius * 0.2;
 
-    // Draw connections (edges of platonic solids)
+    // Draw connections (edges of platonic solids) - optimized with single path
     ctx.strokeStyle = `hsla(${this.hueBase}, 70%, 60%, ${0.3 + audioIntensity * 0.2})`;
     ctx.lineWidth = 2;
 
+    ctx.beginPath();
     for (let i = 0; i < circlePositions.length; i++) {
       for (let j = i + 1; j < circlePositions.length; j++) {
         const from = circlePositions[i];
@@ -4239,16 +4340,12 @@ export class FlowFieldRenderer {
 
         // Only connect circles within certain distance
         if (dist < radius * 1.2) {
-          const lineHue = (this.hueBase + (i + j) * 15) % 360;
-          ctx.strokeStyle = `hsla(${lineHue}, 70%, 60%, ${0.2 + audioIntensity * 0.15})`;
-
-          ctx.beginPath();
           ctx.moveTo(from.x, from.y);
           ctx.lineTo(to.x, to.y);
-          ctx.stroke();
         }
       }
     }
+    ctx.stroke();
 
     // Draw circles
     circlePositions.forEach((pos, index) => {
@@ -4754,6 +4851,1255 @@ export class FlowFieldRenderer {
         ctx.restore();
       }
     }
+
+    ctx.restore();
+  }
+  private renderEnochian(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const gridSize = 4;
+    const cellSize = Math.min(this.width, this.height) / (gridSize + 2);
+    const enochianChars = ['⊕', '⊗', '⊙', '☉', '☊', '☋', '☌', '☍', '⚹', '⚺', '⚻', '⚼'];
+
+    ctx.strokeStyle = `hsla(${this.hueBase + 60}, 90%, 70%, ${0.8 + audioIntensity * 0.2})`;
+    ctx.lineWidth = 4 + bassIntensity * 4;
+    ctx.beginPath();
+    ctx.moveTo(-cellSize * 2, 0);
+    ctx.lineTo(cellSize * 2, 0);
+    ctx.moveTo(0, -cellSize * 2);
+    ctx.lineTo(0, cellSize * 2);
+    ctx.stroke();
+
+    for (let row = -2; row < 2; row++) {
+      for (let col = -2; col < 2; col++) {
+        const x = col * cellSize + cellSize / 2;
+        const y = row * cellSize + cellSize / 2;
+        const charIndex = ((row + 2) * gridSize + (col + 2)) % enochianChars.length;
+        const rotation = Math.sin(this.time * 0.003 + row + col) * 0.2;
+        const scale = 1 + Math.sin(this.time * 0.005 + row * col) * 0.15 + midIntensity * 0.2;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.scale(scale, scale);
+
+        ctx.fillStyle = `hsla(${this.hueBase + charIndex * 15}, 90%, 75%, ${0.9 + audioIntensity * 0.1})`;
+        ctx.font = `${cellSize * 0.5}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(enochianChars[charIndex] ?? '', 0, 0);
+        ctx.restore();
+      }
+    }
+
+    const outerRadius = cellSize * 2.5 + bassIntensity * 20;
+    ctx.strokeStyle = `hsla(${this.hueBase}, 90%, 70%, ${0.7 + audioIntensity * 0.2})`;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 5]);
+    ctx.beginPath();
+    ctx.arc(0, 0, outerRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.restore();
+  }
+
+  private renderLabyrinth(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const rings = 7;
+    const maxRadius = Math.min(this.width, this.height) * 0.4;
+
+    for (let ring = 0; ring < rings; ring++) {
+      const radius = (maxRadius / rings) * (ring + 1);
+      const segmentCount = 8 + ring * 2;
+      const rotation = this.time * 0.001 * (ring % 2 === 0 ? 1 : -1);
+
+      ctx.save();
+      ctx.rotate(rotation);
+
+      for (let seg = 0; seg < segmentCount; seg++) {
+        const angle = (Math.PI * 2 * seg) / segmentCount;
+        const nextAngle = (Math.PI * 2 * (seg + 1)) / segmentCount;
+        const shouldDraw = (seg + ring) % 3 !== 0;
+
+        if (shouldDraw) {
+          const hue = (this.hueBase + ring * 30 + seg * 5) % 360;
+          const alpha = 0.6 + Math.sin(this.time * 0.005 + seg) * 0.2 + trebleIntensity * 0.2;
+
+          ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${alpha})`;
+          ctx.lineWidth = 2 + bassIntensity * 2;
+          ctx.lineCap = 'round';
+
+          ctx.beginPath();
+          ctx.arc(0, 0, radius, angle, nextAngle);
+          ctx.stroke();
+
+          if (ring < rings - 1 && seg % 2 === 0) {
+            const innerRadius = (maxRadius / rings) * ring;
+            const connectorAngle = (angle + nextAngle) / 2;
+            const x1 = Math.cos(connectorAngle) * innerRadius;
+            const y1 = Math.sin(connectorAngle) * innerRadius;
+            const x2 = Math.cos(connectorAngle) * radius;
+            const y2 = Math.sin(connectorAngle) * radius;
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    const centerGlow = 20 + bassIntensity * 15;
+    const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, centerGlow);
+    centerGradient.addColorStop(0, `hsla(${this.hueBase + 180}, 100%, 80%, 1)`);
+    centerGradient.addColorStop(1, `hsla(${this.hueBase + 180}, 100%, 80%, 0)`);
+    ctx.fillStyle = centerGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, centerGlow, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderCosmicWeb(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const nodeCount = 12;
+    const nodes: { x: number; y: number }[] = [];
+    const radius = Math.min(this.width, this.height) * 0.35;
+
+    for (let i = 0; i < nodeCount; i++) {
+      const spiralProgress = i / nodeCount;
+      const angle = spiralProgress * Math.PI * 4 + this.time * 0.002;
+      const r = radius * (0.3 + spiralProgress * 0.7);
+      nodes.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r });
+    }
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const distance = Math.hypot(nodes[i]!.x - nodes[j]!.x, nodes[i]!.y - nodes[j]!.y);
+        const maxDistance = radius * 0.8;
+
+        if (distance < maxDistance) {
+          const alpha = (1 - distance / maxDistance) * 0.4 + midIntensity * 0.2;
+          const hue = (this.hueBase + i * 15 + j * 10) % 360;
+
+          ctx.strokeStyle = `hsla(${hue}, 80%, 65%, ${alpha})`;
+          ctx.lineWidth = 1 + (1 - distance / maxDistance) * 2;
+
+          const pulsePos = (this.time * 0.005 + i * 0.1) % 1;
+          const pulseX = nodes[i]!.x + (nodes[j]!.x - nodes[i]!.x) * pulsePos;
+          const pulseY = nodes[i]!.y + (nodes[j]!.y - nodes[i]!.y) * pulsePos;
+
+          ctx.beginPath();
+          ctx.moveTo(nodes[i]!.x, nodes[i]!.y);
+          ctx.lineTo(nodes[j]!.x, nodes[j]!.y);
+          ctx.stroke();
+
+          ctx.fillStyle = `hsla(${hue + 60}, 90%, 75%, ${0.8 + audioIntensity * 0.2})`;
+          ctx.beginPath();
+          ctx.arc(pulseX, pulseY, 3 + bassIntensity * 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    nodes.forEach((node, i) => {
+      const nodeSize = 6 + Math.sin(this.time * 0.003 + i) * 3 + bassIntensity * 4;
+      const hue = (this.hueBase + i * 20) % 360;
+
+      const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, nodeSize * 2);
+      gradient.addColorStop(0, `hsla(${hue}, 90%, 75%, 1)`);
+      gradient.addColorStop(0.5, `hsla(${hue}, 85%, 70%, 0.6)`);
+      gradient.addColorStop(1, `hsla(${hue}, 80%, 65%, 0)`);
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, nodeSize * 2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.restore();
+  }
+
+  private renderVortexSpiral(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const arms = 5;
+    const maxRadius = Math.min(this.width, this.height) * 0.45;
+    const turns = 4;
+
+    for (let arm = 0; arm < arms; arm++) {
+      const armOffset = (Math.PI * 2 * arm) / arms;
+      const armHue = (this.hueBase + arm * (360 / arms)) % 360;
+
+      ctx.beginPath();
+      for (let i = 0; i <= 100; i++) {
+        const progress = i / 100;
+        const angle = armOffset + progress * Math.PI * 2 * turns + this.time * 0.003;
+        const radius = progress * maxRadius * (0.1 + progress * 0.9);
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      const gradient = ctx.createLinearGradient(0, 0, maxRadius, 0);
+      gradient.addColorStop(0, `hsla(${armHue}, 90%, 70%, 0.2)`);
+      gradient.addColorStop(0.5, `hsla(${armHue}, 85%, 65%, ${0.6 + midIntensity * 0.3})`);
+      gradient.addColorStop(1, `hsla(${armHue}, 80%, 60%, 0.9)`);
+
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 3 + bassIntensity * 4;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    const eyeSize = 30 + bassIntensity * 20;
+    const eyeGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, eyeSize);
+    eyeGradient.addColorStop(0, `hsla(${this.hueBase + 180}, 100%, 90%, 1)`);
+    eyeGradient.addColorStop(0.6, `hsla(${this.hueBase + 120}, 90%, 70%, 0.7)`);
+    eyeGradient.addColorStop(1, `hsla(${this.hueBase}, 80%, 60%, 0)`);
+
+    ctx.fillStyle = eyeGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, eyeSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderSacredSpiral(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const phi = 1.618033988749;
+    const maxRadius = Math.min(this.width, this.height) * 0.4;
+    const turns = 3;
+
+    for (let spiralIndex = 0; spiralIndex < 3; spiralIndex++) {
+      const offset = (Math.PI * 2 * spiralIndex) / 3;
+      const hue = (this.hueBase + spiralIndex * 120) % 360;
+
+      ctx.beginPath();
+      for (let i = 0; i <= 200; i++) {
+        const progress = i / 200;
+        const angle = offset + progress * Math.PI * 2 * turns + this.time * 0.002 * (spiralIndex % 2 === 0 ? 1 : -1);
+        const radius = maxRadius * Math.pow(phi, -2 + progress * 3) / phi;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${0.6 + trebleIntensity * 0.3})`;
+      ctx.lineWidth = 2 + bassIntensity * 3;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  private renderElementalCross(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const armLength = Math.min(this.width, this.height) * 0.35;
+    const elements = [
+      { angle: 0, hue: 15, symbol: '△' },
+      { angle: Math.PI / 2, hue: 60, symbol: '△' },
+      { angle: Math.PI, hue: 200, symbol: '▽' },
+      { angle: (Math.PI * 3) / 2, hue: 120, symbol: '▽' },
+    ];
+
+    elements.forEach((element, index) => {
+      ctx.save();
+      ctx.rotate(element.angle);
+
+      const gradient = ctx.createLinearGradient(0, 0, armLength, 0);
+      gradient.addColorStop(0, `hsla(${element.hue}, 90%, 70%, ${0.8 + audioIntensity * 0.2})`);
+      gradient.addColorStop(1, `hsla(${element.hue}, 90%, 70%, 0)`);
+
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 8 + bassIntensity * 6;
+      ctx.lineCap = 'round';
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(armLength, 0);
+      ctx.stroke();
+
+      ctx.translate(armLength * 0.85, 0);
+      const symbolScale = 1 + Math.sin(this.time * 0.005 + index) * 0.2 + midIntensity * 0.3;
+      ctx.scale(symbolScale, symbolScale);
+
+      ctx.fillStyle = `hsla(${element.hue}, 95%, 75%, ${0.9 + audioIntensity * 0.1})`;
+      ctx.font = `${armLength * 0.15}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(element.symbol, 0, 0);
+
+      ctx.restore();
+    });
+
+    const centerSize = 40 + bassIntensity * 20;
+    const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, centerSize);
+    centerGradient.addColorStop(0, `hsla(${this.hueBase}, 95%, 80%, 1)`);
+    centerGradient.addColorStop(0.7, `hsla(${this.hueBase + 60}, 90%, 70%, 0.7)`);
+    centerGradient.addColorStop(1, `hsla(${this.hueBase + 120}, 85%, 60%, 0)`);
+
+    ctx.fillStyle = centerGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, centerSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderDragonEye(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const eyeWidth = Math.min(this.width, this.height) * 0.4;
+    const eyeHeight = eyeWidth * 0.6;
+
+    ctx.fillStyle = `hsla(${this.hueBase + 30}, 40%, 90%, 0.9)`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, eyeWidth, eyeHeight, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const irisRadius = eyeHeight * 0.7;
+    const irisGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, irisRadius);
+    irisGradient.addColorStop(0, `hsla(${this.hueBase + 40}, 80%, 60%, 1)`);
+    irisGradient.addColorStop(0.6, `hsla(${this.hueBase + 20}, 85%, 55%, 1)`);
+    irisGradient.addColorStop(1, `hsla(${this.hueBase}, 70%, 40%, 1)`);
+
+    ctx.fillStyle = irisGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, irisRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    const scaleCount = 12;
+    for (let i = 0; i < scaleCount; i++) {
+      const angle = (Math.PI * 2 * i) / scaleCount + this.time * 0.001;
+      const scaleRadius = irisRadius * 0.4;
+
+      ctx.save();
+      ctx.rotate(angle);
+
+      ctx.strokeStyle = `hsla(${this.hueBase + i * 10}, 90%, 65%, ${0.3 + midIntensity * 0.2})`;
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(scaleRadius, 0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    const pupilWidth = 8 + bassIntensity * 6;
+    const pupilHeight = irisRadius * 1.5 * (0.7 + audioIntensity * 0.3);
+
+    ctx.fillStyle = `hsla(0, 0%, 5%, 1)`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, pupilWidth, pupilHeight, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = `hsla(${this.hueBase}, 85%, 50%, 0.9)`;
+    ctx.lineWidth = 4 + bassIntensity * 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, eyeWidth, eyeHeight, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  private renderAncientGlyphs(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const glyphs = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', '☥', '☦', '☧', '☨', '☩', '☪', '☫', '☬'];
+    const radius = Math.min(this.width, this.height) * 0.35;
+    const glyphCount = 16;
+
+    for (let i = 0; i < glyphCount; i++) {
+      const angle = (Math.PI * 2 * i) / glyphCount + this.time * 0.002;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+
+      const glyphIndex = i % glyphs.length;
+      const rotation = this.time * 0.003 * (i % 2 === 0 ? 1 : -1);
+      const scale = 1 + Math.sin(this.time * 0.005 + i) * 0.2 + trebleIntensity * 0.3;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.scale(scale, scale);
+
+      const hue = (this.hueBase + i * 20) % 360;
+      ctx.fillStyle = `hsla(${hue}, 95%, 80%, ${0.9 + audioIntensity * 0.1})`;
+      ctx.font = `${radius * 0.15}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(glyphs[glyphIndex] ?? '', 0, 0);
+
+      ctx.restore();
+    }
+
+    ctx.fillStyle = `hsla(${this.hueBase}, 100%, 85%, ${0.9 + audioIntensity * 0.1})`;
+    ctx.font = `${radius * 0.2}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('☯', 0, 0);
+
+    ctx.restore();
+  }
+
+  private renderTimeWheel(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const outerRadius = Math.min(this.width, this.height) * 0.4;
+    const rings = 5;
+
+    for (let ring = 0; ring < rings; ring++) {
+      const radius = outerRadius * ((ring + 1) / rings);
+      const segments = 12 * (ring + 1);
+      const rotation = this.time * 0.001 * (ring % 2 === 0 ? 1 : -1) * (ring + 1);
+
+      ctx.save();
+      ctx.rotate(rotation);
+
+      for (let seg = 0; seg < segments; seg++) {
+        const angle = (Math.PI * 2 * seg) / segments;
+        const nextAngle = (Math.PI * 2 * (seg + 1)) / segments;
+
+        const hue = (this.hueBase + seg * (360 / segments) + ring * 20) % 360;
+        const alpha = 0.4 + Math.sin(this.time * 0.005 + seg + ring) * 0.2 + midIntensity * 0.2;
+
+        ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${alpha * 0.3})`;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, angle, nextAngle);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = `hsla(${hue}, 85%, 70%, ${alpha})`;
+        ctx.lineWidth = 1 + (ring === rings - 1 ? bassIntensity * 2 : 0);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    const markers = 12;
+    for (let i = 0; i < markers; i++) {
+      const angle = (Math.PI * 2 * i) / markers - Math.PI / 2;
+      const x = Math.cos(angle) * outerRadius * 0.85;
+      const y = Math.sin(angle) * outerRadius * 0.85;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle + Math.PI / 2);
+
+      const markerHue = (this.hueBase + i * 30) % 360;
+      ctx.fillStyle = `hsla(${markerHue}, 90%, 75%, ${0.9 + audioIntensity * 0.1})`;
+      ctx.font = `${outerRadius * 0.08}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText((i + 1).toString(), 0, 0);
+
+      ctx.restore();
+    }
+
+    const centerGlow = 15 + bassIntensity * 10;
+    const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, centerGlow);
+    centerGradient.addColorStop(0, `hsla(${this.hueBase + 180}, 100%, 90%, 1)`);
+    centerGradient.addColorStop(1, `hsla(${this.hueBase + 180}, 100%, 90%, 0)`);
+
+    ctx.fillStyle = centerGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, centerGlow, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderAstralProjection(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const bodySize = Math.min(this.width, this.height) * 0.15;
+    const astralOffset = Math.sin(this.time * 0.002) * 50 + bassIntensity * 30;
+
+    ctx.save();
+    ctx.translate(0, astralOffset);
+    ctx.globalAlpha = 0.4 + Math.sin(this.time * 0.003) * 0.1;
+
+    ctx.fillStyle = `hsla(${this.hueBase}, 60%, 50%, 0.6)`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, bodySize * 0.6, bodySize, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(0, -bodySize * 0.8, bodySize * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    ctx.strokeStyle = `hsla(${this.hueBase + 180}, 80%, 75%, ${0.5 + trebleIntensity * 0.3})`;
+    ctx.lineWidth = 2 + bassIntensity * 2;
+    ctx.setLineDash([5, 10]);
+
+    ctx.beginPath();
+    ctx.moveTo(0, astralOffset);
+
+    const controlPoints = 5;
+    for (let i = 0; i <= controlPoints; i++) {
+      const progress = i / controlPoints;
+      const x = Math.sin(progress * Math.PI * 2 + this.time * 0.005) * 20;
+      const y = astralOffset - progress * astralOffset;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.save();
+    ctx.globalAlpha = 0.7 + Math.sin(this.time * 0.004) * 0.2 + audioIntensity * 0.2;
+
+    const astralGlow = bodySize * 2;
+    const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, astralGlow);
+    glowGradient.addColorStop(0, `hsla(${this.hueBase + 240}, 90%, 75%, 0.6)`);
+    glowGradient.addColorStop(0.5, `hsla(${this.hueBase + 200}, 85%, 70%, 0.3)`);
+    glowGradient.addColorStop(1, `hsla(${this.hueBase + 160}, 80%, 65%, 0)`);
+
+    ctx.fillStyle = glowGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, astralGlow, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = `hsla(${this.hueBase + 240}, 90%, 80%, 0.8)`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, bodySize * 0.6, bodySize, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(0, -bodySize * 0.8, bodySize * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  private renderEthericField(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const layers = 8;
+    const maxRadius = Math.min(this.width, this.height) * 0.45;
+
+    for (let layer = 0; layer < layers; layer++) {
+      const radius = (maxRadius / layers) * (layer + 1);
+      const hue = (this.hueBase + layer * 45) % 360;
+      const waveCount = 8 + layer * 2;
+      const waveAmplitude = 10 + bassIntensity * 8;
+
+      ctx.beginPath();
+
+      for (let i = 0; i <= 100; i++) {
+        const progress = i / 100;
+        const angle = progress * Math.PI * 2;
+
+        const wave = Math.sin(angle * waveCount + this.time * 0.003 * layer) * waveAmplitude;
+        const r = radius + wave + Math.sin(this.time * 0.002 + layer) * 5;
+
+        const x = Math.cos(angle) * r;
+        const y = Math.sin(angle) * r;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+
+      const gradient = ctx.createRadialGradient(0, 0, radius * 0.8, 0, 0, radius * 1.2);
+      gradient.addColorStop(0, `hsla(${hue}, 80%, 60%, 0)`);
+      gradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, ${0.15 + midIntensity * 0.1})`);
+      gradient.addColorStop(1, `hsla(${hue}, 90%, 70%, 0)`);
+
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      ctx.strokeStyle = `hsla(${hue}, 90%, 70%, ${0.4 + audioIntensity * 0.2})`;
+      ctx.lineWidth = 1 + (layer === layers - 1 ? bassIntensity * 2 : 0);
+      ctx.stroke();
+    }
+
+    const coreSize = 25 + bassIntensity * 15;
+    const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, coreSize);
+    coreGradient.addColorStop(0, `hsla(${this.hueBase}, 100%, 90%, 1)`);
+    coreGradient.addColorStop(0.5, `hsla(${this.hueBase + 60}, 90%, 75%, 0.8)`);
+    coreGradient.addColorStop(1, `hsla(${this.hueBase + 120}, 80%, 60%, 0)`);
+
+    ctx.fillStyle = coreGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, coreSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderPlatonic(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const solids = [
+      { sides: 3, hue: 0 },
+      { sides: 4, hue: 72 },
+      { sides: 3, hue: 144 },
+      { sides: 5, hue: 216 },
+      { sides: 3, hue: 288 },
+    ];
+
+    const arrangementRadius = Math.min(this.width, this.height) * 0.28;
+
+    solids.forEach((solid, index) => {
+      const angle = (Math.PI * 2 * index) / solids.length - Math.PI / 2;
+      const x = Math.cos(angle) * arrangementRadius;
+      const y = Math.sin(angle) * arrangementRadius;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(this.time * 0.002 * (index % 2 === 0 ? 1 : -1));
+
+      const size = 60 + Math.sin(this.time * 0.005 + index) * 10 + bassIntensity * 15;
+      const hue = (this.hueBase + solid.hue) % 360;
+
+      ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${0.8 + midIntensity * 0.2})`;
+      ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${0.2 + audioIntensity * 0.1})`;
+      ctx.lineWidth = 2 + bassIntensity * 2;
+
+      ctx.beginPath();
+      for (let i = 0; i <= solid.sides; i++) {
+        const polyAngle = (Math.PI * 2 * i) / solid.sides;
+        const px = Math.cos(polyAngle) * size;
+        const py = Math.sin(polyAngle) * size;
+
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+    });
+
+    const centerSize = 20 + bassIntensity * 10;
+    const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, centerSize);
+    centerGradient.addColorStop(0, `hsla(${this.hueBase}, 100%, 90%, 1)`);
+    centerGradient.addColorStop(1, `hsla(${this.hueBase}, 100%, 90%, 0)`);
+
+    ctx.fillStyle = centerGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, centerSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderInfinityKnot(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const size = Math.min(this.width, this.height) * 0.35;
+    const lineWidth = 8 + bassIntensity * 6;
+
+    const weave = (t: number, offset: number) => {
+      const x = size * Math.cos(t + offset) / (1 + Math.sin(t + offset) ** 2);
+      const y = size * Math.sin(t + offset) * Math.cos(t + offset) / (1 + Math.sin(t + offset) ** 2);
+      return { x, y };
+    };
+
+    for (let layer = 0; layer < 3; layer++) {
+      const offset = (Math.PI * 2 * layer) / 3 + this.time * 0.002;
+      const hue = (this.hueBase + layer * 120) % 360;
+
+      ctx.beginPath();
+      for (let t = 0; t <= Math.PI * 2; t += 0.01) {
+        const pos = weave(t, offset);
+        if (t === 0) ctx.moveTo(pos.x, pos.y);
+        else ctx.lineTo(pos.x, pos.y);
+      }
+
+      const gradient = ctx.createLinearGradient(-size, 0, size, 0);
+      gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${0.7 + trebleIntensity * 0.2})`);
+      gradient.addColorStop(0.5, `hsla(${hue + 30}, 95%, 75%, ${0.9 + audioIntensity * 0.1})`);
+      gradient.addColorStop(1, `hsla(${hue + 60}, 90%, 70%, ${0.7 + trebleIntensity * 0.2})`);
+
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = lineWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  private renderCosmicLotus(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const petalLayers = 5;
+    const maxRadius = Math.min(this.width, this.height) * 0.4;
+
+    for (let layer = petalLayers - 1; layer >= 0; layer--) {
+      const petalsInLayer = 8 + layer * 2;
+      const layerRadius = (maxRadius / petalLayers) * (layer + 1);
+      const rotation = this.time * 0.001 * (layer % 2 === 0 ? 1 : -1);
+
+      ctx.save();
+      ctx.rotate(rotation);
+
+      for (let petal = 0; petal < petalsInLayer; petal++) {
+        const angle = (Math.PI * 2 * petal) / petalsInLayer;
+        const hue = (this.hueBase + layer * 30 + petal * (360 / petalsInLayer)) % 360;
+
+        ctx.save();
+        ctx.rotate(angle);
+
+        const petalWidth = layerRadius * 0.3;
+        const petalLength = layerRadius * 0.6;
+        const petalScale = 1 + Math.sin(this.time * 0.005 + petal) * 0.1 + midIntensity * 0.15;
+
+        ctx.scale(petalScale, petalScale);
+
+        const petalGradient = ctx.createRadialGradient(0, petalLength * 0.3, 0, 0, petalLength * 0.3, petalWidth);
+        petalGradient.addColorStop(0, `hsla(${hue}, 90%, 75%, ${0.9 + audioIntensity * 0.1})`);
+        petalGradient.addColorStop(0.6, `hsla(${hue}, 85%, 65%, 0.8)`);
+        petalGradient.addColorStop(1, `hsla(${hue}, 80%, 55%, 0.3)`);
+
+        ctx.fillStyle = petalGradient;
+
+        ctx.beginPath();
+        ctx.ellipse(0, petalLength * 0.5, petalWidth * 0.4, petalLength * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = `hsla(${hue}, 90%, 80%, ${0.6 + bassIntensity * 0.3})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    const seedSize = maxRadius * 0.15 + bassIntensity * 10;
+
+    const seedGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, seedSize);
+    seedGradient.addColorStop(0, `hsla(${this.hueBase + 60}, 100%, 90%, 1)`);
+    seedGradient.addColorStop(0.7, `hsla(${this.hueBase + 30}, 90%, 75%, 0.9)`);
+    seedGradient.addColorStop(1, `hsla(${this.hueBase}, 80%, 60%, 0.7)`);
+
+    ctx.fillStyle = seedGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, seedSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderVoidMandala(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const rings = 8;
+    const maxRadius = Math.min(this.width, this.height) * 0.42;
+
+    for (let ring = 0; ring < rings; ring++) {
+      const radius = (maxRadius / rings) * (ring + 1);
+      const segments = 6 + ring * 3;
+      const rotation = this.time * 0.001 * (ring % 2 === 0 ? 1 : -1);
+
+      ctx.save();
+      ctx.rotate(rotation);
+
+      for (let seg = 0; seg < segments; seg++) {
+        const angle = (Math.PI * 2 * seg) / segments;
+        const nextAngle = (Math.PI * 2 * (seg + 1)) / segments;
+
+        const hue = (this.hueBase + 240 + ring * 10 + seg * 5) % 360;
+        const lightness = 20 + ring * 5 + Math.sin(this.time * 0.005 + seg) * 10;
+        const alpha = 0.5 + Math.sin(this.time * 0.003 + ring + seg) * 0.2 + midIntensity * 0.2;
+
+        ctx.strokeStyle = `hsla(${hue}, 70%, ${lightness}%, ${alpha})`;
+        ctx.lineWidth = 2 + (ring === rings - 1 ? bassIntensity * 3 : 0);
+
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, angle, nextAngle);
+        ctx.stroke();
+
+        if (seg % 2 === 0) {
+          const midAngle = (angle + nextAngle) / 2;
+          const innerRadius = ring > 0 ? (maxRadius / rings) * ring : 0;
+
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(midAngle) * innerRadius, Math.sin(midAngle) * innerRadius);
+          ctx.lineTo(Math.cos(midAngle) * radius, Math.sin(midAngle) * radius);
+          ctx.stroke();
+
+          const symbolX = Math.cos(midAngle) * radius;
+          const symbolY = Math.sin(midAngle) * radius;
+          const symbolSize = 4 + bassIntensity * 3;
+
+          ctx.fillStyle = `hsla(${hue}, 90%, 70%, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(symbolX, symbolY, symbolSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    const voidSize = maxRadius * 0.2;
+
+    ctx.strokeStyle = `hsla(${this.hueBase + 280}, 90%, 60%, ${0.8 + audioIntensity * 0.2})`;
+    ctx.lineWidth = 3 + bassIntensity * 4;
+    ctx.setLineDash([5, 3]);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, voidSize, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const innerVoid = ctx.createRadialGradient(0, 0, 0, 0, 0, voidSize);
+    innerVoid.addColorStop(0, `hsla(${this.hueBase + 280}, 50%, 5%, 1)`);
+    innerVoid.addColorStop(0.8, `hsla(${this.hueBase + 270}, 60%, 10%, 0.9)`);
+    innerVoid.addColorStop(1, `hsla(${this.hueBase + 260}, 70%, 20%, 0.5)`);
+
+    ctx.fillStyle = innerVoid;
+    ctx.beginPath();
+    ctx.arc(0, 0, voidSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderStellarMap(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const starCount = 50;
+    const maxRadius = Math.min(this.width, this.height) * 0.45;
+
+    // Initialize stars once instead of every frame to prevent flickering
+    if (this.stellarMapStars.length !== starCount) {
+      this.stellarMapStars = [];
+      for (let i = 0; i < starCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.random() * maxRadius;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        const size = 2 + Math.random() * 4;
+        const hue = (this.hueBase + Math.random() * 60) % 360;
+
+        this.stellarMapStars.push({ x, y, size, hue });
+      }
+    }
+
+    const stars = this.stellarMapStars;
+
+    ctx.strokeStyle = `hsla(${this.hueBase + 180}, 70%, 65%, ${0.3 + trebleIntensity * 0.2})`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+
+    for (let i = 0; i < stars.length; i++) {
+      for (let j = i + 1; j < stars.length; j++) {
+        const distance = Math.hypot(stars[i]!.x - stars[j]!.x, stars[i]!.y - stars[j]!.y);
+
+        if (distance < maxRadius * 0.25) {
+          ctx.beginPath();
+          ctx.moveTo(stars[i]!.x, stars[i]!.y);
+          ctx.lineTo(stars[j]!.x, stars[j]!.y);
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.setLineDash([]);
+
+    stars.forEach((star, index) => {
+      const twinkle = Math.sin(this.time * 0.005 + index) * 0.3 + 0.7 + audioIntensity * 0.2;
+      const dynamicSize = star.size + bassIntensity * 3;
+
+      const glowSize = dynamicSize * 3;
+      const glowGradient = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, glowSize);
+      glowGradient.addColorStop(0, `hsla(${star.hue}, 90%, 80%, ${twinkle * 0.8})`);
+      glowGradient.addColorStop(0.5, `hsla(${star.hue}, 85%, 70%, ${twinkle * 0.4})`);
+      glowGradient.addColorStop(1, `hsla(${star.hue}, 80%, 60%, 0)`);
+
+      ctx.fillStyle = glowGradient;
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, glowSize, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `hsla(${star.hue}, 100%, 90%, ${twinkle})`;
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, dynamicSize, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    const centerSize = 25 + bassIntensity * 15;
+    const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, centerSize);
+    centerGradient.addColorStop(0, `hsla(${this.hueBase + 40}, 100%, 85%, 1)`);
+    centerGradient.addColorStop(0.5, `hsla(${this.hueBase + 20}, 95%, 75%, 0.9)`);
+    centerGradient.addColorStop(1, `hsla(${this.hueBase}, 90%, 65%, 0)`);
+
+    ctx.fillStyle = centerGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, centerSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderWyrdWeb(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const maxRadius = Math.min(this.width, this.height) * 0.4;
+    const norns = 3;
+
+    for (let norn = 0; norn < norns; norn++) {
+      const angle = (Math.PI * 2 * norn) / norns - Math.PI / 2;
+      const hue = (this.hueBase + norn * 120) % 360;
+
+      ctx.save();
+      ctx.rotate(angle);
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, maxRadius);
+      gradient.addColorStop(0, `hsla(${hue}, 80%, 60%, ${0.8 + audioIntensity * 0.2})`);
+      gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0.3)`);
+
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 4 + bassIntensity * 4;
+      ctx.lineCap = 'round';
+
+      ctx.beginPath();
+      for (let i = 0; i <= 50; i++) {
+        const progress = i / 50;
+        const y = progress * maxRadius;
+        const waveX = Math.sin(progress * Math.PI * 4 + this.time * 0.003) * 20;
+
+        if (i === 0) ctx.moveTo(waveX, y);
+        else ctx.lineTo(waveX, y);
+      }
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    const webLayers = 6;
+    for (let layer = 1; layer <= webLayers; layer++) {
+      const radius = (maxRadius / webLayers) * layer;
+      const segments = norns * 4;
+
+      ctx.strokeStyle = `hsla(${this.hueBase + layer * 20}, 75%, 65%, ${0.4 + midIntensity * 0.2})`;
+      ctx.lineWidth = 1 + (layer === webLayers ? bassIntensity * 2 : 0);
+
+      ctx.beginPath();
+      for (let seg = 0; seg <= segments; seg++) {
+        const angle = (Math.PI * 2 * seg) / segments;
+        const waveRadius = radius + Math.sin(angle * 3 + this.time * 0.002) * 10;
+        const x = Math.cos(angle) * waveRadius;
+        const y = Math.sin(angle) * waveRadius;
+
+        if (seg === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    const wellSize = 40 + bassIntensity * 20;
+    const wellGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, wellSize);
+    wellGradient.addColorStop(0, `hsla(${this.hueBase}, 70%, 30%, 1)`);
+    wellGradient.addColorStop(0.6, `hsla(${this.hueBase + 30}, 80%, 50%, 0.8)`);
+    wellGradient.addColorStop(1, `hsla(${this.hueBase + 60}, 90%, 70%, 0.3)`);
+
+    ctx.fillStyle = wellGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, wellSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderSpiritualGateway(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const gatewayHeight = Math.min(this.width, this.height) * 0.7;
+    const gatewayWidth = gatewayHeight * 0.5;
+    const archRadius = gatewayWidth / 2;
+    const pillarHeight = gatewayHeight * 0.6;
+    const pillarWidth = archRadius * 0.3;
+
+    ctx.save();
+    ctx.translate(-archRadius - pillarWidth / 2, pillarHeight / 2);
+
+    const leftPillarGradient = ctx.createLinearGradient(-pillarWidth / 2, 0, pillarWidth / 2, 0);
+    leftPillarGradient.addColorStop(0, `hsla(${this.hueBase}, 70%, 50%, 0.3)`);
+    leftPillarGradient.addColorStop(0.5, `hsla(${this.hueBase + 20}, 80%, 60%, ${0.7 + bassIntensity * 0.2})`);
+    leftPillarGradient.addColorStop(1, `hsla(${this.hueBase + 40}, 70%, 50%, 0.3)`);
+
+    ctx.fillStyle = leftPillarGradient;
+    ctx.fillRect(-pillarWidth / 2, -pillarHeight / 2, pillarWidth, pillarHeight);
+
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(archRadius + pillarWidth / 2, pillarHeight / 2);
+
+    ctx.fillStyle = leftPillarGradient;
+    ctx.fillRect(-pillarWidth / 2, -pillarHeight / 2, pillarWidth, pillarHeight);
+
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(0, -pillarHeight / 2);
+
+    ctx.strokeStyle = `hsla(${this.hueBase + 30}, 85%, 65%, ${0.8 + audioIntensity * 0.2})`;
+    ctx.lineWidth = pillarWidth * 0.8;
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.arc(0, 0, archRadius, Math.PI, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+
+    const portalCenterY = 0;
+    const portalRadius = archRadius * 0.85;
+
+    const portalLayers = 8;
+    for (let layer = 0; layer < portalLayers; layer++) {
+      const layerRadius = (portalRadius / portalLayers) * (portalLayers - layer);
+      const rotation = this.time * 0.002 * (layer % 2 === 0 ? 1 : -1) * (layer + 1);
+
+      ctx.save();
+      ctx.translate(0, portalCenterY);
+      ctx.rotate(rotation);
+
+      const hue = (this.hueBase + 120 + layer * 30) % 360;
+      const alpha = 0.15 + (layer / portalLayers) * 0.3 + midIntensity * 0.2;
+
+      const layerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, layerRadius);
+      layerGradient.addColorStop(0, `hsla(${hue}, 90%, 70%, 0)`);
+      layerGradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, ${alpha})`);
+      layerGradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
+
+      ctx.fillStyle = layerGradient;
+      ctx.beginPath();
+      ctx.arc(0, 0, layerRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    const centerLight = 30 + bassIntensity * 25;
+    const centerGradient = ctx.createRadialGradient(0, portalCenterY, 0, 0, portalCenterY, centerLight);
+    centerGradient.addColorStop(0, `hsla(${this.hueBase + 180}, 100%, 95%, ${0.9 + audioIntensity * 0.1})`);
+    centerGradient.addColorStop(0.4, `hsla(${this.hueBase + 160}, 95%, 85%, 0.7)`);
+    centerGradient.addColorStop(0.7, `hsla(${this.hueBase + 140}, 90%, 75%, 0.4)`);
+    centerGradient.addColorStop(1, `hsla(${this.hueBase + 120}, 85%, 65%, 0)`);
+
+    ctx.fillStyle = centerGradient;
+    ctx.beginPath();
+    ctx.arc(0, portalCenterY, centerLight, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private renderAkashicRecords(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const bookWidth = Math.min(this.width, this.height) * 0.5;
+    const bookHeight = bookWidth * 1.3;
+
+    const coverGradient = ctx.createLinearGradient(-bookWidth / 2, 0, bookWidth / 2, 0);
+    coverGradient.addColorStop(0, `hsla(${this.hueBase}, 60%, 30%, 0.9)`);
+    coverGradient.addColorStop(0.5, `hsla(${this.hueBase + 30}, 70%, 40%, 1)`);
+    coverGradient.addColorStop(1, `hsla(${this.hueBase + 60}, 60%, 30%, 0.9)`);
+
+    ctx.fillStyle = coverGradient;
+    ctx.fillRect(-bookWidth / 2, -bookHeight / 2, bookWidth, bookHeight);
+
+    ctx.strokeStyle = `hsla(${this.hueBase + 40}, 80%, 60%, ${0.8 + audioIntensity * 0.2})`;
+    ctx.lineWidth = 4 + bassIntensity * 3;
+    ctx.strokeRect(-bookWidth / 2 + 10, -bookHeight / 2 + 10, bookWidth - 20, bookHeight - 20);
+
+    const circleRadius = bookHeight * 0.05;
+    ctx.strokeStyle = `hsla(${this.hueBase + 60}, 90%, 70%, ${0.6 + trebleIntensity * 0.3})`;
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, circleRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI * 2 * i) / 6;
+      const x = Math.cos(angle) * circleRadius;
+      const y = Math.sin(angle) * circleRadius;
+
+      ctx.beginPath();
+      ctx.arc(x, y, circleRadius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = `hsla(${this.hueBase + 180}, 95%, 80%, ${0.9 + audioIntensity * 0.1})`;
+    ctx.font = `${bookHeight * 0.08}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('∞ AKASHA ∞', 0, -bookHeight * 0.35);
+
+    const textLines = 8;
+    const textStartY = -bookHeight * 0.15;
+    const lineHeight = (bookHeight * 0.5) / textLines;
+
+    for (let line = 0; line < textLines; line++) {
+      const y = textStartY + line * lineHeight;
+      const lineAlpha = 0.4 + Math.sin(this.time * 0.003 + line) * 0.2 + trebleIntensity * 0.2;
+
+      ctx.fillStyle = `hsla(${this.hueBase + 180}, 90%, 75%, ${lineAlpha})`;
+      ctx.font = `${bookHeight * 0.04}px monospace`;
+
+      const symbols = '⚹⚺⚻⚼☉☊☋☌☍⊕⊗⊙';
+      let textLine = '';
+      for (let i = 0; i < 15; i++) {
+        textLine += symbols[Math.floor((this.time * 0.001 + line + i) % symbols.length)];
+      }
+
+      ctx.fillText(textLine, 0, y);
+    }
+
+    ctx.restore();
+  }
+
+  private renderSacredGeometry(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+
+    const maxRadius = Math.min(this.width, this.height) * 0.42;
+
+    ctx.strokeStyle = `hsla(${this.hueBase}, 80%, 65%, ${0.7 + audioIntensity * 0.2})`;
+    ctx.lineWidth = 2 + bassIntensity * 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, maxRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = `hsla(${this.hueBase + 60}, 85%, 70%, ${0.7 + midIntensity * 0.2})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i <= 6; i++) {
+      const angle = (Math.PI * 2 * i) / 6 - Math.PI / 2;
+      const x = Math.cos(angle) * maxRadius * 0.85;
+      const y = Math.sin(angle) * maxRadius * 0.85;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    const triangleRadius = maxRadius * 0.65;
+    ctx.strokeStyle = `hsla(${this.hueBase + 120}, 90%, 75%, ${0.7 + bassIntensity * 0.2})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let i = 0; i <= 3; i++) {
+      const angle = (Math.PI * 2 * i) / 3 - Math.PI / 2;
+      const x = Math.cos(angle) * triangleRadius;
+      const y = Math.sin(angle) * triangleRadius;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = `hsla(${this.hueBase + 180}, 90%, 75%, ${0.7 + bassIntensity * 0.2})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let i = 0; i <= 3; i++) {
+      const angle = (Math.PI * 2 * i) / 3 + Math.PI / 2;
+      const x = Math.cos(angle) * triangleRadius;
+      const y = Math.sin(angle) * triangleRadius;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    const seedRadius = maxRadius * 0.3;
+    ctx.strokeStyle = `hsla(${this.hueBase + 240}, 85%, 70%, ${0.5 + midIntensity * 0.2})`;
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, seedRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI * 2 * i) / 6;
+      const x = Math.cos(angle) * seedRadius;
+      const y = Math.sin(angle) * seedRadius;
+
+      ctx.beginPath();
+      ctx.arc(x, y, seedRadius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    const coreSize = 20 + bassIntensity * 15;
+    const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, coreSize);
+    coreGradient.addColorStop(0, `hsla(${this.hueBase}, 100%, 95%, 1)`);
+    coreGradient.addColorStop(0.4, `hsla(${this.hueBase + 40}, 95%, 85%, 0.9)`);
+    coreGradient.addColorStop(0.7, `hsla(${this.hueBase + 80}, 90%, 75%, 0.6)`);
+    coreGradient.addColorStop(1, `hsla(${this.hueBase + 120}, 85%, 65%, 0)`);
+
+    ctx.fillStyle = coreGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, coreSize, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   }

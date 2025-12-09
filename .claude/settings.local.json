@@ -24,7 +24,9 @@
       "Bash(pm2 logs:*)",
       "Bash(pm2 restart:*)",
       "Bash(lsof:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(git restore:*)",
+      "Bash(1)"
     ],
     "deny": [],
     "ask": []
