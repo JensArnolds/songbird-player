@@ -34,7 +34,6 @@ type Pattern =
   | "rays"
   | "tunnel"
   | "bubbles"
-  | "voronoi"
   | "waves"
   | "swarm"
   | "mandala"
@@ -124,7 +123,6 @@ export class FlowFieldRenderer {
     "lightning",
     "bubbles",
     "fireworks",
-    "voronoi",
     "starfield",
     "waves",
     "matrix",
@@ -189,8 +187,6 @@ export class FlowFieldRenderer {
   private fractalOffsetY = 0;
   private juliaC = { re: -0.7, im: 0.27 };
 
-  private voronoiSeeds: { x: number; y: number; hue: number }[] = [];
-
   private lightningBolts: {
     segments: { x: number; y: number }[];
     life: number;
@@ -238,7 +234,6 @@ export class FlowFieldRenderer {
     this.shufflePatterns();
     this.initializeParticles();
     this.initializeBubbles();
-    this.initializeVoronoiSeeds();
   }
 
   private formatPatternName(pattern: Pattern): string {
@@ -336,19 +331,6 @@ export class FlowFieldRenderer {
       symbolType: Math.floor(Math.random() * 8), // 8 different occult symbols
       rotation: Math.random() * Math.PI * 2,
     };
-  }
-
-  private initializeVoronoiSeeds(): void {
-    const count = 15 + Math.floor(Math.random() * 10);
-    this.voronoiSeeds = [];
-
-    for (let i = 0; i < count; i++) {
-      this.voronoiSeeds.push({
-        x: Math.random() * this.width,
-        y: Math.random() * this.height,
-        hue: Math.random() * 360,
-      });
-    }
   }
 
   private initializeStars(): void {
@@ -980,107 +962,6 @@ export class FlowFieldRenderer {
         ctx.restore();
       }
     }
-  }
-
-  private renderVoronoi(
-    audioIntensity: number,
-    bassIntensity: number,
-    midIntensity: number,
-  ): void {
-    const ctx = this.ctx;
-    const imageData = ctx.createImageData(this.width, this.height);
-    const data = imageData.data;
-
-    for (let i = 0; i < this.voronoiSeeds.length; i++) {
-      const seed = this.voronoiSeeds[i];
-      if (!seed) continue;
-
-      const angle = this.time * 0.001 + i;
-      const radius = 50 + Math.sin(this.time * 0.002 + i) * 30;
-
-      seed.x = this.centerX + Math.cos(angle) * radius * (1 + bassIntensity);
-      seed.y =
-        this.centerY + Math.sin(angle * 1.3) * radius * (1 + bassIntensity);
-      seed.hue = (seed.hue + 0.5 + midIntensity) % 360;
-    }
-
-    for (let y = 0; y < this.height; y += 2) {
-      for (let x = 0; x < this.width; x += 2) {
-        let minDist = Infinity;
-        let closestSeed: (typeof this.voronoiSeeds)[0] | null = null;
-
-        for (const seed of this.voronoiSeeds) {
-          const dx = x - seed.x;
-          const dy = y - seed.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < minDist) {
-            minDist = dist;
-            closestSeed = seed;
-          }
-        }
-
-        if (closestSeed) {
-          const distNorm = Math.min(1, minDist / 200);
-          const lightness = 30 + distNorm * 40 + audioIntensity * 20;
-          const saturation = 70 + audioIntensity * 30;
-
-          const rgb = this.hslToRgb(
-            closestSeed.hue / 360,
-            saturation / 100,
-            lightness / 100,
-          );
-
-          for (let dy = 0; dy < 2 && y + dy < this.height; dy++) {
-            for (let dx = 0; dx < 2 && x + dx < this.width; dx++) {
-              const idx = ((y + dy) * this.width + (x + dx)) << 2;
-              data[idx] = rgb[0] ?? 0;
-              data[idx + 1] = rgb[1] ?? 0;
-              data[idx + 2] = rgb[2] ?? 0;
-              data[idx + 3] = 255;
-            }
-          }
-        }
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-
-    for (let i = 0; i < this.voronoiSeeds.length; i++) {
-      const seed = this.voronoiSeeds[i];
-      if (!seed) continue;
-
-      const gradient = ctx.createRadialGradient(
-        seed.x,
-        seed.y,
-        0,
-        seed.x,
-        seed.y,
-        20 + bassIntensity * 30,
-      );
-      gradient.addColorStop(0, `hsla(${seed.hue}, 100%, 80%, 0.6)`);
-      gradient.addColorStop(0.5, `hsla(${seed.hue}, 90%, 70%, 0.3)`);
-      gradient.addColorStop(1, `hsla(${seed.hue}, 80%, 60%, 0)`);
-
-      ctx.fillStyle = gradient;
-      ctx.fillRect(seed.x - 30, seed.y - 30, 60, 60);
-
-      const symbolAlpha = 0.15 + audioIntensity * 0.2;
-      this.drawClanSymbol(
-        ctx,
-        seed.x,
-        seed.y,
-        25 + bassIntensity * 15,
-        i,
-        symbolAlpha,
-        seed.hue,
-      );
-    }
-
-    ctx.restore();
   }
 
   private renderWaves(
@@ -2405,20 +2286,8 @@ export class FlowFieldRenderer {
     if (this.isTransitioning) {
       const t = this.transitionProgress;
 
-      // Use gentler easing for Voronoi transitions (smooth ease-in-out)
-      const isVoronoiTransition =
-        this.currentPattern === "voronoi" || this.nextPattern === "voronoi";
-
-      let eased: number;
-      if (isVoronoiTransition) {
-        // Smooth ease-in-out for Voronoi: gentler transition
-        eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        // Apply additional smoothing for even gentler blend
-        eased = eased * eased * (3 - 2 * eased); // Smoothstep function
-      } else {
-        // Default cubic easing for other patterns
-        eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-      }
+      // Default cubic easing for pattern transitions
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
       ctx.save();
       ctx.globalAlpha = 1 - eased;
@@ -2471,9 +2340,6 @@ export class FlowFieldRenderer {
         break;
       case "bubbles":
         this.renderBubbles(audioIntensity, bassIntensity, trebleIntensity);
-        break;
-      case "voronoi":
-        this.renderVoronoi(audioIntensity, bassIntensity, midIntensity);
         break;
       case "waves":
         this.renderWaves(audioIntensity, bassIntensity, trebleIntensity);
@@ -2941,7 +2807,6 @@ export class FlowFieldRenderer {
 
     this.initializeParticles();
     this.initializeBubbles();
-    this.initializeVoronoiSeeds();
     this.initializeStars();
     this.initializeMatrixColumns();
     this.initializeConstellationStars();
