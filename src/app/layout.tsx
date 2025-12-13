@@ -2,8 +2,8 @@
 
 import "@/styles/globals.css";
 
-import { Geist } from "next/font/google";
 import { type Metadata } from "next";
+import { Geist } from "next/font/google";
 import { type ReactNode } from "react";
 
 import { ElectronStorageInit } from "@/components/ElectronStorageInit";
@@ -18,6 +18,7 @@ import SuppressExtensionErrors from "@/components/SuppressExtensionErrors";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
 import { MobilePanesProvider } from "@/contexts/MobilePanesContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { env } from "@/env";
 import { TRPCReactProvider } from "@/trpc/react";
 
 const geist = Geist({
@@ -36,11 +37,11 @@ export const metadata: Metadata = {
     description:
       "Modern music streaming and discovery platform with smart recommendations",
     type: "website",
-    url: "https://starchildmusic.com",
+    url: env.NEXT_PUBLIC_NEXTAUTH_URL,
     siteName: "Starchild Music",
     images: [
       {
-        url: "https://starchildmusic.com/emily-the-strange.png",
+        url: `${env.NEXT_PUBLIC_NEXTAUTH_URL}/emily-the-strange.png`,
         width: 1200,
         height: 630,
         alt: "Starchild Music - Modern music streaming platform",
