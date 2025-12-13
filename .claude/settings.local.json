@@ -1,4 +1,9 @@
 {
+  "hints": {
+    "shell": [
+      "zsh"
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
