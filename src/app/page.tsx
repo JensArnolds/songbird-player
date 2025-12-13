@@ -24,7 +24,7 @@ async function getFirstTrackFromSearch(query: string): Promise<Track | null> {
 
 function getAlbumCoverImage(track: Track | null): string {
   if (!track?.album) {
-    return "https://starchildmusic.com/emily-the-strange.png";
+    return `${env.NEXT_PUBLIC_NEXTAUTH_URL}/emily-the-strange.png`;
   }
 
   // Prefer larger images for Open Graph (cover_big or cover_xl)
@@ -39,7 +39,7 @@ function getAlbumCoverImage(track: Track | null): string {
     return coverImage;
   }
 
-  return "https://starchildmusic.com/emily-the-strange.png";
+  return `${env.NEXT_PUBLIC_NEXTAUTH_URL}/emily-the-strange.png`;
 }
 
 export async function generateMetadata({
@@ -60,11 +60,11 @@ export async function generateMetadata({
       description:
         "Modern music streaming and discovery platform with smart recommendations",
       type: "website",
-      url: "https://starchildmusic.com",
+      url: env.NEXT_PUBLIC_NEXTAUTH_URL,
       siteName: "Starchild Music",
       images: [
         {
-          url: "https://starchildmusic.com/emily-the-strange.png",
+          url: `${env.NEXT_PUBLIC_NEXTAUTH_URL}/emily-the-strange.png`,
           width: 1200,
           height: 630,
           alt: "Starchild Music - Modern music streaming platform",
@@ -103,7 +103,7 @@ export async function generateMetadata({
       title: trackTitle,
       description,
       type: "website",
-      url: `https://starchildmusic.com/?q=${encodeURIComponent(query)}`,
+      url: `${env.NEXT_PUBLIC_NEXTAUTH_URL}/?q=${encodeURIComponent(query)}`,
       siteName: "Starchild Music",
       images: [
         {
