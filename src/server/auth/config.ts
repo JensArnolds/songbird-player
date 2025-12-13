@@ -21,6 +21,7 @@ declare module "next-auth" {
   }
 }
 export const authConfig = {
+  trustHost: true, // Allow NextAuth to trust the host from request headers
   providers: [
     DiscordProvider({
       clientId: env.AUTH_DISCORD_ID,
