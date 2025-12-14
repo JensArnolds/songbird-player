@@ -3,17 +3,24 @@
 "use client";
 
 import { useAudioVisualizer } from "@/hooks/useAudioVisualizer";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import { analyzeAudio } from "@/utils/audioAnalysis";
 import { useEffect, useRef } from "react";
 
 /**
  * Hook that analyzes audio and updates CSS variables for reactive background effects
+ * Automatically disabled on mobile for better performance
  */
 export function useAudioReactiveBackground(
   audioElement: HTMLAudioElement | null,
   isPlaying: boolean,
   enabled = true,
 ) {
+  const isMobile = useIsMobile();
+
+  // Disable on mobile for better performance and battery life
+  const effectivelyEnabled = enabled && !isMobile;
+
   const visualizer = useAudioVisualizer(audioElement, {
     fftSize: 128, // Reduced from 256 for better performance
     smoothingTimeConstant: 0.9, // Increased smoothing for more subtle changes
@@ -35,7 +42,7 @@ export function useAudioReactiveBackground(
 
   useEffect(() => {
     // Only hide backgrounds when explicitly disabled (not when just not playing)
-    if (!enabled) {
+    if (!effectivelyEnabled) {
       document.documentElement.classList.add("visualizer-disabled");
       document.body.classList.add("visualizer-disabled");
     } else {
@@ -44,7 +51,7 @@ export function useAudioReactiveBackground(
     }
 
     // Don't show dark screen when not playing - just reset variables
-    if (!enabled || !isPlaying || !isInitialized || !audioElement) {
+    if (!effectivelyEnabled || !isPlaying || !isInitialized || !audioElement) {
       // Reset to default when not playing or disabled
       document.documentElement.style.setProperty("--audio-intensity", "0");
       document.documentElement.style.setProperty("--audio-bass", "0");

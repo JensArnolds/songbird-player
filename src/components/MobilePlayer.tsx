@@ -356,7 +356,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
             animate={{ y: 0 }}
             exit={{ y: 100 }}
             transition={springPresets.gentle}
-            className="safe-bottom fixed right-0 bottom-0 left-0 z-50 border-t border-[rgba(244,178,102,0.14)] bg-[rgba(10,16,24,0.94)] shadow-[0_-12px_32px_rgba(5,10,18,0.6)] backdrop-blur-xl"
+            className="safe-bottom fixed right-0 bottom-0 left-0 z-50 border-t border-[rgba(244,178,102,0.14)] bg-[rgba(10,16,24,0.98)] shadow-[0_-12px_32px_rgba(5,10,18,0.6)]"
           >
             {/* Progress Bar */}
             <div
@@ -556,15 +556,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                   >
                     {/* Album Art */}
                     {!showVisualizer && coverArt ? (
-                      <motion.div
-                        animate={isPlaying ? { rotate: 360 } : { rotate: 0 }}
-                        transition={
-                          isPlaying
-                            ? { duration: 20, repeat: Infinity, ease: "linear" }
-                            : {}
-                        }
-                        className="relative"
-                      >
+                      <div className="relative">
                         <Image
                           src={coverArt}
                           alt={currentTrack.title}
@@ -574,11 +566,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           priority
                           quality={90}
                         />
-                        {/* Vinyl effect for playing state */}
-                        {isPlaying && (
-                          <div className="absolute inset-0 rounded-3xl bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.1)_100%)]" />
-                        )}
-                      </motion.div>
+                      </div>
                     ) : !showVisualizer ? (
                       <div className="flex aspect-square w-full items-center justify-center rounded-3xl bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
                         🎵
@@ -608,7 +596,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/60 backdrop-blur-md"
+                          className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/75"
                         >
                           <div className="flex flex-col items-center gap-2">
                             <span className="text-4xl font-bold text-[var(--color-text)] tabular-nums">
@@ -632,7 +620,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         setShowVisualizer(!showVisualizer);
                       }}
                       whileTap={{ scale: 0.9 }}
-                      className={`touch-target absolute top-3 right-3 rounded-full p-3 backdrop-blur-md transition-all ${
+                      className={`touch-target absolute top-3 right-3 rounded-full p-3 transition-all ${
                         showVisualizer
                           ? "bg-[rgba(244,178,102,0.3)] text-[var(--color-accent)]"
                           : "bg-black/40 text-[var(--color-subtext)]"
@@ -818,7 +806,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
                             transition={springPresets.snappy}
-                            className="absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 rounded-xl border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,0.98)] py-2 shadow-xl backdrop-blur-xl"
+                            className="absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 rounded-xl border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,1)] py-2 shadow-xl"
                           >
                             {PLAYBACK_RATES.map((rate) => (
                               <button
