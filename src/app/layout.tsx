@@ -16,7 +16,6 @@ import PersistentPlayer from "@/components/PersistentPlayer";
 import { SessionProvider } from "@/components/SessionProvider";
 import SuppressExtensionErrors from "@/components/SuppressExtensionErrors";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
-import { MobilePanesProvider } from "@/contexts/MobilePanesContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TRPCReactProvider } from "@/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
@@ -87,21 +86,19 @@ export default function RootLayout({
             <TRPCReactProvider>
               <ToastProvider>
                 <AudioPlayerProvider>
-                  <MobilePanesProvider>
-                    {/* Header with hamburger menu */}
-                    <Header />
-                    {/* Mobile content wrapper with swipeable panes */}
-                    <MobileContentWrapper>
-                      {/* Main content with bottom padding for player and mobile nav */}
-                      <div className="pb-36 md:pb-24">{children}</div>
-                    </MobileContentWrapper>
-                    {/* Mobile bottom navigation */}
-                    <MobileNavigation />
-                    {/* Floating action button for mobile */}
-                    <FloatingActionButton />
-                    {/* Persistent player - stays on all pages */}
-                    <PersistentPlayer />
-                  </MobilePanesProvider>
+                  {/* Header with hamburger menu */}
+                  <Header />
+                  {/* Mobile content wrapper */}
+                  <MobileContentWrapper>
+                    {/* Main content with bottom padding for player and mobile nav */}
+                    <div className="pb-36 md:pb-24">{children}</div>
+                  </MobileContentWrapper>
+                  {/* Mobile bottom navigation */}
+                  <MobileNavigation />
+                  {/* Floating action button for mobile */}
+                  <FloatingActionButton />
+                  {/* Persistent player - stays on all pages */}
+                  <PersistentPlayer />
                 </AudioPlayerProvider>
               </ToastProvider>
             </TRPCReactProvider>
