@@ -131,9 +131,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     if (!currentTrack) return;
 
     if (repeatMode === "one") {
-      audioRef.current?.play().catch(() => {
-        // Playback failed, likely due to autoplay restrictions
-      });
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {
+          // Playback failed, likely due to autoplay restrictions
+        });
+      }
       return;
     }
 
@@ -143,9 +146,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         setHistory((prev) => [...prev, currentTrack]);
       }
       setQueue(remainingQueue);
-    } else if (repeatMode === "all" && history.length > 0) {
-      setQueue([...history]);
-      setHistory([]);
+    } else if (repeatMode === "all") {
+      // Restart the queue with all played tracks (history + current track)
+      if (history.length > 0 || currentTrack) {
+        const allTracks = currentTrack ? [...history, currentTrack] : [...history];
+        setQueue(allTracks);
+        setHistory([]);
+      }
     } else {
       onTrackEnd?.(currentTrack);
     }
