@@ -60,7 +60,7 @@ export default function MiniPlayer({
       animate={{ y: 0 }}
       exit={{ y: 100 }}
       transition={springPresets.gentle}
-      className="safe-bottom fixed right-0 bottom-0 left-0 z-50 border-t border-[rgba(244,178,102,0.14)] bg-[rgba(10,16,24,0.94)] shadow-[0_-12px_32px_rgba(5,10,18,0.6)] backdrop-blur-xl relative"
+      className="safe-bottom fixed right-0 bottom-0 left-0 z-50 border-t border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.96)] shadow-[0_-16px_48px_rgba(5,10,18,0.8)] backdrop-blur-2xl relative"
     >
       {/* Auto-Queue Badge */}
       <AutoQueueBadge count={lastAutoQueueCount} />
@@ -80,7 +80,7 @@ export default function MiniPlayer({
 
       {/* Mini Player Content */}
       <motion.div
-        className="flex cursor-pointer items-center gap-3 px-4 py-3"
+        className="flex cursor-pointer items-center gap-4 px-5 py-4"
         onTap={onTap}
         whileTap={{ scale: 0.99 }}
         transition={springPresets.snappy}
@@ -89,14 +89,14 @@ export default function MiniPlayer({
           <Image
             src={currentTrack.album.cover_small}
             alt={currentTrack.title}
-            width={48}
-            height={48}
-            className="flex-shrink-0 rounded-lg"
+            width={64}
+            height={64}
+            className="flex-shrink-0 rounded-lg shadow-lg ring-2 ring-[rgba(244,178,102,0.3)]"
             priority
             quality={75}
           />
         ) : (
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-[rgba(244,178,102,0.12)] text-[var(--color-muted)]">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-[rgba(244,178,102,0.12)] text-[var(--color-muted)] ring-2 ring-[rgba(244,178,102,0.3)]">
             🎵
           </div>
         )}

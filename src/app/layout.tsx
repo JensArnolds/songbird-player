@@ -8,14 +8,15 @@ import { type ReactNode } from "react";
 
 import { ElectronStorageInit } from "@/components/ElectronStorageInit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import FloatingActionButton from "@/components/FloatingActionButton";
+import HamburgerMenu from "@/components/HamburgerMenu";
 import Header from "@/components/Header";
 import MobileContentWrapper from "@/components/MobileContentWrapper";
-import MobileNavigation from "@/components/MobileNavigation";
+import MobileHeader from "@/components/MobileHeader";
 import PersistentPlayer from "@/components/PersistentPlayer";
 import { SessionProvider } from "@/components/SessionProvider";
 import SuppressExtensionErrors from "@/components/SuppressExtensionErrors";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
+import { MenuProvider } from "@/contexts/MenuContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TRPCReactProvider } from "@/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
@@ -86,19 +87,23 @@ export default function RootLayout({
             <TRPCReactProvider>
               <ToastProvider>
                 <AudioPlayerProvider>
-                  {/* Header with hamburger menu */}
-                  <Header />
-                  {/* Mobile content wrapper */}
-                  <MobileContentWrapper>
-                    {/* Main content with bottom padding for player and mobile nav */}
-                    <div className="pb-36 md:pb-24">{children}</div>
-                  </MobileContentWrapper>
-                  {/* Mobile bottom navigation */}
-                  <MobileNavigation />
-                  {/* Floating action button for mobile */}
-                  <FloatingActionButton />
-                  {/* Persistent player - stays on all pages */}
-                  <PersistentPlayer />
+                  <MenuProvider>
+                    {/* Desktop header (hidden on mobile) */}
+                    <Header />
+                    {/* Mobile header with hamburger and search (hidden on desktop) */}
+                    <MobileHeader />
+                    {/* Hamburger menu drawer */}
+                    <HamburgerMenu />
+                    {/* Mobile content wrapper */}
+                    <MobileContentWrapper>
+                      {/* Main content with padding for mobile header and player */}
+                      <div className="pt-16 pb-24 md:pt-0 md:pb-24">
+                        {children}
+                      </div>
+                    </MobileContentWrapper>
+                    {/* Persistent player - stays on all pages */}
+                    <PersistentPlayer />
+                  </MenuProvider>
                 </AudioPlayerProvider>
               </ToastProvider>
             </TRPCReactProvider>

@@ -552,7 +552,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     onDrag={handleArtworkDrag}
                     onDragEnd={handleArtworkDragEnd}
                     transition={springPresets.smooth}
-                    className="relative w-full max-w-[320px] cursor-grab active:cursor-grabbing"
+                    className="relative w-full max-w-[360px] cursor-grab active:cursor-grabbing"
                   >
                     {/* Album Art */}
                     {!showVisualizer && coverArt ? (
@@ -560,11 +560,18 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         <Image
                           src={coverArt}
                           alt={currentTrack.title}
-                          width={400}
-                          height={400}
-                          className="aspect-square w-full rounded-3xl shadow-2xl ring-1 ring-white/10"
+                          width={450}
+                          height={450}
+                          className="aspect-square w-full rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10"
                           priority
                           quality={90}
+                        />
+                        {/* Subtle glow effect */}
+                        <div
+                          className="absolute inset-0 -z-10 blur-3xl opacity-30 rounded-3xl"
+                          style={{
+                            background: "radial-gradient(circle, rgba(244,178,102,0.6) 0%, transparent 70%)",
+                          }}
                         />
                       </div>
                     ) : !showVisualizer ? (
@@ -867,6 +874,21 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     <Heart className="h-5 w-5" />
                   </motion.button>
                 </div>
+
+                {/* Future Sub-Menu Section Placeholder */}
+                {/* Uncomment and implement when adding Lyrics, Artist Info, Credits tabs */}
+                {/*
+                <div className="border-t border-[rgba(255,255,255,0.08)]">
+                  <div className="flex items-center justify-around px-8 py-2">
+                    <button className="tab-button px-4 py-2 text-sm text-[var(--color-accent)]">Lyrics</button>
+                    <button className="tab-button px-4 py-2 text-sm text-[var(--color-subtext)]">Artist</button>
+                    <button className="tab-button px-4 py-2 text-sm text-[var(--color-subtext)]">Credits</button>
+                  </div>
+                  <div className="px-8 py-4 max-h-64 overflow-y-auto">
+                    Tab content goes here
+                  </div>
+                </div>
+                */}
               </div>
             </motion.div>
           </>
