@@ -35,7 +35,6 @@ const MiniPlayer = dynamic(() => import("./MiniPlayer"), { ssr: false });
 export default function PersistentPlayer() {
   const player = useGlobalPlayer();
   const isMobile = useIsMobile();
-  const [showFullMobilePlayer, setShowFullMobilePlayer] = useState(false);
 
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -244,11 +243,11 @@ export default function PersistentPlayer() {
             onPlayPause={player.togglePlay}
             onNext={player.playNext}
             onSeek={player.seek}
-            onTap={() => setShowFullMobilePlayer(true)}
+            onTap={() => player.setShowMobilePlayer(true)}
           />
 
           {/* Full Mobile Player Modal */}
-          {showFullMobilePlayer && (
+          {player.showMobilePlayer && (
             <MobilePlayer
               currentTrack={player.currentTrack}
               queue={player.queue}
@@ -274,7 +273,7 @@ export default function PersistentPlayer() {
               onSkipBackward={player.skipBackward}
               onToggleQueue={() => setShowQueue(!showQueue)}
               onToggleEqualizer={() => setShowEqualizer(!showEqualizer)}
-              onClose={() => setShowFullMobilePlayer(false)}
+              onClose={() => player.setShowMobilePlayer(false)}
             />
           )}
 

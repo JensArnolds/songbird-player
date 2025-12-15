@@ -4,11 +4,12 @@
 
 import { useToast } from "@/contexts/ToastContext";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import { getStreamUrlById } from "@/utils/api";
 import { useSession } from "next-auth/react";
-import { createContext, useCallback, useContext, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
 interface AudioPlayerContextType {
   // Player state
@@ -24,6 +25,8 @@ interface AudioPlayerContextType {
   playbackRate: number;
   isLoading: boolean;
   lastAutoQueueCount: number;
+  showMobilePlayer: boolean;
+  setShowMobilePlayer: (show: boolean) => void;
 
   // Audio element reference for visualizer and equalizer
   audioElement: HTMLAudioElement | null;
@@ -61,6 +64,8 @@ const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(
 export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
   const { showToast } = useToast();
+  const isMobile = useIsMobile();
+  const [showMobilePlayer, setShowMobilePlayer] = useState(false);
   const addToHistory = api.music.addToHistory.useMutation();
   const createPlaylistMutation = api.music.createPlaylist.useMutation();
   const addToPlaylistMutation = api.music.addToPlaylist.useMutation();
@@ -264,6 +269,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     (track: Track) => {
       const streamUrl = getStreamUrlById(track.id.toString());
       player.loadTrack(track, streamUrl);
+
+      // Auto-show mobile player when starting a new track (Spotify-like behavior)
+      if (isMobile) {
+        setShowMobilePlayer(true);
+      }
+
       player.play().catch((error) => {
         // Ignore abort errors - these are normal when switching tracks quickly
         if (
@@ -281,7 +292,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         showToast("Playback failed. Please try again.", "error");
       });
     },
-    [player, showToast],
+    [player, showToast, isMobile],
   );
 
   const playNext = useCallback(() => {
@@ -668,6 +679,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     playbackRate: player.playbackRate,
     isLoading: player.isLoading,
     lastAutoQueueCount: player.lastAutoQueueCount,
+    showMobilePlayer,
+    setShowMobilePlayer,
 
     // Audio element reference
     audioElement: player.audioRef.current,

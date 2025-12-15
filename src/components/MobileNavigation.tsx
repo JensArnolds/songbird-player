@@ -40,6 +40,10 @@ export default function MobileNavigation() {
   const dragY = useMotionValue(0);
 
   const isActive = (path: string) => {
+    // Special handling for "Now Playing" tab
+    if (path === "#now-playing") {
+      return player.showMobilePlayer;
+    }
     if (path === "/" && pathname === "/") return true;
     if (path !== "/" && pathname?.startsWith(path)) return true;
     return false;
@@ -51,6 +55,12 @@ export default function MobileNavigation() {
       path: "/",
       icon: <Home className="h-5 w-5" strokeWidth={1.5} />,
       activeIcon: <Home className="h-5 w-5" strokeWidth={2.5} />,
+    },
+    {
+      name: "Now Playing",
+      path: "#now-playing",
+      icon: <Music2 className="h-5 w-5" strokeWidth={1.5} />,
+      activeIcon: <Music2 className="h-5 w-5" strokeWidth={2.5} />,
     },
     {
       name: "Library",
@@ -75,7 +85,12 @@ export default function MobileNavigation() {
   ];
 
   const visibleTabs = tabs.filter(
-    (tab) => !tab.requiresAuth || (tab.requiresAuth && session),
+    (tab) => {
+      // Filter out "Now Playing" if no track is playing
+      if (tab.path === "#now-playing" && !player.currentTrack) return false;
+      // Filter out auth-required tabs if not authenticated
+      return !tab.requiresAuth || (tab.requiresAuth && session);
+    },
   );
 
   const activeIndex = visibleTabs.findIndex((tab) => isActive(tab.path));
@@ -221,7 +236,14 @@ export default function MobileNavigation() {
               <Link
                 key={tab.path}
                 href={tab.path}
-                onClick={() => hapticLight()}
+                onClick={(e) => {
+                  hapticLight();
+                  // Handle "Now Playing" tab specially
+                  if (tab.path === "#now-playing") {
+                    e.preventDefault();
+                    player.setShowMobilePlayer(true);
+                  }
+                }}
                 className="touch-target-lg relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2"
               >
                 {/* Icon Container */}
