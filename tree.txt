@@ -1,4 +1,5 @@
 starchild-music-frontend
+├───.env.development
 ├───.env.example
 ├───.env.local
 ├───.env.production
@@ -7,10 +8,10 @@ starchild-music-frontend
 ├───.pm2ignore
 ├───CHANGELOG.md
 ├───config1.1
+├───DIAGNOSTIC.md
 ├───drizzle.config.ts
 ├───drizzle.env.ts
 ├───ecosystem.config.cjs
-├───ecosystem.config.js
 ├───eslint.config.js
 ├───LICENSE.md
 ├───next-env.d.ts
@@ -30,18 +31,34 @@ starchild-music-frontend
 ├───.claude/
 │   └───settings.local.json
 ├───.cursor/
-│   └───worktrees.json
+│   ├───mcp.json
+│   ├───worktrees.json
+│   └───commands/
+│       ├───api-contract.md
+│       ├───commit-message.md
+│       ├───db-schema.md
+│       ├───docker-audit.md
+│       ├───docs.md
+│       ├───init.md
+│       ├───perf-check.md
+│       ├───refactor.md
+│       ├───review.md
+│       ├───security-scan.md
+│       └───test-setup.md
 ├───.github/
 │   ├───copilot-instructions.md
 │   ├───assets/
 │   │   ├───AppIcons.zip
 │   │   └───emily-the-strange_vivid.png
 │   └───docs/
+│       ├───502_ANALYSIS.md
 │       ├───DATABASE_CONNECTION_FIX.md
 │       ├───DATABASE_MIGRATION_GUIDE.md
+│       ├───FIGMA_DESIGN_MAP.md
 │       ├───IMPLEMENTATION_GUIDE.md
 │       ├───IMPLEMENTATION_SUMMARY.md
 │       ├───MOBILE_ENHANCEMENTS.md
+│       ├───MOBILE_IMPROVEMENTS_ROADMAP.md
 │       ├───MOBILE_OPTIMIZATION.md
 │       ├───MOBILE_OPTIMIZATION_SUMMARY.md
 │       ├───PM2_GUIDE.md
@@ -169,6 +186,7 @@ starchild-music-frontend
 │       └───placeholder-cover.svg
 ├───scripts/
 │   ├───check-users.ts
+│   ├───ensure-build.js
 │   ├───load-env-build.js
 │   ├───populate-userhash.ts
 │   ├───server.js
@@ -177,8 +195,11 @@ starchild-music-frontend
     ├───env.js
     ├───global.d.ts
     ├───app/
+    │   ├───HomePageClient.tsx
     │   ├───layout.tsx
+    │   ├───not-found.tsx
     │   ├───page.tsx
+    │   ├───(home)/
     │   ├───[userhash]/
     │   │   └───page.tsx
     │   ├───_components/
@@ -192,6 +213,8 @@ starchild-music-frontend
     │   │   ├───auth/
     │   │   │   └───[...nextauth]/
     │   │   │       └───route.ts
+    │   │   ├───health/
+    │   │   │   └───route.ts
     │   │   ├───stream/
     │   │   │   └───route.ts
     │   │   └───trpc/
@@ -208,6 +231,7 @@ starchild-music-frontend
     ├───components/
     │   ├───AnimatedList.tsx
     │   ├───AudioVisualizer.tsx
+    │   ├───AutoQueueBadge.tsx
     │   ├───BottomSheet.tsx
     │   ├───Button.tsx
     │   ├───ElectronStorageInit.tsx
@@ -219,17 +243,19 @@ starchild-music-frontend
     │   ├───ErrorBoundary.tsx
     │   ├───FloatingActionButton.tsx
     │   ├───FlowFieldBackground.tsx
+    │   ├───HamburgerMenu.tsx
     │   ├───Header.tsx
     │   ├───LightweightParticleBackground.tsx
     │   ├───LoadingSpinner.tsx
     │   ├───MicroInteractions.tsx
     │   ├───MiniPlayer.tsx
     │   ├───MobileContentWrapper.tsx
+    │   ├───MobileHeader.tsx
     │   ├───MobileNavigation.tsx
     │   ├───MobilePlayer.tsx
     │   ├───MobileSearchBar.tsx
-    │   ├───MobileSwipeablePanes.tsx
     │   ├───OptimizedTrackList.tsx
+    │   ├───PatternControls.tsx
     │   ├───PersistentPlayer.tsx
     │   ├───Player.tsx
     │   ├───ProfileHeader.tsx
@@ -258,7 +284,7 @@ starchild-music-frontend
     │   └───visualizer.ts
     ├───contexts/
     │   ├───AudioPlayerContext.tsx
-    │   ├───MobilePanesContext.tsx
+    │   ├───MenuContext.tsx
     │   └───ToastContext.tsx
     ├───hooks/
     │   ├───useAudioPlayer.ts
@@ -310,6 +336,7 @@ starchild-music-frontend
         ├───colorExtractor.ts
         ├───electronStorage.ts
         ├───errorHandling.ts
+        ├───getBaseUrl.ts
         ├───haptics.ts
         ├───images.ts
         ├───logger.ts
