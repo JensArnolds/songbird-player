@@ -1,8 +1,9 @@
 {
-  "ignores": [    
+  "ignores": [
     "node_modules/**",
     "docs/legacy/*.md",
     ".github/docs/*.md",
-    "LICENSE.md"
+    "LICENSE.md",
+    ".cursor/commands/*.md"
   ]
 }
