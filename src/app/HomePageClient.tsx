@@ -589,4 +589,3 @@ export default function HomePageClient() {
 
   return searchContent;
 }
-

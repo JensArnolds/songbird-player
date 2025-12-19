@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 // File: scripts/ensure-build.js
-// Ensures a production build exists before starting the server
 
 import { existsSync } from 'fs';
 import { execSync } from 'child_process';
@@ -35,4 +34,3 @@ if (!buildExists) {
   console.log('[Build Check] Production build exists');
   process.exit(0);
 }
-
