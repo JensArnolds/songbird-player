@@ -28,7 +28,9 @@
       "Bash(git restore:*)",
       "Bash(1)",
       "Bash(ls:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(pm2 stop:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []
