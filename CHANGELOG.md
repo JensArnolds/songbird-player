@@ -1,11 +1,43 @@
 # Changelog
 
-All notable changes to Starchild Music will be documented in this file.
+All notable changes to isobelnet.de will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.1] - 2025-12-09
+## [0.6.2] - 2025-12-21
+
+### Changed
+
+#### Complete Rebrand: "Starchild Music" → "isobelnet.de"
+
+**User-Facing Changes:**
+- **Brand Identity**: Completely rebranded from "Starchild Music" to "isobelnet.de" across all user interfaces
+- **UI Components**: Updated all component text including headers, menus, welcome messages, and share dialogs
+- **Metadata**: Updated page titles, Open Graph data, and Twitter card metadata for SEO and social sharing
+- **Mobile Experience**: Updated mobile header, hamburger menu branding, and player UI text
+
+**Technical Changes:**
+- **Package Configuration**: Renamed package from `starchild-music-frontend` to `isobelnet-de`
+- **PM2 Processes**: Renamed production and development processes to `isobelnet-de-prod` and `isobelnet-de-dev`
+- **Electron App**: Updated desktop application name, app ID (`com.isobelnet.de`), and product name
+- **Documentation**: Updated all README, CLAUDE.md, and setup documentation files
+- **Scripts**: Updated all setup scripts, server banners, and diagnostic commands
+- **Electron Storage**: Updated persistent storage partition name for Electron builds
+
+**Files Modified (24 total):**
+- UI Components: HamburgerMenu, Header, WelcomeHero, EnhancedTrackCard, SwipeableTrackCard
+- App Pages: layout, page, license, user profile
+- Configuration: package.json, ecosystem.config.cjs, electron/main.cjs
+- Documentation: README.md, CLAUDE.md, CHANGELOG.md, DIAGNOSTIC.md, electron docs
+- Scripts: server.js, pm2-setup.sh, setup-database.sh, verify-build.js
+- Styles: globals.css, smartQueue service
+
+**Preserved:**
+- GitHub repository URLs (actual source location)
+- Deployment paths in PM2 configuration
+
+## [0.6.0] - 2025-12-09
 
 ### Fixed
 
@@ -447,9 +479,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Version 0.3.0 - Electron Desktop Application
 
-This release transforms Starchild Music into a full-featured desktop application with complete state persistence. Users can now:
+This release transforms isobelnet.de into a full-featured desktop application with complete state persistence. Users can now:
 
-- Install Starchild Music as a native desktop app on Windows, macOS, and Linux
+- Install isobelnet.de as a native desktop app on Windows, macOS, and Linux
 - Enjoy seamless login that persists across app restarts
 - Have all preferences, settings, and UI state automatically saved and restored
 - Use global media keys to control playback
@@ -457,7 +489,7 @@ This release transforms Starchild Music into a full-featured desktop application
 
 ### Version 0.2.0 - Initial Release
 
-The initial release of Starchild Music provides a comprehensive music streaming platform with intelligent recommendations, advanced audio features, and a modern user interface. Key highlights:
+The initial release of isobelnet.de provides a comprehensive music streaming platform with intelligent recommendations, advanced audio features, and a modern user interface. Key highlights:
 
 - Stream music from Deezer's extensive catalog
 - Intelligent auto-queue with similarity-based recommendations

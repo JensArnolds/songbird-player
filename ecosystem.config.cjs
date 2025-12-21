@@ -26,7 +26,7 @@ module.exports = {
       // ============================================
       // PRODUCTION CONFIGURATION
       // ============================================
-      name: "starchild-music-frontend-prod",
+      name: "isobelnet-de-prod",
       script: "scripts/server.js",
       args: "",
       interpreter: "node",
@@ -108,7 +108,7 @@ module.exports = {
       // ============================================
       // PM2 will send SIGINT for graceful shutdown
       // Next.js handles this automatically
-      
+
       // Health check configuration - PM2 will check if the app is actually responding
       health_check_grace_period: 5000, // Grace period after startup before health checks start
       health_check_fatal_exceptions: true, // Treat health check failures as fatal (restart the app)
@@ -118,7 +118,7 @@ module.exports = {
       // ============================================
       // DEVELOPMENT CONFIGURATION
       // ============================================
-      name: "starchild-music-frontend-dev",
+      name: "isobelnet-de-dev",
       script: "scripts/server.js",
       args: "",
       interpreter: "node",
@@ -202,7 +202,7 @@ module.exports = {
   deploy: {
     production: {
       user: "node",
-      host: ["soulwax.dev"],
+      host: ["isobelnet.de"],
       ref: "origin/main",
       repo: "git@github.com:soulwax/starchild-music-frontend.git",
       path: "/home/soulwax/workspace/Web/Frontends/starchild-music-frontend",
@@ -215,4 +215,3 @@ module.exports = {
     },
   },
 };
- 

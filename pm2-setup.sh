@@ -3,7 +3,7 @@
 
 set -e  # Exit on error
 
-echo "🌟 Starchild Music PM2 Setup Script"
+echo "🌟 isobelnet.de PM2 Setup Script"
 echo "============================"
 echo ""
 

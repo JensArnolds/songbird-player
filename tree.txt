@@ -7,8 +7,8 @@ starchild-music-frontend
 ├───.markdownlint-cli2.jsonc
 ├───.pm2ignore
 ├───CHANGELOG.md
+├───CLAUDE.md
 ├───config1.1
-├───DIAGNOSTIC.md
 ├───drizzle.config.ts
 ├───drizzle.env.ts
 ├───ecosystem.config.cjs
@@ -51,24 +51,6 @@ starchild-music-frontend
 │   │   ├───AppIcons.zip
 │   │   └───emily-the-strange_vivid.png
 │   └───docs/
-│       ├───502_ANALYSIS.md
-│       ├───DATABASE_CONNECTION_FIX.md
-│       ├───DATABASE_MIGRATION_GUIDE.md
-│       ├───FIGMA_DESIGN_MAP.md
-│       ├───IMPLEMENTATION_GUIDE.md
-│       ├───IMPLEMENTATION_SUMMARY.md
-│       ├───MOBILE_ENHANCEMENTS.md
-│       ├───MOBILE_IMPROVEMENTS_ROADMAP.md
-│       ├───MOBILE_OPTIMIZATION.md
-│       ├───MOBILE_OPTIMIZATION_SUMMARY.md
-│       ├───PM2_GUIDE.md
-│       ├───PM2_QUICK_REFERENCE.md
-│       ├───SIMILARITY_MODE_INTEGRATION.md
-│       ├───SMART_QUEUE_DOCUMENTATION.md
-│       ├───SMART_QUEUE_IMPROVEMENTS.md
-│       ├───SMART_QUEUE_QUICKSTART.md
-│       ├───SMART_QUEUE_ROADMAP.md
-│       └───UNAUTHORIZED_ERRORS_FIX.md
 ├───certs/
 │   └───ca.pem
 ├───drizzle/
