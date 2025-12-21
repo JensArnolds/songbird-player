@@ -260,7 +260,7 @@ const createWindow = async () => {
       sandbox: true,
       devTools: isDev,
       // Enable persistent storage partition
-      partition: "persist:starchild-music",
+      partition: "persist:isobelnet-de",
     },
     icon: path.join(__dirname, "../public/icon.png"),
     backgroundColor: "#000000",

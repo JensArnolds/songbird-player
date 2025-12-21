@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   title: "Isobelnet.de",
   description:
     "Modern music streaming and discovery platform with smart recommendations",
-  applicationName: "Starchild Music",
+  applicationName: "isobelnet.de",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   openGraph: {
     title: "Isobelnet.de",
@@ -40,13 +40,13 @@ export const metadata: Metadata = {
       "Modern music streaming and discovery platform with smart recommendations",
     type: "website",
     url: baseUrl,
-    siteName: "Starchild Music",
+    siteName: "isobelnet.de",
     images: [
       {
         url: `${baseUrl}/emily-the-strange.png`,
         width: 1200,
         height: 630,
-        alt: "Starchild Music - Modern music streaming platform",
+        alt: "isobelnet.de - Modern music streaming platform",
       },
     ],
   },

@@ -3,7 +3,7 @@
 
 set -e
 
-echo "🌟 Starchild Music - Database Setup"
+echo "🌟 isobelnet.de - Database Setup"
 echo "=============================="
 echo ""
 

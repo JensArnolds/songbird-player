@@ -30,7 +30,8 @@
       "Bash(ls:*)",
       "Bash(wc:*)",
       "Bash(pm2 stop:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm run typecheck:*)"
     ],
     "deny": [],
     "ask": []

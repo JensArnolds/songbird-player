@@ -1,4 +1,4 @@
-# Electron Setup for Starchild Music
+# Electron Setup for isobelnet.de
 
 ## What Was
 

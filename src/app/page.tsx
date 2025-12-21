@@ -64,13 +64,13 @@ export async function generateMetadata({
         "Modern music streaming and discovery platform with smart recommendations",
       type: "website",
       url: baseUrl,
-      siteName: "Starchild Music",
+      siteName: "isobelnet.de",
       images: [
         {
           url: `${baseUrl}/emily-the-strange.png`,
           width: 1200,
           height: 630,
-          alt: "Starchild Music - Modern music streaming platform",
+          alt: "isobelnet.de - Modern music streaming platform",
         },
       ],
     },
@@ -96,8 +96,8 @@ export async function generateMetadata({
     ? `${firstTrack.title} by ${firstTrack.artist.name}`
     : `Search: ${query}`;
   const description = firstTrack
-    ? `Listen to ${firstTrack.title} by ${firstTrack.artist.name} on Starchild Music`
-    : `Search results for "${query}" on Starchild Music`;
+    ? `Listen to ${firstTrack.title} by ${firstTrack.artist.name} on isobelnet.de`
+    : `Search results for "${query}" on isobelnet.de`;
 
   return {
     title: trackTitle,
@@ -107,7 +107,7 @@ export async function generateMetadata({
       description,
       type: "website",
       url: `${baseUrl}/?q=${encodeURIComponent(query)}`,
-      siteName: "Starchild Music",
+      siteName: "isobelnet.de",
       images: [
         {
           url: coverImage,
@@ -115,7 +115,7 @@ export async function generateMetadata({
           height: 630,
           alt: firstTrack
             ? `${firstTrack.title} by ${firstTrack.artist.name}`
-            : "Starchild Music",
+            : "isobelnet.de",
         },
       ],
     },

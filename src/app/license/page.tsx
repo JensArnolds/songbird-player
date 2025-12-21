@@ -3,8 +3,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "License - Starchild Music",
-  description: "GNU General Public License v3.0 for Starchild Music",
+  title: "License - isobelnet.de",
+  description: "GNU General Public License v3.0 for isobelnet.de",
 };
 
 export default function LicensePage() {
@@ -36,7 +36,7 @@ export default function LicensePage() {
             Software License
           </h1>
           <p className="text-gray-400">
-            Starchild Music is licensed under the GNU General Public License
+            isobelnet.de is licensed under the GNU General Public License
             v3.0
           </p>
         </div>
