@@ -14,6 +14,7 @@ import MobileContentWrapper from "@/components/MobileContentWrapper";
 import MobileHeader from "@/components/MobileHeader";
 import PersistentPlayer from "@/components/PersistentPlayer";
 import { SessionProvider } from "@/components/SessionProvider";
+import { UIWrapper } from "@/components/UIWrapper";
 import SuppressExtensionErrors from "@/components/SuppressExtensionErrors";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
 import { MenuProvider } from "@/contexts/MenuContext";
@@ -88,19 +89,22 @@ export default function RootLayout({
               <ToastProvider>
                 <AudioPlayerProvider>
                   <MenuProvider>
-                    {/* Desktop header (hidden on mobile) */}
-                    <Header />
-                    {/* Mobile header with hamburger and search (hidden on desktop) */}
-                    <MobileHeader />
-                    {/* Hamburger menu drawer */}
-                    <HamburgerMenu />
-                    {/* Mobile content wrapper */}
-                    <MobileContentWrapper>
-                      {/* Main content with padding for mobile header and player */}
-                      <div className="pt-16 pb-24 md:pt-0 md:pb-24">
-                        {children}
-                      </div>
-                    </MobileContentWrapper>
+                    {/* UI elements that can be hidden on desktop */}
+                    <UIWrapper>
+                      {/* Desktop header (hidden on mobile) */}
+                      <Header />
+                      {/* Mobile header with hamburger and search (hidden on desktop) */}
+                      <MobileHeader />
+                      {/* Hamburger menu drawer */}
+                      <HamburgerMenu />
+                      {/* Mobile content wrapper */}
+                      <MobileContentWrapper>
+                        {/* Main content with padding for mobile header and player */}
+                        <div className="pt-16 pb-24 md:pt-0 md:pb-24">
+                          {children}
+                        </div>
+                      </MobileContentWrapper>
+                    </UIWrapper>
                     {/* Persistent player - stays on all pages */}
                     <PersistentPlayer />
                   </MenuProvider>

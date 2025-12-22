@@ -4,11 +4,12 @@
 
 import { PLAYBACK_RATES } from "@/config/player";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { formatTime } from "@/utils/time";
-import { Heart, Layers } from "lucide-react";
+import { Heart, Layers, Maximize2, Minimize2 } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 
@@ -75,6 +76,7 @@ export default function MaturePlayer({
   const [isDragging, setIsDragging] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
+  const { hideUI, setHideUI } = useGlobalPlayer();
 
   const utils = api.useUtils();
 
@@ -632,6 +634,27 @@ export default function MaturePlayer({
               <Layers className="h-5 w-5" />
             </button>
           )}
+
+          {/* Hide UI Button - Desktop only */}
+          <button
+            onClick={() => {
+              hapticLight();
+              setHideUI(!hideUI);
+            }}
+            className={`rounded p-2 transition ${
+              hideUI
+                ? "bg-[rgba(244,178,102,0.16)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.2)]"
+                : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
+            }`}
+            title={hideUI ? "Show UI" : "Hide UI to enjoy visuals"}
+            aria-pressed={hideUI}
+          >
+            {hideUI ? (
+              <Minimize2 className="h-5 w-5" />
+            ) : (
+              <Maximize2 className="h-5 w-5" />
+            )}
+          </button>
         </div>
       </div>
     </div>

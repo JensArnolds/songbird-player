@@ -27,6 +27,8 @@ interface AudioPlayerContextType {
   lastAutoQueueCount: number;
   showMobilePlayer: boolean;
   setShowMobilePlayer: (show: boolean) => void;
+  hideUI: boolean;
+  setHideUI: (hide: boolean) => void;
 
   // Audio element reference for visualizer and equalizer
   audioElement: HTMLAudioElement | null;
@@ -66,6 +68,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
   const isMobile = useIsMobile();
   const [showMobilePlayer, setShowMobilePlayer] = useState(false);
+  const [hideUI, setHideUI] = useState(false);
   const addToHistory = api.music.addToHistory.useMutation();
   const createPlaylistMutation = api.music.createPlaylist.useMutation();
   const addToPlaylistMutation = api.music.addToPlaylist.useMutation();
@@ -681,6 +684,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     lastAutoQueueCount: player.lastAutoQueueCount,
     showMobilePlayer,
     setShowMobilePlayer,
+    hideUI,
+    setHideUI,
 
     // Audio element reference
     audioElement: player.audioRef.current,

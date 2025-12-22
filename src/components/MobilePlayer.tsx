@@ -119,7 +119,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
   const [isExpanded, setIsExpanded] = useState(forceExpanded);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const [showVisualizer, setShowVisualizer] = useState(false);
+  const [hideAlbumCover, setHideAlbumCover] = useState(false);
   const [visualizerEnabled, setVisualizerEnabled] = useState(true);
   const [albumColorPalette, setAlbumColorPalette] =
     useState<ColorPalette | null>(null);
@@ -555,7 +555,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     className="relative w-full max-w-[360px] cursor-grab active:cursor-grabbing"
                   >
                     {/* Album Art */}
-                    {!showVisualizer && coverArt ? (
+                    {!hideAlbumCover && coverArt ? (
                       <div className="relative">
                         <Image
                           src={coverArt}
@@ -574,7 +574,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                         />
                       </div>
-                    ) : !showVisualizer ? (
+                    ) : !hideAlbumCover ? (
                       <div className="flex aspect-square w-full items-center justify-center rounded-3xl bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
                         🎵
                       </div>
@@ -624,14 +624,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     <motion.button
                       onClick={() => {
                         hapticLight();
-                        setShowVisualizer(!showVisualizer);
+                        setHideAlbumCover(!hideAlbumCover);
                       }}
                       whileTap={{ scale: 0.9 }}
                       className={`touch-target absolute top-3 right-3 rounded-full p-3 transition-all ${
-                        showVisualizer
+                        hideAlbumCover
                           ? "bg-[rgba(244,178,102,0.3)] text-[var(--color-accent)]"
                           : "bg-black/40 text-[var(--color-subtext)]"
                       }`}
+                      title={hideAlbumCover ? "Show album cover" : "Hide album cover to enjoy visuals"}
                     >
                       <Activity className="h-5 w-5" />
                     </motion.button>
