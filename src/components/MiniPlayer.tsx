@@ -54,6 +54,27 @@ export default function MiniPlayer({
     e.stopPropagation();
   };
 
+  // Check if tap should be ignored (e.g., on buttons or interactive elements)
+  const shouldIgnoreTap = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    // Ignore taps on buttons, inputs, or elements with data-drag-exempt
+    return Boolean(
+      target.closest("button") ??
+        target.closest("input") ??
+        target.closest("select") ??
+        target.closest("[data-drag-exempt='true']"),
+    );
+  };
+
+  const handleContainerTap = (event: PointerEvent | MouseEvent | TouchEvent) => {
+    // Don't open full player if tapping on interactive elements
+    if (shouldIgnoreTap(event.target)) {
+      return;
+    }
+    hapticLight();
+    onTap();
+  };
+
   return (
     <motion.div
       initial={{ y: 100 }}
@@ -81,7 +102,7 @@ export default function MiniPlayer({
       {/* Mini Player Content */}
       <motion.div
         className="flex cursor-pointer items-center gap-4 px-5 py-4"
-        onTap={onTap}
+        onTap={handleContainerTap}
         whileTap={{ scale: 0.99 }}
         transition={springPresets.snappy}
       >

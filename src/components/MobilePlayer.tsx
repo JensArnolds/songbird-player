@@ -75,6 +75,7 @@ interface MobilePlayerProps {
   onSkipBackward: () => void;
   onToggleQueue?: () => void;
   onToggleEqualizer?: () => void;
+  onClose?: () => void;
   forceExpanded?: boolean;
 }
 
@@ -101,6 +102,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onPlaybackRateChange,
     onToggleQueue,
     onToggleEqualizer,
+    onClose,
     forceExpanded = false,
   } = props;
 
@@ -328,6 +330,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const handleMiniTap = (event: PointerEvent | MouseEvent | TouchEvent) => {
     const target = event.target as HTMLElement;
     if (shouldIgnoreTouch(target)) return;
+    // Prevent accidental opening when tapping controls
+    event.preventDefault();
     hapticLight();
     if (forceExpanded) return;
     setIsExpanded(true);
@@ -485,7 +489,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                 className="fixed inset-0 z-[98] bg-black/90"
                 onClick={() => {
                   hapticLight();
-                  setIsExpanded(false);
+                  if (onClose) {
+                    onClose();
+                  } else {
+                    setIsExpanded(false);
+                  }
                 }}
               />
             )}
@@ -518,7 +526,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     <motion.button
                       onClick={() => {
                         hapticLight();
-                        setIsExpanded(false);
+                        if (onClose) {
+                          onClose();
+                        } else {
+                          setIsExpanded(false);
+                        }
                       }}
                       whileTap={{ scale: 0.9 }}
                       className="touch-target rounded-full p-2 text-[var(--color-subtext)]"

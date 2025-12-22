@@ -130,7 +130,7 @@ export default function TrackCard({
           loading="lazy"
           quality={75}
         />
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/60 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/60 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 active:opacity-100">
           <svg
             className="h-8 w-8 text-white drop-shadow-lg md:h-7 md:w-7"
             fill="currentColor"
