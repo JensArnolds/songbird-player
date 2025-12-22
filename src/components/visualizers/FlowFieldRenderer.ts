@@ -327,8 +327,8 @@ export class FlowFieldRenderer {
     this.ctx = ctx;
     this.width = canvas.width;
     this.height = canvas.height;
-    this.centerX = this.width * 0.5; // / 2 optimized
-    this.centerY = this.height * 0.5; // / 2 optimized
+    this.centerX = this.width >> 1; // Bit shift optimization: / 2
+    this.centerY = this.height >> 1; // Bit shift optimization: / 2
 
     this.shufflePatterns();
     this.initializeParticles();
@@ -398,19 +398,19 @@ export class FlowFieldRenderer {
   private createParticle(): Particle {
     const angle = Math.random() * Math.PI * 2;
     const radius = Math.random() * Math.min(this.width, this.height) * 0.5;
-    const maxLife = 150 + Math.random() * 250;
+    const maxLife = 150 + (Math.random() * 250) | 0; // Fast floor with | 0
 
     return {
       x: this.centerX + Math.cos(angle) * radius,
       y: this.centerY + Math.sin(angle) * radius,
-      vx: (Math.random() - 0.5) * 2 * this.particleSpeed,
-      vy: (Math.random() - 0.5) * 2 * this.particleSpeed,
+      vx: (Math.random() - 0.5) * (this.particleSpeed << 1), // Bit shift: * 2
+      vy: (Math.random() - 0.5) * (this.particleSpeed << 1),
       size: (0.8 + Math.random() * 2.5) * this.particleSize,
-      hue: Math.random() * 60,
+      hue: (Math.random() * 360) | 0, // Expanded hue range for more variety
       life: maxLife,
       maxLife,
       angle: Math.random() * Math.PI * 2,
-      angularVelocity: (Math.random() - 0.5) * 0.1,
+      angularVelocity: (Math.random() - 0.5) * 0.15, // More angular motion
       trail: [],
     };
   }
@@ -425,21 +425,21 @@ export class FlowFieldRenderer {
   }
 
   private createBubble(): Bubble {
-    // Mystical color palette: deep purples, dark blues, crimson reds
-    const mysticalHues = [270, 280, 290, 240, 250, 0, 330, 340];
+    // Expanded mystical color palette with ethereal gradients
+    const mysticalHues = [270, 280, 290, 240, 250, 0, 330, 340, 180, 200, 310, 350];
     const baseHue =
-      mysticalHues[Math.floor(Math.random() * mysticalHues.length)] ?? 270;
-    const hue = baseHue + (Math.random() - 0.5) * 20;
+      mysticalHues[(Math.random() * mysticalHues.length) | 0] ?? 270;
+    const hue = baseHue + (Math.random() - 0.5) * 30; // More color variation
 
     return {
       x: Math.random() * this.width,
       y: this.height + Math.random() * 100,
       vx: (Math.random() - 0.5) * 0.3 * this.bubbleSpeed,
       vy: -(0.3 + Math.random() * 1.0) * this.bubbleSpeed,
-      radius: (15 + Math.random() * 35) * this.bubbleSize,
-      hue: hue % 360,
+      radius: (15 + Math.random() * 45) * this.bubbleSize, // Larger size range
+      hue: ((hue % 360) + 360) & 0x1FF, // Bitwise modulo 360 approximation
       age: 0,
-      maxAge: 400 + Math.random() * 400,
+      maxAge: (400 + Math.random() * 600) | 0, // Longer lifespan
       popping: false,
       popProgress: 0,
       symbolType: (Math.random() * 8) | 0, // 8 different occult symbols
@@ -460,17 +460,17 @@ export class FlowFieldRenderer {
   }
 
   private initializeMatrixColumns(): void {
-    const chars = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ01";
+    const chars = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ01✦✧✩✪✫✬✭✮✯✰";
     this.matrixColumns = [];
-    const columnCount = (this.width * 0.05) | 0; // / 20 optimized
+    const columnCount = (this.width >> 4) + 1; // Bit shift: / 16, then + 1 for rounding
 
     for (let i = 0; i < columnCount; i++) {
       this.matrixColumns.push({
         y: Math.random() * this.height,
-        speed: 2 + Math.random() * 5,
-        chars: Array(20)
+        speed: 2 + Math.random() * 6, // Increased variation
+        chars: Array(25) // More characters per column
           .fill(0)
-          .map(() => chars[Math.floor(Math.random() * chars.length)])
+          .map(() => chars[(Math.random() * chars.length) | 0])
           .join(""),
       });
     }
@@ -596,21 +596,24 @@ export class FlowFieldRenderer {
           const ySq = y * y;
           if (xSq + ySq > 4) break; // Early exit optimization
           const xtemp = xSq - ySq + this.juliaC.re;
-          y = (x + x) * y + this.juliaC.im; // 2 * x optimized
+          y = (x << 1) * y + this.juliaC.im; // Bit shift: 2 * x
           x = xtemp;
           iter++;
         }
 
+        // Enhanced fractal coloring with psychedelic palette
+        const iterRatio = iter / maxIter;
         const hue =
-          (this.hueBase + (iter / maxIter) * 360 + bassIntensity * 60) % 360;
-        const saturation = 70 + audioIntensity * 30;
-        const lightness = iter < maxIter ? (iter / maxIter) * 60 : 0;
+          (this.hueBase + iterRatio * 720 + bassIntensity * 90 + Math.sin(this.time * 0.002) * 60) % 360;
+        const saturation = 60 + audioIntensity * 40; // More vivid
+        const lightness = iter < maxIter ?
+          (iterRatio * 70 + Math.sin(iterRatio * Math.PI * 3) * 15) : 0; // Oscillating brightness
 
         const rgb = this.hslToRgb(hue / 360, saturation / 100, lightness / 100);
 
         for (let dy = 0; dy < 3 && py + dy < this.height; dy++) {
           for (let dx = 0; dx < 3 && px + dx < this.width; dx++) {
-            const i = ((py + dy) * this.width + (px + dx)) << 2; // * 4 optimized
+            const i = ((py + dy) * this.width + (px + dx)) << 2; // Bit shift: * 4
             data[i] = rgb[0] ?? 0;
             data[i + 1] = rgb[1] ?? 0;
             data[i + 2] = rgb[2] ?? 0;
@@ -630,41 +633,46 @@ export class FlowFieldRenderer {
   ): void {
     const ctx = this.ctx;
     const rayCount = this.rayCount + ((bassIntensity * this.rayCount) | 0);
-    const angleStep = (Math.PI * 2) / rayCount;
+    const angleStep = (Math.PI << 1) / rayCount; // Bit shift: * 2
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
 
     for (let i = 0; i < rayCount; i++) {
-      const angle = angleStep * i + this.time * 0.005;
+      // Spiraling ray motion for more dynamics
+      const angle = angleStep * i + this.time * 0.005 + Math.sin(this.time * 0.001 + i * 0.1) * 0.2;
+      const pulseEffect = 1 + Math.sin(this.time * 0.01 + i * 0.2) * 0.15; // Pulsing rays
       const rayLength =
-        Math.min(this.width, this.height) * (0.6 + audioIntensity * 0.4);
-      const rayWidth = 2 + trebleIntensity * 8;
+        Math.min(this.width, this.height) * (0.6 + audioIntensity * 0.4) * pulseEffect;
+      const rayWidth = 2 + trebleIntensity * 10; // Thicker rays
 
       const endX = this.centerX + Math.cos(angle) * rayLength;
       const endY = this.centerY + Math.sin(angle) * rayLength;
 
-      for (let offset = -2; offset <= 2; offset++) {
-        const hue = (this.hueBase + i * (360 / rayCount) + offset * 10) % 360;
+      // Enhanced layering with more offsets for depth
+      for (let offset = -3; offset <= 3; offset++) {
+        const hue = (this.hueBase + i * (360 / rayCount) + offset * 15 + this.time * 0.05) % 360;
         const alpha =
-          (0.15 + audioIntensity * 0.15) * (1 - Math.abs(offset) * 0.3);
+          (0.12 + audioIntensity * 0.18) * (1 - Math.abs(offset) * 0.25);
 
         const gradient = ctx.createLinearGradient(
           this.centerX,
           this.centerY,
-          endX + offset * 3,
-          endY + offset * 3,
+          endX + offset * 4, // More offset spread
+          endY + offset * 4,
         );
 
-        gradient.addColorStop(0, `hsla(${hue}, 100%, 70%, ${alpha})`);
-        gradient.addColorStop(0.5, `hsla(${hue}, 90%, 60%, ${alpha * 0.6})`);
-        gradient.addColorStop(1, `hsla(${hue}, 80%, 50%, 0)`);
+        // Richer gradient with mid-stops
+        gradient.addColorStop(0, `hsla(${hue}, 100%, 75%, ${alpha})`);
+        gradient.addColorStop(0.3, `hsla(${hue + 20}, 95%, 65%, ${alpha * 0.8})`);
+        gradient.addColorStop(0.7, `hsla(${hue}, 85%, 55%, ${alpha * 0.5})`);
+        gradient.addColorStop(1, `hsla(${hue}, 75%, 45%, 0)`);
 
         ctx.strokeStyle = gradient;
         ctx.lineWidth = rayWidth;
         ctx.beginPath();
         ctx.moveTo(this.centerX, this.centerY);
-        ctx.lineTo(endX + offset * 3, endY + offset * 3);
+        ctx.lineTo(endX + offset * 4, endY + offset * 4);
         ctx.stroke();
       }
     }
@@ -956,17 +964,22 @@ export class FlowFieldRenderer {
         ctx.restore();
       } else {
         bubble.age++;
-        bubble.rotation += 0.01 + audioIntensity * 0.005;
+        bubble.rotation += 0.01 + audioIntensity * 0.008; // More rotation
 
-        // Gentle floating motion
+        // Enhanced floating with spiral motion
         bubble.vy -= 0.008;
-        bubble.vx += (Math.random() - 0.5) * 0.05;
+        bubble.vx += (Math.random() - 0.5) * 0.06; // More lateral movement
         bubble.vx *= 0.98;
         bubble.vy *= 0.98;
 
-        bubble.x +=
-          bubble.vx + Math.sin(this.time * 0.015 + bubble.y * 0.01) * 0.3;
-        bubble.y += bubble.vy;
+        // Complex multi-layered sine wave motion for organic feel
+        const timePhase = this.time * 0.015;
+        const spiralX = Math.sin(timePhase + bubble.y * 0.01) * 0.4 +
+                       Math.cos(timePhase * 1.3 + bubble.age * 0.005) * 0.2;
+        const spiralY = Math.sin(timePhase * 0.7 + bubble.x * 0.008) * 0.15;
+
+        bubble.x += bubble.vx + spiralX;
+        bubble.y += bubble.vy + spiralY;
 
         if (
           bubble.age > bubble.maxAge ||
@@ -982,18 +995,21 @@ export class FlowFieldRenderer {
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
 
-        // Outer mystical glow - darker, more ethereal
+        // Expanded outer mystical aura with breathing effect
+        const breathe = 1 + Math.sin(this.time * 0.003 + bubble.age * 0.01) * 0.2;
         const outerGlow = ctx.createRadialGradient(
           bubble.x,
           bubble.y,
           bubble.radius * 0.5,
           bubble.x,
           bubble.y,
-          bubble.radius * 2.2,
+          bubble.radius * 2.5 * breathe, // Breathing aura
         );
+        // Enhanced color shifting in glow
+        const glowHue = (bubble.hue + this.time * 0.05) % 360;
         outerGlow.addColorStop(
           0,
-          `hsla(${bubble.hue}, 100%, 50%, ${0.15 + audioIntensity * 0.1})`,
+          `hsla(${glowHue}, 100%, 55%, ${0.18 + audioIntensity * 0.12})`,
         );
         outerGlow.addColorStop(
           0.4,
@@ -1099,13 +1115,17 @@ export class FlowFieldRenderer {
 
     for (let w = 0; w < waveCount; w++) {
       const phase = this.time * 0.02 + (w * Math.PI) / waveCount;
-      const baseRadius = 50 + w * 60;
+      const baseRadius = 50 + (w << 6) - (w << 2); // Bit shift: w * 60 = w * 64 - w * 4
 
       ctx.beginPath();
 
-      for (let angle = 0; angle <= Math.PI * 2; angle += 0.05) {
-        const wave = Math.sin(angle * 8 + phase) * amplitude * bassIntensity;
-        const r = baseRadius + wave;
+      const twoPi = Math.PI << 1; // Bit shift: * 2
+      // Enhanced wave complexity with multiple harmonics
+      for (let angle = 0; angle <= twoPi; angle += 0.04) {
+        const wave1 = Math.sin(angle * 8 + phase) * amplitude * bassIntensity;
+        const wave2 = Math.cos(angle * 5 - phase * 0.7) * amplitude * 0.3 * trebleIntensity;
+        const wave3 = Math.sin(angle * 12 + phase * 1.5) * amplitude * 0.15; // Harmonic
+        const r = baseRadius + wave1 + wave2 + wave3; // Multi-layered wave motion
         const x = this.centerX + Math.cos(angle) * r;
         const y = this.centerY + Math.sin(angle) * r;
 
@@ -1118,11 +1138,12 @@ export class FlowFieldRenderer {
 
       ctx.closePath();
 
-      const hue = (this.hueBase + w * 72) % 360;
-      const alpha = 0.3 + audioIntensity * 0.3;
+      // Animated hue cycling
+      const hue = ((this.hueBase + (w << 6) + (w << 3) + this.time * 0.1) % 360) | 0; // w * 72 = w * 64 + w * 8
+      const alpha = 0.25 + audioIntensity * 0.35; // Brighter
 
-      ctx.strokeStyle = `hsla(${hue}, 90%, 65%, ${alpha})`;
-      ctx.lineWidth = 2 + audioIntensity * 4;
+      ctx.strokeStyle = `hsla(${hue}, 95%, 68%, ${alpha})`; // More saturated
+      ctx.lineWidth = 2 + audioIntensity * 5; // Thicker
       ctx.stroke();
 
       const gradient = ctx.createRadialGradient(
@@ -1133,30 +1154,43 @@ export class FlowFieldRenderer {
         this.centerY,
         baseRadius + amplitude,
       );
-      gradient.addColorStop(0, `hsla(${hue}, 80%, 60%, 0)`);
-      gradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, ${alpha * 0.2})`);
-      gradient.addColorStop(1, `hsla(${hue}, 70%, 50%, 0)`);
+      gradient.addColorStop(0, `hsla(${hue}, 85%, 65%, 0)`);
+      gradient.addColorStop(0.3, `hsla(${hue + 30}, 90%, 70%, ${alpha * 0.25})`); // Color shift
+      gradient.addColorStop(0.7, `hsla(${hue}, 80%, 60%, ${alpha * 0.15})`);
+      gradient.addColorStop(1, `hsla(${hue - 20}, 75%, 55%, 0)`);
 
       ctx.fillStyle = gradient;
       ctx.fill();
     }
 
-    const gridSize = 40;
-    ctx.globalAlpha = 0.2 + audioIntensity * 0.2;
+    // Enhanced grid with optimizations
+    const gridSize = 48; // Slightly larger for performance
+    ctx.globalAlpha = 0.18 + audioIntensity * 0.25;
 
     for (let y = 0; y < this.height; y += gridSize) {
       for (let x = 0; x < this.width; x += gridSize) {
         const dx = x - this.centerX;
         const dy = y - this.centerY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const wave =
-          Math.sin(dist * frequency - this.time * 0.05) * 10 * trebleIntensity;
+        const distSq = dx * dx + dy * dy; // Use squared distance first
+        const dist = Math.sqrt(distSq);
+        // Complex ripple effect with multiple frequencies
+        const wave1 = Math.sin(dist * frequency - this.time * 0.05) * 10 * trebleIntensity;
+        const wave2 = Math.cos(dist * frequency * 0.7 + this.time * 0.03) * 5 * bassIntensity;
+        const wave = wave1 + wave2;
 
-        const hue = (this.hueBase + dist * 0.5) % 360;
-        const size = 2 + wave;
+        const hue = ((this.hueBase + (dist >> 1) + this.time * 0.08) % 360) | 0; // Bit shift: / 2, animated hue
+        const size = (2 + Math.abs(wave)) | 0; // Fast floor
 
-        ctx.fillStyle = `hsla(${hue}, 80%, 70%, 0.6)`;
-        ctx.fillRect(x + wave, y + wave, size, size);
+        // Particle-like points with glow
+        const pointAlpha = 0.5 + Math.sin(this.time * 0.01 + dist * 0.02) * 0.3;
+        ctx.fillStyle = `hsla(${hue}, 85%, 72%, ${pointAlpha})`;
+        ctx.fillRect((x + wave) | 0, (y + wave) | 0, size, size);
+
+        // Add subtle glow around each point
+        if ((x & 0x3F) === 0 && (y & 0x3F) === 0) { // Every 64 pixels (bitwise AND for modulo)
+          ctx.fillStyle = `hsla(${hue + 30}, 100%, 80%, ${pointAlpha * 0.3})`;
+          ctx.fillRect((x + wave - 2) | 0, (y + wave - 2) | 0, (size << 1) + 2, (size << 1) + 2);
+        }
       }
     }
 
