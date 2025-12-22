@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-isobelnet.de - A modern music streaming and discovery platform built with Next.js 15, TypeScript, and TailwindCSS v4. Features include audio playback with equalizer, smart recommendations, visual audio patterns, and a Spotify-like mobile experience.
+darkfloor.art - A modern music streaming and discovery platform built with Next.js 15, TypeScript, and TailwindCSS v4. Features include audio playback with equalizer, smart recommendations, visual audio patterns, and a Spotify-like mobile experience.
 
 **Tech Stack:**
 - Next.js 15.5+ (App Router, Turbopack, standalone mode)
@@ -389,8 +389,8 @@ ELECTRON_BUILD=true             # Set during Electron builds
 ## Deployment (PM2)
 
 **Configuration:** `ecosystem.config.cjs` defines two apps:
-- `isobelnet-de-prod` - Production (port 3000)
-- `isobelnet-de-dev` - Development (port 3412)
+- `darkfloor-art-prod` - Production (port 3000)
+- `darkfloor-art-dev` - Development (port 3412)
 
 **Workflow:**
 1. Make changes

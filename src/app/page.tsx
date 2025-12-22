@@ -57,28 +57,28 @@ export async function generateMetadata({
 
   // Default metadata
   const defaultMetadata: Metadata = {
-    title: "Isobelnet.de",
+    title: "darkfloor.art",
     description:
       "Modern music streaming and discovery platform with smart recommendations",
     openGraph: {
-      title: "Isobelnet.de",
+      title: "darkfloor.art",
       description:
         "Modern music streaming and discovery platform with smart recommendations",
       type: "website",
       url: baseUrl,
-      siteName: "isobelnet.de",
+      siteName: "darkfloor.art",
       images: [
         {
           url: `${baseUrl}/emily-the-strange.png`,
           width: 1200,
           height: 630,
-          alt: "isobelnet.de - Modern music streaming platform",
+          alt: "darkfloor.art - Modern music streaming platform",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Isobelnet.de",
+      title: "darkfloor.art",
       description:
         "Modern music streaming and discovery platform with smart recommendations",
     },
@@ -98,8 +98,8 @@ export async function generateMetadata({
     ? `${firstTrack.title} by ${firstTrack.artist.name}`
     : `Search: ${query}`;
   const description = firstTrack
-    ? `Listen to ${firstTrack.title} by ${firstTrack.artist.name} on isobelnet.de`
-    : `Search results for "${query}" on isobelnet.de`;
+    ? `Listen to ${firstTrack.title} by ${firstTrack.artist.name} on darkfloor.art`
+    : `Search results for "${query}" on darkfloor.art`;
 
   return {
     title: trackTitle,
@@ -109,7 +109,7 @@ export async function generateMetadata({
       description,
       type: "website",
       url: `${baseUrl}/?q=${encodeURIComponent(query)}`,
-      siteName: "isobelnet.de",
+      siteName: "darkfloor.art",
       images: [
         {
           url: coverImage,
@@ -117,7 +117,7 @@ export async function generateMetadata({
           height: 630,
           alt: firstTrack
             ? `${firstTrack.title} by ${firstTrack.artist.name}`
-            : "isobelnet.de",
+            : "darkfloor.art",
         },
       ],
     },

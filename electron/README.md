@@ -1,4 +1,4 @@
-# Electron Setup for isobelnet.de
+# Electron Setup for darkfloor.art
 
 ## What Was
 

@@ -3,7 +3,7 @@
 
 set -e  # Exit on error
 
-echo "🌟 isobelnet.de PM2 Setup Script"
+echo "🌟 darkfloor.art PM2 Setup Script"
 echo "============================"
 echo ""
 

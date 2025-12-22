@@ -36,5 +36,5 @@ export function getBaseUrl(): string {
   }
 
   // Final fallback to default URL
-  return "https://play.isobelnet.de";
+  return "https://darkfloor.art";
 }

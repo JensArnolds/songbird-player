@@ -109,7 +109,7 @@ export default function EnhancedTrackCard({
 
     const success = await share({
       title: `${track.title} - ${track.artist.name}`,
-      text: `Check out "${track.title}" by ${track.artist.name} on isobelnet.de!`,
+      text: `Check out "${track.title}" by ${track.artist.name} on darkfloor.art!`,
       url: window.location.href,
     });
 

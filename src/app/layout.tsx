@@ -30,30 +30,30 @@ const geist = Geist({
 const baseUrl = getBaseUrl();
 
 export const metadata: Metadata = {
-  title: "Isobelnet.de",
+  title: "darkfloor.art",
   description:
     "Modern music streaming and discovery platform with smart recommendations",
-  applicationName: "isobelnet.de",
+  applicationName: "darkfloor.art",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   openGraph: {
-    title: "Isobelnet.de",
+    title: "darkfloor.art",
     description:
       "Modern music streaming and discovery platform with smart recommendations",
     type: "website",
     url: baseUrl,
-    siteName: "isobelnet.de",
+    siteName: "darkfloor.art",
     images: [
       {
         url: `${baseUrl}/emily-the-strange.png`,
         width: 1200,
         height: 630,
-        alt: "isobelnet.de - Modern music streaming platform",
+        alt: "darkfloor.art - Modern music streaming platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Isobelnet.de",
+    title: "darkfloor.art",
     description:
       "Modern music streaming and discovery platform with smart recommendations",
   },

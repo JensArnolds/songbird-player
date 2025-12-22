@@ -127,7 +127,7 @@ function getSystemInfo() {
 function printStartupBanner() {
   console.clear();
 
-  logger.section("Isobelnet.de Frontend Server", "🎵");
+  logger.section("darkfloor.art Frontend Server", "🎵");
 
   // Environment Configuration
   console.log(chalk.bold("  Environment Configuration:"));

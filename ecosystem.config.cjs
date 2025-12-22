@@ -26,7 +26,7 @@ module.exports = {
       // ============================================
       // PRODUCTION CONFIGURATION
       // ============================================
-      name: "isobelnet-de-prod",
+      name: "darkfloor-art-prod",
       script: "scripts/server.js",
       args: "",
       interpreter: "node",
@@ -118,7 +118,7 @@ module.exports = {
       // ============================================
       // DEVELOPMENT CONFIGURATION
       // ============================================
-      name: "isobelnet-de-dev",
+      name: "darkfloor-art-dev",
       script: "scripts/server.js",
       args: "",
       interpreter: "node",
@@ -202,7 +202,7 @@ module.exports = {
   deploy: {
     production: {
       user: "node",
-      host: ["isobelnet.de"],
+      host: ["darkfloor.art"],
       ref: "origin/main",
       repo: "git@github.com:soulwax/starchild-music-frontend.git",
       path: "/home/soulwax/workspace/Web/Frontends/starchild-music-frontend",

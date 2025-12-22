@@ -3,7 +3,7 @@
 
 set -e
 
-echo "🌟 isobelnet.de - Database Setup"
+echo "🌟 darkfloor.art - Database Setup"
 echo "=============================="
 echo ""
 

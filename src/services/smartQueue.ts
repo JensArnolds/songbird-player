@@ -2,7 +2,7 @@
 
 /**
  * Smart Queue Service
- * Integrates with the isobelnet.de backend for intelligent track recommendations
+ * Integrates with the darkfloor.art backend for intelligent track recommendations
  */
 
 import { isTrack, type Track } from "@/types";

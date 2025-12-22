@@ -1,6 +1,6 @@
-# 🌟 isobelnet.de
+# 🌟 darkfloor.art
 
-![isobelnet.de Banner](.github/assets/emily-the-strange_vivid.png)
+![darkfloor.art Banner](.github/assets/emily-the-strange_vivid.png)
 
 *An attempt at amodern full-stack music search & streaming interface.*
 
@@ -57,7 +57,7 @@ The application provides:
 
     ```bash
     git clone https://github.com/soulwax/starchild-music-frontend.git
-    cd isobelnet-de
+    cd darkfloor-art
     npm install
     ```
 
@@ -292,7 +292,7 @@ pm2 start ecosystem.config.cjs --env production
 npm run pm2:dev
 
 # Or manually:
-pm2 start ecosystem.config.cjs --only isobelnet-de-dev --env development
+pm2 start ecosystem.config.cjs --only darkfloor-art-dev --env development
 ```
 
 #### Stopping the Server
@@ -302,8 +302,8 @@ pm2 start ecosystem.config.cjs --only isobelnet-de-dev --env development
 npm run pm2:stop
 
 # Stop specific process
-pm2 stop isobelnet-de-prod
-pm2 stop isobelnet-de-dev
+pm2 stop darkfloor-art-prod
+pm2 stop darkfloor-art-dev
 
 # Delete processes from PM2
 npm run pm2:delete
@@ -320,7 +320,7 @@ npm run pm2:restart
 
 # Or manually:
 pm2 reload ecosystem.config.cjs --env production --update-env
-pm2 restart isobelnet-de-prod --update-env
+pm2 restart darkfloor-art-prod --update-env
 ```
 
 ### Server Startup Mechanism
@@ -366,7 +366,7 @@ PM2 handles graceful shutdown through:
 #### Force Shutdown
 If graceful shutdown fails:
 ```bash
-pm2 delete isobelnet-de-prod  # Force remove
+pm2 delete darkfloor-art-prod  # Force remove
 pm2 kill  # Kill PM2 daemon (use with caution)
 ```
 
@@ -387,7 +387,7 @@ npm run pm2:logs:error
 npm run pm2:monit
 
 # View last N lines
-pm2 logs isobelnet-de-prod --lines 100
+pm2 logs darkfloor-art-prod --lines 100
 ```
 
 #### Check Status
@@ -396,10 +396,10 @@ pm2 logs isobelnet-de-prod --lines 100
 npm run pm2:status
 
 # Detailed process info
-pm2 describe isobelnet-de-prod
+pm2 describe darkfloor-art-prod
 
 # Process metrics
-pm2 show isobelnet-de-prod
+pm2 show darkfloor-art-prod
 ```
 
 #### Log Files
@@ -500,14 +500,14 @@ HOSTNAME=0.0.0.0
 #### Process Won't Start
 1. Check if build exists: `test -f .next/BUILD_ID`
 2. Build manually: `npm run build`
-3. Check logs: `pm2 logs isobelnet-de-prod --err`
+3. Check logs: `pm2 logs darkfloor-art-prod --err`
 4. Verify port is available: `netstat -tlnp | grep 3222`
 
 #### Process Keeps Restarting
 1. Check error logs: `pm2 logs --err`
 2. Verify build is complete: Check `.next/BUILD_ID` exists
 3. Check memory usage: `pm2 monit`
-4. Review restart count: `pm2 describe isobelnet-de-prod`
+4. Review restart count: `pm2 describe darkfloor-art-prod`
 
 #### Health Check Failing
 1. Test endpoint manually: `curl http://localhost:3222/api/health`
@@ -582,7 +582,7 @@ This project uses **TailwindCSS v4** with pure CSS Variables (no `@apply` direct
 1. **Check if build exists**: `test -f .next/BUILD_ID && echo "OK" || echo "Missing"`
 2. **Build the application**: `npm run build`
 3. **Check PM2 status**: `pm2 list` - look for processes with high restart count
-4. **View error logs**: `pm2 logs isobelnet-de-prod --err`
+4. **View error logs**: `pm2 logs darkfloor-art-prod --err`
 5. **Restart with new config**: `pm2 reload ecosystem.config.cjs --env production --update-env`
 
 **Root Cause**: Missing production build causes Next.js to crash immediately on startup, creating an infinite restart loop.
@@ -597,7 +597,7 @@ This project uses **TailwindCSS v4** with pure CSS Variables (no `@apply` direct
 2. **Check if port is listening**: `netstat -tlnp | grep 3222`
 3. **Verify process is actually running**: `ps aux | grep "next start"`
 4. **Check PM2 logs for startup errors**: `pm2 logs --lines 50`
-5. **Restart the process**: `pm2 restart isobelnet-de-prod`
+5. **Restart the process**: `pm2 restart darkfloor-art-prod`
 
 ### Issue: Build fails during deployment
 

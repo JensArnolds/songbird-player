@@ -260,7 +260,7 @@ const createWindow = async () => {
       sandbox: true,
       devTools: isDev,
       // Enable persistent storage partition
-      partition: "persist:isobelnet-de",
+      partition: "persist:darkfloor-art",
     },
     icon: path.join(__dirname, "../public/icon.png"),
     backgroundColor: "#000000",

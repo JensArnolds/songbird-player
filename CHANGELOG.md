@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to isobelnet.de will be documented in this file.
+All notable changes to darkfloor.art will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,18 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-#### Complete Rebrand: "Starchild Music" → "isobelnet.de"
+#### Complete Rebrand: "Starchild Music" → "isobelnet.de" → "darkfloor.art"
 
 **User-Facing Changes:**
-- **Brand Identity**: Completely rebranded from "Starchild Music" to "isobelnet.de" across all user interfaces
+- **Brand Identity**: Completely rebranded from "isobelnet.de" to "darkfloor.art" across all user interfaces
 - **UI Components**: Updated all component text including headers, menus, welcome messages, and share dialogs
 - **Metadata**: Updated page titles, Open Graph data, and Twitter card metadata for SEO and social sharing
 - **Mobile Experience**: Updated mobile header, hamburger menu branding, and player UI text
 
 **Technical Changes:**
-- **Package Configuration**: Renamed package from `starchild-music-frontend` to `isobelnet-de`
-- **PM2 Processes**: Renamed production and development processes to `isobelnet-de-prod` and `isobelnet-de-dev`
-- **Electron App**: Updated desktop application name, app ID (`com.isobelnet.de`), and product name
+- **Package Configuration**: Renamed package from `isobelnet-de` to `darkfloor-art`
+- **PM2 Processes**: Renamed production and development processes to `darkfloor-art-prod` and `darkfloor-art-dev`
+- **Electron App**: Updated desktop application name, app ID (`com.darkfloor.art`), and product name
 - **Documentation**: Updated all README, CLAUDE.md, and setup documentation files
 - **Scripts**: Updated all setup scripts, server banners, and diagnostic commands
 - **Electron Storage**: Updated persistent storage partition name for Electron builds
@@ -479,9 +479,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Version 0.3.0 - Electron Desktop Application
 
-This release transforms isobelnet.de into a full-featured desktop application with complete state persistence. Users can now:
+This release transforms darkfloor.art into a full-featured desktop application with complete state persistence. Users can now:
 
-- Install isobelnet.de as a native desktop app on Windows, macOS, and Linux
+- Install darkfloor.art as a native desktop app on Windows, macOS, and Linux
 - Enjoy seamless login that persists across app restarts
 - Have all preferences, settings, and UI state automatically saved and restored
 - Use global media keys to control playback
@@ -489,7 +489,7 @@ This release transforms isobelnet.de into a full-featured desktop application wi
 
 ### Version 0.2.0 - Initial Release
 
-The initial release of isobelnet.de provides a comprehensive music streaming platform with intelligent recommendations, advanced audio features, and a modern user interface. Key highlights:
+The initial release of darkfloor.art provides a comprehensive music streaming platform with intelligent recommendations, advanced audio features, and a modern user interface. Key highlights:
 
 - Stream music from Deezer's extensive catalog
 - Intelligent auto-queue with similarity-based recommendations
