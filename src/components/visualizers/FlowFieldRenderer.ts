@@ -41,7 +41,6 @@ type Pattern =
   | "galaxy"
   | "matrix"
   | "lightning"
-  | "aurora"
   | "fireworks"
   | "lissajous"
   | "rings"
@@ -138,7 +137,6 @@ export class FlowFieldRenderer {
     "rays",
     "galaxy",
     "fractal",
-    "aurora",
     "tunnel",
     "lightning",
     "bubbles",
@@ -244,7 +242,6 @@ export class FlowFieldRenderer {
   private matrixSpeed = 1.0;
   private tunnelSpeed = 1.0;
   private galaxyArmCount = 4;
-  private auroraIntensity = 1.0;
   private mandalaLayers = 5;
 
   
@@ -2041,123 +2038,6 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderAurora(
-    audioIntensity: number,
-    bassIntensity: number,
-    midIntensity: number,
-  ): void {
-    const ctx = this.ctx;
-    const layers = 5;
-
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-
-    
-    const shimmersPerLayer = Math.max(3, (audioIntensity * 8) | 0);
-    const waveStep = 8;
-    const timePhase = this.time * 0.002;
-    const invShimmersPerLayer = 1 / shimmersPerLayer;
-    const waveFreq1 = 0.005;
-    const waveFreq2 = 0.003;
-    const phaseMultiplier = 1.5;
-
-    for (let layer = 0; layer < layers; layer++) {
-      const phase = timePhase + layer * 0.5;
-      const yBase = this.height * 0.3 + layer * 30;
-      const amplitude = 50 + bassIntensity * 80;
-      const hue = this.fastMod360(this.hueBase + layer * 60 + midIntensity * 120);
-
-      ctx.beginPath();
-      ctx.moveTo(0, this.height);
-
-      for (let x = 0; x <= this.width; x += waveStep) {
-        const wave1 = this.fastSin(x * waveFreq1 + phase) * amplitude;
-        const wave2 = this.fastSin(x * waveFreq2 - phase * phaseMultiplier) * amplitude * 0.5;
-        const y = yBase + wave1 + wave2;
-        ctx.lineTo(x, y);
-      }
-
-      if (this.width % waveStep !== 0) {
-        const finalWave1 = this.fastSin(this.width * waveFreq1 + phase) * amplitude;
-        const finalWave2 = this.fastSin(this.width * waveFreq2 - phase * phaseMultiplier) * amplitude * 0.5;
-        ctx.lineTo(this.width, yBase + finalWave1 + finalWave2);
-      }
-
-      ctx.lineTo(this.width, this.height);
-      ctx.closePath();
-
-      const gradient = ctx.createLinearGradient(
-        0,
-        yBase - amplitude,
-        0,
-        this.height,
-      );
-
-      const mainAlpha = 0.4 + audioIntensity * 0.3;
-      const hue20 = this.fastMod360(hue + 20);
-      const hue40 = this.fastMod360(hue + 40);
-      const hue60 = this.fastMod360(hue + 60);
-      
-      gradient.addColorStop(0, this.hsla(hue, 90, 70, mainAlpha));
-      gradient.addColorStop(0.2, this.hsla(hue, 85, 65, mainAlpha * 0.8));
-      gradient.addColorStop(0.4, this.hsla(hue20, 80, 60, mainAlpha * 0.6));
-      gradient.addColorStop(0.6, this.hsla(hue40, 75, 55, mainAlpha * 0.4));
-      gradient.addColorStop(0.8, this.hsla(hue60, 70, 50, mainAlpha * 0.15));
-      gradient.addColorStop(1, this.hsla(hue60, 70, 50, 0));
-
-      ctx.fillStyle = gradient;
-      ctx.fill();
-
-      if (audioIntensity > 0.1) {
-        const shimmerSpacing = Math.max(
-          40,
-          (this.width * invShimmersPerLayer) | 0,
-        );
-
-        for (let x = 0; x < this.width; x += shimmerSpacing) {
-          const shimmerRng = this.fastSin(x * 0.02 + phase * 3) * 0.5 + 0.5;
-          const wave = this.fastSin(x * 0.01 + phase * 2) * amplitude;
-          const y = yBase + wave;
-          const size = 2 + shimmerRng * 4 + audioIntensity * 3;
-
-          const shimmerGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
-          const shimmerAlpha = 0.5 + shimmerRng * 0.4;
-          shimmerGradient.addColorStop(0, this.hsla(hue, 100, 90, shimmerAlpha));
-          shimmerGradient.addColorStop(0.7, this.hsla(hue, 90, 80, shimmerAlpha * 0.5));
-          shimmerGradient.addColorStop(1, this.hsla(hue, 90, 80, 0));
-
-          ctx.fillStyle = shimmerGradient;
-          ctx.fillRect(x - size, y - size, size * 2, size * 2);
-        }
-
-        if (audioIntensity > 0.3) {
-          const symbolCount = Math.max(2, (audioIntensity * 4) | 0);
-          const symbolSpacing = (this.width / symbolCount) | 0;
-          const invSymbolSpacing = 1 / symbolSpacing;
-
-          for (let x = 0; x < this.width; x += symbolSpacing) {
-            const wave = this.fastSin(x * 0.01 + phase * 2) * amplitude;
-            const y = yBase + wave;
-            const clanIndex = ((x * invSymbolSpacing + layer * 3) | 0) % 13;
-            const symbolAlpha = 0.05 + audioIntensity * 0.12;
-
-            this.drawClanSymbol(
-              ctx,
-              x,
-              y,
-              15 + bassIntensity * 8,
-              clanIndex,
-              symbolAlpha,
-              hue,
-            );
-          }
-        }
-      }
-    }
-
-    ctx.restore();
-  }
-
   private renderFireworks(
     audioIntensity: number,
     bassIntensity: number,
@@ -2962,9 +2842,6 @@ export class FlowFieldRenderer {
         break;
       case "lightning":
         this.renderLightning(audioIntensity, bassIntensity, trebleIntensity);
-        break;
-      case "aurora":
-        this.renderAurora(audioIntensity, bassIntensity, midIntensity);
         break;
       case "fireworks":
         this.renderFireworks(audioIntensity, bassIntensity, trebleIntensity);
@@ -11072,14 +10949,6 @@ export class FlowFieldRenderer {
 
   public setGalaxyArmCount(value: number): void {
     this.galaxyArmCount = Math.max(2, Math.min(8, value));
-  }
-
-  public getAuroraIntensity(): number {
-    return this.auroraIntensity;
-  }
-
-  public setAuroraIntensity(value: number): void {
-    this.auroraIntensity = Math.max(0.1, Math.min(3.0, value));
   }
 
   public getMandalaLayers(): number {
