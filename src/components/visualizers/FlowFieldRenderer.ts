@@ -5841,34 +5841,37 @@ export class FlowFieldRenderer {
 
     points.forEach((point, i) => {
       const pointSize = 8 + bassIntensity * 8 + (i === 2 ? 5 : 0);
-      const pointHue = (vesicaHue + i * 60) % 360;
+      const pointHue = this.fastMod360(vesicaHue + i * 60);
 
-      ctx.fillStyle = `hsla(${pointHue}, 95%, 75%, 0.9)`;
-      ctx.strokeStyle = `hsla(${pointHue + 30}, 100%, 80%, 1)`;
+      ctx.fillStyle = this.hsla(pointHue, 95, 75, 0.9);
+      ctx.strokeStyle = this.hsla(this.fastMod360(pointHue + 30), 100, 80, 1);
       ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.arc(point.x, point.y, pointSize, 0, Math.PI * 2);
+      ctx.arc(point.x, point.y, pointSize, 0, twoPi);
       ctx.fill();
       ctx.stroke();
     });
 
     // Rotating sacred symbols
     const symbolCount = 6;
+    const invSymbolCount = 1 / symbolCount;
+    const symbolAngleStep = twoPi * invSymbolCount;
+    const symbolDist = radius * 1.5;
     ctx.save();
     ctx.rotate(this.time * 0.002);
 
     for (let i = 0; i < symbolCount; i++) {
-      const angle = (Math.PI * 2 * i) / symbolCount;
-      const dist = radius * 1.5;
-      const x = Math.cos(angle) * dist;
-      const y = Math.sin(angle) * dist;
+      const angle = symbolAngleStep * i;
+      // HYPER-OPTIMIZATION: Use fast trig for symbol position
+      const x = this.fastCos(angle) * symbolDist;
+      const y = this.fastSin(angle) * symbolDist;
       const symbolSize = 4 + trebleIntensity * 5;
-      const symbolHue = (this.hueBase + i * 60) % 360;
+      const symbolHue = this.fastMod360(this.hueBase + i * 60);
 
-      ctx.fillStyle = `hsla(${symbolHue}, 90%, 70%, 0.7)`;
+      ctx.fillStyle = this.hsla(symbolHue, 90, 70, 0.7);
       ctx.beginPath();
-      ctx.arc(x, y, symbolSize, 0, Math.PI * 2);
+      ctx.arc(x, y, symbolSize, 0, twoPi);
       ctx.fill();
     }
 
@@ -5889,106 +5892,131 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
     ctx.rotate(this.time * 0.001);
 
-    // Draw torus using concentric rings
+    // HYPER-OPTIMIZATION: Pre-calculate torus field parameters
     const rings = 30;
+    const invRings = 1 / rings;
+    const timeRing = this.time * 0.005;
+    const timeParticle = this.time * 0.01;
+    const timeFlow = this.time * 0.003;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const inv8 = 1 / 8;
+    const particleAngleStep = twoPi * inv8;
+    const flowLines = 12;
+    const invFlowLines = 1 / flowLines;
+    const flowAngleStep = twoPi * invFlowLines;
+    const inv100 = 1 / 100;
+    const minorRadiusHalf = minorRadius * 0.5;
 
+    // Draw torus using concentric rings
     for (let i = 0; i < rings; i++) {
-      const progress = i / rings;
-      const angle = progress * Math.PI * 2 + this.time * 0.005;
+      const progress = i * invRings;
+      const angle = progress * twoPi + timeRing;
 
-      // Calculate torus position
-      const ringCenterX = Math.cos(angle) * majorRadius;
-      const ringCenterY = Math.sin(angle) * majorRadius;
-      const ringRadius = minorRadius * Math.abs(Math.sin(angle));
+      // HYPER-OPTIMIZATION: Use fast trig for torus calculation
+      const sinAngle = this.fastSin(angle);
+      const cosAngle = this.fastCos(angle);
+      const absSinAngle = sinAngle < 0 ? -sinAngle : sinAngle;
+      const absCosAngle = cosAngle < 0 ? -cosAngle : cosAngle;
+      
+      const ringCenterX = cosAngle * majorRadius;
+      const ringCenterY = sinAngle * majorRadius;
+      const ringRadius = minorRadius * absSinAngle;
 
-      const hue = (this.hueBase + progress * 240) % 360;
-      const alpha =
-        0.3 + (1 - Math.abs(Math.cos(angle))) * 0.5 + audioIntensity * 0.2;
+      const hue = this.fastMod360(this.hueBase + progress * 240);
+      const alpha = 0.3 + (1 - absCosAngle) * 0.5 + audioIntensity * 0.2;
 
       // Ring glow
+      const ringRadius15 = ringRadius * 1.5;
+      const ringRadius03 = ringRadius * 0.3;
+      const ringRadius3 = ringRadius * 3;
       const gradient = ctx.createRadialGradient(
         ringCenterX,
         ringCenterY,
-        ringRadius * 0.3,
+        ringRadius03,
         ringCenterX,
         ringCenterY,
-        ringRadius * 1.5,
+        ringRadius15,
       );
-      gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${alpha})`);
-      gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
+      gradient.addColorStop(0, this.hsla(hue, 90, 70, alpha));
+      gradient.addColorStop(1, this.hsla(hue, 80, 60, 0));
 
       ctx.fillStyle = gradient;
       ctx.fillRect(
-        ringCenterX - ringRadius * 1.5,
-        ringCenterY - ringRadius * 1.5,
-        ringRadius * 3,
-        ringRadius * 3,
+        ringCenterX - ringRadius15,
+        ringCenterY - ringRadius15,
+        ringRadius3,
+        ringRadius3,
       );
 
       // Ring outline
-      ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${alpha})`;
-      ctx.lineWidth = 2 + Math.abs(Math.sin(angle)) * 3;
+      ctx.strokeStyle = this.hsla(hue, 85, 65, alpha);
+      ctx.lineWidth = 2 + absSinAngle * 3;
 
       ctx.beginPath();
       ctx.ellipse(
         ringCenterX,
         ringCenterY,
         ringRadius,
-        ringRadius * 0.5,
+        minorRadiusHalf,
         angle,
         0,
-        Math.PI * 2,
+        twoPi,
       );
       ctx.stroke();
 
       // Energy particles flowing along torus
       if (i % 3 === 0) {
-        const particleCount = 8;
-        for (let p = 0; p < particleCount; p++) {
-          const pAngle = (Math.PI * 2 * p) / particleCount + this.time * 0.01;
-          const pX = ringCenterX + Math.cos(pAngle) * ringRadius;
-          const pY = ringCenterY + Math.sin(pAngle) * ringRadius * 0.5;
+        const particleHue = this.fastMod360(hue + 60);
+        for (let p = 0; p < 8; p++) {
+          const pAngle = particleAngleStep * p + timeParticle;
+          // HYPER-OPTIMIZATION: Use fast trig for particle position
+          const pX = ringCenterX + this.fastCos(pAngle) * ringRadius;
+          const pY = ringCenterY + this.fastSin(pAngle) * minorRadiusHalf;
           const pSize = 3 + audioIntensity * 4;
 
-          ctx.fillStyle = `hsla(${hue + 60}, 95%, 75%, 0.8)`;
+          ctx.fillStyle = this.hsla(particleHue, 95, 75, 0.8);
           ctx.beginPath();
-          ctx.arc(pX, pY, pSize, 0, Math.PI * 2);
+          ctx.arc(pX, pY, pSize, 0, twoPi);
           ctx.fill();
         }
       }
     }
 
     // Central axis
-    ctx.strokeStyle = `hsla(${this.hueBase}, 70%, 60%, ${0.4 + audioIntensity * 0.3})`;
+    const axisAlpha = 0.4 + audioIntensity * 0.3;
+    ctx.strokeStyle = this.hsla(this.hueBase, 70, 60, axisAlpha);
     ctx.lineWidth = 3;
     ctx.setLineDash([10, 10]);
 
+    const majorRadius12 = majorRadius * 1.2;
     ctx.beginPath();
-    ctx.moveTo(-majorRadius * 1.2, 0);
-    ctx.lineTo(majorRadius * 1.2, 0);
+    ctx.moveTo(-majorRadius12, 0);
+    ctx.lineTo(majorRadius12, 0);
     ctx.stroke();
 
     ctx.setLineDash([]);
 
     // Energy flow lines
-    const flowLines = 12;
+    const flowAlpha = 0.3 + audioIntensity * 0.2;
     for (let i = 0; i < flowLines; i++) {
-      const flowAngle = (Math.PI * 2 * i) / flowLines + this.time * 0.003;
-      const hue = (this.hueBase + i * 30) % 360;
+      const flowAngle = flowAngleStep * i + timeFlow;
+      const hue = this.fastMod360(this.hueBase + i * 30);
 
       ctx.save();
       ctx.rotate(flowAngle);
 
-      ctx.strokeStyle = `hsla(${hue}, 80%, 65%, ${0.3 + audioIntensity * 0.2})`;
+      ctx.strokeStyle = this.hsla(hue, 80, 65, flowAlpha);
       ctx.lineWidth = 2;
 
       ctx.beginPath();
       for (let t = 0; t <= 100; t++) {
-        const tProgress = t / 100;
-        const tAngle = tProgress * Math.PI * 2;
-        const radius = majorRadius + Math.cos(tAngle) * minorRadius;
-        const x = Math.cos(tAngle) * radius;
-        const y = Math.sin(tAngle) * minorRadius * 0.5;
+        const tProgress = t * inv100;
+        const tAngle = tProgress * twoPi;
+        // HYPER-OPTIMIZATION: Use fast trig for flow line calculation
+        const cosTAngle = this.fastCos(tAngle);
+        const radius = majorRadius + cosTAngle * minorRadius;
+        const x = cosTAngle * radius;
+        const y = this.fastSin(tAngle) * minorRadiusHalf;
 
         if (t === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
@@ -6000,17 +6028,17 @@ export class FlowFieldRenderer {
 
     // Central vortex
     const vortexSize = 30 + bassIntensity * 20;
+    const vortexHue120 = this.fastMod360(this.hueBase + 120);
+    const vortexHue90 = this.fastMod360(this.hueBase + 90);
+    const vortexHue60 = this.fastMod360(this.hueBase + 60);
     const vortexGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, vortexSize);
-    vortexGradient.addColorStop(0, `hsla(${this.hueBase + 120}, 95%, 75%, 1)`);
-    vortexGradient.addColorStop(
-      0.6,
-      `hsla(${this.hueBase + 90}, 85%, 65%, 0.6)`,
-    );
-    vortexGradient.addColorStop(1, `hsla(${this.hueBase + 60}, 75%, 55%, 0)`);
+    vortexGradient.addColorStop(0, this.hsla(vortexHue120, 95, 75, 1));
+    vortexGradient.addColorStop(0.6, this.hsla(vortexHue90, 85, 65, 0.6));
+    vortexGradient.addColorStop(1, this.hsla(vortexHue60, 75, 55, 0));
 
     ctx.fillStyle = vortexGradient;
     ctx.beginPath();
-    ctx.arc(0, 0, vortexSize, 0, Math.PI * 2);
+    ctx.arc(0, 0, vortexSize, 0, twoPi);
     ctx.fill();
 
     ctx.restore();
