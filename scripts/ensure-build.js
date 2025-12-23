@@ -27,7 +27,8 @@ if (!buildExists) {
     console.log('[Build Check] Build completed successfully');
     process.exit(0);
   } catch (error) {
-    console.error('[Build Check] Build failed:', error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[Build Check] Build failed:', message);
     process.exit(1);
   }
 } else {

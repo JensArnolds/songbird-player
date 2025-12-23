@@ -1,5 +1,10 @@
 
 
+import { renderRays } from "./flowfieldPatterns/renderRays";
+import { renderHexGrid } from "./flowfieldPatterns/renderHexGrid";
+import type { Pattern } from "./flowfieldPatterns/patternIds";
+import type { FlowFieldPatternContext } from "./flowfieldPatterns/types";
+
 interface Particle {
   x: number;
   y: number;
@@ -28,90 +33,6 @@ interface Bubble {
   symbolType: number; 
   rotation: number; 
 }
-
-type Pattern =
-  | "fractal"
-  | "rays"
-  | "tunnel"
-  | "bubbles"
-  | "waves"
-  | "swarm"
-  | "mandala"
-  | "dna"
-  | "galaxy"
-  | "matrix"
-  | "lightning"
-  | "fireworks"
-  | "lissajous"
-  | "rings"
-  | "starfield"
-  | "fluid"
-  | "hexgrid"
-  | "spirograph"
-  | "constellation"
-  | "pentagram"
-  | "runes"
-  | "sigils"
-  | "ouroboros"
-  | "chakras"
-  | "alchemy"
-  | "celestial"
-  | "portal"
-  | "dreamcatcher"
-  | "phoenix"
-  | "serpent"
-  | "crystalGrid"
-  | "moonPhases"
-  | "astrolabe"
-  | "tarot"
-  | "kabbalah"
-  | "merkaba"
-  | "flowerOfLife"
-  | "sriYantra"
-  | "metatron"
-  | "vesicaPiscis"
-  | "torusField"
-  | "cosmicEgg"
-  | "enochian"
-  | "labyrinth"
-  | "cosmicWeb"
-  | "vortexSpiral"
-  | "sacredSpiral"
-  | "elementalCross"
-  | "dragonEye"
-  | "ancientGlyphs"
-  | "timeWheel"
-  | "astralProjection"
-  | "ethericField"
-  | "platonic"
-  | "infinityKnot"
-  | "cosmicLotus"
-  | "voidMandala"
-  | "stellarMap"
-  | "wyrdWeb"
-  | "spiritualGateway"
-  | "akashicRecords"
-  | "sacredGeometry"
-  | "shadowRealm"
-  | "quantumEntanglement"
-  | "necromanticSigil"
-  | "dimensionalRift"
-  | "chaosVortex"
-  | "etherealMist"
-  | "bloodMoon"
-  | "darkMatter"
-  | "soulFragment"
-  | "forbiddenRitual"
-  | "twilightZone"
-  | "spectralEcho"
-  | "voidWhisper"
-  | "demonicGate"
-  | "cursedRunes"
-  | "shadowDance"
-  | "nightmareFuel"
-  | "abyssalDepth"
-  | "phantomPulse"
-  | "infernalFlame";
 
 export class FlowFieldRenderer {
   private canvas: HTMLCanvasElement;
@@ -575,6 +496,29 @@ export class FlowFieldRenderer {
     while (x >= 360) x -= 360;
     while (x < 0) x += 360;
     return x;
+  }
+
+  // Build a lightweight context object for extracted pattern modules.
+  // This allows us to migrate patterns incrementally into separate files without
+  // exposing FlowFieldRenderer internals as public API.
+  private getPatternContext(overrides?: Partial<FlowFieldPatternContext>): FlowFieldPatternContext {
+    const base: FlowFieldPatternContext = {
+      ctx: this.ctx,
+      width: this.width,
+      height: this.height,
+      centerX: this.centerX,
+      centerY: this.centerY,
+      time: this.time,
+      hueBase: this.hueBase,
+      TWO_PI: FlowFieldRenderer.TWO_PI,
+      fastSin: (angle) => this.fastSin(angle),
+      fastCos: (angle) => this.fastCos(angle),
+      fastSqrt: (x) => this.fastSqrt(x),
+      fastMod360: (x) => this.fastMod360(x),
+      hsla: (h, s, l, a) => this.hsla(h, s, l, a),
+    };
+
+    return overrides ? { ...base, ...overrides } : base;
   }
 
   private initializeParticles(): void {
@@ -2814,7 +2758,12 @@ export class FlowFieldRenderer {
         this.renderFractal(audioIntensity, bassIntensity, midIntensity);
         break;
       case "rays":
-        this.renderRays(audioIntensity, bassIntensity, trebleIntensity);
+        renderRays(
+          this.getPatternContext({ rayCount: this.rayCount }),
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
         break;
       case "tunnel":
         this.renderTunnel(audioIntensity, bassIntensity, midIntensity);
@@ -2859,7 +2808,12 @@ export class FlowFieldRenderer {
         this.renderFluid(audioIntensity, bassIntensity, midIntensity);
         break;
       case "hexgrid":
-        this.renderHexGrid(audioIntensity, bassIntensity, midIntensity);
+        renderHexGrid(
+          this.getPatternContext(),
+          audioIntensity,
+          bassIntensity,
+          midIntensity,
+        );
         break;
       case "spirograph":
         this.renderSpirograph(audioIntensity, bassIntensity, midIntensity);

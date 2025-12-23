@@ -5,6 +5,7 @@
 import { Layers, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
+import type { Pattern } from "./visualizers/flowfieldPatterns/patternIds";
 
 interface PatternControlsProps {
   renderer: FlowFieldRenderer | null;
@@ -72,7 +73,7 @@ export default function PatternControls({
     juliaC: { re: number; im: number };
     hueBase: number;
   } | null>(null);
-  const [availablePatterns, setAvailablePatterns] = useState<string[]>([]);
+  const [availablePatterns, setAvailablePatterns] = useState<Pattern[]>([]);
   const [rawCurrentPattern, setRawCurrentPattern] = useState<string>("");
 
   // Pattern-specific parameters
@@ -268,7 +269,7 @@ export default function PatternControls({
               <select
                 value={rawCurrentPattern}
                 onChange={(e) => {
-                  renderer.setPattern(e.target.value as any);
+                  renderer.setPattern(e.target.value as Pattern);
                 }}
                 className="w-full appearance-none rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,0.95)] px-4 py-2.5 pr-10 text-sm text-[var(--color-text)] transition hover:border-[rgba(244,178,102,0.3)] focus:border-[var(--color-accent)] focus:outline-none"
               >
