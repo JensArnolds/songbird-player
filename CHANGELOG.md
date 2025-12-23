@@ -6,9 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.6.6] - 2025-12-23
+
+### Added
+
+#### Dynamic Open Graph Image Generation
+
+- **Open Graph Image API**: Created new `/api/og` route for dynamically generating Open Graph embed images
+  - Default embed: Shows "darkfloor.art" branding with description when no song query is present
+  - Dynamic song embeds: Displays album artwork (squared, left-aligned) with track title, artist, and album information on the right
+  - All images generated at 1200×630px (standard Open Graph size) with proper layout and styling
+  - Uses Next.js `ImageResponse` API with edge runtime for fast image generation
+
+### Changed
+
+#### Enhanced SEO and Social Sharing
+
+- **Metadata Improvements**: Updated Open Graph and Twitter Card metadata across the application
+  - Replaced static Emily the Strange image references with dynamic OG image generator
+  - Changed Open Graph type from "website" to "music.song" for track-specific pages
+  - Enhanced descriptions to include album information when available
+  - Updated both root layout and home page metadata for consistency
+- **Image Assets**: Added Emily the Strange image to public directory for fallback scenarios
+- **Search Query Embeds**: Song links with query parameters now generate rich embeds showing album art and track details
+
+**Files Modified:**
+
+- Added: `src/app/api/og/route.tsx` (dynamic OG image generator)
+- Modified: `src/app/page.tsx` (dynamic metadata generation)
+- Modified: `src/app/layout.tsx` (updated default metadata)
+- Added: `public/emily-the-strange.png` (fallback image asset)
+
+
 ## [0.6.5] - 2025-12-23
 
 ### Changed
+
+#### FlowFieldRenderer Performance Optimizations
 
 - **FlowFieldRenderer performance reworks (drastic)**:
   - **Quantum Entanglement**: heavy rewrite using aggressive LOD, temporal subsampling, quadratic curves, reduced glow, and `fillRect` particles to avoid browser FPS collapse.
@@ -17,9 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Twilight Zone**: removed per-zone gradients; replaced with cheap ring strokes + sparse sparkles and fewer wisps/core layers.
   - **Demonic Gate**: reduced particle/entity/tendril/sigil counts, removed tendril gradients, simplified sigils, and reduced shadow costs.
   - **Shadow Dance**: removed trail/beam gradients, reduced dancer complexity, simplified trails/wisps, and reduced center layers.
-
-### Changed
-
 - **FlowFieldRenderer Hyper-Optimization**: Replaced remaining `Math.sin`, `Math.cos`, and `Math.sqrt` hot paths with fast trig/fast sqrt helpers across all mystical visual patterns (including ShadowRealm, QuantumEntanglement, NecromanticSigil, DimensionalRift, ChaosVortex, EtherealMist, BloodMoon, DarkMatter, SoulFragment, ForbiddenRitual, TwilightZone, SpectralEcho, VoidWhisper, DemonicGate, CursedRunes, ShadowDance, NightmareFuel).
 - **Performance & Visual Fidelity**: Pre-calculated common constants, angle steps, and hue offsets; reduced per-frame allocations; enhanced gradients and glow layers for deeper, more responsive visuals without extra CPU cost.
 - **Pattern Infrastructure**: Tightened use of cached HSLA color strings, fast modulo for hues, and object pooling in the visualizer pipeline to keep frame times stable even under heavy audio-reactive scenes.
