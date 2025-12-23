@@ -5351,15 +5351,19 @@ export class FlowFieldRenderer {
     ctx.setLineDash([]);
 
     // Sacred geometry lines
-    ctx.strokeStyle = `hsla(${this.hueBase + 180}, 70%, 60%, ${0.3 + audioIntensity * 0.2})`;
+    const hexAlpha = 0.3 + audioIntensity * 0.2;
+    ctx.strokeStyle = this.hsla(this.fastMod360(this.hueBase + 180), 70, 60, hexAlpha);
     ctx.lineWidth = 1;
 
     const hexPoints = [];
+    const hexRadius = radius * 2;
+    const hexAngleStep = twoPi * inv6;
     for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI * 2 * i) / 6;
+      const angle = hexAngleStep * i;
+      // HYPER-OPTIMIZATION: Use fast trig for hex points
       hexPoints.push({
-        x: Math.cos(angle) * radius * 2,
-        y: Math.sin(angle) * radius * 2,
+        x: this.fastCos(angle) * hexRadius,
+        y: this.fastSin(angle) * hexRadius,
       });
     }
 
@@ -5406,24 +5410,32 @@ export class FlowFieldRenderer {
       ctx.fillRect(x - gateSize / 2, y - gateSize / 2, gateSize, gateSize);
     });
 
+    // HYPER-OPTIMIZATION: Pre-calculate sri yantra parameters
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const timePetal = this.time * 0.001;
+    const petalAlpha = 0.5 + audioIntensity * 0.3;
+
     // Lotus petals outer
     const petalCount = 16;
     const petalRadius = baseSize * 1.2;
+    const invPetalCount = 1 / petalCount;
+    const petalAngleStep = twoPi * invPetalCount;
+    const petalHueStep = 360 * invPetalCount;
 
     for (let i = 0; i < petalCount; i++) {
-      const angle = (Math.PI * 2 * i) / petalCount + this.time * 0.001;
-      const hue = (this.hueBase + i * (360 / petalCount)) % 360;
+      const angle = petalAngleStep * i + timePetal;
+      const hue = this.fastMod360(this.hueBase + i * petalHueStep);
 
       ctx.save();
       ctx.rotate(angle);
       ctx.translate(0, -petalRadius);
 
-      ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${0.5 + audioIntensity * 0.3})`;
-      ctx.strokeStyle = `hsla(${hue}, 85%, 65%, 0.7)`;
+      ctx.fillStyle = this.hsla(hue, 80, 60, petalAlpha);
+      ctx.strokeStyle = this.hsla(hue, 85, 65, 0.7);
       ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.ellipse(0, 0, 25, 40, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 25, 40, 0, 0, twoPi);
       ctx.fill();
       ctx.stroke();
 
@@ -5433,21 +5445,24 @@ export class FlowFieldRenderer {
     // Lotus petals inner
     const innerPetalCount = 8;
     const innerPetalRadius = baseSize * 0.9;
+    const invInnerPetalCount = 1 / innerPetalCount;
+    const innerPetalAngleStep = twoPi * invInnerPetalCount;
+    const innerPetalHueStep = 360 * invInnerPetalCount;
 
     for (let i = 0; i < innerPetalCount; i++) {
-      const angle = (Math.PI * 2 * i) / innerPetalCount - this.time * 0.001;
-      const hue = (this.hueBase + 180 + i * (360 / innerPetalCount)) % 360;
+      const angle = innerPetalAngleStep * i - timePetal;
+      const hue = this.fastMod360(this.hueBase + 180 + i * innerPetalHueStep);
 
       ctx.save();
       ctx.rotate(angle);
       ctx.translate(0, -innerPetalRadius);
 
-      ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${0.5 + audioIntensity * 0.3})`;
-      ctx.strokeStyle = `hsla(${hue}, 85%, 65%, 0.7)`;
+      ctx.fillStyle = this.hsla(hue, 80, 60, petalAlpha);
+      ctx.strokeStyle = this.hsla(hue, 85, 65, 0.7);
       ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.ellipse(0, 0, 20, 35, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 20, 35, 0, 0, twoPi);
       ctx.fill();
       ctx.stroke();
 
@@ -5499,29 +5514,30 @@ export class FlowFieldRenderer {
 
     // Central bindu (point)
     const binduSize = 12 + bassIntensity * 10;
+    const binduSize2 = binduSize * 2;
+    const binduHue60 = this.fastMod360(this.hueBase + 60);
+    const binduHue40 = this.fastMod360(this.hueBase + 40);
+    const binduHue20 = this.fastMod360(this.hueBase + 20);
     const binduGradient = ctx.createRadialGradient(
       0,
       0,
       0,
       0,
       0,
-      binduSize * 2,
+      binduSize2,
     );
-    binduGradient.addColorStop(0, `hsla(${this.hueBase + 60}, 100%, 80%, 1)`);
-    binduGradient.addColorStop(
-      0.5,
-      `hsla(${this.hueBase + 40}, 90%, 70%, 0.7)`,
-    );
-    binduGradient.addColorStop(1, `hsla(${this.hueBase + 20}, 80%, 60%, 0)`);
+    binduGradient.addColorStop(0, this.hsla(binduHue60, 100, 80, 1));
+    binduGradient.addColorStop(0.5, this.hsla(binduHue40, 90, 70, 0.7));
+    binduGradient.addColorStop(1, this.hsla(binduHue20, 80, 60, 0));
 
     ctx.fillStyle = binduGradient;
     ctx.beginPath();
-    ctx.arc(0, 0, binduSize * 2, 0, Math.PI * 2);
+    ctx.arc(0, 0, binduSize2, 0, twoPi);
     ctx.fill();
 
-    ctx.fillStyle = `hsla(${this.hueBase + 60}, 100%, 90%, 1)`;
+    ctx.fillStyle = this.hsla(binduHue60, 100, 90, 1);
     ctx.beginPath();
-    ctx.arc(0, 0, binduSize, 0, Math.PI * 2);
+    ctx.arc(0, 0, binduSize, 0, twoPi);
     ctx.fill();
 
     ctx.restore();
