@@ -132,6 +132,10 @@ export default function PatternControls({
     platonicRotationSpeed: number;
     cosmicLotusLayerCount: number;
     cosmicLotusPetalCount: number;
+    kaleidoscopeSegments: number;
+    kaleidoscopeRotationSpeed: number;
+    kaleidoscopeParticleDensity: number;
+    kaleidoscopeColorShift: number;
   } | null>(null);
 
   // Get available patterns on mount
@@ -219,6 +223,10 @@ export default function PatternControls({
         platonicRotationSpeed: renderer.getPlatonicRotationSpeed(),
         cosmicLotusLayerCount: renderer.getCosmicLotusLayerCount(),
         cosmicLotusPetalCount: renderer.getCosmicLotusPetalCount(),
+        kaleidoscopeSegments: renderer.getKaleidoscopeSegments(),
+        kaleidoscopeRotationSpeed: renderer.getKaleidoscopeRotationSpeed(),
+        kaleidoscopeParticleDensity: renderer.getKaleidoscopeParticleDensity(),
+        kaleidoscopeColorShift: renderer.getKaleidoscopeColorShift(),
       });
     };
 
@@ -1279,6 +1287,54 @@ export default function PatternControls({
                 step={1}
                 decimals={0}
                 onChange={(value) => renderer.setCosmicLotusPetalCount(value)}
+              />
+            </div>
+          )}
+
+          {/* Kaleidoscope Controls */}
+          {rawCurrentPattern === "kaleidoscope" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Kaleidoscope Controls
+              </h4>
+              <SliderControl
+                label="Segments"
+                value={patternParams.kaleidoscopeSegments}
+                min={3}
+                max={48}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setKaleidoscopeSegments(value)}
+              />
+              <SliderControl
+                label="Rotation Speed"
+                value={patternParams.kaleidoscopeRotationSpeed}
+                min={0.1}
+                max={5.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setKaleidoscopeRotationSpeed(value)}
+              />
+              <SliderControl
+                label="Particle Density"
+                value={patternParams.kaleidoscopeParticleDensity}
+                min={0.1}
+                max={3.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setKaleidoscopeParticleDensity(value)}
+              />
+              <SliderControl
+                label="Color Shift"
+                value={patternParams.kaleidoscopeColorShift}
+                min={0.0}
+                max={3.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setKaleidoscopeColorShift(value)}
               />
             </div>
           )}
