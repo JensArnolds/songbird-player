@@ -350,7 +350,7 @@ The `scripts/server.js` wrapper performs additional validation:
 #### 3. **Next.js Production Server**
 Once validation passes:
 - Next.js starts in production mode (`next start`)
-- Binds to configured port (default: 3222 for production, 3412 for dev)
+- Binds to configured port (uses PORT from .env, default: 3222)
 - Health check endpoint becomes available at `/api/health`
 - PM2 monitors the process and performs health checks
 
@@ -491,7 +491,7 @@ HOSTNAME=localhost
 **Development Environment Variables:**
 ```bash
 NODE_ENV=development
-PORT=3412
+PORT=3222  # Single port configuration - set in .env
 HOSTNAME=0.0.0.0
 ```
 

@@ -40,7 +40,7 @@ const http = require("http");
 // Production detection: packaged apps or explicit ELECTRON_PROD flag
 const isDev = !app.isPackaged && process.env.ELECTRON_PROD !== "true";
 const enableDevTools = isDev || process.env.ELECTRON_DEV_TOOLS === "true";
-const prodPort = 3412;
+const port = parseInt(process.env.PORT || "3222", 10);
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
@@ -167,7 +167,7 @@ const waitForServer = (port, maxAttempts = 30) => {
 };
 
 const startServer = async () => {
-  const port = await findAvailablePort(prodPort);
+  const serverPort = await findAvailablePort(port);
 
   // Determine paths - standalone directory contains everything
   const standaloneDir = app.isPackaged
@@ -196,7 +196,7 @@ const startServer = async () => {
     serverProcess = spawn("node", [serverPath], {
       env: {
         ...process.env,
-        PORT: port.toString(),
+        PORT: serverPort.toString(),
         HOSTNAME: "localhost",
         NODE_ENV: "production",
       },
@@ -222,10 +222,10 @@ const startServer = async () => {
     });
 
     // Wait for server to be ready
-    waitForServer(port).then((ready) => {
+    waitForServer(serverPort).then((ready) => {
       if (ready) {
-        log(`Server started successfully on port ${port}`);
-        resolve(port);
+        log(`Server started successfully on port ${serverPort}`);
+        resolve(serverPort);
       } else {
         const error = "Server failed to respond after 30 seconds";
         log("ERROR:", error);
@@ -245,12 +245,12 @@ const createWindow = async () => {
 
   if (isDev) {
     log("Development mode - connecting to dev server");
-    serverUrl = `http://localhost:${prodPort}`;
+    serverUrl = `http://localhost:${port}`;
   } else {
     log("Production mode - starting bundled server");
     try {
-      const port = await startServer();
-      serverUrl = `http://localhost:${port}`;
+      const serverPort = await startServer();
+      serverUrl = `http://localhost:${serverPort}`;
       log(`Will load URL: ${serverUrl}`);
     } catch (err) {
       log("FATAL ERROR starting server:", err);

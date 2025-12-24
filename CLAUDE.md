@@ -20,8 +20,8 @@ darkfloor.art - A modern music streaming and discovery platform built with Next.
 
 ### Development
 ```bash
-npm run dev              # Start Next.js dev server (port 3412) + custom logging
-npm run dev:next         # Start Next.js only (Turbo mode)
+npm run dev              # Start Next.js dev server (uses PORT from .env) + custom logging
+npm run dev:next         # Start Next.js only (Turbo mode, uses PORT from .env)
 npm run typecheck        # TypeScript validation (strict)
 npm run lint             # ESLint
 npm run lint:fix         # Auto-fix linting issues
@@ -258,7 +258,7 @@ import { springPresets } from "@/utils/spring-animations";
 AUTH_SECRET=                    # Generate: openssl rand -base64 32
 AUTH_DISCORD_ID=                # Discord OAuth App ID
 AUTH_DISCORD_SECRET=            # Discord OAuth Secret
-NEXTAUTH_URL=http://localhost:3412
+NEXTAUTH_URL=http://localhost:3222
 
 # Database
 DATABASE_URL=postgresql://...   # PostgreSQL connection string
@@ -389,8 +389,8 @@ ELECTRON_BUILD=true             # Set during Electron builds
 ## Deployment (PM2)
 
 **Configuration:** `ecosystem.config.cjs` defines two apps:
-- `darkfloor-art-prod` - Production (port 3000)
-- `darkfloor-art-dev` - Development (port 3412)
+- `darkfloor-art-prod` - Production (uses PORT from .env, default: 3222)
+- `darkfloor-art-dev` - Development (uses PORT from .env, default: 3222)
 
 **Workflow:**
 1. Make changes

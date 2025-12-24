@@ -6,19 +6,9 @@
 const dotenv = require("dotenv");
 const path = require("path");
 
-// Load .env for production
+// Load .env as single source of truth for PORT configuration
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 const PORT = process.env.PORT || "3222";
-
-// Load .env.development for dev server configuration
-// Parse it separately without modifying process.env
-const fs = require("fs");
-const devEnvPath = path.resolve(__dirname, ".env.development");
-let DEV_PORT = "3412";
-if (fs.existsSync(devEnvPath)) {
-  const devEnvResult = dotenv.parse(fs.readFileSync(devEnvPath, "utf8"));
-  DEV_PORT = devEnvResult.PORT || "3412";
-}
 
 module.exports = {
   apps: [
@@ -151,11 +141,11 @@ module.exports = {
       // ============================================
       env: {
         NODE_ENV: "development",
-        PORT: DEV_PORT,
+        PORT: PORT,
       },
       env_development: {
         NODE_ENV: "development",
-        PORT: DEV_PORT,
+        PORT: PORT,
       },
 
       // ============================================
@@ -192,7 +182,7 @@ module.exports = {
       // ============================================
       health_check_grace_period: 5000,
       health_check_fatal_exceptions: true,
-      health_check_url: `http://localhost:${DEV_PORT}/api/health`, // Health check endpoint - uses DEV_PORT from .env
+      health_check_url: `http://localhost:${PORT}/api/health`, // Health check endpoint - uses PORT from .env
     },
   ],
 
