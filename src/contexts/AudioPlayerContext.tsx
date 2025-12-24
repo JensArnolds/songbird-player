@@ -209,107 +209,33 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const play = useCallback(
     (track: Track) => {
-      const streamUrl = getStreamUrlById(track.id.toString());
-      player.loadTrack(track, streamUrl);
+      // NEW: Use playTrack for queue-first behavior
+      player.playTrack(track);
 
       // Auto-show mobile player when starting a new track (Spotify-like behavior)
       if (isMobile) {
         setShowMobilePlayer(true);
       }
-
-      player.play().catch((error) => {
-        // Ignore abort errors - these are normal when switching tracks quickly
-        if (
-          error instanceof DOMException &&
-          (error.name === "AbortError" ||
-            error.message?.includes("aborted") ||
-            error.message?.includes("fetching process"))
-        ) {
-          console.debug(
-            "[AudioPlayerContext] Playback aborted (normal during rapid track changes)",
-          );
-          return;
-        }
-        console.error("Playback failed:", error);
-        showToast("Playback failed. Please try again.", "error");
-      });
     },
-    [player, showToast, isMobile],
+    [player, isMobile],
   );
 
   const playNext = useCallback(() => {
-    const nextTrack = player.playNext();
-    if (nextTrack) {
-      const streamUrl = getStreamUrlById(nextTrack.id.toString());
-      player.loadTrack(nextTrack, streamUrl);
-      player.play().catch((error) => {
-        // Ignore abort errors - these are normal when switching tracks quickly
-        if (
-          error instanceof DOMException &&
-          (error.name === "AbortError" ||
-            error.message?.includes("aborted") ||
-            error.message?.includes("fetching process"))
-        ) {
-          console.debug(
-            "[AudioPlayerContext] Playback aborted (normal during rapid track changes)",
-          );
-          return;
-        }
-        console.error("Playback failed:", error);
-        showToast("Playback failed. Please try again.", "error");
-      });
-    }
-  }, [player, showToast]);
+    // NEW: playNext now handles queue management automatically via useEffect
+    player.playNext();
+  }, [player]);
 
   const playPrevious = useCallback(() => {
-    const prevTrack = player.playPrevious();
-    if (prevTrack) {
-      const streamUrl = getStreamUrlById(prevTrack.id.toString());
-      player.loadTrack(prevTrack, streamUrl);
-      player.play().catch((error) => {
-        // Ignore abort errors - these are normal when switching tracks quickly
-        if (
-          error instanceof DOMException &&
-          (error.name === "AbortError" ||
-            error.message?.includes("aborted") ||
-            error.message?.includes("fetching process"))
-        ) {
-          console.debug(
-            "[AudioPlayerContext] Playback aborted (normal during rapid track changes)",
-          );
-          return;
-        }
-        console.error("Playback failed:", error);
-        showToast("Playback failed. Please try again.", "error");
-      });
-    }
-  }, [player, showToast]);
+    // NEW: playPrevious now handles queue management automatically via useEffect
+    player.playPrevious();
+  }, [player]);
 
   const playFromQueue = useCallback(
     (index: number) => {
-      const track = player.playFromQueue(index);
-      if (track) {
-        const streamUrl = getStreamUrlById(track.id.toString());
-        player.loadTrack(track, streamUrl);
-        player.play().catch((error) => {
-          // Ignore abort errors - these are normal when switching tracks quickly
-          if (
-            error instanceof DOMException &&
-            (error.name === "AbortError" ||
-              error.message?.includes("aborted") ||
-              error.message?.includes("fetching process"))
-          ) {
-            console.debug(
-              "[AudioPlayerContext] Playback aborted (normal during rapid track changes)",
-            );
-            return;
-          }
-          console.error("Playback failed:", error);
-          showToast("Playback failed. Please try again.", "error");
-        });
-      }
+      // NEW: playFromQueue now handles queue management automatically via useEffect
+      player.playFromQueue(index);
     },
-    [player, showToast],
+    [player],
   );
 
   // COMMENTED OUT - Smart Queue Functions disabled
@@ -341,10 +267,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const tracksToSave: Track[] = [
-      ...(player.currentTrack ? [player.currentTrack] : []),
-      ...player.queue,
-    ];
+    // NEW: queue already includes current track at queue[0]
+    const tracksToSave: Track[] = [...player.queue];
 
     if (tracksToSave.length === 0) {
       showToast("Queue is empty", "info");

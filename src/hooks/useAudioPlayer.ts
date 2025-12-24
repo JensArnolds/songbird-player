@@ -34,7 +34,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     smartQueueSettings,
   } = options;
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  // NEW QUEUE-FIRST APPROACH: currentTrack is always queue[0]
+  // queue[0] = current track, queue[1..n] = upcoming tracks
   const [queue, setQueue] = useState<Track[]>([]);
   const [history, setHistory] = useState<Track[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -56,6 +57,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const maxRetries = 3;
   const failedTracksRef = useRef<Set<number>>(new Set());
 
+  // Derived state: currentTrack is always queue[0]
+  const currentTrack = queue[0] ?? null;
+
   // Load persisted settings and queue state
   useEffect(() => {
     const savedVolume = localStorage.getOrDefault(STORAGE_KEYS.VOLUME, 0.7);
@@ -67,9 +71,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     // Load persisted queue state
     const persistedState = loadPersistedQueueState();
     if (persistedState) {
-      setQueue(persistedState.queue);
+      // NEW: Merge currentTrack into queue if it's not already there
+      const restoredQueue = persistedState.currentTrack
+        ? [persistedState.currentTrack, ...persistedState.queue]
+        : persistedState.queue;
+
+      setQueue(restoredQueue);
       setHistory(persistedState.history);
-      setCurrentTrack(persistedState.currentTrack);
       setIsShuffled(persistedState.isShuffled);
       setRepeatMode(persistedState.repeatMode);
       // Don't auto-restore currentTime to avoid unexpected jumps
@@ -141,21 +149,24 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       return;
     }
 
-    if (queue.length > 0) {
-      const [, ...remainingQueue] = queue;
-      if (currentTrack) {
-        setHistory((prev) => [...prev, currentTrack]);
-      }
-      setQueue(remainingQueue);
+    // NEW QUEUE-FIRST APPROACH:
+    // queue[0] is current track, queue[1..n] are upcoming
+    if (queue.length > 1) {
+      // Move current track (queue[0]) to history and advance queue
+      setHistory((prev) => [...prev, currentTrack]);
+      setQueue((prev) => prev.slice(1)); // Remove queue[0], queue[1] becomes new queue[0]
     } else if (repeatMode === "all") {
       // Restart the queue with all played tracks (history + current track)
-      if (history.length > 0 || currentTrack) {
-        const allTracks = currentTrack ? [...history, currentTrack] : [...history];
+      if (history.length > 0) {
+        const allTracks = [...history, currentTrack];
         setQueue(allTracks);
         setHistory([]);
       }
     } else {
+      // No more tracks in queue, playback ends
       onTrackEnd?.(currentTrack);
+      // Keep current track at queue[0] but stop playing
+      setIsPlaying(false);
     }
   }, [currentTrack, queue, repeatMode, history, onTrackEnd]);
 
@@ -230,11 +241,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     };
 
     const handleNextTrack = () => {
-      if (queue.length > 0) {
-        const nextTrack = queue[0];
-        if (nextTrack && currentTrack) {
-          setHistory((prev) => [...prev, currentTrack]);
-        }
+      // NEW: queue[0] is current, queue[1] is next
+      if (queue.length > 1) {
+        setHistory((prev) => [...prev, currentTrack!]);
         setQueue((prev) => prev.slice(1));
       }
     };
@@ -247,7 +256,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         // Go to previous track
         const prevTrack = history[history.length - 1];
         if (prevTrack && currentTrack) {
-          setQueue((prev) => [currentTrack, ...prev]);
+          setQueue((prev) => [prevTrack, ...prev]); // Insert prevTrack at queue[0]
         }
         setHistory((prev) => prev.slice(0, -1));
       }
@@ -457,8 +466,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         console.debug("[useAudioPlayer] Error resetting audio:", error);
       }
 
-      setHistory((prev) => (currentTrack ? [...prev, currentTrack] : prev));
-      setCurrentTrack(track);
+      // NEW QUEUE-FIRST APPROACH: Don't manually update history or currentTrack
+      // Those are handled by the queue management functions
+      // This function is only for loading the audio source
 
       // Set new source and load
       const applySource = () => {
@@ -571,12 +581,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const prevTrack = previousTracks.pop()!;
     setHistory(previousTracks);
 
-    if (currentTrack) {
-      setQueue((prev) => [currentTrack, ...prev]);
-    }
+    // NEW: Insert prevTrack at queue[0], keeping rest of queue intact
+    setQueue((prev) => [prevTrack, ...prev]);
 
     return prevTrack;
-  }, [history, currentTrack]);
+  }, [history]);
 
   const addToQueue = useCallback(
     (track: Track | Track[], checkDuplicates = true) => {
@@ -590,22 +599,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       });
 
       if (checkDuplicates) {
-        const duplicates = tracks.filter(
-          (t) =>
-            queue.some((q) => q.id === t.id) ||
-            (currentTrack && currentTrack.id === t.id),
-        );
+        // NEW: Check against entire queue (including queue[0] which is current track)
+        const duplicates = tracks.filter((t) => queue.some((q) => q.id === t.id));
 
         if (duplicates.length > 0 && onDuplicateTrack) {
           duplicates.forEach((dup) => onDuplicateTrack?.(dup));
         }
 
         // Only add non-duplicate tracks
-        const uniqueTracks = tracks.filter(
-          (t) =>
-            !queue.some((q) => q.id === t.id) &&
-            (!currentTrack || currentTrack.id !== t.id),
-        );
+        const uniqueTracks = tracks.filter((t) => !queue.some((q) => q.id === t.id));
 
         console.log("[useAudioPlayer] 🔍 After duplicate check:", {
           duplicates: duplicates.length,
@@ -619,6 +621,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
               adding: uniqueTracks.length,
               newSize: prev.length + uniqueTracks.length,
             });
+            // Append to end of queue (queue[0] stays as current track)
             return [...prev, ...uniqueTracks];
           });
         } else {
@@ -640,24 +643,42 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         });
       }
     },
-    [queue, currentTrack, onDuplicateTrack],
+    [queue, onDuplicateTrack],
   );
 
   const addToPlayNext = useCallback((track: Track | Track[]) => {
     const tracks = Array.isArray(track) ? track : [track];
-    // Insert at the front of the queue
-    setQueue((prev) => [...tracks, ...prev]);
+    // NEW: Insert at position 1 (right after current track at queue[0])
+    setQueue((prev) => {
+      if (prev.length === 0) {
+        return tracks; // No current track, these become the queue
+      }
+      const [current, ...rest] = prev;
+      return [current!, ...tracks, ...rest];
+    });
   }, []);
 
   const removeFromQueue = useCallback((index: number) => {
+    // NEW: Prevent removing queue[0] (current track)
+    if (index === 0) {
+      console.warn("[useAudioPlayer] Cannot remove currently playing track (queue[0])");
+      return;
+    }
     setQueue((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const clearQueue = useCallback(() => {
-    setQueue([]);
+    // NEW: Clear only upcoming tracks (queue[1..n]), keep current track (queue[0])
+    setQueue((prev) => (prev.length > 0 ? [prev[0]!] : []));
   }, []);
 
   const reorderQueue = useCallback((oldIndex: number, newIndex: number) => {
+    // NEW: Prevent reordering queue[0] (current track)
+    if (oldIndex === 0 || newIndex === 0) {
+      console.warn("[useAudioPlayer] Cannot reorder currently playing track (queue[0])");
+      return;
+    }
+
     setQueue((prev) => {
       const newQueue = [...prev];
       const [removed] = newQueue.splice(oldIndex, 1);
@@ -677,27 +698,30 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const selectedTrack = queue[index];
       if (!selectedTrack) return null;
 
-      // Remove tracks before the selected index and move current track to history
-      const remainingQueue = queue.slice(index + 1);
-      const skippedTracks = queue.slice(0, index);
+      // NEW QUEUE-FIRST APPROACH:
+      // Move selected track to position 0
+      // All tracks before it (including queue[0]) go to history
+      // All tracks after it stay in queue
+      const tracksToHistory = queue.slice(0, index); // Everything before selected
+      const tracksAfter = queue.slice(index + 1); // Everything after selected
 
-      if (currentTrack) {
-        setHistory((prev) => [...prev, currentTrack, ...skippedTracks]);
-      } else {
-        setHistory((prev) => [...prev, ...skippedTracks]);
-      }
+      setHistory((prev) => [...prev, ...tracksToHistory]);
+      setQueue([selectedTrack, ...tracksAfter]); // Selected becomes queue[0]
 
-      setQueue(remainingQueue);
       return selectedTrack;
     },
-    [queue, currentTrack],
+    [queue],
   );
 
   const smartShuffle = useCallback(() => {
     setQueue((prev) => {
       if (prev.length <= 1) return prev;
 
-      const shuffled = [...prev];
+      // NEW: Preserve queue[0] (current track), only shuffle rest
+      const [currentTrack, ...rest] = prev;
+      if (rest.length === 0) return prev;
+
+      const shuffled = [...rest];
       const artists = new Map<number, Track[]>();
 
       // Group tracks by artist
@@ -753,7 +777,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         }
       }
 
-      return result;
+      // Return current track at queue[0] followed by shuffled rest
+      return [currentTrack!, ...result];
     });
   }, []);
 
@@ -762,13 +787,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const newShuffleState = !prev;
 
       if (newShuffleState) {
-        // Save original order before shuffling
-        setOriginalQueueOrder([...queue]);
+        // Save original order before shuffling (excluding queue[0])
+        const [current, ...rest] = queue;
+        setOriginalQueueOrder(rest);
         smartShuffle();
       } else {
-        // Restore original order
-        if (originalQueueOrder.length > 0) {
-          setQueue(originalQueueOrder);
+        // Restore original order (preserving current queue[0])
+        if (originalQueueOrder.length > 0 && queue.length > 0) {
+          const [current] = queue;
+          setQueue([current!, ...originalQueueOrder]);
           setOriginalQueueOrder([]);
         }
       }
@@ -812,6 +839,33 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   //   // Auto-queue functionality disabled - users will manually add tracks to queue
   // }, []);
 
+  // NEW: Auto-load track when queue[0] changes
+  useEffect(() => {
+    if (currentTrack && audioRef.current) {
+      const streamUrl = getStreamUrlById(currentTrack.id.toString());
+      // Only load if the track is different from what's currently loaded
+      if (audioRef.current.src !== streamUrl) {
+        loadTrack(currentTrack, streamUrl);
+        // Auto-play when queue changes
+        play().catch((error) => {
+          // Ignore abort errors - these are normal when switching tracks quickly
+          if (
+            error instanceof DOMException &&
+            (error.name === "AbortError" ||
+              error.message?.includes("aborted") ||
+              error.message?.includes("fetching process"))
+          ) {
+            console.debug(
+              "[useAudioPlayer] Playback aborted (normal during rapid track changes)",
+            );
+            return;
+          }
+          console.error("Playback failed:", error);
+        });
+      }
+    }
+  }, [currentTrack?.id]); // Only trigger when track ID changes
+
   // Cleanup retry timeout on unmount
   useEffect(() => {
     return () => {
@@ -836,6 +890,39 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     setVolume(clampedVolume);
   }, []);
 
+  // NEW: High-level "play track" function
+  // This implements the dynamic queue behavior:
+  // - If track is not in queue: clear queue and make it [track]
+  // - If track is in queue: playFromQueue to move it to position 0
+  const playTrack = useCallback(
+    (track: Track) => {
+      const trackIndex = queue.findIndex((t) => t.id === track.id);
+
+      if (trackIndex === -1) {
+        // Track not in queue - clear queue and start fresh
+        if (queue.length > 0 && currentTrack) {
+          // Move current track to history
+          setHistory((prev) => [...prev, currentTrack]);
+        }
+        setQueue([track]); // Clear queue, set this as the only track
+      } else if (trackIndex === 0) {
+        // Track is already playing (queue[0]), just restart it
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch((error) => {
+            console.error("Playback failed:", error);
+          });
+        }
+      } else {
+        // Track is in queue but not at position 0 - use playFromQueue
+        playFromQueue(trackIndex);
+      }
+
+      return track;
+    },
+    [queue, currentTrack, playFromQueue],
+  );
+
   return {
     // State
     currentTrack,
@@ -858,18 +945,20 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     pause,
     togglePlay,
     seek,
+    playTrack, // NEW: High-level play function with queue management
     playNext: useCallback(() => {
-      if (queue.length === 0) return null;
+      // NEW: queue[0] is current, queue[1] is next
+      if (queue.length < 2) return null; // Need at least 2 tracks (current + next)
 
-      const [nextTrack, ...remainingQueue] = queue;
+      const [currentTrack, nextTrack, ...remainingQueue] = queue;
 
-      if (currentTrack) {
-        setHistory((prev) => [...prev, currentTrack]);
-      }
+      // Move current track to history
+      setHistory((prev) => [...prev, currentTrack!]);
 
-      setQueue(remainingQueue);
+      // Shift queue: nextTrack becomes queue[0]
+      setQueue([nextTrack!, ...remainingQueue]);
       return nextTrack!;
-    }, [queue, currentTrack]),
+    }, [queue]),
     playPrevious,
     addToQueue,
     addToPlayNext,

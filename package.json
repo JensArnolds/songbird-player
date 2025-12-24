@@ -21,12 +21,16 @@
     "frontend",
     "nextjs",
     "tailwindcss",
-    "typescript"
+    "typescript",
+    "electron",
+    "drizzle-orm",
+    "trpc",
+    "postgres"
   ],
   "contributors": [
     {
-      "name": "Cirrus Okimasu",
-      "email": "cirrus.okimasu@gmail.com",
+      "name": "Christian / soulwax@github",
+      "email": "soulwax@nandcore.com",
       "url": "https://github.com/soulwax"
     }
   ],
@@ -40,8 +44,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "dev": "NODE_ENV=development node scripts/server.js",
+    "dev": "cross-env NODE_ENV=development node scripts/server.js",
     "dev:next": "next dev --turbo --port 3412",
+    "dev:win": "cross-env NODE_ENV=development node scripts/server.js",
     "pm2:start": "pm2 start ecosystem.config.cjs --only darkfloor-art-prod --env production",
     "pm2:start:build": "npm run build && npm run pm2:start",
     "pm2:dev": "pm2 start ecosystem.config.cjs --only darkfloor-art-dev --env development",
@@ -62,15 +67,18 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "preview": "next build && next start",
-    "start": "NODE_ENV=production node scripts/server.js",
+    "start": "cross-env NODE_ENV=production node scripts/server.js",
     "start:next": "next start --port 3412",
+    "start:win": "cross-env NODE_ENV=production node scripts/server.js",
     "typecheck": "tsc --noEmit",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3412 && electron .\"",
-    "electron:dev:win": "concurrently \"npm run dev\" \"wait-on http://localhost:3412 && electron .\"",
+    "electron:dev:win": "concurrently \"npm run dev:win\" \"wait-on http://localhost:3412 && electron .\"",
     "electron:prod": "node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true ELECTRON_PROD=true next build && npm run electron:prepare && electron .\"",
-    "electron:prod:win": "npm run electron:build:win && \".\\dist\\darkfloor Setup 0.6.7.exe\"",
+    "electron:prod:win": "npm run electron:build:win && \".\\dist\\darkfloor Setup.exe\"",
+    "electron:build:dev:win": "npm run electron:clean:win && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true ELECTRON_DEV_TOOLS=true next build\" && npm run electron:prepare && electron-builder --win --dir",
     "electron:prepare": "node scripts/load-env-build.js \"node electron/prepare-package.js\"",
     "electron:clean": "node -e \"require('fs').rmSync('dist', {recursive: true, force: true})\"",
+    "electron:clean:win": "rmdir /s /q dist",
     "electron:build": "npm run electron:clean && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && electron-builder",
     "electron:build:win": "npm run electron:clean && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && electron-builder --win",
     "electron:build:mac": "npm run electron:clean && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && electron-builder --mac",
@@ -184,7 +192,8 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName} Setup.${ext}"
     }
   },
   "ct3aMetadata": {
