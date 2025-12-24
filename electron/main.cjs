@@ -34,7 +34,8 @@ const http = require("http");
 
 // Production detection: packaged apps or explicit ELECTRON_PROD flag
 const isDev = !app.isPackaged && process.env.ELECTRON_PROD !== "true";
-const prodPort = 3222;
+const enableDevTools = isDev || process.env.ELECTRON_DEV_TOOLS === "true";
+const prodPort = 3412;
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
@@ -272,7 +273,7 @@ const createWindow = async () => {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-      devTools: isDev,
+      devTools: enableDevTools,
       // Enable persistent storage partition
       partition: "persist:darkfloor-art",
     },
@@ -329,7 +330,7 @@ const createWindow = async () => {
   mainWindow.once("ready-to-show", () => {
     log("Window ready to show");
     mainWindow?.show();
-    if (isDev) {
+    if (enableDevTools) {
       mainWindow?.webContents.openDevTools();
     }
   });
