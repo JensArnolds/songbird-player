@@ -73,6 +73,14 @@ try {
   copyDir(certsSource, certsDest);
   console.log("[Prepare] ✓ Certificate files copied");
 
+  // Create .env file with build flags for packaged app
+  if (process.env.ELECTRON_DEV_TOOLS === "true") {
+    console.log("[Prepare] Creating .env file with dev tools enabled...");
+    const envPath = path.join(standaloneDir, ".env");
+    fs.writeFileSync(envPath, "ELECTRON_DEV_TOOLS=true\n");
+    console.log("[Prepare] ✓ Dev tools configuration saved");
+  }
+
   console.log("\n[Prepare] Package preparation complete!\n");
 } catch (error) {
   console.error("[Prepare] Error preparing package:", error);
