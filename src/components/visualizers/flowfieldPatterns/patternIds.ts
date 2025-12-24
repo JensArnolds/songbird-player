@@ -80,6 +80,7 @@ export type Pattern =
   | "nightmareFuel"
   | "abyssalDepth"
   | "phantomPulse"
-  | "infernalFlame";
+  | "infernalFlame"
+  | "kaleidoscope";
 
 

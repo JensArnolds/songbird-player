@@ -19,6 +19,10 @@ export interface FlowFieldPatternContext {
 
   // Optional per-pattern params (extend as patterns get extracted)
   rayCount?: number;
+  kaleidoscopeSegments?: number;
+  kaleidoscopeRotationSpeed?: number;
+  kaleidoscopeParticleDensity?: number;
+  kaleidoscopeColorShift?: number;
 }
 
 

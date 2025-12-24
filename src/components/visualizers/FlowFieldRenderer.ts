@@ -2,6 +2,7 @@
 
 import { renderRays } from "./flowfieldPatterns/renderRays";
 import { renderHexGrid } from "./flowfieldPatterns/renderHexGrid";
+import { renderKaleidoscope } from "./flowfieldPatterns/renderKaleidoscope";
 import type { Pattern } from "./flowfieldPatterns/patternIds";
 import type { FlowFieldPatternContext } from "./flowfieldPatterns/types";
 
@@ -137,6 +138,7 @@ export class FlowFieldRenderer {
     "abyssalDepth",
     "phantomPulse",
     "infernalFlame",
+    "kaleidoscope",
   ];
   private patternSequence: Pattern[] = [];
   private patternIndex = 0;
@@ -203,6 +205,10 @@ export class FlowFieldRenderer {
   private platonicRotationSpeed = 1.0;
   private cosmicLotusLayerCount = 5;
   private cosmicLotusPetalCount = 8;
+  private kaleidoscopeSegments = 24;
+  private kaleidoscopeRotationSpeed = 1.0;
+  private kaleidoscopeParticleDensity = 1.0;
+  private kaleidoscopeColorShift = 1.0;
 
   private lightningBolts: {
     segments: { x: number; y: number }[];
@@ -3037,6 +3043,19 @@ export class FlowFieldRenderer {
         break;
       case "infernalFlame":
         this.renderInfernalFlame(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "kaleidoscope":
+        renderKaleidoscope(
+          this.getPatternContext({
+            kaleidoscopeSegments: this.kaleidoscopeSegments,
+            kaleidoscopeRotationSpeed: this.kaleidoscopeRotationSpeed,
+            kaleidoscopeParticleDensity: this.kaleidoscopeParticleDensity,
+            kaleidoscopeColorShift: this.kaleidoscopeColorShift,
+          }),
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
         break;
     }
   }
@@ -11121,5 +11140,37 @@ export class FlowFieldRenderer {
 
   public setCosmicLotusPetalCount(value: number): void {
     this.cosmicLotusPetalCount = Math.max(4, Math.min(16, value));
+  }
+
+  public getKaleidoscopeSegments(): number {
+    return this.kaleidoscopeSegments;
+  }
+
+  public setKaleidoscopeSegments(value: number): void {
+    this.kaleidoscopeSegments = Math.max(3, Math.min(48, value));
+  }
+
+  public getKaleidoscopeRotationSpeed(): number {
+    return this.kaleidoscopeRotationSpeed;
+  }
+
+  public setKaleidoscopeRotationSpeed(value: number): void {
+    this.kaleidoscopeRotationSpeed = Math.max(0.1, Math.min(5.0, value));
+  }
+
+  public getKaleidoscopeParticleDensity(): number {
+    return this.kaleidoscopeParticleDensity;
+  }
+
+  public setKaleidoscopeParticleDensity(value: number): void {
+    this.kaleidoscopeParticleDensity = Math.max(0.1, Math.min(3.0, value));
+  }
+
+  public getKaleidoscopeColorShift(): number {
+    return this.kaleidoscopeColorShift;
+  }
+
+  public setKaleidoscopeColorShift(value: number): void {
+    this.kaleidoscopeColorShift = Math.max(0.0, Math.min(3.0, value));
   }
 }
