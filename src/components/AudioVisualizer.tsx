@@ -10,8 +10,8 @@ import {
 } from "@/constants/visualizer";
 import { useAudioVisualizer } from "@/hooks/useAudioVisualizer";
 import type { ColorPalette } from "@/utils/colorExtractor";
-import { GripVertical, Maximize2, Minimize2, Move, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, GripVertical, Maximize2, Minimize2, Move, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { KaleidoscopeRenderer } from "./visualizers/KaleidoscopeRenderer";
 interface AudioVisualizerProps {
   audioElement: HTMLAudioElement | null;
@@ -79,8 +79,8 @@ export function AudioVisualizer({
   const dragStartRef = useRef({ x: 0, y: 0, initialX: 0, initialY: 0 });
   const typeLabelTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const initialDimensions = {
-    width: Math.max(MIN_WIDTH, persistedState!.width ?? _initialWidth),
-    height: Math.max(MIN_HEIGHT, persistedState!.height ?? _initialHeight),
+    width: Math.max(MIN_WIDTH, persistedState?.width ?? _initialWidth),
+    height: Math.max(MIN_HEIGHT, persistedState?.height ?? _initialHeight),
   };
   const initialCollapsedDimensions = {
     width: Math.max(
@@ -335,6 +335,7 @@ export function AudioVisualizer({
 
   const applyVisualizerType = (nextType: VisualizerType) => {
     setCurrentType(nextType);
+    persistLayoutState({ type: nextType });
     onTypeChange?.(nextType);
     showTypeFeedback();
   };
@@ -366,28 +367,6 @@ export function AudioVisualizer({
       };
     }
   }, [audioElement, visualizer]);
-
-  // Handle cycling through visualizer types
-  const cycleVisualizerType = () => {
-    const currentIndex = VISUALIZER_TYPES.indexOf(currentType);
-    const nextIndex = (currentIndex + 1) % VISUALIZER_TYPES.length;
-    const nextType = VISUALIZER_TYPES[nextIndex]!;
-
-    setCurrentType(nextType);
-    persistLayoutState({ type: nextType });
-
-    // Notify parent component of type change
-    onTypeChange?.(nextType);
-
-    // Show label briefly
-    setShowTypeLabel(true);
-    if (typeLabelTimeoutRef.current) {
-      clearTimeout(typeLabelTimeoutRef.current);
-    }
-    typeLabelTimeoutRef.current = setTimeout(() => {
-      setShowTypeLabel(false);
-    }, 1500);
-  };
 
   // Handle resize start
   const handleResizeStart = (e: ReactMouseEvent) => {

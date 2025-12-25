@@ -23,24 +23,22 @@ const __dirname = path.dirname(__filename);
 // Store PM2-provided PORT before loading .env files (PM2 env vars should take precedence)
 const pm2Port = process.env.PORT;
 
-// Load environment files in priority order (with override: false, FIRST loaded wins)
-// Priority: PM2 vars > .env.local > .env.development (dev only) > .env
-// With override: false, we load highest priority FIRST
-
 // Determine environment before loading env-specific files
 const nodeEnv = process.env.NODE_ENV || "production";
 const isDev = nodeEnv === "development";
 
-// Load .env.local FIRST (highest priority - critical for Electron builds)
-dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: false });
-
-// In development mode, load .env.development
 if (isDev) {
-  dotenv.config({ path: path.resolve(__dirname, "../.env.development"), override: false });
+  // DEVELOPMENT MODE: ONLY load .env.development (no other files)
+  console.log('[ENV] Development mode: Loading ONLY .env.development');
+  dotenv.config({ path: path.resolve(__dirname, "../.env.development"), override: true });
+} else {
+  // PRODUCTION MODE: Load environment files in priority order
+  // Priority: .env.local > .env.production > .env
+  // With override: false, FIRST loaded wins (highest priority)
+  dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: false });
+  dotenv.config({ path: path.resolve(__dirname, "../.env.production"), override: false });
+  dotenv.config({ path: path.resolve(__dirname, "../.env"), override: false });
 }
-
-// Load .env last (lowest priority - base config)
-dotenv.config({ path: path.resolve(__dirname, "../.env"), override: false });
 
 // Restore PM2-provided PORT if it was set (PM2 env vars take precedence over .env files)
 if (pm2Port) {
