@@ -2,23 +2,45 @@
 
 import { env } from "@/env";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { existsSync, readFileSync } from "fs";
+import path from "path";
 import { Pool } from "pg";
 import * as schema from "./schema";
 
-// Determine SSL configuration based on DATABASE_URL
+// Determine SSL configuration based on DATABASE_URL and certificate availability
 function getSslConfig() {
-  // Check if SSL is required from DATABASE_URL
-  const requiresSsl = env.DATABASE_URL.includes("sslmode=require");
+  // Check if it's a cloud database (Aiven, AWS RDS, etc.) that requires SSL
+  const isCloudDb = env.DATABASE_URL.includes("aivencloud.com") || 
+                    env.DATABASE_URL.includes("rds.amazonaws.com") ||
+                    env.DATABASE_URL.includes("sslmode=");
 
-  if (!requiresSsl) {
-    // SSL not required - return undefined to disable SSL
-    console.log("[DB] SSL not required by DATABASE_URL");
+  if (!isCloudDb && env.DATABASE_URL.includes("localhost")) {
+    // Local database - SSL not needed
+    console.log("[DB] Local database detected. SSL disabled.");
     return undefined;
   }
 
-  // SSL required - use lenient SSL that accepts self-signed certificates
-  // Works with cloud providers like Aiven that use self-signed or custom CAs
-  console.log("[DB] SSL required. Accepting self-signed certificates");
+  // Cloud database or SSL requested - try to find CA certificate
+  const possibleCertPaths = [
+    path.join(process.cwd(), "certs/ca.pem"), // Development
+    path.join(__dirname, "../../certs/ca.pem"), // Relative to build output
+    path.join(__dirname, "../../../certs/ca.pem"), // Another build variant
+  ];
+
+  for (const certPath of possibleCertPaths) {
+    if (existsSync(certPath)) {
+      console.log(`[DB] Cloud database detected. Using SSL certificate: ${certPath}`);
+      return {
+        rejectUnauthorized: true,
+        ca: readFileSync(certPath).toString(),
+      };
+    }
+  }
+
+  // Certificate not found - use lenient SSL with warning
+  console.warn("[DB] ⚠️  WARNING: Cloud database detected but no CA certificate found!");
+  console.warn("[DB] ⚠️  Using rejectUnauthorized: false - vulnerable to MITM attacks");
+  console.warn("[DB] ⚠️  Place your CA certificate at: certs/ca.pem");
   return {
     rejectUnauthorized: false,
   };
