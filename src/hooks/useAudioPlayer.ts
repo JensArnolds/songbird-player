@@ -1050,8 +1050,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, []);
 
   // NEW: High-level "play track" function
-  // This implements the dynamic queue behavior:
-  // - If track is not in queue: clear queue and make it [track]
+  // This implements the queue-preserving behavior:
+  // - If track is not in queue: INSERT at position 0, keep rest of queue intact
   // - If track is in queue: playFromQueue to move it to position 0
   const playTrack = useCallback(
     (track: Track) => {
@@ -1069,14 +1069,25 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const trackIndex = queue.findIndex((t) => t.id === track.id);
 
       if (trackIndex === -1) {
-        // Track not in queue - clear queue and start fresh
+        // Track not in queue - FIX: INSERT at position 0, preserving the queue
+        console.log(
+          "[useAudioPlayer] 🎵 Playing new track, inserting at queue position 0, preserving existing queue",
+          {
+            newTrack: track.title,
+            currentQueueSize: queue.length,
+          },
+        );
         if (queue.length > 0 && currentTrack) {
           // Move current track to history
           setHistory((prev) => [...prev, currentTrack]);
         }
-        setQueue([track]); // Clear queue, set this as the only track
+        // FIX: Insert new track at position 0, keep rest of queue
+        setQueue([track, ...queue.slice(1)]); // Keep queue[1..n], replace queue[0]
       } else if (trackIndex === 0) {
         // Track is already playing (queue[0]), just restart it
+        console.log(
+          "[useAudioPlayer] 🔄 Track already playing, restarting from beginning",
+        );
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
           audioRef.current.play().catch((error) => {
@@ -1085,6 +1096,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         }
       } else {
         // Track is in queue but not at position 0 - use playFromQueue
+        console.log(
+          "[useAudioPlayer] ⏩ Track found in queue at position",
+          trackIndex,
+          ", playing from queue",
+        );
         playFromQueue(trackIndex);
       }
 

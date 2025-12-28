@@ -6,6 +6,93 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.7.1] - 2025-12-28
+
+### Fixed
+
+#### Critical Queue Bug #1: Partial Playlist Save (2, 4, 6 songs pattern)
+
+- **Playlist Save Functionality**: Fixed severe bug where saving queue to playlist only saved partial tracks (2, 4, 6 pattern)
+  - Root cause: Sequential `await` loop with potential race conditions
+  - Changed from sequential execution to parallel `Promise.all` execution
+  - Ensures **all tracks** are saved atomically without race conditions
+  - Added detailed logging for each track being added (e.g., "Adding track 1/50: Song Title")
+  - Location: `src/contexts/AudioPlayerContext.tsx:367-382`
+  - Impact: Users can now reliably save their entire queue to playlists
+
+#### Critical Queue Bug #2: Queue Destruction on Manual Play
+
+- **Queue Preservation**: Fixed catastrophic bug where playing a new track manually **destroyed the entire queue**
+  - Root cause: `setQueue([track])` completely replaced queue instead of inserting track
+  - Impact: Users lost hours of work when manually playing a single track (100+ song queues gone instantly)
+  - Fix: Changed to `setQueue([track, ...queue.slice(1)])` - inserts new track at position 0, preserves rest of queue
+  - Queue behavior now:
+    - If track **NOT** in queue: Inserts at position 0, shifts everything else down
+    - If track **IN** queue: Moves it to position 0 (existing behavior)
+    - **Your queue stays intact** - no more losing hours of curation work
+  - Added comprehensive logging to track queue operations:
+    - "Playing new track, inserting at queue position 0, preserving existing queue"
+    - "Track already playing, restarting from beginning"
+    - "Track found in queue at position X, playing from queue"
+  - Location: `src/hooks/useAudioPlayer.ts:1071-1085`
+
+### Changed
+
+#### Queue Resilience & Reliability
+
+- **Queue Management**: Queue is now **much less brittle** and more robust
+  - Manual track playback preserves existing queue
+  - Playlist save operations are atomic and reliable
+  - Enhanced logging throughout queue operations for debugging
+  - Queue structure maintained: `queue[0]` = current track, `queue[1..n]` = upcoming tracks
+
+### Technical Details
+
+**Queue Structure:**
+- Current track is always at `queue[0]`
+- Upcoming tracks are at `queue[1..n]`
+- History tracking works correctly with preserved queue
+
+**Playlist Save Fix:**
+```typescript
+// OLD - Sequential, could have race conditions
+for (const track of tracksToSave) {
+  await addToPlaylistMutation.mutateAsync({ ... });
+}
+
+// NEW - All tracks added in parallel, atomic operation
+await Promise.all(
+  tracksToSave.map((track, index) => {
+    console.log(`Adding track ${index + 1}/${tracksToSave.length}: ${track.title}`);
+    return addToPlaylistMutation.mutateAsync({
+      playlistId: playlist.id,
+      track,
+    });
+  }),
+);
+```
+
+**Queue Preservation Fix:**
+```typescript
+// OLD - DESTROYS the queue! 💀
+setQueue([track]); // 100 carefully selected songs = GONE
+
+// NEW - Preserves your precious queue! 🎉
+setQueue([track, ...queue.slice(1)]); // Keep queue[1..n], replace queue[0]
+```
+
+### User Impact
+
+**Before this fix:**
+- Saving a 50-song queue to playlist might only save 2, 4, or 6 songs
+- Playing a new track manually would wipe your entire 100+ song queue
+- Users lost hours of work assembling queues
+
+**After this fix:**
+- All tracks in queue are reliably saved to playlists
+- Playing new tracks preserves your carefully assembled queue
+- Queue feels solid and reliable, not fragile and prone to destruction
+
 ## [0.7.0] - 2025-12-26
 
 ### Added

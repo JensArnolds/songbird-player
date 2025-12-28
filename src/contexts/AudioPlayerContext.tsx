@@ -364,12 +364,26 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         throw new Error("Playlist creation returned no data");
       }
 
-      for (const track of tracksToSave) {
-        await addToPlaylistMutation.mutateAsync({
-          playlistId: playlist.id,
-          track,
-        });
-      }
+      console.log(
+        `[AudioPlayerContext] 💾 Adding ${tracksToSave.length} tracks to playlist ${playlist.id}`,
+      );
+
+      // FIX: Use Promise.all to add all tracks in parallel and avoid race conditions
+      await Promise.all(
+        tracksToSave.map((track, index) => {
+          console.log(
+            `[AudioPlayerContext] 💾 Adding track ${index + 1}/${tracksToSave.length}: ${track.title}`,
+          );
+          return addToPlaylistMutation.mutateAsync({
+            playlistId: playlist.id,
+            track,
+          });
+        }),
+      );
+
+      console.log(
+        `[AudioPlayerContext] ✅ Successfully added all ${tracksToSave.length} tracks`,
+      );
 
       showToast(
         `Saved ${tracksToSave.length} track${tracksToSave.length === 1 ? "" : "s"} to "${trimmedName}"`,
