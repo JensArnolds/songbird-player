@@ -22,7 +22,14 @@ import {
   staggerItem,
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Github, Music2, Search, Shuffle, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  Github,
+  Music2,
+  Search,
+  Shuffle,
+  Sparkles,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -346,7 +353,6 @@ export default function HomePageClient() {
   const searchContent = (
     <div className="flex min-h-screen flex-col">
       <main className="container mx-auto w-full flex-1 py-6 md:py-8">
-
         {/* Search Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -533,7 +539,7 @@ export default function HomePageClient() {
                     onClick={handleShufflePlay}
                     disabled={loading}
                     whileTap={{ scale: 0.95 }}
-                    className="mt-6 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[var(--color-accent)]/25 transition-all hover:shadow-xl hover:shadow-[var(--color-accent)]/40 disabled:opacity-50"
+                    className="mt-6 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-[var(--color-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-accent)]/40 hover:shadow-xl disabled:opacity-50"
                   >
                     {loading ? (
                       <>
@@ -552,7 +558,10 @@ export default function HomePageClient() {
                 {/* Quick Search Suggestions */}
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                   {[
-                    "Molina",
+                    "Lamb",
+                    "Depeche Mode",
+                    "The Knife",
+                    "Goldfrapp",
                     "GusGus",
                     "Soulwax",
                     "Massive Attack",
