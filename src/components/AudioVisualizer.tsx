@@ -12,7 +12,6 @@ import { useAudioVisualizer } from "@/hooks/useAudioVisualizer";
 import type { ColorPalette } from "@/utils/colorExtractor";
 import { ChevronLeft, ChevronRight, GripVertical, Maximize2, Minimize2, Move, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
-import { ChemicalOrbitalsRenderer } from "./visualizers/ChemicalOrbitalsRenderer";
 import { KaleidoscopeRenderer } from "./visualizers/KaleidoscopeRenderer";
 interface AudioVisualizerProps {
   audioElement: HTMLAudioElement | null;
@@ -282,7 +281,6 @@ export function AudioVisualizer({
 
   // Renderer instances
   const kaleidoscopeRendererRef = useRef<KaleidoscopeRenderer | null>(null);
-  const chemicalOrbitalsRendererRef = useRef<ChemicalOrbitalsRenderer | null>(null);
   const lastLoggedTypeRef = useRef<VisualizerType | null>(null);
 
   const visualizer = useAudioVisualizer(audioElement, {
@@ -291,24 +289,24 @@ export function AudioVisualizer({
   });
 
 
-  // Initialize renderers when canvas is available
+  // Initialize kaleidoscope renderer when canvas is available
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     kaleidoscopeRendererRef.current = new KaleidoscopeRenderer(canvas);
-    chemicalOrbitalsRendererRef.current = new ChemicalOrbitalsRenderer(canvas);
 
     return () => {
       kaleidoscopeRendererRef.current = null;
-      chemicalOrbitalsRendererRef.current = null;
     };
   }, []);
 
-  // Update renderer sizes when dimensions change
+  // Update kaleidoscope renderer size when dimensions change
   useEffect(() => {
-    kaleidoscopeRendererRef.current?.resize(dimensions.width, dimensions.height);
-    chemicalOrbitalsRendererRef.current?.resize(dimensions.width, dimensions.height);
+    const renderer = kaleidoscopeRendererRef.current;
+    if (renderer) {
+      renderer.resize(dimensions.width, dimensions.height);
+    }
   }, [dimensions.width, dimensions.height]);
 
   // Sync external type changes
@@ -537,12 +535,8 @@ export function AudioVisualizer({
         console.log(`[Visualizer] Currently rendering: ${currentType}`);
         lastLoggedTypeRef.current = currentType;
       }
-      // Render based on current type
-      if (currentType === "hydrogen-electron-orbitals") {
-        chemicalOrbitalsRendererRef.current?.render(data, data.length);
-      } else {
-        kaleidoscopeRendererRef.current?.render(data, data.length);
-      }
+      // Render kaleidoscope visualization with audio data
+      kaleidoscopeRendererRef.current?.render(data, data.length);
     };
 
     if (isPlaying) {
