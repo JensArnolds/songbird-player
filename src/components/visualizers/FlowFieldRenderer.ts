@@ -135,6 +135,7 @@ export class FlowFieldRenderer {
     "phantomPulse",
     "infernalFlame",
     "kaleidoscope",
+    "hydrogenElectronOrbitals",
   ];
 
   private currentPattern: Pattern = "kaleidoscope";
@@ -208,6 +209,20 @@ export class FlowFieldRenderer {
   private kaleidoscopeRotationSpeed = 1.0;
   private kaleidoscopeParticleDensity = 1.0;
   private kaleidoscopeColorShift = 1.0;
+
+  // Hydrogen Electron Orbitals state
+  private hydrogenEnergyLevel = 1;
+  private hydrogenEnergyLevelTimer = 0;
+  private hydrogenEnergyLevelDuration = 300;
+  private hydrogenElectrons: {
+    x: number;
+    y: number;
+    z: number;
+    angle: number;
+    phase: number;
+    speed: number;
+  }[] = [];
+  private readonly MAX_ENERGY_LEVEL = 6;
 
   private lightningBolts: {
     segments: { x: number; y: number }[];
@@ -3010,6 +3025,14 @@ export class FlowFieldRenderer {
           trebleIntensity,
         );
         break;
+      case "hydrogenElectronOrbitals":
+        this.renderHydrogenElectronOrbitals(
+          audioIntensity,
+          bassIntensity,
+          midIntensity,
+          trebleIntensity,
+        );
+        break;
     }
   }
 
@@ -3294,6 +3317,7 @@ export class FlowFieldRenderer {
     this.initializeParticles();
     this.initializeBubbles();
     this.initializeStars();
+    this.hydrogenElectrons = []; // Reset electrons on resize
     this.initializeMatrixColumns();
     this.initializeConstellationStars();
   }
@@ -10952,6 +10976,381 @@ export class FlowFieldRenderer {
 
   public setTransitionSpeed(value: number): void {
     this.transitionSpeed = Math.max(0.001, Math.min(0.1, value));
+  }
+
+  private initializeHydrogenElectrons(): void {
+    if (this.hydrogenElectrons.length > 0) return; // Already initialized
+    
+    const electronCount = 50;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    
+    for (let i = 0; i < electronCount; i++) {
+      this.hydrogenElectrons.push({
+        x: 0,
+        y: 0,
+        z: 0,
+        angle: Math.random() * twoPi,
+        phase: Math.random() * twoPi,
+        speed: 0.01 + Math.random() * 0.02,
+      });
+    }
+  }
+
+  private renderHydrogenElectronOrbitals(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const maxRadius = Math.min(this.width, this.height) * 0.4;
+    
+    // Initialize electrons if needed
+    if (this.hydrogenElectrons.length === 0) {
+      this.initializeHydrogenElectrons();
+    }
+    
+    // Update energy level timer
+    this.hydrogenEnergyLevelTimer += 1;
+    const transitionSpeed = 1 + audioIntensity * 2;
+    if (this.hydrogenEnergyLevelTimer >= this.hydrogenEnergyLevelDuration / transitionSpeed) {
+      this.hydrogenEnergyLevelTimer = 0;
+      this.hydrogenEnergyLevel = (this.hydrogenEnergyLevel % this.MAX_ENERGY_LEVEL) + 1;
+    }
+    
+    const n = this.hydrogenEnergyLevel;
+    const baseRadius = maxRadius * 0.3;
+    const orbitalRadius = baseRadius * n * n;
+    
+    // Draw nucleus
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+    const nucleusRadius = 8 + bassIntensity * 12;
+    const nucleusGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, nucleusRadius);
+    nucleusGradient.addColorStop(0, this.hsla(0, 100, 50, 0.8 + audioIntensity * 0.2));
+    nucleusGradient.addColorStop(0.5, this.hsla(0, 100, 60, 0.4 + audioIntensity * 0.3));
+    nucleusGradient.addColorStop(1, this.hsla(0, 100, 70, 0));
+    ctx.fillStyle = nucleusGradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, nucleusRadius, 0, twoPi);
+    ctx.fill();
+    ctx.fillStyle = this.hsla(0, 100, 40, 0.9 + audioIntensity * 0.1);
+    ctx.beginPath();
+    ctx.arc(0, 0, 4, 0, twoPi);
+    ctx.fill();
+    ctx.restore();
+    
+    // Draw orbitals
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+    
+    if (n === 1) {
+      this.drawHydrogen1sOrbital(ctx, orbitalRadius, audioIntensity, trebleIntensity);
+    } else if (n === 2) {
+      this.drawHydrogen2sOrbital(ctx, orbitalRadius * 0.5, audioIntensity, trebleIntensity);
+      this.drawHydrogen2pOrbitals(ctx, orbitalRadius, audioIntensity, midIntensity, trebleIntensity);
+    } else if (n === 3) {
+      this.drawHydrogen3sOrbital(ctx, orbitalRadius * 0.33, audioIntensity, trebleIntensity);
+      this.drawHydrogen3pOrbitals(ctx, orbitalRadius * 0.66, audioIntensity, midIntensity, trebleIntensity);
+      this.drawHydrogen3dOrbitals(ctx, orbitalRadius, audioIntensity, bassIntensity, midIntensity, trebleIntensity);
+    } else {
+      for (let shell = 1; shell <= n; shell++) {
+        const shellRadius = (orbitalRadius * shell) / n;
+        this.drawHydrogenShell(ctx, shellRadius, shell, audioIntensity, trebleIntensity);
+      }
+    }
+    ctx.restore();
+    
+    // Update and draw electrons
+    this.updateHydrogenElectrons(n, orbitalRadius, audioIntensity, bassIntensity);
+    this.drawHydrogenElectrons(ctx, n, audioIntensity, trebleIntensity);
+  }
+
+  private drawHydrogen1sOrbital(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    audioIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const pulse = this.fastSin(this.time * 0.05) * (5 + trebleIntensity * 15);
+    const currentRadius = radius + pulse;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
+    const hue = this.fastMod360(this.hueBase + 180);
+    gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.1 + audioIntensity * 0.2));
+    gradient.addColorStop(0.5, this.hsla(hue, 70, 60, 0.05 + trebleIntensity * 0.15));
+    gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentRadius, 0, twoPi);
+    ctx.fill();
+    ctx.strokeStyle = this.hsla(hue, 70, 60, 0.4 + audioIntensity * 0.3);
+    ctx.lineWidth = 2 + trebleIntensity * 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentRadius, 0, twoPi);
+    ctx.stroke();
+  }
+
+  private drawHydrogen2sOrbital(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    audioIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const pulse = this.fastSin(this.time * 0.04) * (8 + trebleIntensity * 20);
+    const currentRadius = radius + pulse;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
+    const hue = this.fastMod360(this.hueBase + 200);
+    gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.08 + audioIntensity * 0.15));
+    gradient.addColorStop(0.6, this.hsla(hue, 70, 60, 0.03 + trebleIntensity * 0.1));
+    gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentRadius, 0, twoPi);
+    ctx.fill();
+    ctx.strokeStyle = this.hsla(hue, 70, 60, 0.35 + audioIntensity * 0.25);
+    ctx.lineWidth = 1.5 + trebleIntensity * 2.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentRadius, 0, twoPi);
+    ctx.stroke();
+  }
+
+  private drawHydrogen2pOrbitals(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    audioIntensity: number,
+    midIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const pulse = this.fastSin(this.time * 0.06) * (10 + midIntensity * 20);
+    const currentRadius = radius + pulse;
+    
+    this.drawHydrogenDumbbellOrbital(ctx, currentRadius, 0, audioIntensity, trebleIntensity);
+    this.drawHydrogenDumbbellOrbital(ctx, currentRadius, Math.PI / 2, audioIntensity, trebleIntensity);
+    this.drawHydrogenDumbbellOrbital(ctx, currentRadius * 0.7, Math.PI / 4, audioIntensity, trebleIntensity);
+  }
+
+  private drawHydrogen3sOrbital(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    audioIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const pulse = this.fastSin(this.time * 0.03) * (12 + trebleIntensity * 25);
+    const currentRadius = radius + pulse;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
+    const hue = this.fastMod360(this.hueBase + 220);
+    gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.06 + audioIntensity * 0.12));
+    gradient.addColorStop(0.5, this.hsla(hue, 70, 60, 0.02 + trebleIntensity * 0.08));
+    gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentRadius, 0, twoPi);
+    ctx.fill();
+    ctx.strokeStyle = this.hsla(hue, 70, 60, 0.3 + audioIntensity * 0.2);
+    ctx.lineWidth = 1 + trebleIntensity * 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentRadius, 0, twoPi);
+    ctx.stroke();
+  }
+
+  private drawHydrogen3pOrbitals(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    audioIntensity: number,
+    midIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const pulse = this.fastSin(this.time * 0.05) * (15 + midIntensity * 25);
+    const currentRadius = radius + pulse;
+    const rotation = this.time * 0.01;
+    
+    this.drawHydrogenDumbbellOrbital(ctx, currentRadius, rotation, audioIntensity, trebleIntensity);
+    this.drawHydrogenDumbbellOrbital(ctx, currentRadius, rotation + Math.PI / 2, audioIntensity, trebleIntensity);
+    this.drawHydrogenDumbbellOrbital(ctx, currentRadius * 0.8, rotation + Math.PI / 4, audioIntensity, trebleIntensity);
+  }
+
+  private drawHydrogen3dOrbitals(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const pulse = this.fastSin(this.time * 0.04) * (20 + bassIntensity * 30);
+    const currentRadius = radius + pulse;
+    const rotation = this.time * 0.008;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * twoPi) / 5 + rotation;
+      this.drawHydrogenCloverleafOrbital(ctx, currentRadius, angle, audioIntensity, trebleIntensity);
+    }
+  }
+
+  private drawHydrogenDumbbellOrbital(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    angle: number,
+    audioIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    ctx.save();
+    ctx.rotate(angle);
+    
+    const lobeSize = radius * 0.4;
+    const lobeDistance = radius * 0.6;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const hue = this.fastMod360(this.hueBase + 160);
+    
+    // Left lobe
+    const gradient1 = ctx.createRadialGradient(-lobeDistance, 0, 0, -lobeDistance, 0, lobeSize);
+    gradient1.addColorStop(0, this.hsla(hue, 70, 60, 0.3 + audioIntensity * 0.3));
+    gradient1.addColorStop(1, this.hsla(hue, 70, 60, 0));
+    ctx.fillStyle = gradient1;
+    ctx.beginPath();
+    ctx.arc(-lobeDistance, 0, lobeSize, 0, twoPi);
+    ctx.fill();
+    
+    // Right lobe
+    const gradient2 = ctx.createRadialGradient(lobeDistance, 0, 0, lobeDistance, 0, lobeSize);
+    gradient2.addColorStop(0, this.hsla(hue, 70, 60, 0.3 + audioIntensity * 0.3));
+    gradient2.addColorStop(1, this.hsla(hue, 70, 60, 0));
+    ctx.fillStyle = gradient2;
+    ctx.beginPath();
+    ctx.arc(lobeDistance, 0, lobeSize, 0, twoPi);
+    ctx.fill();
+    
+    ctx.strokeStyle = this.hsla(hue, 70, 60, 0.2 + audioIntensity * 0.2);
+    ctx.lineWidth = 1 + trebleIntensity * 2;
+    ctx.beginPath();
+    ctx.moveTo(-lobeDistance, 0);
+    ctx.lineTo(lobeDistance, 0);
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+
+  private drawHydrogenCloverleafOrbital(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    angle: number,
+    audioIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    ctx.save();
+    ctx.rotate(angle);
+    
+    const lobeSize = radius * 0.25;
+    const lobeDistance = radius * 0.7;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const hue = this.fastMod360(this.hueBase + 240);
+    
+    for (let i = 0; i < 4; i++) {
+      const lobeAngle = (i * twoPi) / 4;
+      const x = this.fastCos(lobeAngle) * lobeDistance;
+      const y = this.fastSin(lobeAngle) * lobeDistance;
+      
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, lobeSize);
+      gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.25 + audioIntensity * 0.25));
+      gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, lobeSize, 0, twoPi);
+      ctx.fill();
+    }
+    
+    ctx.restore();
+  }
+
+  private drawHydrogenShell(
+    ctx: CanvasRenderingContext2D,
+    radius: number,
+    shell: number,
+    audioIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const pulse = this.fastSin(this.time * 0.02 + shell) * (5 + trebleIntensity * 15);
+    const currentRadius = radius + pulse;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const hue = this.fastMod360(this.hueBase + shell * 60 + this.time * 0.5);
+    
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
+    gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.05 + audioIntensity * 0.1));
+    gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentRadius, 0, twoPi);
+    ctx.fill();
+    ctx.strokeStyle = this.hsla(hue, 70, 60, 0.25 + audioIntensity * 0.2);
+    ctx.lineWidth = 1 + trebleIntensity * 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentRadius, 0, twoPi);
+    ctx.stroke();
+  }
+
+  private updateHydrogenElectrons(
+    n: number,
+    orbitalRadius: number,
+    audioIntensity: number,
+    bassIntensity: number,
+  ): void {
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    
+    this.hydrogenElectrons.forEach((electron) => {
+      const speed = electron.speed * (1 + audioIntensity * 2 + bassIntensity);
+      electron.angle += speed / (n * n);
+      electron.phase += speed * 0.5;
+      
+      const radius = orbitalRadius * (0.8 + this.fastSin(electron.phase) * 0.2);
+      electron.x = this.fastCos(electron.angle) * radius;
+      electron.y = this.fastSin(electron.angle) * radius;
+      electron.z = this.fastSin(electron.phase) * radius * 0.3;
+    });
+  }
+
+  private drawHydrogenElectrons(
+    ctx: CanvasRenderingContext2D,
+    n: number,
+    audioIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    ctx.save();
+    ctx.translate(this.centerX, this.centerY);
+    
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    
+    this.hydrogenElectrons.forEach((electron) => {
+      const size = (3 + trebleIntensity * 5) / n;
+      const alpha = 0.6 + audioIntensity * 0.4;
+      const hue = this.fastMod360(n * 40 + this.time * 2);
+      
+      const gradient = ctx.createRadialGradient(
+        electron.x, electron.y, 0,
+        electron.x, electron.y, size * 2
+      );
+      gradient.addColorStop(0, this.hsla(hue, 100, 70, alpha));
+      gradient.addColorStop(0.5, this.hsla(hue, 100, 60, alpha * 0.5));
+      gradient.addColorStop(1, this.hsla(hue, 100, 50, 0));
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(electron.x, electron.y, size * 2, 0, twoPi);
+      ctx.fill();
+      
+      ctx.fillStyle = this.hsla(hue, 100, 90, alpha);
+      ctx.beginPath();
+      ctx.arc(electron.x, electron.y, size, 0, twoPi);
+      ctx.fill();
+    });
+    
+    ctx.restore();
   }
 
   public getFractalZoom(): number {

@@ -83,4 +83,5 @@ export type Pattern =
   | "abyssalDepth"
   | "phantomPulse"
   | "infernalFlame"
-  | "kaleidoscope";
+  | "kaleidoscope"
+  | "hydrogenElectronOrbitals";
