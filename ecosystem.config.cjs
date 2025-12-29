@@ -28,7 +28,7 @@ module.exports = {
       // 2. PM2 starts new instance → waits for 'ready' signal → kills old instance
       // 3. Repeat for each instance until all are updated (zero downtime!)
       //
-      name: "darkfloor-art-prod",
+      name: "songbird-player-prod",
       script: "scripts/server.js",
       args: "",
       interpreter: "node",
@@ -139,7 +139,7 @@ module.exports = {
       // ============================================
       // DEVELOPMENT CONFIGURATION
       // ============================================
-      name: "darkfloor-art-dev",
+      name: "songbird-player-dev",
       script: "scripts/server.js",
       args: "",
       interpreter: "node",

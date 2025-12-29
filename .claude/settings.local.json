@@ -33,7 +33,13 @@
       "Bash(rm:*)",
       "Bash(npm run typecheck:*)",
       "Bash(cp:*)",
-      "Bash(node -c:*)"
+      "Bash(node -c:*)",
+      "Bash(electron-builder --win:*)",
+      "Bash(electron-builder --mac:*)",
+      "Bash(electron-builder --linux:*)",
+      "Bash(pm2 describe:*)",
+      "Bash(pm2 flush:*)",
+      "Bash(pm2 monit:*)"
     ],
     "deny": [],
     "ask": []
