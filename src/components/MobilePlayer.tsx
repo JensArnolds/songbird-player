@@ -101,6 +101,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onToggleShuffle,
     onCycleRepeat,
     onPlaybackRateChange,
+    onSkipForward,
+    onSkipBackward,
     onToggleQueue,
     onToggleEqualizer,
     onClose,
@@ -769,6 +771,31 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     <SkipBack className="h-8 w-8 fill-current" />
                   </motion.button>
 
+                  {/* Skip Backward 10s */}
+                  <motion.button
+                    onClick={() => {
+                      hapticLight();
+                      onSkipBackward();
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    className="touch-target text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
+                    title="Skip backward 10s"
+                  >
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"
+                      />
+                    </svg>
+                  </motion.button>
+
                   {/* Play/Pause */}
                   <motion.button
                     onClick={handlePlayPause}
@@ -781,6 +808,31 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     ) : (
                       <Play className="ml-1 h-8 w-8 fill-current" />
                     )}
+                  </motion.button>
+
+                  {/* Skip Forward 10s */}
+                  <motion.button
+                    onClick={() => {
+                      hapticLight();
+                      onSkipForward();
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    className="touch-target text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
+                    title="Skip forward 10s"
+                  >
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"
+                      />
+                    </svg>
                   </motion.button>
 
                   {/* Next */}

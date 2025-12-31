@@ -34,7 +34,8 @@ songbird-frontend
 ├───tsconfig.tsbuildinfo
 ├───vercel.json
 ├───.claude/
-│   └───settings.local.json
+│   ├───settings.local.json
+│   └───plans/
 ├───.cursor/
 │   ├───mcp.json
 │   ├───worktrees.json
@@ -105,11 +106,17 @@ songbird-frontend
 │   └───pm2/
 │       ├───.gitkeep
 │       ├───combined.log
+│       ├───combined__2025-12-30_00-00-00.log
+│       ├───combined__2025-12-31_00-00-00.log
 │       ├───dev-combined.log
 │       ├───dev-error.log
 │       ├───dev-out.log
 │       ├───error.log
-│       └───out.log
+│       ├───error__2025-12-30_00-00-00.log
+│       ├───error__2025-12-31_00-00-00.log
+│       ├───out.log
+│       ├───out__2025-12-30_00-00-00.log
+│       └───out__2025-12-31_00-00-00.log
 ├───public/
 │   ├───CHANGELOG.md
 │   ├───emily-the-strange.png
@@ -186,6 +193,8 @@ songbird-frontend
 │   ├───gen-version.js
 │   ├───generate-ssl-cert.js
 │   ├───load-env-build.js
+│   ├───migrate-to-neon.ts
+│   ├───MIGRATION_README.md
 │   ├───populate-userhash.ts
 │   ├───README.md
 │   ├───reset-version.js
@@ -236,6 +245,7 @@ songbird-frontend
     │       └───[id]/
     │           └───page.tsx
     ├───components/
+    │   ├───AddToPlaylistModal.tsx
     │   ├───AnimatedList.tsx
     │   ├───AudioVisualizer.tsx
     │   ├───AutoQueueBadge.tsx
@@ -350,6 +360,7 @@ songbird-frontend
     └───utils/
         ├───api.ts
         ├───audioAnalysis.ts
+        ├───audioContextManager.ts
         ├───colorExtractor.ts
         ├───electronStorage.ts
         ├───errorHandling.ts

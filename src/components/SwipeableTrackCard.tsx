@@ -19,6 +19,7 @@ import {
 import { Heart, ListPlus, MoreHorizontal, Play, Share2 } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { AddToPlaylistModal } from "./AddToPlaylistModal";
 
 export interface SwipeableTrackCardProps {
   track: Track;
@@ -45,6 +46,7 @@ export default function SwipeableTrackCard({
   onAlbumClick,
 }: SwipeableTrackCardProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const constraintsRef = useRef<HTMLDivElement>(null);
 
@@ -108,25 +110,6 @@ export default function SwipeableTrackCard({
     },
   });
 
-  const { data: playlists } = api.music.getPlaylists.useQuery(undefined, {
-    enabled: showMenu && showActions,
-  });
-
-  const addToPlaylist = api.music.addToPlaylist.useMutation({
-    onSuccess: async (_, variables) => {
-      await utils.music.getPlaylists.invalidate();
-      const playlistName =
-        playlists?.find(
-          (p: { id: number; name: string }) => p.id === variables.playlistId,
-        )?.name ?? "playlist";
-      showToast(`Added "${track.title}" to ${playlistName}`, "success");
-      setShowMenu(false);
-    },
-    onError: (error) => {
-      showToast(`Failed to add to playlist: ${error.message}`, "error");
-    },
-  });
-
   const toggleFavorite = () => {
     if (favoriteData?.isFavorite) {
       hapticLight();
@@ -156,11 +139,6 @@ export default function SwipeableTrackCard({
     if (success) {
       showToast("Track shared successfully!", "success");
     }
-  };
-
-  const handleAddToPlaylist = (playlistId: number) => {
-    hapticLight();
-    addToPlaylist.mutate({ playlistId, track });
   };
 
   const handlePlay = () => {
@@ -430,33 +408,29 @@ export default function SwipeableTrackCard({
                         <div className="mx-3 my-1 border-t border-[rgba(245,241,232,0.08)]" />
                       </>
                     )}
-                    <div className="px-4 py-2 text-xs font-semibold tracking-wider text-[var(--color-muted)] uppercase">
-                      Add to Playlist
-                    </div>
-                    {playlists && playlists.length > 0 ? (
-                      playlists.map(
-                        (playlist: { id: number; name: string }) => (
-                          <button
-                            key={playlist.id}
-                            onClick={() => handleAddToPlaylist(playlist.id)}
-                            className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(244,178,102,0.1)] md:py-2"
-                            disabled={addToPlaylist.isPending}
-                          >
-                            {playlist.name}
-                          </button>
-                        ),
-                      )
-                    ) : (
-                      <div className="px-4 py-3 text-sm text-[var(--color-muted)] md:py-2">
-                        No playlists yet
-                      </div>
-                    )}
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        hapticLight();
+                        setShowAddToPlaylistModal(true);
+                      }}
+                      className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(244,178,102,0.1)] md:py-2 flex items-center gap-3"
+                    >
+                      <ListPlus className="h-4 w-4" />
+                      <span>Add to Playlist</span>
+                    </button>
                   </motion.div>
                 </>
               )}
             </div>
           </div>
         )}
+
+        <AddToPlaylistModal
+          isOpen={showAddToPlaylistModal}
+          onClose={() => setShowAddToPlaylistModal(false)}
+          track={track}
+        />
       </motion.div>
 
       {/* Swipe Hints - visible on first few cards */}

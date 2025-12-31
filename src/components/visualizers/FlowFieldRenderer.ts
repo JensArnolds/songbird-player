@@ -1,3 +1,5 @@
+// File: src/components/visualizers/FlowFieldRenderer.ts
+
 import type { Pattern } from "./flowfieldPatterns/patternIds";
 import { renderHexGrid } from "./flowfieldPatterns/renderHexGrid";
 import { renderKaleidoscope } from "./flowfieldPatterns/renderKaleidoscope";
