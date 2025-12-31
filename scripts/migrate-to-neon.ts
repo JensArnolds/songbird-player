@@ -1,4 +1,6 @@
 #!/usr/bin/env tsx
+// File: scripts/migrate-to-neon.ts
+
 /**
  * Migration script to transfer all data from source database to NEON Postgres
  * 
@@ -539,4 +541,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-

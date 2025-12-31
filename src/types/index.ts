@@ -275,6 +275,19 @@ export interface PlaylistWithTracks {
   }>;
 }
 
+export interface PlaylistWithTrackStatus {
+  id: number;
+  userId: string;
+  name: string;
+  description: string | null;
+  isPublic: boolean;
+  coverImage: string | null;
+  createdAt: Date;
+  updatedAt: Date | null;
+  trackCount: number;
+  hasTrack: boolean; // Indicates if the specific track is in this playlist
+}
+
 export interface UserProfile {
   userHash: string;
   name: string | null;

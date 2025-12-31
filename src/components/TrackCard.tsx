@@ -2,7 +2,7 @@
 
 "use client";
 
-import type { Track, PlaylistWithTracks } from "@/types";
+import type { Track } from "@/types";
 import { getCoverImage } from "@/utils/images";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import Image from "next/image";
@@ -13,6 +13,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { api } from "@/trpc/react";
 import { useToast } from "@/contexts/ToastContext";
+import { AddToPlaylistModal } from "./AddToPlaylistModal";
 
 export interface TrackCardProps {
   track: Track;
@@ -27,7 +28,7 @@ export default function TrackCard({
   onAddToQueue,
   showActions = true
 }: TrackCardProps) {
-  const [showMenu, setShowMenu] = useState(false);
+  const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const coverImage = getCoverImage(track);
   const { showToast } = useToast();
@@ -63,25 +64,6 @@ export default function TrackCard({
     },
   });
 
-  const { data: playlists } = api.music.getPlaylists.useQuery(undefined, {
-    enabled: showMenu && showActions && isAuthenticated,
-  });
-
-  const addToPlaylist = api.music.addToPlaylist.useMutation({
-    onSuccess: async (_, variables) => {
-      await utils.music.getPlaylists.invalidate();
-      const playlistName =
-        playlists?.find(
-          (p: PlaylistWithTracks) => p.id === variables.playlistId,
-        )?.name ?? "playlist";
-      showToast(`Added "${track.title}" to ${playlistName}`, "success");
-      setShowMenu(false);
-    },
-    onError: (error) => {
-      showToast(`Failed to add to playlist: ${error.message}`, "error");
-    },
-  });
-
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -103,11 +85,6 @@ export default function TrackCard({
       onAddToQueue(track);
       showToast(`Added "${track.title}" to queue`, "success");
     }
-  };
-
-  const handleAddToPlaylist = (playlistId: number) => {
-    hapticLight();
-    addToPlaylist.mutate({ playlistId, track });
   };
 
   const handlePlay = () => {
@@ -187,51 +164,26 @@ export default function TrackCard({
             </button>
           )}
 
-          {/* Playlist Menu */}
-          <div className="relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowMenu(!showMenu);
-              }}
-              className="rounded-full p-2 text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-white"
-              title="More options"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </button>
-
-            {showMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="card absolute right-0 z-20 mt-2 w-56 border border-[var(--color-border)] py-2 shadow-xl backdrop-blur-sm md:w-48">
-                  <div className="px-4 py-3 text-xs font-semibold text-[var(--color-subtext)] uppercase md:py-2">
-                    Add to Playlist
-                  </div>
-                  {playlists && playlists.length > 0 ? (
-                    playlists.map((playlist: PlaylistWithTracks) => (
-                      <button
-                        key={playlist.id}
-                        onClick={() => handleAddToPlaylist(playlist.id)}
-                        className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] transition-all hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-accent-light)] md:py-2"
-                        disabled={addToPlaylist.isPending}
-                      >
-                        {playlist.name}
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-4 py-3 text-sm text-[var(--color-muted)] md:py-2">
-                      No playlists yet
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+          {/* Add to Playlist Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              hapticLight();
+              setShowAddToPlaylistModal(true);
+            }}
+            className="rounded-full p-2 text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-white"
+            title="Add to playlist"
+          >
+            <MoreVertical className="h-5 w-5" />
+          </button>
         </div>
       )}
+
+      <AddToPlaylistModal
+        isOpen={showAddToPlaylistModal}
+        onClose={() => setShowAddToPlaylistModal(false)}
+        track={track}
+      />
     </motion.div>
   );
 }

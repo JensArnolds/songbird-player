@@ -1,10 +1,4 @@
 // File: src/utils/audioContextManager.ts
-//
-// Shared audio context manager to prevent InvalidStateError when multiple
-// components try to connect to the same HTMLAudioElement.
-//
-// An HTMLAudioElement can only be connected to ONE MediaElementSourceNode.
-// This manager ensures all components share the same connection.
 
 interface AudioConnection {
   sourceNode: MediaElementAudioSourceNode;

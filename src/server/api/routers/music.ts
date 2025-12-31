@@ -404,6 +404,52 @@ export const musicRouter = createTRPCRouter({
     return playlistsWithCount;
   }),
 
+  getPlaylistsWithTrackStatus: protectedProcedure
+    .input(
+      z.object({
+        trackId: z.number(),
+        excludePlaylistId: z.number().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Fetch user's playlists, optionally excluding specified playlist
+      const playlistsResult = await ctx.db.query.playlists.findMany({
+        where: input.excludePlaylistId
+          ? and(
+              eq(playlists.userId, ctx.session.user.id),
+              sql`${playlists.id} != ${input.excludePlaylistId}`,
+            )
+          : eq(playlists.userId, ctx.session.user.id),
+        orderBy: [desc(playlists.createdAt)],
+      });
+
+      // For each playlist, check if track exists and get track count
+      const playlistsWithStatus = await Promise.all(
+        playlistsResult.map(async (playlist) => {
+          // Check if track exists in this playlist
+          const trackInPlaylist = await ctx.db.query.playlistTracks.findFirst({
+            where: and(
+              eq(playlistTracks.playlistId, playlist.id),
+              eq(playlistTracks.trackId, input.trackId),
+            ),
+          });
+
+          // Get total track count for this playlist
+          const totalTracks = await ctx.db.query.playlistTracks.findMany({
+            where: eq(playlistTracks.playlistId, playlist.id),
+          });
+
+          return {
+            ...playlist,
+            trackCount: totalTracks.length,
+            hasTrack: !!trackInPlaylist,
+          };
+        }),
+      );
+
+      return playlistsWithStatus;
+    }),
+
   getPlaylist: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
