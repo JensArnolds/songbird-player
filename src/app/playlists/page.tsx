@@ -15,6 +15,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+// Force dynamic rendering to avoid build-time circular dependency issues
+export const dynamic = "force-dynamic";
+
 export default function PlaylistsPage() {
   const { data: session } = useSession();
   const router = useRouter();

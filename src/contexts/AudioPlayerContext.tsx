@@ -190,8 +190,17 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     [utils],
   );
 
+  // Prepare initial queue state from database for useAudioPlayer (must be before useAudioPlayer call)
+  const initialQueueState = session && dbQueueState && dbQueueState.queuedTracks && dbQueueState.queuedTracks.length > 0 ? {
+    queuedTracks: dbQueueState.queuedTracks as QueuedTrack[],
+    smartQueueState: dbQueueState.smartQueueState as SmartQueueState,
+    history: (dbQueueState.history || []) as Track[],
+    isShuffled: dbQueueState.isShuffled ?? false,
+    repeatMode: (dbQueueState.repeatMode || "none") as "none" | "one" | "all",
+  } : undefined;
+
   const player = useAudioPlayer({
-    initialQueueState: initialQueueState && initialQueueState.queuedTracks.length > 0 ? initialQueueState : undefined,
+    initialQueueState: initialQueueState,
     onTrackChange: (track) => {
       if (track && session) {
         if (hasCompleteTrackData(track)) {
@@ -240,15 +249,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     },
     smartQueueSettings: smartQueueSettings ?? undefined,
   });
-
-  // Prepare initial queue state from database for useAudioPlayer
-  const initialQueueState = session && dbQueueState ? {
-    queuedTracks: dbQueueState.queuedTracks as typeof player.queuedTracks,
-    smartQueueState: dbQueueState.smartQueueState as typeof player.smartQueueState,
-    history: (dbQueueState.history || []) as typeof player.queue,
-    isShuffled: dbQueueState.isShuffled ?? false,
-    repeatMode: (dbQueueState.repeatMode || "none") as "none" | "one" | "all",
-  } : undefined;
 
   // Persist queue state to database when logged in (debounced)
   useEffect(() => {

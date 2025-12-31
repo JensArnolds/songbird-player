@@ -5,6 +5,117 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2025-12-31
+
+### Fixed
+
+#### Search Results Persistence Bug
+
+- **Stale Search Results**: Fixed issue where top 1-2 results from previous searches would stick at the top when performing multiple searches in a row
+  - Root cause: Search results were not cleared immediately when starting a new search, allowing old results to persist until new API response arrived
+  - Solution: Clear results immediately when starting any new search operation
+  - Applied to all search functions: `performSearch`, `handleArtistClick`, `handleAlbumClick`, and `handleShufflePlay`
+  - Results now clear instantly when a new search starts, preventing stale data from showing
+  - Location: `src/app/HomePageClient.tsx:67-97, 276-311, 99-157, 316-350`
+
+#### Rapid Pause/Unpause Bug
+
+- **Audio Player State Loop**: Fixed critical bug where audio would rapidly pause and unpause (~10 times per second) requiring page refresh
+  - Root cause: Multiple issues causing feedback loops between React state and audio element state:
+    1. State sync polling creating feedback loops
+    2. Event handlers firing without guards against rapid state changes
+    3. Race conditions between React state updates and audio element state
+  - Solution: Implemented comprehensive guards to prevent rapid state changes:
+    - Added `isPlayPauseOperationRef` to track in-progress play/pause operations
+    - Added guards to `play()` and `pause()` functions to prevent concurrent operations
+    - Enhanced event handlers (`handlePlay`, `handlePause`) to only update state when actually different
+    - Improved state sync polling with debouncing (200ms minimum between syncs)
+    - Updated media session handlers to use guarded functions
+    - Added ref-based state tracking to avoid stale closures
+  - Play/pause operations now properly guarded against rapid toggling
+  - State sync mechanism prevents feedback loops
+  - Location: `src/hooks/useAudioPlayer.ts:64-66, 404-417, 626-738, 740-756, 1278-1290, 288-300`
+
+#### Queue Persistence Issues
+
+- **Queue Refilling After Tab Switch**: Fixed queue being restored after clearing when switching tabs
+  - Root cause: `clearQueue` only cleared in-memory state but didn't clear persisted localStorage, causing restoration on remount
+  - Solution: 
+    - `clearQueue` now immediately clears localStorage when queue becomes empty
+    - Added guard in load effect to prevent restoring empty queues (intentionally cleared)
+    - `clearQueueAndHistory` also clears persisted state
+  - Clearing queue is now final - it stays cleared even after tab switches
+  - Location: `src/hooks/useAudioPlayer.ts:1017-1025, 1446-1458, 109-160`
+
+### Added
+
+#### Database Queue Persistence for Logged-In Users
+
+- **Queue State Persistence**: Added comprehensive queue persistence system supporting both database (logged-in users) and localStorage (non-logged-in users)
+  - **Database Schema**: Added `queueState` JSONB field to `userPreferences` table
+    - Stores complete queue state including queuedTracks, smartQueueState, history, shuffle, and repeat mode
+    - Location: `src/server/db/schema.ts:242-252`
+  - **API Endpoints**: Added three new tRPC endpoints for queue state management
+    - `saveQueueState` - Saves queue state to database (debounced, 1 second)
+    - `getQueueState` - Retrieves queue state from database
+    - `clearQueueState` - Clears queue state from database
+    - Location: `src/server/api/routers/music.ts:813-880`
+  - **Automatic Sync**: Queue state automatically syncs between database and localStorage
+    - Logged-in users: Queue saved to database, restored on login
+    - Non-logged-in users: Queue saved to localStorage (existing behavior)
+    - Priority: Database (if logged in) > localStorage (if not logged in)
+    - Location: `src/contexts/AudioPlayerContext.tsx:99-105, 235-285`
+  - **Initial State Restoration**: Added `initialQueueState` option to `useAudioPlayer` hook
+    - Allows restoring queue from database on component mount
+    - Prevents overwriting active queue when restoring
+    - Location: `src/hooks/useAudioPlayer.ts:15-25, 27-28, 109-160`
+  - **Smart Clearing**: Queue clearing now works in both storage locations
+    - When queue is cleared, it's removed from both database and localStorage
+    - Empty queues are not restored (intentionally cleared state)
+    - Location: `src/contexts/AudioPlayerContext.tsx:260-285`
+
+### Changed
+
+#### Queue Persistence Architecture
+
+- **Dual Storage System**: Queue now persists in appropriate storage based on authentication status
+  - Logged-in users: Database persistence with automatic sync
+  - Non-logged-in users: localStorage persistence (unchanged)
+  - Seamless transition between storage methods on login/logout
+  - Location: `src/contexts/AudioPlayerContext.tsx:235-285`
+
+### Technical Details
+
+**Search Results Fix:**
+- All search functions now call `setResults([])` and `setTotal(0)` immediately when starting
+- Prevents race conditions where previous search responses could arrive after new search starts
+- Ensures clean state for every new search operation
+
+**Audio Player State Management:**
+- Operation guards prevent concurrent play/pause operations
+- Event handlers use refs to avoid stale closure issues
+- State sync polling includes debouncing to prevent rapid updates
+- Media session handlers use guarded functions instead of direct audio manipulation
+
+**Queue Persistence Flow:**
+1. On mount: Load from database (if logged in) or localStorage (if not logged in)
+2. On change: Save to appropriate storage (debounced for database, immediate for localStorage)
+3. On clear: Remove from both storage locations
+4. On tab switch: Restore only if queue has actual tracks (not empty/cleared)
+
+**Database Migration Required:**
+```sql
+ALTER TABLE "hexmusic-stream_user_preferences" 
+ADD COLUMN "queueState" jsonb DEFAULT NULL;
+```
+
+**Files Modified:**
+- Modified: `src/app/HomePageClient.tsx` (search results clearing)
+- Modified: `src/hooks/useAudioPlayer.ts` (pause/unpause guards, queue clearing, initial state support)
+- Modified: `src/contexts/AudioPlayerContext.tsx` (database queue persistence)
+- Modified: `src/server/db/schema.ts` (queueState field)
+- Modified: `src/server/api/routers/music.ts` (queue state API endpoints)
+
 ## [0.8.1] - 2025-12-31
 
 ### Added
