@@ -777,6 +777,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const seek = useCallback((time: number) => {
     if (!audioRef.current) return;
 
+    // Validate that time is a finite number
+    if (!isFinite(time)) {
+      console.error(`[useAudioPlayer] ❌ Invalid seek time: ${time}`);
+      return;
+    }
+
     audioRef.current.currentTime = time;
     setCurrentTime(time);
   }, []);
@@ -1163,6 +1169,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       // Read actual time from audio element, not potentially stale state
       const currentTime = audioRef.current.currentTime;
       const duration = audioRef.current.duration;
+
+      // Validate that duration and currentTime are finite
+      if (!isFinite(currentTime) || !isFinite(duration)) {
+        console.warn(`[useAudioPlayer] ⚠️ Skip forward failed: audio not ready (currentTime: ${currentTime}, duration: ${duration})`);
+        return;
+      }
+
       const newTime = Math.min(duration, currentTime + seconds);
 
       console.log(`[useAudioPlayer] ⏩ Skip forward ${seconds}s: ${currentTime.toFixed(1)}s → ${newTime.toFixed(1)}s`);
@@ -1177,6 +1190,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // Read actual time from audio element, not potentially stale state
       const currentTime = audioRef.current.currentTime;
+
+      // Validate that currentTime is finite
+      if (!isFinite(currentTime)) {
+        console.warn(`[useAudioPlayer] ⚠️ Skip backward failed: audio not ready (currentTime: ${currentTime})`);
+        return;
+      }
+
       const newTime = Math.max(0, currentTime - seconds);
 
       console.log(`[useAudioPlayer] ⏪ Skip backward ${seconds}s: ${currentTime.toFixed(1)}s → ${newTime.toFixed(1)}s`);
