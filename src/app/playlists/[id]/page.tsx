@@ -531,7 +531,7 @@ export default function PlaylistDetailPage() {
                         track={item.track}
                         onPlay={player.play}
                         onAddToQueue={player.addToQueue}
-                        showActions={!isOwner}
+                        showActions={true}
                       />
                     </div>
 

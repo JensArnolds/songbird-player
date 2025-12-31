@@ -95,6 +95,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `src/hooks/useAudioPlayer.ts:1165-1194` - skipForward() triple validation
     - `src/hooks/useAudioPlayer.ts:1196-1224` - skipBackward() triple validation
 
+#### Playlist Detail Page Actions
+
+- **Action Buttons Hidden for Playlist Owners**: Fixed EnhancedTrackCard not showing action buttons on playlist detail pages when viewing your own playlists
+  - Root cause: Playlist detail page passed `showActions={!isOwner}`, hiding all action buttons for playlist owners
+  - Impact: Prevented users from:
+    - Adding tracks to other playlists (the original user request)
+    - Adding tracks to queue
+    - Favoriting tracks
+    - Sharing tracks
+  - Solution: Changed to `showActions={true}` to always show action buttons regardless of ownership
+  - Now playlist owners can organize tracks from their playlists into other thematic playlists
+  - Location: `src/app/playlists/[id]/page.tsx:534`
+
 ### Technical Details
 
 **Modal Architecture:**
@@ -122,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified: `src/components/SwipeableTrackCard.tsx` - Modal integration
 - Modified: `src/components/Player.tsx` - Desktop player integration
 - Modified: `src/hooks/useAudioPlayer.ts` - Skip button validation
+- Modified: `src/app/playlists/[id]/page.tsx` - Enable actions for playlist owners
 
 ## [0.8.0] - 2025-12-29
 
