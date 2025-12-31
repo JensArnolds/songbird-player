@@ -1,0 +1,1 @@
+ALTER TABLE "hexmusic-stream_user_preferences" ADD COLUMN "queueState" jsonb DEFAULT NULL;

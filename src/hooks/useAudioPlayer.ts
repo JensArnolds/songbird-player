@@ -22,6 +22,13 @@ interface UseAudioPlayerOptions {
   ) => Promise<Track[]>;
   onError?: (error: string, trackId?: number) => void;
   smartQueueSettings?: SmartQueueSettings;
+  initialQueueState?: {
+    queuedTracks: QueuedTrack[];
+    smartQueueState: SmartQueueState;
+    history: Track[];
+    isShuffled: boolean;
+    repeatMode: RepeatMode;
+  } | null;
 }
 
 export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
@@ -107,7 +114,18 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     setVolume(savedVolume);
     setPlaybackRate(savedRate);
 
-    // Load persisted queue state
+    // Priority: initialQueueState (from database) > localStorage
+    if (initialQueueState && initialQueueState.queuedTracks.length > 0) {
+      console.log("[useAudioPlayer] 📥 Restoring queue state from database");
+      setQueuedTracks(initialQueueState.queuedTracks);
+      setSmartQueueState(initialQueueState.smartQueueState);
+      setHistory(initialQueueState.history);
+      setIsShuffled(initialQueueState.isShuffled);
+      setRepeatMode(initialQueueState.repeatMode);
+      return; // Don't load from localStorage if we have database state
+    }
+
+    // Load persisted queue state from localStorage (for non-logged-in users)
     const persistedState = loadPersistedQueueState();
     if (persistedState) {
       // Check if queue was intentionally cleared (empty or only has current track)
@@ -144,7 +162,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         console.log("[useAudioPlayer] Queue was cleared, not restoring from persistence");
       }
     }
-  }, []);
+  }, [initialQueueState]);
 
   // Persist volume
   useEffect(() => {

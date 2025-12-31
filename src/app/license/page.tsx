@@ -7,6 +7,9 @@ export const metadata = {
   description: "GNU General Public License v3.0 for darkfloor.art",
 };
 
+// Force dynamic rendering to avoid build-time circular dependency issues
+export const dynamic = "force-dynamic";
+
 export default function LicensePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">

@@ -191,6 +191,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   );
 
   const player = useAudioPlayer({
+    initialQueueState: initialQueueState && initialQueueState.queuedTracks.length > 0 ? initialQueueState : undefined,
     onTrackChange: (track) => {
       if (track && session) {
         if (hasCompleteTrackData(track)) {
@@ -240,30 +241,14 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     smartQueueSettings: smartQueueSettings ?? undefined,
   });
 
-  // Load queue state from database when logged in (on mount or when session becomes available)
-  useEffect(() => {
-    if (session && dbQueueState && dbQueueState.queuedTracks) {
-      // Only load if we don't already have a queue (to avoid overwriting active queue)
-      if (player.queuedTracks.length === 0) {
-        console.log("[AudioPlayerContext] 📥 Loading queue state from database");
-        // The queue state structure matches what useAudioPlayer expects
-        // We need to restore it through the player's internal state
-        // Since we can't directly set internal state, we'll need to add tracks
-        // But first, let's check if the player has a method to restore state
-        // For now, we'll restore via the queuedTracks structure
-        const restoredState = dbQueueState as {
-          queuedTracks: typeof player.queuedTracks;
-          smartQueueState: typeof player.smartQueueState;
-          history: typeof player.queue;
-          isShuffled: boolean;
-          repeatMode: "none" | "one" | "all";
-        };
-        
-        // Note: We can't directly set internal state, so we'll need to add a restore method
-        // For now, we'll handle this in useAudioPlayer by checking for a restore prop
-      }
-    }
-  }, [session, dbQueueState, player.queuedTracks.length]);
+  // Prepare initial queue state from database for useAudioPlayer
+  const initialQueueState = session && dbQueueState ? {
+    queuedTracks: dbQueueState.queuedTracks as typeof player.queuedTracks,
+    smartQueueState: dbQueueState.smartQueueState as typeof player.smartQueueState,
+    history: (dbQueueState.history || []) as typeof player.queue,
+    isShuffled: dbQueueState.isShuffled ?? false,
+    repeatMode: (dbQueueState.repeatMode || "none") as "none" | "one" | "all",
+  } : undefined;
 
   // Persist queue state to database when logged in (debounced)
   useEffect(() => {
@@ -274,14 +259,18 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         version: 2 as const,
         queuedTracks: player.queuedTracks,
         smartQueueState: player.smartQueueState,
-        history: player.queue, // Using queue as history representation
+        history: player.history, // History is available from useAudioPlayer
         currentTime: player.currentTime,
         isShuffled: player.isShuffled,
         repeatMode: player.repeatMode,
       };
       
-      // Only save if queue is not empty (don't save cleared state)
-      if (queueState.queuedTracks.length > 0) {
+      // If queue is empty, clear from database (queue was intentionally cleared)
+      if (queueState.queuedTracks.length === 0) {
+        console.log("[AudioPlayerContext] 🧹 Clearing queue state from database");
+        clearQueueStateMutation.mutate();
+      } else {
+        // Save queue state to database
         console.log("[AudioPlayerContext] 💾 Persisting queue state to database");
         saveQueueStateMutation.mutate({ queueState });
       }
@@ -292,11 +281,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     session,
     player.queuedTracks,
     player.smartQueueState,
-    player.queue,
+    player.history,
     player.currentTime,
     player.isShuffled,
     player.repeatMode,
     saveQueueStateMutation,
+    clearQueueStateMutation,
   ]);
 
   // Watch for session changes (login/logout) and clear queue
