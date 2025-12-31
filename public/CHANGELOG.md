@@ -43,6 +43,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+#### Album Track Artist Validation Error
+
+- **Add to Playlist from Album**: Fixed validation error when adding tracks from album pages to playlists
+  - Root cause: Artist objects from album endpoints lacked required picture fields (link, picture, picture_small, picture_medium, picture_big, picture_xl, tracklist)
+  - Solution: Made artist picture fields optional in both Zod schema and TypeScript type definition
+  - Album tracks now validate correctly even when artist data is incomplete
+  - Image utility functions already had fallback handling for missing artist pictures
+  - Location: `src/types/index.ts:14-25`, `src/server/api/routers/music.ts:53-64`
+
 #### Queue Track Progression (CRITICAL)
 
 - **Queue Stuck on First Track**: Fixed critical bug where queue would not advance past the first song

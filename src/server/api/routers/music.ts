@@ -41,7 +41,7 @@ const trackSchema = z.object({
   readable: z.boolean(),
   title: z.string(),
   title_short: z.string(),
-  title_version: z.string(),
+  title_version: z.string().optional(),
   link: z.string(),
   duration: z.number(),
   rank: z.number(),

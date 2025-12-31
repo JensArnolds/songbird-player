@@ -51,7 +51,7 @@ export interface Track {
   readable: boolean;
   title: string;
   title_short: string;
-  title_version: string;
+  title_version?: string; // Optional: some tracks may not have version info
   link: string;
   duration: number; // Duration in seconds
   rank: number; // Popularity rank
