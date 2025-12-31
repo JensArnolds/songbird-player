@@ -141,34 +141,66 @@ export function PlaylistContextMenu() {
     menu.style.top = `${y}px`;
   }, [position]);
 
-  const handlePlayAll = () => {
-    if (!playlist || !playlist.tracks || playlist.tracks.length === 0) return;
+  const handlePlayAll = async () => {
+    if (!playlist) return;
 
     hapticMedium();
-    const sortedTracks = [...playlist.tracks].sort((a, b) => a.position - b.position);
-    const [first, ...rest] = sortedTracks.map((pt) => pt.track);
-
-    if (first) {
-      player.clearQueue();
-      player.play(first);
-      if (rest.length > 0) {
-        player.addToQueue(rest);
+    
+    // Fetch full playlist data to get all tracks (not just the 4 preview tracks)
+    try {
+      const fullPlaylist = await utils.client.music.getPlaylist.fetch({ id: playlist.id });
+      
+      if (!fullPlaylist.tracks || fullPlaylist.tracks.length === 0) {
+        showToast("This playlist has no tracks", "info");
+        closeMenu();
+        return;
       }
-      showToast(`Playing "${playlist.name}"`, "success");
+
+      const sortedTracks = [...fullPlaylist.tracks].sort((a, b) => a.position - b.position);
+      const [first, ...rest] = sortedTracks.map((pt) => pt.track);
+
+      if (first) {
+        player.clearQueue();
+        player.play(first);
+        if (rest.length > 0) {
+          player.addToQueue(rest);
+        }
+        showToast(`Playing "${fullPlaylist.name}" (${sortedTracks.length} tracks)`, "success");
+      }
+    } catch (error) {
+      console.error("Failed to fetch full playlist:", error);
+      showToast("Failed to load playlist tracks", "error");
     }
+    
     closeMenu();
   };
 
-  const handleAddAllToQueue = () => {
-    if (!playlist || !playlist.tracks || playlist.tracks.length === 0) return;
+  const handleAddAllToQueue = async () => {
+    if (!playlist) return;
 
     hapticLight();
-    const sortedTracks = [...playlist.tracks]
-      .sort((a, b) => a.position - b.position)
-      .map((pt) => pt.track);
+    
+    // Fetch full playlist data to get all tracks (not just the 4 preview tracks)
+    try {
+      const fullPlaylist = await utils.client.music.getPlaylist.fetch({ id: playlist.id });
+      
+      if (!fullPlaylist.tracks || fullPlaylist.tracks.length === 0) {
+        showToast("This playlist has no tracks", "info");
+        closeMenu();
+        return;
+      }
 
-    player.addToQueue(sortedTracks);
-    showToast(`Added ${sortedTracks.length} tracks to queue`, "success");
+      const sortedTracks = [...fullPlaylist.tracks]
+        .sort((a, b) => a.position - b.position)
+        .map((pt) => pt.track);
+
+      player.addToQueue(sortedTracks);
+      showToast(`Added ${sortedTracks.length} tracks to queue`, "success");
+    } catch (error) {
+      console.error("Failed to fetch full playlist:", error);
+      showToast("Failed to load playlist tracks", "error");
+    }
+    
     closeMenu();
   };
 
