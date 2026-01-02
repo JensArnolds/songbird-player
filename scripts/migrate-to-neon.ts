@@ -9,19 +9,23 @@
  * 
  * Environment variables:
  *   - OLD_DATABASE_URL: Source database (old database to migrate from)
- *   - DATABASE_URL_UNPOOLED: Target database (Neon unpooled connection)
+ *   - DATABASE_UNPOOLED: Target database (Neon unpooled connection)
  * 
  * Falls back to:
  *   - SOURCE_DATABASE_URL or DATABASE_URL for source
  *   - TARGET_DATABASE_URL for target
  */
 
-import "dotenv/config";
+import dotenv from "dotenv";
 import { existsSync, readFileSync } from "fs";
 import path from "path";
 import { Pool } from "pg";
 import { createInterface } from "readline";
 import { fileURLToPath } from "url";
+
+// Load environment variables explicitly (prioritize .env.local)
+dotenv.config({ path: ".env.local" });
+dotenv.config(); // Also load .env as fallback
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -405,9 +409,9 @@ async function main() {
     process.env.SOURCE_DATABASE_URL || 
     process.env.DATABASE_URL;
   
-  // Target: DATABASE_URL_UNPOOLED (preferred) or TARGET_DATABASE_URL (fallback)
+  // Target: DATABASE_UNPOOLED (preferred) or TARGET_DATABASE_URL (fallback)
   const targetUrl = 
-    process.env.DATABASE_URL_UNPOOLED || 
+    process.env.DATABASE_UNPOOLED || 
     process.env.TARGET_DATABASE_URL;
 
   if (!sourceUrl) {
@@ -417,8 +421,8 @@ async function main() {
   }
 
   if (!targetUrl) {
-    error("❌ DATABASE_URL_UNPOOLED or TARGET_DATABASE_URL environment variable is required");
-    error("   Recommended: Set DATABASE_URL_UNPOOLED for the Neon target database");
+    error("❌ DATABASE_UNPOOLED or TARGET_DATABASE_URL environment variable is required");
+    error("   Recommended: Set DATABASE_UNPOOLED for the Neon target database");
     process.exit(1);
   }
 
