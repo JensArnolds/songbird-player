@@ -8,21 +8,48 @@ import { Pool } from "pg";
 // Load environment variables
 dotenv.config({ path: ".env.local" });
 
-// Determine SSL configuration based on certificate availability
-function getSslConfig() {
+// Determine SSL configuration based on database type and certificate availability
+function getSslConfig(connectionString: string) {
+  // Neon handles SSL automatically via connection string
+  if (connectionString.includes("neon.tech")) {
+    return undefined;
+  }
+
+  // Check if it's a cloud database that requires SSL
+  const isCloudDb = 
+    connectionString.includes("aivencloud.com") || 
+    connectionString.includes("rds.amazonaws.com") ||
+    connectionString.includes("sslmode=");
+
+  if (!isCloudDb && connectionString.includes("localhost")) {
+    // Local database - SSL not needed
+    return undefined;
+  }
+
+  // Cloud database - try to find CA certificate
   const certPath = path.join(process.cwd(), "certs/ca.pem");
   
   if (existsSync(certPath)) {
     console.log(`[DB] Using SSL certificate: ${certPath}`);
     return {
-      rejectUnauthorized: true,
+      rejectUnauthorized: process.env.NODE_ENV === "production",
       ca: readFileSync(certPath).toString(),
     };
   }
-  
+
+  // Fallback: Use DB_SSL_CA environment variable if set
+  if (process.env.DB_SSL_CA) {
+    console.log("[DB] Using SSL certificate from DB_SSL_CA environment variable");
+    return {
+      rejectUnauthorized: process.env.NODE_ENV === "production",
+      ca: process.env.DB_SSL_CA,
+    };
+  }
+
   // Certificate not found - use lenient SSL with warning
-  console.warn("[DB] ⚠️  WARNING: No CA certificate found at certs/ca.pem");
+  console.warn("[DB] ⚠️  WARNING: Cloud database detected but no CA certificate found!");
   console.warn("[DB] ⚠️  Using rejectUnauthorized: false - vulnerable to MITM attacks");
+  console.warn("[DB] ⚠️  Set DB_SSL_CA environment variable or place your CA certificate at: certs/ca.pem");
   return {
     rejectUnauthorized: false,
   };
@@ -30,8 +57,7 @@ function getSslConfig() {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL!,
-  // Neon handles SSL automatically via connection string
-  // For non-Neon databases, SSL config would be needed here
+  ...(getSslConfig(process.env.DATABASE_URL!) && { ssl: getSslConfig(process.env.DATABASE_URL!) }),
 });
 
 async function populateUserHash() {
