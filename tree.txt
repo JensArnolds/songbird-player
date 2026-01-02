@@ -55,6 +55,7 @@ songbird-frontend
 ├───.github/
 │   └───assets/
 │       ├───AppIcons.zip
+│       ├───emily-the-strange-icon.png
 │       └───emily-the-strange_vivid.png
 ├───certs/
 │   └───ca.pem
