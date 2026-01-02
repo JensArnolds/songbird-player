@@ -58,12 +58,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Optimized SSL config evaluation to call function only once
   - Location: `scripts/check-users.ts`, `scripts/populate-userhash.ts`, `scripts/set-profile-public.ts`
 
+- **SSL Configuration in Migration Scripts**: Added SSL support to `mark-migrations-simple.js`
+  - Added `getSslConfig()` function matching other utility scripts
+  - Properly handles Neon, local, and cloud database SSL requirements
+  - Location: `scripts/mark-migrations-simple.js`
+
+- **Neon SSL Handling Consistency**: Fixed inconsistent Neon SSL handling in migration script
+  - `migrate-to-neon.ts` now returns `undefined` for Neon databases (consistent with other scripts)
+  - Removed lenient SSL fallback for Neon, as SSL is handled automatically via connection string
+  - Location: `scripts/migrate-to-neon.ts`
+
+- **SSL Configuration Fallback Path**: Fixed missing SSL configuration when using legacy `DB_*` variables
+  - Restored `ssl: getSslConfig()` in fallback `dbCredentials` object
+  - Ensures cloud databases using legacy variables have proper SSL configuration
+  - Fixed malformed connection string construction in `getSslConfig()` fallback
+  - Location: `drizzle.config.ts`
+
 #### Environment Variable Handling
 
 - **Empty String Handling**: Fixed `optional()` function to return `undefined` instead of empty strings
   - Prevents empty strings from being passed as database credentials
   - Added explicit checks in `drizzle.config.ts` to handle `undefined` values
   - Location: `drizzle.env.ts`, `drizzle.config.ts`
+
+- **Empty String Normalization**: Fixed empty `DATABASE_URL` handling in `drizzle.config.ts`
+  - Empty strings are now normalized to `undefined` to trigger fallback to legacy variables
+  - Fixed nullish coalescing operator (`??`) issue where empty strings were treated as truthy
+  - Ensures consistent behavior with `src/env.js` validation
+  - Location: `drizzle.config.ts`
 
 - **Fallback Mechanism**: Fixed `DATABASE_URL` validation to allow fallback to legacy variables
   - Made `DATABASE_URL` optional in `src/env.js` to allow `drizzle-kit` fallback
