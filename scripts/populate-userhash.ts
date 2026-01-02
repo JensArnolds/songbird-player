@@ -30,7 +30,8 @@ function getSslConfig() {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL!,
-  ssl: getSslConfig(),
+  // Neon handles SSL automatically via connection string
+  // For non-Neon databases, SSL config would be needed here
 });
 
 async function populateUserHash() {

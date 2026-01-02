@@ -25,6 +25,13 @@ if (isDev) {
 }
 
 async function generateSSLCert() {
+  // Skip SSL cert generation for Neon (handles SSL automatically via connection string)
+  const databaseUrl = process.env.DATABASE_URL || "";
+  if (databaseUrl.includes("neon.tech")) {
+    console.log("ℹ️  Neon database detected - SSL handled automatically, skipping certificate generation");
+    return;
+  }
+
   const certContent = process.env.DB_SSL_CA;
 
   if (!certContent) {

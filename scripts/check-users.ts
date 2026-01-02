@@ -10,10 +10,8 @@ dotenv.config({ path: ".env.local" });
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL!,
-  ssl: {
-    rejectUnauthorized: true,
-    ca: readFileSync(path.join(process.cwd(), "certs/ca.pem")).toString(),
-  },
+  // Neon handles SSL automatically via connection string
+  // For non-Neon databases, SSL config would be needed here
 });
 
 async function checkUsers() {
