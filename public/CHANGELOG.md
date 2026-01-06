@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **next.config.js**: Converted `require("crypto")` to ES module import for compatibility
 - **next.config.js**: Removed aggressive webpack code splitting (caused runtime errors) - simplified to deterministic module IDs
 - **vercel.json**: Fixed invalid regex pattern in headers source (Vercel requires path matching syntax, not regex)
+- **.vercelignore**: Added `!CHANGELOG.md` to allow CHANGELOG.md in Vercel builds (fixes "cannot stat CHANGELOG.md" error)
 - **Authentication**: Fixed Discord login 500 error caused by webpack bundle misconfiguration
 - **Bundle Size**: Improved from 204 kB to 102 kB (50% reduction) by removing counterproductive code splitting
 
