@@ -16,7 +16,6 @@ export const env = createEnv({
     DB_HOST: z.string().optional(),
     DB_PORT: z.string().regex(/^\d+$/).optional(),
     DB_NAME: z.string().optional(),
-    DB_SSL_CA: z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -43,7 +42,6 @@ export const env = createEnv({
     DB_HOST: process.env.DB_HOST,
     DB_PORT: process.env.DB_PORT,
     DB_NAME: process.env.DB_NAME,
-    DB_SSL_CA: process.env.DB_SSL_CA,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_SONGBIRD_API_URL: process.env.NEXT_PUBLIC_SONGBIRD_API_URL,

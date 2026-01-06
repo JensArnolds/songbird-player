@@ -296,7 +296,6 @@ STREAMING_KEY=                  # API authentication key (required)
 NEXT_PUBLIC_SONGBIRD_API_URL=   # Songbird API for recommendations (optional)
 SONGBIRD_API_KEY=               # Songbird API authentication (optional)
 ELECTRON_BUILD=true             # Set during Electron builds
-DB_SSL_CA=                      # PostgreSQL SSL CA certificate path (PEM format)
 ```
 
 ## Development Conventions

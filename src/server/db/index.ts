@@ -2,8 +2,6 @@
 
 import { env } from "@/env";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { existsSync, readFileSync } from "fs";
-import path from "path";
 import { Pool } from "pg";
 import * as schema from "./schema";
 
@@ -14,47 +12,17 @@ if (!env.DATABASE_URL) {
 }
 
 function getSslConfig() {
+  const isLocalDb = env.DATABASE_URL!.includes("localhost") ||
+                    env.DATABASE_URL!.includes("127.0.0.1");
 
-  const isCloudDb = env.DATABASE_URL!.includes("aivencloud.com") ||
-                    env.DATABASE_URL!.includes("rds.amazonaws.com") ||
-                    env.DATABASE_URL!.includes("sslmode=");
-
-  if (!isCloudDb && env.DATABASE_URL!.includes("localhost")) {
-
+  if (isLocalDb) {
     console.log("[DB] Local database detected. SSL disabled.");
     return undefined;
   }
 
-  const possibleCertPaths = [
-    path.join(process.cwd(), "certs/ca.pem"),
-    path.join(__dirname, "../../certs/ca.pem"),
-    path.join(__dirname, "../../../certs/ca.pem"),
-  ];
-
-  for (const certPath of possibleCertPaths) {
-    if (existsSync(certPath)) {
-      console.log(`[DB] Cloud database detected. Using SSL certificate: ${certPath}`);
-      return {
-
-        rejectUnauthorized: process.env.NODE_ENV === "production",
-        ca: readFileSync(certPath).toString(),
-      };
-    }
-  }
-
-  if (process.env.DB_SSL_CA) {
-    console.log("[DB] Cloud database detected. Using SSL certificate from DB_SSL_CA environment variable");
-    return {
-      rejectUnauthorized: process.env.NODE_ENV === "production",
-      ca: process.env.DB_SSL_CA,
-    };
-  }
-
-  console.warn("[DB] ⚠️  WARNING: Cloud database detected but no CA certificate found!");
-  console.warn("[DB] ⚠️  Using rejectUnauthorized: false - vulnerable to MITM attacks");
-  console.warn("[DB] ⚠️  Set DB_SSL_CA environment variable or place your CA certificate at: certs/ca.pem");
+  console.log("[DB] Cloud database detected. Using standard SSL.");
   return {
-    rejectUnauthorized: false,
+    rejectUnauthorized: true,
   };
 }
 
