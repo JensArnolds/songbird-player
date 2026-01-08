@@ -7,10 +7,13 @@ import { signOut, useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function Header() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
@@ -52,12 +55,29 @@ export default function Header() {
     await signOut({ callbackUrl: "/" });
   };
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    // If already on home page, clear search and scroll to top
+    if (pathname === "/") {
+      router.push("/");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      // Navigate to home page
+      router.push("/");
+    }
+  };
+
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-[rgba(244,178,102,0.12)] bg-[rgba(10,16,24,0.88)] shadow-lg shadow-[rgba(5,10,18,0.6)] backdrop-blur-xl">
         <div className="container flex items-center justify-between py-3.5">
           {}
-          <Link href="/" className="group flex items-center gap-3">
+          <Link
+            href="/"
+            onClick={handleLogoClick}
+            className="group flex items-center gap-3"
+          >
             <Image
               src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
               alt="darkfloor.art"

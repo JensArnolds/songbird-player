@@ -38,8 +38,7 @@ export default function LicensePage() {
             Software License
           </h1>
           <p className="text-gray-400">
-            darkfloor.art is licensed under the GNU General Public License
-            v3.0
+            darkfloor.art is licensed under the GNU General Public License v3.0
           </p>
         </div>
 
@@ -88,7 +87,7 @@ export default function LicensePage() {
         {}
         <div className="mb-8 rounded-lg border border-gray-800 bg-gray-900/50 p-6">
           <p className="mb-2 font-mono text-sm text-gray-300">
-            Copyright (C) 2025 Konstantin Kling
+            Copyright (C) 2025 Christian Kling, Saskia Falkenhagen, Anja Kling
           </p>
           <p className="text-sm text-gray-400">
             This program is free software: you can redistribute it and/or modify
