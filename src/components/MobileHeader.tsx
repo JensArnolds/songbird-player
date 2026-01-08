@@ -2,17 +2,17 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
 import MobileSearchBar from "@/components/MobileSearchBar";
 import { useMenu } from "@/contexts/MenuContext";
+import { useIsMobile } from "@/hooks/useMediaQuery";
+import { api } from "@/trpc/react";
 import { hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
-import { useIsMobile } from "@/hooks/useMediaQuery";
-import { useRouter, useSearchParams } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { api } from "@/trpc/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export default function MobileHeader() {
   const isMobile = useIsMobile();
@@ -28,7 +28,7 @@ export default function MobileHeader() {
 
   const { data: recentSearches } = api.music.getRecentSearches.useQuery(
     { limit: 5 },
-    { enabled: !!session }
+    { enabled: !!session },
   );
 
   useEffect(() => {
@@ -55,6 +55,15 @@ export default function MobileHeader() {
       return;
     }
 
+    // Check if URL already matches the query (prevents redundant countdown after manual search)
+    const currentUrlQuery = searchParams.get("q");
+    const trimmedQuery = searchQuery.trim();
+    if (currentUrlQuery === trimmedQuery) {
+      // URL already matches query, don't start new countdown
+      setCountdown(0);
+      return;
+    }
+
     // Reset countdown to 2000ms
     setCountdown(2000);
 
@@ -75,7 +84,7 @@ export default function MobileHeader() {
     searchTimeoutRef.current = setTimeout(() => {
       setIsSearching(true);
       setCountdown(0);
-      router.push(`/?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/?q=${encodeURIComponent(trimmedQuery)}`);
       setTimeout(() => setIsSearching(false), 500);
     }, 2000);
 
@@ -88,7 +97,7 @@ export default function MobileHeader() {
         clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [searchQuery, router]);
+  }, [searchQuery, router, searchParams]);
 
   if (!isMobile) return null;
 
@@ -129,11 +138,7 @@ export default function MobileHeader() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={springPresets.gentle}
-      className="safe-top fixed left-0 right-0 top-0 z-50
-                 border-b border-[rgba(244,178,102,0.12)]
-                 bg-[rgba(10,16,24,0.95)]
-                 shadow-lg
-                 backdrop-blur-xl"
+      className="safe-top fixed top-0 right-0 left-0 z-50 border-b border-[rgba(244,178,102,0.12)] bg-[rgba(10,16,24,0.95)] shadow-lg backdrop-blur-xl"
     >
       <div className="flex items-center gap-3 px-4 py-3">
         {}
@@ -143,10 +148,7 @@ export default function MobileHeader() {
             toggleMenu();
           }}
           whileTap={{ scale: 0.9 }}
-          className="touch-target flex-shrink-0 rounded-lg p-2
-                     text-[var(--color-text)]
-                     transition
-                     hover:bg-[rgba(244,178,102,0.1)]"
+          className="touch-target flex-shrink-0 rounded-lg p-2 text-[var(--color-text)] transition hover:bg-[rgba(244,178,102,0.1)]"
           aria-label="Menu"
         >
           <AnimatePresence mode="wait">

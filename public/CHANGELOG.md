@@ -24,10 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Location: `src/components/MobileSearchBar.tsx:200-202, 324`
 
 - **Profile Link Navigation**: Fixed unwanted page scrolling when profile link clicked before userHash loads
-  - Changed `href="#"` to `href="javascript:void(0)"` when userHash is loading
+  - Uses `href="#"` as placeholder when userHash is loading (follows security best practices)
+  - Added `e.stopPropagation()` alongside `e.preventDefault()` to prevent event bubbling
   - Prevents browser from navigating to page anchor and causing unexpected scrolling
-  - Works in conjunction with existing `preventDefault()` and `pointer-events-none` for complete protection
-  - Location: `src/components/HamburgerMenu.tsx:75-80`
+  - Works in conjunction with `preventDefault()`, `stopPropagation()`, and `pointer-events-none` for complete protection
+  - Location: `src/components/HamburgerMenu.tsx:75-80, 183-191`
 
 ### Improved
 

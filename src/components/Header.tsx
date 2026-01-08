@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { env } from "@/env";
 
 export default function Header() {
   const { data: session } = useSession();
@@ -17,6 +18,7 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
+  const [isVercelDeployment, setIsVercelDeployment] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { data: userProfile } = api.music.getCurrentUserProfile.useQuery(
@@ -28,6 +30,10 @@ export default function Header() {
 
   useEffect(() => {
     setIsElectron(!!window.electron?.isElectron);
+    setIsVercelDeployment(
+      typeof window !== "undefined" &&
+        window.location.hostname.endsWith("vercel.app"),
+    );
   }, []);
 
   useEffect(() => {
@@ -118,7 +124,70 @@ export default function Header() {
           </nav>
 
           {}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {}
+            {isVercelDeployment && env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER ? (
+              <Link
+                href={env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:flex items-center transition-opacity hover:opacity-80"
+                aria-label="View on custom server"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-[var(--color-text)]"
+                >
+                  <path
+                    d="M12 2L2 7L12 12L22 7L12 2Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M2 17L12 22L22 17"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M2 12L12 17L22 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
+            ) : env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL ? (
+              <Link
+                href={env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:flex items-center transition-opacity hover:opacity-80"
+                aria-label="View on Vercel"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 76 65"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-[var(--color-text)]"
+                >
+                  <path
+                    d="M37.5274 0L75.0548 65H0L37.5274 0Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </Link>
+            ) : null}
             {}
             {session ? (
               <div className="relative hidden md:block" ref={menuRef}>
