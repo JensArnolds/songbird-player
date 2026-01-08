@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import MobileSearchBar from "@/components/MobileSearchBar";
@@ -10,20 +10,44 @@ import { useMenu } from "@/contexts/MenuContext";
 import { hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { api } from "@/trpc/react";
 
 export default function MobileHeader() {
   const isMobile = useIsMobile();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const { isMenuOpen, toggleMenu } = useMenu();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  const { data: recentSearches } = api.music.getRecentSearches.useQuery(
+    { limit: 5 },
+    { enabled: !!session }
+  );
+
+  useEffect(() => {
+    const urlQuery = searchParams.get("q");
+    if (urlQuery) {
+      setSearchQuery(urlQuery);
+    }
+  }, [searchParams]);
 
   if (!isMobile) return null;
 
   const handleSearch = (query: string) => {
     if (query.trim()) {
+      setIsSearching(true);
       router.push(`/?q=${encodeURIComponent(query)}`);
+      setTimeout(() => setIsSearching(false), 500);
     }
+  };
+
+  const handleClear = () => {
+    setSearchQuery("");
+    router.push("/");
   };
 
   return (
@@ -82,7 +106,14 @@ export default function MobileHeader() {
             value={searchQuery}
             onChange={setSearchQuery}
             onSearch={handleSearch}
+            onClear={handleClear}
             placeholder="Search music..."
+            isLoading={isSearching}
+            recentSearches={recentSearches ?? []}
+            onRecentSearchClick={(search) => {
+              setSearchQuery(search);
+              handleSearch(search);
+            }}
           />
         </div>
       </div>

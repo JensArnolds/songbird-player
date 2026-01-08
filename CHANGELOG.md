@@ -205,6 +205,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolved issue where first tap only showed the button, requiring a second tap to play
   - Location: `src/components/SwipeableTrackCard.tsx:259`
 
+- **Mobile UI Improvements**: Spotify-like mobile experience with cleaner interface
+  - Removed duplicate search bar from page content (now only in persistent header)
+  - Enhanced MobileHeader search bar with full features:
+    - Recent searches dropdown (authenticated users)
+    - Voice search support (where available)
+    - Loading states and haptic feedback
+    - Clear button with smooth animations
+  - MobileHeader now syncs with URL search parameters
+  - Search bar state persists across navigation
+  - Homepage bundle size reduced from 11.1 kB to 9.42 kB (15% smaller)
+  - Wrapped MobileHeader in Suspense boundary for proper Next.js compatibility
+  - Location: `src/components/MobileHeader.tsx`, `src/app/HomePageClient.tsx`, `src/app/layout.tsx`
+
+- **Electron Discord OAuth**: Fixed black screen when logging into Discord in Electron app
+  - Added proper navigation handlers for OAuth flows (`will-navigate`, `did-navigate`, `setWindowOpenHandler`)
+  - Discord OAuth URLs now properly open and redirect back to the app
+  - Same-origin navigation (including auth callbacks) allowed within the app window
+  - External URLs automatically open in system default browser
+  - Added `shell` module import for external link handling
+  - Location: `electron/main.cjs:366-418`
+  - **Note:** Requires Electron app rebuild: `npm run electron:build:win` / `:mac` / `:linux`
+
 - **Webpack Module Resolution**: Fixed authentication 500 error due to aggressive code splitting
   - Removed complex webpack `splitChunks` configuration with dynamic naming
   - Simplified to deterministic module IDs only

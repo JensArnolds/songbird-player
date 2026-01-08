@@ -3,7 +3,6 @@
 "use client";
 
 import ChangelogModal from "@/components/ChangelogModal";
-import MobileSearchBar from "@/components/MobileSearchBar";
 import { PullToRefreshWrapper } from "@/components/PullToRefreshWrapper";
 import SwipeableTrackCard from "@/components/SwipeableTrackCard";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
@@ -344,30 +343,13 @@ export default function HomePageClient() {
     <div className="flex min-h-screen flex-col">
       <main className="container mx-auto w-full flex-1 py-6 md:py-8">
         {}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...springPresets.gentle, delay: 0.1 }}
-          className="card mb-6 w-full p-4 shadow-xl md:mb-8 md:p-7"
-        >
-          {isMobile ? (
-            <MobileSearchBar
-              value={query}
-              onChange={setQuery}
-              onSearch={handleSearch}
-              onClear={() => {
-                setQuery("");
-                setResults([]);
-                setTotal(0);
-              }}
-              isLoading={loading}
-              recentSearches={recentSearches ?? []}
-              onRecentSearchClick={(search) => {
-                setQuery(search);
-                void handleSearch(search);
-              }}
-            />
-          ) : (
+        {!isMobile && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...springPresets.gentle, delay: 0.1 }}
+            className="card mb-6 w-full p-4 shadow-xl md:mb-8 md:p-7"
+          >
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3 md:flex-row">
                 <div className="flex flex-1 items-center gap-3 rounded-xl border border-[rgba(244,178,102,0.15)] bg-[rgba(18,26,38,0.9)] px-4 py-3 transition-all focus-within:border-[rgba(244,178,102,0.4)] focus-within:shadow-[0_0_0_4px_rgba(244,178,102,0.1)]">
@@ -416,8 +398,8 @@ export default function HomePageClient() {
                 </div>
               )}
             </div>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
 
         {}
         <div className="w-full">
