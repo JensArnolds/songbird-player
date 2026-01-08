@@ -135,7 +135,7 @@ export default function EnhancedTrackCard({
         />
         <button
           onClick={handlePlay}
-          className="touch-active absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 active:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          className="touch-active absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-80 backdrop-blur-sm transition-all duration-200 md:opacity-0 md:group-hover:opacity-100"
           aria-label="Play track"
         >
           <svg

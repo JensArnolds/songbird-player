@@ -1,7 +1,7 @@
 {
   "name": "darkfloor.art - Music Streaming Platform",
   "short_name": "darkfloor",
-  "description": "A modern music streaming and discovery platform with intelligent recommendations and advanced audio features",
+  "description": "A modern music streaming and discovery platform that is constantly evolving and improving.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b1118",
@@ -21,21 +21,34 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["music", "entertainment"],
+  "categories": [
+    "music",
+    "entertainment"
+  ],
   "shortcuts": [
     {
       "name": "Search Music",
       "short_name": "Search",
       "description": "Search for tracks, albums, and artists",
       "url": "/?search=true",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "My Library",
       "short_name": "Library",
       "description": "View your music library",
       "url": "/library",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
