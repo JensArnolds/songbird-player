@@ -237,6 +237,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Adaptive header and player heights based on device screen size
   - Location: `src/styles/globals.css:1666-1884`
 
+- **Header Logo Navigation**: Logo now works as a proper Home button without page reload
+  - Uses client-side routing via Next.js router for instant navigation
+  - When already on home page: clears search parameters and smoothly scrolls to top
+  - When on other pages: navigates to home page without full page reload
+  - Maintains smooth single-page application experience
+  - Location: `src/components/Header.tsx:58-78`
+
 - **Electron Discord OAuth**: Fixed black screen when logging into Discord in Electron app
   - Added proper navigation handlers for OAuth flows (`will-navigate`, `did-navigate`, `setWindowOpenHandler`)
   - Discord OAuth URLs now properly open and redirect back to the app
