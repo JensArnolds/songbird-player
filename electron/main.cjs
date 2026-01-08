@@ -47,6 +47,7 @@ const {
   globalShortcut,
   dialog,
   session,
+  shell,
 } = require("electron");
 const { spawn } = require("child_process");
 const http = require("http");
@@ -361,6 +362,60 @@ const createWindow = async () => {
     if (mainWindow) {
       saveWindowState(mainWindow);
     }
+  });
+
+  // Handle OAuth redirects and navigation
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    log("Window open handler triggered for URL:", url);
+
+    // Allow OAuth URLs to open in the same window
+    if (url.includes("discord.com/oauth2") || url.includes("discord.com/api/oauth2")) {
+      log("Opening Discord OAuth in same window");
+      return {
+        action: "allow",
+        overrideBrowserWindowOptions: {
+          webPreferences: {
+            preload: path.join(__dirname, "preload.cjs"),
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true,
+          },
+        },
+      };
+    }
+
+    // Open external URLs in default browser
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
+
+  // Handle navigation within the app
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    log("Navigation requested to:", url);
+
+    const parsedUrl = new URL(url);
+    const appUrl = new URL(serverUrl);
+
+    // Allow same-origin navigation (including auth callbacks)
+    if (parsedUrl.origin === appUrl.origin) {
+      log("Allowing same-origin navigation");
+      return;
+    }
+
+    // Allow Discord OAuth URLs
+    if (url.includes("discord.com/oauth2") || url.includes("discord.com/api/oauth2")) {
+      log("Allowing Discord OAuth navigation");
+      return;
+    }
+
+    // Prevent navigation to other external sites
+    log("Preventing navigation to external site, opening in browser instead");
+    event.preventDefault();
+    shell.openExternal(url);
+  });
+
+  mainWindow.webContents.on("did-navigate", (event, url) => {
+    log("Navigated to:", url);
   });
 
   mainWindow.webContents.on("did-start-loading", () => {

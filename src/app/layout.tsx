@@ -5,7 +5,7 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
-import { type ReactNode } from "react";
+import { type ReactNode, Suspense } from "react";
 
 import { DynamicTitle } from "@/components/DynamicTitle";
 import { ElectronStorageInit } from "@/components/ElectronStorageInit";
@@ -112,7 +112,9 @@ export default function RootLayout({
                           {}
                           <Header />
                           {}
-                          <MobileHeader />
+                          <Suspense fallback={null}>
+                            <MobileHeader />
+                          </Suspense>
                           {}
                           <HamburgerMenu />
                           {}
