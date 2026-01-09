@@ -294,7 +294,7 @@ export default function MobileSearchBar({
           </AnimatePresence>
 
           {}
-          <div className="min-w-0 flex-1 relative">
+          <div className={`min-w-0 flex-1 relative ${isLoading || showAutoSearch ? "pl-8" : ""}`}>
             <input
               ref={inputRef}
               type="text"

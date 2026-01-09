@@ -35,7 +35,10 @@ export default function MobileHeader() {
     const urlQuery = searchParams.get("q");
     if (urlQuery) {
       setSearchQuery(urlQuery);
+    } else {
+      setSearchQuery("");
     }
+    setIsSearching(false);
   }, [searchParams]);
 
   // Debounced search: search every 2 seconds while typing
@@ -85,7 +88,6 @@ export default function MobileHeader() {
       setIsSearching(true);
       setCountdown(0);
       router.push(`/?q=${encodeURIComponent(trimmedQuery)}`);
-      setTimeout(() => setIsSearching(false), 500);
     }, 2000);
 
     // Cleanup on unmount or query change
@@ -114,7 +116,6 @@ export default function MobileHeader() {
     if (query.trim()) {
       setIsSearching(true);
       router.push(`/?q=${encodeURIComponent(query.trim())}`);
-      setTimeout(() => setIsSearching(false), 500);
     } else {
       router.push("/");
     }
