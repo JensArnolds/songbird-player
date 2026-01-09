@@ -64,8 +64,12 @@ export default function HomePageClient() {
   );
 
   const performSearch = useCallback(
-    async (searchQuery: string) => {
+    async (searchQuery: string, force = false) => {
       if (!searchQuery.trim()) return;
+
+      if (!force && currentQuery === searchQuery) {
+        return;
+      }
 
       setLoading(true);
       setCurrentQuery(searchQuery);
@@ -92,7 +96,7 @@ export default function HomePageClient() {
         setLoading(false);
       }
     },
-    [session, addSearchQuery],
+    [session, addSearchQuery, currentQuery],
   );
 
   const handleAlbumClick = useCallback(
@@ -155,31 +159,31 @@ export default function HomePageClient() {
   );
 
   useEffect(() => {
-    try {
-      const urlQuery = searchParams.get("q");
-      const albumId = searchParams.get("album");
+    const urlQuery = searchParams.get("q");
+    const albumId = searchParams.get("album");
 
-      if (albumId && !isInitialized) {
-
-        const albumIdNum = parseInt(albumId, 10);
-        if (!isNaN(albumIdNum)) {
-          setIsInitialized(true);
-          void handleAlbumClick(albumIdNum);
-        } else {
-          setIsInitialized(true);
-        }
-      } else if (urlQuery && !isInitialized) {
-        setQuery(urlQuery);
+    if (albumId) {
+      const albumIdNum = parseInt(albumId, 10);
+      if (!isNaN(albumIdNum)) {
         setIsInitialized(true);
-        void performSearch(urlQuery);
-      } else if (!isInitialized) {
+        void handleAlbumClick(albumIdNum);
+      }
+    } else if (urlQuery) {
+      setQuery(urlQuery);
+      setIsInitialized(true);
+      void performSearch(urlQuery);
+    } else {
+      if (!isInitialized) {
         setIsInitialized(true);
       }
-    } catch (error) {
-      console.error("Error initializing from URL:", error);
-      setIsInitialized(true);
+      if (currentQuery || results.length > 0) {
+        setResults([]);
+        setTotal(0);
+        setCurrentQuery("");
+        setQuery("");
+      }
     }
-  }, [searchParams, isInitialized, performSearch, handleAlbumClick]);
+  }, [searchParams, performSearch, handleAlbumClick]);
 
   const updateURL = (searchQuery: string) => {
     const params = new URLSearchParams();
