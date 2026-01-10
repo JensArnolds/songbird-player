@@ -171,22 +171,24 @@ export default function Header() {
                 href={env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden items-center text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)] md:flex"
+                className="group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
                 aria-label="View on Vercel"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 76 65"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="opacity-70 hover:opacity-100 transition-opacity"
-                >
-                  <path
-                    d="M37.5274 0L75.0548 65H0L37.5274 0Z"
-                    fill="currentColor"
-                  />
-                </svg>
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-[rgba(0,0,0,0.6)]">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 76 65"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="opacity-70 transition-opacity group-hover:opacity-100"
+                  >
+                    <path
+                      d="M37.5274 0L75.0548 65H0L37.5274 0Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </div>
               </Link>
             ) : null}
             {}
