@@ -52,6 +52,7 @@ export default function HomePageClient() {
   const [apiOffset, setApiOffset] = useState(0);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const lastUrlQueryRef = useRef<string | null>(null);
+  const lastTrackIdRef = useRef<string | null>(null);
 
   const player = useGlobalPlayer();
 
