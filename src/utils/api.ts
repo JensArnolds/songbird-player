@@ -108,3 +108,10 @@ export function getStreamUrlById(id: string): string {
   url.searchParams.set("id", id);
   return url.toString();
 }
+
+export async function getTrackById(trackId: number): Promise<Track> {
+  const url = `/api/track/${trackId}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch track (${res.status})`);
+  return (await res.json()) as Track;
+}
