@@ -10,7 +10,7 @@ import {
   extractColorsFromImage,
   type ColorPalette,
 } from "@/utils/colorExtractor";
-import { hapticLight, hapticMedium } from "@/utils/haptics";
+import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
 import { STORAGE_KEYS } from "@/config/storage";
 import { useSession } from "next-auth/react";
@@ -107,6 +107,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
+  const utils = api.useUtils();
+
   const { data: preferences } = api.music.getUserPreferences.useQuery(
     undefined,
     {
@@ -114,11 +116,17 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     },
   );
 
+  const { data: favoriteData } = api.music.isFavorite.useQuery(
+    { trackId: currentTrack?.id ?? 0 },
+    { enabled: !!currentTrack && isAuthenticated },
+  );
+
   const [isExpanded, setIsExpanded] = useState(forceExpanded);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
   const [hideAlbumCover, setHideAlbumCover] = useState(false);
   const [visualizerEnabled, setVisualizerEnabled] = useState(true);
+  const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const [albumColorPalette, setAlbumColorPalette] =
     useState<ColorPalette | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
@@ -146,6 +154,24 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onError: (error) => {
       console.error("Failed to add to playlist:", error);
       hapticMedium();
+    },
+  });
+
+  const addFavorite = api.music.addFavorite.useMutation({
+    onSuccess: async () => {
+      if (currentTrack) {
+        await utils.music.isFavorite.invalidate({ trackId: currentTrack.id });
+        await utils.music.getFavorites.invalidate();
+      }
+    },
+  });
+
+  const removeFavorite = api.music.removeFavorite.useMutation({
+    onSuccess: async () => {
+      if (currentTrack) {
+        await utils.music.isFavorite.invalidate({ trackId: currentTrack.id });
+        await utils.music.getFavorites.invalidate();
+      }
     },
   });
 
@@ -188,6 +214,20 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const handleCycleRepeat = () => {
     hapticLight();
     onCycleRepeat();
+  };
+
+  const toggleFavorite = () => {
+    if (!currentTrack || !isAuthenticated) return;
+
+    if (favoriteData?.isFavorite) {
+      hapticLight();
+      removeFavorite.mutate({ trackId: currentTrack.id });
+    } else {
+      hapticSuccess();
+      addFavorite.mutate({ track: currentTrack });
+    }
+    setIsHeartAnimating(true);
+    setTimeout(() => setIsHeartAnimating(false), 600);
   };
 
   useEffect(() => {
@@ -498,16 +538,21 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     {}
                     <motion.button
                       onClick={() => {
-                        hapticLight();
-                        setHideAlbumCover(!hideAlbumCover);
+                        hapticMedium();
+                        const newState = !visualizerEnabled;
+                        setVisualizerEnabled(newState);
+                        if (typeof window !== "undefined") {
+                          localStorage.setItem("visualizerEnabled", String(newState));
+                        }
                       }}
                       whileTap={{ scale: 0.9 }}
                       className={`touch-target absolute top-3 right-3 rounded-full p-3 transition-all ${
-                        hideAlbumCover
+                        visualizerEnabled
                           ? "bg-[rgba(244,178,102,0.3)] text-[var(--color-accent)]"
                           : "bg-black/40 text-[var(--color-subtext)]"
                       }`}
-                      title={hideAlbumCover ? "Show album cover" : "Hide album cover to enjoy visuals"}
+                      title={visualizerEnabled ? "Disable visualizer" : "Enable visualizer"}
+                      aria-label={visualizerEnabled ? "Disable audio visualizer" : "Enable audio visualizer"}
                     >
                       <Activity className="h-5 w-5" />
                     </motion.button>
@@ -930,11 +975,34 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                   {}
                   <motion.button
-                    onClick={() => hapticMedium()}
+                    onClick={toggleFavorite}
+                    disabled={!isAuthenticated || addFavorite.isPending || removeFavorite.isPending}
                     whileTap={{ scale: 0.9 }}
-                    className="touch-target text-[var(--color-subtext)]"
+                    className={`touch-target transition-all ${
+                      favoriteData?.isFavorite
+                        ? "text-red-500"
+                        : "text-[var(--color-subtext)]"
+                    } ${!isAuthenticated || addFavorite.isPending || removeFavorite.isPending ? "opacity-50" : ""}`}
+                    title={
+                      !isAuthenticated
+                        ? "Sign in to favorite tracks"
+                        : favoriteData?.isFavorite
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                    }
+                    aria-label={
+                      !isAuthenticated
+                        ? "Sign in to favorite tracks"
+                        : favoriteData?.isFavorite
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                    }
                   >
-                    <Heart className="h-5 w-5" />
+                    <Heart
+                      className={`h-5 w-5 transition-transform ${
+                        favoriteData?.isFavorite ? "fill-current" : ""
+                      } ${isHeartAnimating ? "scale-125" : ""}`}
+                    />
                   </motion.button>
                 </div>
 
