@@ -11,6 +11,7 @@ import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import {
   getAlbumTracks,
+  getTrackById,
   searchTracks,
   searchTracksByArtist,
 } from "@/utils/api";
@@ -50,6 +51,7 @@ export default function HomePageClient() {
   const [isArtistSearch, setIsArtistSearch] = useState(false);
   const [apiOffset, setApiOffset] = useState(0);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+  const lastUrlQueryRef = useRef<string | null>(null);
 
   const player = useGlobalPlayer();
 
@@ -163,21 +165,28 @@ export default function HomePageClient() {
       const albumIdNum = parseInt(albumId, 10);
       if (!isNaN(albumIdNum)) {
         setIsInitialized(true);
+        lastUrlQueryRef.current = null;
         void handleAlbumClick(albumIdNum);
       }
     } else if (urlQuery) {
-      setQuery(urlQuery);
-      setIsInitialized(true);
-      void performSearch(urlQuery);
-    } else if (!loading) {
+      if (urlQuery !== lastUrlQueryRef.current) {
+        lastUrlQueryRef.current = urlQuery;
+        setQuery(urlQuery);
+        setIsInitialized(true);
+        void performSearch(urlQuery);
+      }
+    } else {
       if (!isInitialized) {
         setIsInitialized(true);
       }
-      if (currentQuery || results.length > 0) {
+      if (lastUrlQueryRef.current !== null) {
+        lastUrlQueryRef.current = null;
         setResults([]);
         setTotal(0);
         setCurrentQuery("");
-        setQuery("");
+        if (!loading) {
+          setQuery("");
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
