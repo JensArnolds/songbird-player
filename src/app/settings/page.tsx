@@ -15,7 +15,7 @@ import {
   Settings,
   Sparkles,
   User,
-  Volume2
+  Volume2,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -50,15 +50,12 @@ export default function SettingsPage() {
   const { showToast } = useToast();
   const player = useGlobalPlayer();
 
-  const { data: preferences, isLoading } = api.music.getUserPreferences.useQuery(
-    undefined,
-    { enabled: !!session },
-  );
+  const { data: preferences, isLoading } =
+    api.music.getUserPreferences.useQuery(undefined, { enabled: !!session });
 
-  const { data: userHash } = api.music.getCurrentUserHash.useQuery(
-    undefined,
-    { enabled: !!session },
-  );
+  const { data: userHash } = api.music.getCurrentUserHash.useQuery(undefined, {
+    enabled: !!session,
+  });
 
   const updatePreferences = api.music.updatePreferences.useMutation({
     onSuccess: () => {
@@ -84,9 +81,9 @@ export default function SettingsPage() {
     updatePreferences.mutate({ [key]: value });
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     hapticLight();
-    await signOut({ callbackUrl: "/" });
+    void signOut({ callbackUrl: "/" });
   };
 
   if (!session) {
@@ -191,7 +188,7 @@ export default function SettingsPage() {
           const currentMode = player.repeatMode;
           const targetIndex = modeOrder.indexOf(mode);
           const currentIndex = modeOrder.indexOf(currentMode);
-          
+
           // Calculate how many cycles needed
           const cyclesNeeded = (targetIndex - currentIndex + 3) % 3;
           for (let i = 0; i < cyclesNeeded; i++) {
@@ -261,7 +258,8 @@ export default function SettingsPage() {
         description: "Show audio visualizations",
         type: "toggle",
         value: preferences?.visualizerEnabled ?? true,
-        onChange: (value) => handleToggle("visualizerEnabled", value as boolean),
+        onChange: (value) =>
+          handleToggle("visualizerEnabled", value as boolean),
       },
       {
         id: "visualizerType",
@@ -386,10 +384,8 @@ export default function SettingsPage() {
             }}
           >
             <div className="mb-4 flex items-center gap-2.5">
-              <div className="text-[var(--color-accent)]">
-                {section.icon}
-              </div>
-              <h2 className="text-base font-semibold uppercase tracking-wide text-[var(--color-subtext)]">
+              <div className="text-[var(--color-accent)]">{section.icon}</div>
+              <h2 className="text-base font-semibold tracking-wide text-[var(--color-subtext)] uppercase">
                 {section.title}
               </h2>
             </div>
@@ -567,10 +563,14 @@ function SettingsItemComponent({
               : "active:bg-white/5 md:hover:bg-white/[0.03]"
           }`}
         >
-          <div className={`text-[15px] font-medium ${isSignOut ? "text-red-400" : "text-[var(--color-text)]"}`}>
+          <div
+            className={`text-[15px] font-medium ${isSignOut ? "text-red-400" : "text-[var(--color-text)]"}`}
+          >
             {item.label}
           </div>
-          <ChevronRight className={`h-5 w-5 ${isSignOut ? "text-red-400/50" : "text-[var(--color-subtext)]"}`} />
+          <ChevronRight
+            className={`h-5 w-5 ${isSignOut ? "text-red-400/50" : "text-[var(--color-subtext)]"}`}
+          />
         </button>
       </motion.div>
     );
@@ -590,9 +590,7 @@ function ToggleSwitch({
     <button
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors ${
-        checked
-          ? "bg-[var(--color-accent)]"
-          : "bg-white/10"
+        checked ? "bg-[var(--color-accent)]" : "bg-white/10"
       }`}
       role="switch"
       aria-checked={checked}
@@ -732,7 +730,7 @@ function SelectButton({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={springPresets.snappy}
-            className="absolute left-4 right-4 top-full z-50 mt-2 overflow-hidden rounded-xl border border-white/10 bg-[rgba(11,17,24,0.98)] shadow-2xl backdrop-blur-xl"
+            className="absolute top-full right-4 left-4 z-50 mt-2 overflow-hidden rounded-xl border border-white/10 bg-[rgba(11,17,24,0.98)] shadow-2xl backdrop-blur-xl"
           >
             {options.map((option) => (
               <button
