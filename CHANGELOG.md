@@ -5,6 +5,19 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.3] - 2026-01-10
+
+### Fixed
+
+- **CRITICAL: Profile Page Auto-Redirect**: Fixed profile pages immediately redirecting to home page
+  - MobileHeader component runs on ALL pages (it's in the root layout)
+  - Its useEffect was redirecting to `/` whenever `searchQuery` was empty
+  - When navigating to profile pages (`/[userhash]`), there's no search query, triggering unwanted redirect
+  - Profile would load briefly, then immediately redirect to `/`
+  - Fixed by only redirecting when actively clearing a search (when `?q=` param exists in URL)
+  - **Impact**: Profile pages now work correctly on both desktop and mobile
+  - Location: `src/components/MobileHeader.tsx:63-72`
+
 ## [0.9.2] - 2026-01-10
 
 ### Fixed

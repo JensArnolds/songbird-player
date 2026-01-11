@@ -60,10 +60,14 @@ export default function MobileHeader() {
       clearInterval(countdownIntervalRef.current);
     }
 
-    // If query is empty, clear search immediately
+    // If query is empty, clear search immediately (only if we're on the home page)
     if (!searchQuery.trim()) {
       setCountdown(0);
-      router.push("/");
+      // Only redirect to / if we're currently on a search page (has ?q= param)
+      const currentUrlQuery = searchParams.get("q");
+      if (currentUrlQuery) {
+        router.push("/");
+      }
       return;
     }
 
