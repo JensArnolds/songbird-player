@@ -5,7 +5,7 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
-import { type ReactNode, Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import { DynamicTitle } from "@/components/DynamicTitle";
 import { ElectronStorageInit } from "@/components/ElectronStorageInit";
@@ -13,21 +13,21 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import Header from "@/components/Header";
 import MobileContentWrapper from "@/components/MobileContentWrapper";
-import MobileHeader from "@/components/MobileHeader";
 import { MobileFooterWrapper } from "@/components/MobileFooterWrapper";
+import MobileHeader from "@/components/MobileHeader";
 import PersistentPlayer from "@/components/PersistentPlayer";
+import { PlaylistContextMenu } from "@/components/PlaylistContextMenu";
 import { SessionProvider } from "@/components/SessionProvider";
-import { UIWrapper } from "@/components/UIWrapper";
 import SuppressExtensionErrors from "@/components/SuppressExtensionErrors";
+import { TrackContextMenu } from "@/components/TrackContextMenu";
+import { UIWrapper } from "@/components/UIWrapper";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
 import { MenuProvider } from "@/contexts/MenuContext";
+import { PlaylistContextMenuProvider } from "@/contexts/PlaylistContextMenuContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TrackContextMenuProvider } from "@/contexts/TrackContextMenuContext";
-import { PlaylistContextMenuProvider } from "@/contexts/PlaylistContextMenuContext";
 import { TRPCReactProvider } from "@/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
-import { TrackContextMenu } from "@/components/TrackContextMenu";
-import { PlaylistContextMenu } from "@/components/PlaylistContextMenu";
 import { RegisterServiceWorker } from "./register-sw";
 
 const geist = Geist({
@@ -129,7 +129,9 @@ export default function RootLayout({
                         {}
                         <PersistentPlayer />
                         {}
-                        <MobileFooterWrapper />
+                        <Suspense fallback={null}>
+                          <MobileFooterWrapper />
+                        </Suspense>
                         {}
                         <TrackContextMenu />
                         {}
