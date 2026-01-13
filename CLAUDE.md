@@ -325,6 +325,15 @@ ELECTRON_BUILD=true             # Set during Electron builds
 - Forms: Controlled components with React state
 - Modals/Drawers: Use `AnimatePresence` for enter/exit animations
 
+### UI Design Patterns
+- **Settings/Configuration Pages:** Minimal iOS-style design with clean cards, subtle borders (`border-white/5`), and generous padding
+- **Interactive Elements:** Simple hover states (`bg-white/[0.03]`), subtle active states (`bg-white/5`)
+- **Toggle Switches:** iOS-style with clean accent color, no excessive gradients or scale effects
+- **Dropdowns:** Minimal design with proper z-index (z-50), smooth animations
+- **Typography:** Consistent sizing (15px labels, 13px descriptions) for readability
+- **Dividers:** Only between items, omit on last item in sections
+- **Overall Philosophy:** Prioritize clean, minimal aesthetics over heavy gradients and visual effects
+
 ### Audio Handling
 - **HTML5 Audio API:** Primary playback (`<audio>` element)
 - **Web Audio API:** Equalizer & advanced effects only
@@ -391,19 +400,46 @@ ELECTRON_BUILD=true             # Set during Electron builds
    await utils.music.getPlaylists.invalidate();
    ```
 
-4. **Mobile header spacing:** Content needs `pt-16 pb-24` on mobile to account for header + player. Desktop uses `md:pt-0 md:pb-24`.
+4. **tRPC mutations in useEffect dependencies:** NEVER include tRPC mutation objects in dependency arrays. They are recreated on every render, causing infinite loops:
+   ```tsx
+   // ❌ WRONG - causes infinite loop
+   const saveMutation = api.music.save.useMutation();
+   useEffect(() => {
+     // ...
+   }, [saveMutation]); // mutation object changes every render
 
-5. **TypeScript strict indexing:** Arrays and objects may be `undefined`. Always check:
+   // ✅ CORRECT - omit mutations from deps
+   useEffect(() => {
+     // ...
+   }, []); // eslint-disable-next-line react-hooks/exhaustive-deps
+   ```
+
+5. **User identification:** User profiles are accessed via `userHash` (not `username`). Always use `getCurrentUserHash` query for routing:
+   ```tsx
+   const { data: userHash } = api.music.getCurrentUserHash.useQuery();
+   // Use: /${userHash}  NOT: /${session.user.name}
+   ```
+
+6. **Mobile playback speed persistence:** Mobile browsers (Safari/Chrome) reset `playbackRate` asynchronously after `load()`. Always restore playbackRate in `loadedmetadata` event:
+   ```tsx
+   audioRef.current.addEventListener('loadedmetadata', () => {
+     audioRef.current.playbackRate = desiredRate;
+   }, { once: true });
+   ```
+
+7. **Mobile header spacing:** Content needs `pt-16 pb-24` on mobile to account for header + player. Desktop uses `md:pt-0 md:pb-24`.
+
+8. **TypeScript strict indexing:** Arrays and objects may be `undefined`. Always check:
    ```tsx
    const track = tracks[0];
    if (track) { }
    ```
 
-6. **Electron builds:** Don't use `npm run build` - use `npm run electron:build:*` scripts which set `ELECTRON_BUILD=true` and handle packaging.
+9. **Electron builds:** Don't use `npm run build` - use `npm run electron:build:*` scripts which set `ELECTRON_BUILD=true` and handle packaging.
 
-7. **Z-index conflicts:** Follow documented hierarchy. Mobile header/player use z-50, menu uses z-60-61, modals use z-98-99.
+10. **Z-index conflicts:** Follow documented hierarchy. Mobile header/player use z-50, menu uses z-60-61, modals use z-98-99.
 
-8. **Source code comments:** All comments have been removed from source files for a cleaner, more lightweight codebase. Documentation lives in CLAUDE.md, README.md, and commit messages.
+11. **Source code comments:** All comments have been removed from source files for a cleaner, more lightweight codebase. Documentation lives in CLAUDE.md, README.md, and commit messages.
 
 ## Testing & Quality
 
