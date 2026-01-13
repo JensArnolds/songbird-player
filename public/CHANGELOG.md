@@ -5,6 +5,90 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.8] - 2026-01-13
+
+### Added
+
+- **Mobile Header Hamburger Menu**: Restored hamburger menu button to mobile header
+  - Added Menu icon button on the upper left side of mobile header
+  - Opens hamburger menu drawer when tapped
+  - Includes haptic feedback and smooth animations
+  - **Impact**: Users can now access navigation menu from mobile header
+  - Location: `src/components/MobileHeader.tsx:178-196`
+
+- **Profile Tab in Mobile Footer**: Added profile navigation tab to mobile footer
+  - Profile tab appears between "Library" and "Create" tabs
+  - Uses User icon and links to user's profile page (`/${userHash}`)
+  - Requires authentication and shows disabled state while userHash loads
+  - **Impact**: Quick access to user profile from mobile footer navigation
+  - Location: `src/components/MobileFooter.tsx:93-107, 125`
+
+- **Six New Audio Visualizer Effects**: Added six new high-performance visualizer patterns
+  - **plasmaStorm**: Plasma effect with bitwise-optimized calculations and adaptive quality
+  - **bitfieldMatrix**: Matrix-style grid pattern with bit-based cell generation
+  - **mandelbrotSpiral**: Mandelbrot set fractal combined with audio-reactive spiral overlay
+  - **quantumResonance**: Grid-based resonance pattern with audio-reactive cell activation
+  - **morseAurora**: Multi-band wave patterns with Morse code-like pulsing
+  - **chromaticAberration**: RGB channel separation effect with audio-reactive color shifts
+  - All effects use bitwise operations for optimal performance
+  - All effects are audio-reactive with bass, mid, and treble intensity controls
+  - **Impact**: Expanded visualizer pattern library with 6 new mesmerizing effects
+  - Locations:
+    - `src/components/visualizers/flowfieldPatterns/patternIds.ts:88-93`
+    - `src/components/visualizers/FlowFieldRenderer.ts:141-147, 3040-3080, 11544-11927`
+
+### Fixed
+
+- **Mobile Footer Active State Logic**: Fixed duplicate active tab indicators
+  - Home and search tabs both had `path: "/"`, causing both to be active simultaneously
+  - Updated `isActive` function to distinguish between home and search tabs
+  - Search tab is only active when there's a search query (`?q=...`)
+  - Home tab is only active when on "/" without a search query
+  - **Impact**: Only one tab shows as active at a time, fixing Framer Motion layout animation
+  - Location: `src/components/MobileFooter.tsx:31-47, 128-135`
+
+- **Mandelbrot Spiral Hue Calculation**: Fixed invalid hue values in visualizer
+  - Hue calculation used `& 0x1ff` (0-511 range) then divided by 360, producing values > 1.0
+  - Added `fastMod360()` normalization to ensure 0-360 range before division
+  - **Impact**: Mandelbrot spiral now displays correct colors without hue overflow
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts:11709`
+
+- **PlasmaStorm Hue Calculation**: Fixed incorrect hue normalization in visualizer
+  - Hue was calculated in 0-255 range and divided by 255, but HSL requires 0-360 degrees
+  - Changed to scale 0-255 to 0-360 range using pre-calculated constant `HUE_255_TO_360`
+  - Added `fastMod360()` normalization to ensure proper 0-360 range
+  - **Impact**: PlasmaStorm effect now displays correct colors with proper HSL hue values
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts:11579-11580, 288`
+
+- **Hue Normalization with Bitwise Masking**: Fixed incorrect hue calculations in three visualizer effects
+  - Removed incorrect `& 0x1ff` (0-511 range) masking before `fastMod360()` calls
+  - Bitwise masking was truncating values instead of properly normalizing to 0-360 range
+  - Fixed in `renderMandelbrotSpiral`, `renderQuantumResonance`, and `renderMorseAurora`
+  - **Impact**: All three effects now display correct colors with proper hue normalization
+  - Locations:
+    - `src/components/visualizers/FlowFieldRenderer.ts:11711` (Mandelbrot Spiral)
+    - `src/components/visualizers/FlowFieldRenderer.ts:11794` (Quantum Resonance)
+    - `src/components/visualizers/FlowFieldRenderer.ts:11841` (Morse Aurora)
+
+- **Search Tab Navigation**: Fixed search tab clearing active search query
+  - Search tab had `path: "/"` without custom handler, causing navigation to clear search query
+  - Added `handleSearchNavigation` function that preserves search query when already on search page
+  - Prevents navigation if already on search page with active query
+  - **Impact**: Search tab no longer clears active search results when clicked
+  - Location: `src/components/MobileFooter.tsx:88-99, 105-107`
+
+- **Build Error Fix**: Fixed missing Suspense boundary for `useSearchParams()`
+  - `MobileFooter` uses `useSearchParams()` which requires Suspense boundary during static generation
+  - Wrapped `MobileFooterWrapper` in Suspense boundary in root layout
+  - **Impact**: Build now completes successfully without prerendering errors
+  - Location: `src/app/layout.tsx:132-134`
+
+- **Performance Optimization**: Pre-calculated hue conversion constant
+  - Added `HUE_255_TO_360` static constant to avoid repeated division calculations
+  - Replaced `360 / 255` division with pre-calculated constant multiplication
+  - **Impact**: Slight performance improvement in PlasmaStorm effect rendering
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts:288, 11580`
+
 ## [0.9.7] - 2026-01-13
 
 ### Removed

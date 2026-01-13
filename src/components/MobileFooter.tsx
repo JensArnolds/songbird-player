@@ -1,12 +1,13 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { api } from "@/trpc/react";
 import { hapticLight } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { motion } from "framer-motion";
-import { Home, Search, Library, Plus } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { Home, Library, Plus, Search, User } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 interface MobileFooterProps {
@@ -17,14 +18,30 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
   const isMobile = useIsMobile();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const { data: userHash } = api.music.getCurrentUserHash.useQuery(
+    undefined,
+    { enabled: !!session },
+  );
   const [activeTab, setActiveTab] = useState<string>("home");
 
   if (!isMobile) return null;
 
-  const isActive = (path: string) => {
+  const isActive = (path: string, tabName?: string) => {
+    // Handle search tab separately - only active when there's a search query
+    if (tabName === "search") {
+      const searchQuery = searchParams.get("q");
+      return !!searchQuery;
+    }
     if (path === "/") {
-      return pathname === "/" || pathname.startsWith("/?");
+      // Home is active when on "/" without search query
+      const searchQuery = searchParams.get("q");
+      return (pathname === "/" || pathname.startsWith("/?")) && !searchQuery;
+    }
+    // Handle profile path (userHash route)
+    if (path === "profile" && userHash) {
+      return pathname === `/${userHash}`;
     }
     return pathname.startsWith(path);
   };
@@ -42,6 +59,20 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       return;
     }
     onCreatePlaylist?.();
+  };
+
+  const handleProfileNavigation = () => {
+    hapticLight();
+    if (!session) {
+      router.push("/api/auth/signin");
+      return;
+    }
+    // Prevent navigation if userHash isn't loaded yet
+    if (!userHash) {
+      return;
+    }
+    setActiveTab("profile");
+    router.push(`/${userHash}`);
   };
 
   const tabs = [
@@ -67,6 +98,14 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       requiresAuth: true,
     },
     {
+      name: "profile",
+      label: "Profile",
+      icon: User,
+      path: userHash ? `/${userHash}` : null,
+      requiresAuth: true,
+      onClick: handleProfileNavigation,
+    },
+    {
       name: "create",
       label: "Create",
       icon: Plus,
@@ -83,11 +122,23 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       transition={springPresets.gentle}
       className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-[rgba(244,178,102,0.12)] bg-[rgba(10,16,24,0.98)] shadow-[0_-4px_24px_rgba(5,10,18,0.6)] backdrop-blur-2xl"
     >
-      <div className="grid grid-cols-4 gap-1 px-2 py-2">
+      <div className="grid grid-cols-5 gap-1 px-2 py-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
-          const active = tab.path ? isActive(tab.path) : false;
-          const isDisabled = tab.requiresAuth && !session;
+          const active =
+            tab.name === "profile"
+              ? isActive("profile")
+              : tab.name === "search"
+                ? isActive(tab.path ?? "", "search")
+                : tab.path
+                  ? isActive(tab.path, tab.name)
+                  : false;
+          const isDisabled =
+            tab.requiresAuth && !session
+              ? true
+              : tab.name === "profile" && session && !userHash
+                ? true
+                : false;
 
           return (
             <motion.button

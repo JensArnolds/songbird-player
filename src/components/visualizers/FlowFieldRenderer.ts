@@ -138,6 +138,20 @@ export class FlowFieldRenderer {
     "infernalFlame",
     "kaleidoscope",
     "hydrogenElectronOrbitals",
+    "plasmaStorm",
+    "bitfieldMatrix",
+    "mandelbrotSpiral",
+    "quantumResonance",
+    "morseAurora",
+    "chromaticAberration",
+    "mengerSponge",
+    "perlinNoiseField",
+    "superformula",
+    "voronoi",
+    "dragonCurve",
+    "langtonsAnt",
+    "celticKnot",
+    "germanicKnotPendant",
   ];
 
   private currentPattern: Pattern = "kaleidoscope";
@@ -279,6 +293,7 @@ export class FlowFieldRenderer {
   private static readonly TWO_PI = Math.PI * 2;
   private static readonly INV_TWO_PI = 1 / (Math.PI * 2);
   private static readonly SQRT3 = 1.7320508075688772;
+  private static readonly HUE_255_TO_360 = 360 / 255;
 
   private static initSinTable(): Float32Array {
     const table = new Float32Array(this.SIN_TABLE_SIZE);
@@ -3031,6 +3046,104 @@ export class FlowFieldRenderer {
           audioIntensity,
           bassIntensity,
           midIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "plasmaStorm":
+        this.renderPlasmaStorm(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "bitfieldMatrix":
+        this.renderBitfieldMatrix(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "mandelbrotSpiral":
+        this.renderMandelbrotSpiral(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "quantumResonance":
+        this.renderQuantumResonance(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "morseAurora":
+        this.renderMorseAurora(
+          audioIntensity,
+          bassIntensity,
+          midIntensity,
+        );
+        break;
+      case "chromaticAberration":
+        this.renderChromaticAberration(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "mengerSponge":
+        this.renderMengerSponge(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "perlinNoiseField":
+        this.renderPerlinNoiseField(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "superformula":
+        this.renderSuperformula(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "voronoi":
+        this.renderVoronoi(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "dragonCurve":
+        this.renderDragonCurve(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "langtonsAnt":
+        this.renderLangtonsAnt(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "celticKnot":
+        this.renderCelticKnot(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
+        break;
+      case "germanicKnotPendant":
+        this.renderGermanicKnotPendant(
+          audioIntensity,
+          bassIntensity,
           trebleIntensity,
         );
         break;
@@ -11492,6 +11605,922 @@ export class FlowFieldRenderer {
       ctx.arc(electron.x, electron.y, size, 0, twoPi);
       ctx.fill();
     });
+
+    ctx.restore();
+  }
+
+  private renderPlasmaStorm(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    const imageData = ctx.createImageData(this.width, this.height);
+    const data = imageData.data;
+
+    const time = this.time;
+    const timeShift = (time >> 3) & 0xff; // Bit shift for faster modulo
+    const timeFreq = time * 0.002;
+    const bassWave = bassIntensity * 255;
+    const trebleWave = trebleIntensity * 127;
+
+    const step = audioIntensity > 0.75 ? 1 : 2; // Adaptive quality via bit comparison
+
+    for (let y = 0; y < this.height; y += step) {
+      for (let x = 0; x < this.width; x += step) {
+        // Optimized plasma calculation using bitwise ops
+        const dx = ((x - this.centerX) >> 4) & 0x1ff; // Fast division by 16
+        const dy = ((y - this.centerY) >> 4) & 0x1ff;
+
+        const v1 = this.fastSin((dx + timeShift) * 0.1) * 127;
+        const v2 = this.fastCos((dy - timeShift * 0.7) * 0.12) * 127;
+        const v3 =
+          this.fastSin(Math.sqrt(dx * dx + dy * dy) * 0.05 + timeFreq) * 127;
+
+        // Bitwise addition (wraps at 256)
+        const value =
+          ((v1 + v2 + v3 + bassWave) & 0xff) ^ ((timeShift >> 1) & 0x7f);
+
+        const hueRaw = (value + (trebleWave & 0xff)) & 0xff;
+        const hue = this.fastMod360(hueRaw * FlowFieldRenderer.HUE_255_TO_360);
+        const saturation = 90 + ((value >> 1) & 0x1f);
+        const lightness = 50 + ((value >> 2) & 0x1f);
+
+        const rgb = this.cachedHslToRgb(
+          hue / 360,
+          saturation / 100,
+          lightness / 100,
+        );
+        const r = rgb[0] ?? 0;
+        const g = rgb[1] ?? 0;
+        const b = rgb[2] ?? 0;
+
+        // Fill block
+        for (let dy2 = 0; dy2 < step && y + dy2 < this.height; dy2++) {
+          for (let dx2 = 0; dx2 < step && x + dx2 < this.width; dx2++) {
+            const i = ((y + dy2) * this.width + (x + dx2)) << 2; // Bit shift multiplication
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
+            data[i + 3] = 255;
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  private renderBitfieldMatrix(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    const imageData = ctx.createImageData(this.width, this.height);
+    const data = imageData.data;
+
+    const time = (this.time >> 1) & 0xffff; // Quantized time
+    const audioInt = (audioIntensity * 255) | 0;
+    const bassInt = (bassIntensity * 127) | 0;
+    const trebleInt = (trebleIntensity * 127) | 0;
+
+    const cellSize = 8 + ((audioIntensity * 8) | 0);
+
+    for (let y = 0; y < this.height; y++) {
+      const cellY = (y / cellSize) | 0;
+      const localY = y % cellSize;
+
+      for (let x = 0; x < this.width; x++) {
+        const cellX = (x / cellSize) | 0;
+        const localX = x % cellSize;
+
+        // Bitwise generation
+        const cellValue = (cellX * 73 ^ cellY * 97 ^ time * 151) & 0xff;
+
+        // Generate bit pattern
+        const bitPattern = cellValue >> (localY & 3);
+        const isBitSet = (bitPattern & 1) === 1;
+
+        // Distance from center
+        const distVal = ((localX ^ localY) << 1) & 0xff;
+
+        let r, g, b;
+
+        if (isBitSet) {
+          r = 255;
+          g = (distVal & 0xff) ^ audioInt;
+          b = (distVal >> 1) & 0xff;
+        } else {
+          r = (distVal >> 2) & 0x7f;
+          g = (audioInt ^ bassInt) & 0xff;
+          b = (trebleInt & 0xff) >> 1;
+        }
+
+        const i = (y * this.width + x) << 2;
+        data[i] = r;
+        data[i + 1] = g;
+        data[i + 2] = b;
+        data[i + 3] = 200;
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  private renderMandelbrotSpiral(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+
+    // Main mandelbrot
+    const imageData = ctx.createImageData(this.width, this.height);
+    const data = imageData.data;
+
+    const time = this.time;
+    const zoom = 0.5 + bassIntensity * 0.3;
+    const panX = this.fastSin(time * 0.0005) * 0.3;
+    const panY = this.fastCos(time * 0.0007) * 0.2;
+    const maxIter = 30 + ((audioIntensity * 20) | 0);
+
+    const invWidth = 1 / this.width;
+    const invHeight = 1 / this.height;
+    const scaleX = 3.5 / (this.width * zoom);
+    const scaleY = 2.5 / (this.height * zoom);
+
+    for (let py = 0; py < this.height; py += 2) {
+      for (let px = 0; px < this.width; px += 2) {
+        const x0 = (px * invWidth - 0.5) * scaleX + panX;
+        const y0 = (py * invHeight - 0.5) * scaleY + panY;
+
+        let x = x0;
+        let y = y0;
+        let iter = 0;
+
+        while (iter < maxIter) {
+          const xSq = x * x;
+          const ySq = y * y;
+
+          if (xSq + ySq > 4) break;
+
+          const xt = xSq - ySq + x0;
+          y = 2 * x * y + y0;
+          x = xt;
+          iter++;
+        }
+
+        const iterRatio = iter / maxIter;
+        const hue = this.fastMod360((iter << 3) + this.hueBase);
+        const lightness = iterRatio < 0.95 ? iterRatio * 85 : 100;
+
+        const rgb = this.cachedHslToRgb(hue / 360, 0.9, lightness / 100);
+        const r = rgb[0] ?? 0;
+        const g = rgb[1] ?? 0;
+        const b = rgb[2] ?? 0;
+
+        for (let dy = 0; dy < 2 && py + dy < this.height; dy++) {
+          for (let dx = 0; dx < 2 && px + dx < this.width; dx++) {
+            const i = ((py + dy) * this.width + (px + dx)) << 2;
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
+            data[i + 3] = 255;
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    // Spiral overlay
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const spiralTurns = 5 + ((audioIntensity * 3) | 0);
+    const spiralPoints = 200;
+    const spiralAlpha = 0.3 + trebleIntensity * 0.3;
+
+    ctx.strokeStyle = this.hsla(
+      this.fastMod360(this.hueBase + 120),
+      95,
+      70,
+      spiralAlpha,
+    );
+    ctx.lineWidth = 2 + bassIntensity * 2;
+    ctx.beginPath();
+
+    for (let i = 0; i < spiralPoints; i++) {
+      const t = i / spiralPoints;
+      const angle =
+        t * spiralTurns * FlowFieldRenderer.TWO_PI + this.time * 0.003;
+      const radius = t * 250;
+      const x = this.fastCos(angle) * radius;
+      const y = this.fastSin(angle) * radius;
+
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  private renderQuantumResonance(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+
+    const cellSize = 40;
+    const cols = (this.width / cellSize) | 0;
+    const rows = (this.height / cellSize) | 0;
+    const timeInt = (this.time >> 3) & 0xff;
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        // Bitwise hash for cell activation
+        const cellHash = (col * 73 ^ row * 97 ^ timeInt * 151) & 0xff;
+        const isActive = (cellHash >> 4) > 5;
+
+        if (!isActive && Math.random() > audioIntensity) continue;
+
+        const x = col * cellSize + cellSize * 0.5;
+        const y = row * cellSize + cellSize * 0.5;
+
+        const frequency = 0.1 + ((cellHash & 0x0f) * 0.01);
+        const wave = this.fastSin(this.time * frequency) * (cellSize * 0.3);
+        const hue = this.fastMod360(this.hueBase + (cellHash << 1));
+        const radius = cellSize * 0.2 + Math.abs(wave);
+
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(
+          0,
+          this.hsla(hue, 95, 70, 0.6 + audioIntensity * 0.3),
+        );
+        gradient.addColorStop(1, this.hsla(hue, 80, 50, 0));
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, FlowFieldRenderer.TWO_PI);
+        ctx.fill();
+
+        // Grid lines
+        const lineAlpha = 0.15 + ((cellHash >> 5) & 3) * 0.1;
+        ctx.strokeStyle = this.hsla(hue, 70, 60, lineAlpha);
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+          col * cellSize,
+          row * cellSize,
+          cellSize,
+          cellSize,
+        );
+      }
+    }
+
+    ctx.restore();
+  }
+
+  private renderMorseAurora(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+
+    const time = this.time;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const bands = 8;
+    const invBands = 1 / bands;
+
+    for (let band = 0; band < bands; band++) {
+      const y = this.height * (band * invBands + 0.5 * invBands);
+      const bandHue = this.fastMod360(this.hueBase + band * 45);
+
+      // Morse pattern: bitwise shift creates on/off pattern
+      const morsePattern = ((this.time >> (band + 4)) & 0xff);
+      const pulsing = (morsePattern & 0x0f) > 7 ? 1 : 0;
+
+      const centerWave = bassIntensity * 100;
+      const maxAmplitude = 150 + audioIntensity * 100 + pulsing * 50;
+
+      ctx.beginPath();
+      for (let x = 0; x < this.width; x += 4) {
+        const t = (x / this.width) * twoPi + time * 0.003;
+        const wave1 = this.fastSin(t * 2) * maxAmplitude * 0.6;
+        const wave2 = this.fastCos(t * 3 - band * 0.5) * maxAmplitude * 0.3;
+        const wave3 =
+          this.fastSin(t * (band + 1) + time * 0.002) * maxAmplitude * 0.1;
+
+        const finalY = y + wave1 + wave2 + wave3 + centerWave * bassIntensity;
+
+        if (x === 0) ctx.moveTo(x, finalY);
+        else ctx.lineTo(x, finalY);
+      }
+
+      const lineWidth = 2 + audioIntensity * 3 + (pulsing ? 2 : 0);
+      const alpha =
+        0.3 +
+        audioIntensity * 0.4 +
+        midIntensity * 0.2 +
+        (pulsing ? 0.1 : 0);
+
+      ctx.strokeStyle = this.hsla(bandHue, 90, 60, alpha);
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  private renderChromaticAberration(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    const imageData = ctx.createImageData(this.width, this.height);
+    const data = imageData.data;
+
+    const time = this.time;
+    const shift1 = ((audioIntensity * 15) | 0) + 1;
+    const shift2 = ((trebleIntensity * 12) | 0) + 2;
+    const shift3 = ((bassIntensity * 10) | 0) + 3;
+
+    const timeWave = this.fastSin(time * 0.004) << 3;
+    const timeWave2 = this.fastCos(time * 0.006) * 6;
+
+    // Create base pattern using bitwise operations
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const dx = ((x - this.centerX) >> 3) & 0xff;
+        const dy = ((y - this.centerY) >> 3) & 0xff;
+
+        const pattern = (dx ^ dy ^ ((time >> 1) & 0xff)) & 0xff;
+        const wave = this.fastSin((dx + dy) * 0.05 + time * 0.002) * 127;
+
+        // Aberration shifts
+        const rShift = ((shift1 + timeWave) | 0);
+        const gShift = ((shift2 + timeWave2) | 0);
+        const bShift = ((shift3) | 0);
+
+        const rVal = ((pattern + wave + bassIntensity * 60) >> 1) & 0xff;
+        const gVal =
+          ((pattern + wave * 0.7 + trebleIntensity * 60) >> 1) & 0xff;
+        const bVal = ((pattern - wave + audioIntensity * 60) >> 1) & 0xff;
+
+        const i = (y * this.width + x) << 2;
+        data[i] = rVal;
+        data[i + 1] = gVal;
+        data[i + 2] = bVal;
+        data[i + 3] = 200;
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  private renderMengerSponge(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const depth = 3 + ((audioIntensity * 2) | 0);
+    const baseSize = 200 / Math.pow(3, depth - 1);
+
+    const drawMenger = (
+      x: number,
+      y: number,
+      size: number,
+      currentDepth: number,
+      rotation: number,
+    ): void => {
+      if (currentDepth === 0 || size < 1) return;
+
+      const invDepth = 1 / (depth - currentDepth + 1);
+      const hue = this.fastMod360(this.hueBase + currentDepth * 40);
+
+      const subSize = size / 3;
+      const offset = size / 3;
+
+      for (let dx = 0; dx < 3; dx++) {
+        for (let dy = 0; dy < 3; dy++) {
+          if (dx === 1 && dy === 1) continue;
+
+          const subX = x - size / 2 + dx * offset + offset / 2;
+          const subY = y - size / 2 + dy * offset + offset / 2;
+
+          ctx.fillStyle = this.hsla(
+            hue,
+            85,
+            50 + invDepth * 30,
+            0.3 + audioIntensity * 0.3,
+          );
+          ctx.strokeStyle = this.hsla(
+            this.fastMod360(hue + 120),
+            90,
+            60,
+            0.6,
+          );
+          ctx.lineWidth = 1 + bassIntensity;
+
+          ctx.fillRect(
+            subX - subSize / 2,
+            subY - subSize / 2,
+            subSize,
+            subSize,
+          );
+          ctx.strokeRect(
+            subX - subSize / 2,
+            subY - subSize / 2,
+            subSize,
+            subSize,
+          );
+
+          if (currentDepth > 1) {
+            drawMenger(subX, subY, subSize, currentDepth - 1, rotation + 0.1);
+          }
+        }
+      }
+    };
+
+    drawMenger(0, 0, baseSize * 3, depth, 0);
+
+    ctx.restore();
+  }
+
+  private renderPerlinNoiseField(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    const imageData = ctx.createImageData(this.width, this.height);
+    const data = imageData.data;
+
+    const scale = 50 + audioIntensity * 30;
+    const octaves = 2 + ((bassIntensity * 2) | 0);
+
+    for (let y = 0; y < this.height; y += 2) {
+      for (let x = 0; x < this.width; x += 2) {
+        let value = 0;
+        let amplitude = 1;
+        let frequency = 1;
+        let maxAmplitude = 0;
+
+        for (let oct = 0; oct < octaves; oct++) {
+          const nx = (x / scale) * frequency + this.time * 0.0005 * frequency;
+          const ny = (y / scale) * frequency + this.time * 0.0003 * frequency;
+
+          const xi = nx | 0;
+          const yi = ny | 0;
+          const hash1 = ((xi * 73) ^ (yi * 97)) & 0xff;
+          const hash2 =
+            ((hash1 * 101) ^ (this.time >> (5 + oct))) & 0xff;
+
+          const fx = nx - xi;
+          const fy = ny - yi;
+
+          const u = fx * fx * (3 - 2 * fx);
+          const v = fy * fy * (3 - 2 * fy);
+
+          const grad = (hash2 / 255) * 2 - 1;
+          value += grad * u * v * amplitude;
+
+          maxAmplitude += amplitude;
+          amplitude *= 0.5;
+          frequency *= 2;
+        }
+
+        value /= maxAmplitude;
+        const brightness = ((value * 0.5 + 0.5) * 255) | 0;
+
+        const hue = this.fastMod360(this.hueBase + value * 180);
+        const rgb = this.cachedHslToRgb(
+          hue / 360,
+          0.7 + trebleIntensity * 0.2,
+          brightness / 510,
+        );
+
+        for (let dy2 = 0; dy2 < 2 && y + dy2 < this.height; dy2++) {
+          for (let dx2 = 0; dx2 < 2 && x + dx2 < this.width; dx2++) {
+            const idx = ((y + dy2) * this.width + (x + dx2)) << 2;
+            data[idx] = rgb[0] ?? 0;
+            data[idx + 1] = rgb[1] ?? 0;
+            data[idx + 2] = rgb[2] ?? 0;
+            data[idx + 3] = 220;
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  private renderSuperformula(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const m = 4 + ((bassIntensity * 6) | 0);
+    const n1 = 1 + audioIntensity * 2;
+    const n2 = 1 + trebleIntensity * 2;
+    const n3 = 1 + ((audioIntensity + bassIntensity) * 2) * 0.5;
+
+    const points = 360;
+    const maxRadius = 100 + audioIntensity * 80;
+
+    ctx.strokeStyle = this.hsla(
+      this.hueBase,
+      95,
+      65,
+      0.5 + bassIntensity * 0.3,
+    );
+    ctx.lineWidth = 2 + trebleIntensity * 2;
+    ctx.beginPath();
+
+    for (let i = 0; i <= points; i++) {
+      const φ = (i / points) * FlowFieldRenderer.TWO_PI + this.time * 0.002;
+      const angle = (m * φ) / 4;
+
+      const cosVal = Math.abs(this.fastCos(angle));
+      const sinVal = Math.abs(this.fastSin(angle));
+
+      const r =
+        Math.pow(Math.pow(cosVal, n1) + Math.pow(sinVal, n2), -1 / n3) *
+        maxRadius;
+
+      const x = this.fastCos(φ) * r;
+      const y = this.fastSin(φ) * r;
+
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  private renderVoronoi(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    const imageData = ctx.createImageData(this.width, this.height);
+    const data = imageData.data;
+
+    const seedCount = 10 + ((audioIntensity * 10) | 0);
+    const seeds: [number, number, number][] = [];
+
+    for (let i = 0; i < seedCount; i++) {
+      const hash = (i * 73 ^ (this.time >> 3)) & 0xffff;
+      const x = ((hash & 0xff) / 256) * this.width;
+      const y = (((hash >> 8) & 0xff) / 256) * this.height;
+      const hue = this.fastMod360(
+        this.hueBase + (i * 360) / seedCount,
+      );
+      seeds.push([x, y, hue]);
+    }
+
+    for (let y = 0; y < this.height; y += 2) {
+      for (let x = 0; x < this.width; x += 2) {
+        let minDist = Infinity;
+        let nearestSeed = 0;
+
+        for (let s = 0; s < seeds.length; s++) {
+          const seed = seeds[s];
+          if (!seed) continue;
+          const dx = x - seed[0];
+          const dy = y - seed[1];
+          const dist = dx * dx + dy * dy;
+
+          if (dist < minDist) {
+            minDist = dist;
+            nearestSeed = s;
+          }
+        }
+
+        const seed = seeds[nearestSeed];
+        if (!seed) continue;
+        const hue = seed[2];
+        const alpha = 0.8 - (Math.sqrt(minDist) / 400) * 0.4;
+        const rgb = this.cachedHslToRgb(hue / 360, 0.85, 0.55);
+
+        for (let dy2 = 0; dy2 < 2 && y + dy2 < this.height; dy2++) {
+          for (let dx2 = 0; dx2 < 2 && x + dx2 < this.width; dx2++) {
+            const idx = ((y + dy2) * this.width + (x + dx2)) << 2;
+            data[idx] = rgb[0] ?? 0;
+            data[idx + 1] = rgb[1] ?? 0;
+            data[idx + 2] = rgb[2] ?? 0;
+            data[idx + 3] = (alpha * 255) | 0;
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  private renderDragonCurve(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const iterations = 12 + ((audioIntensity * 4) | 0);
+    const segmentLength = 8 - ((iterations - 12) >> 2);
+
+    let x = 0;
+    let y = 0;
+    let angle = 0;
+
+    ctx.strokeStyle = this.hsla(
+      this.hueBase,
+      95,
+      65,
+      0.5 + bassIntensity * 0.3,
+    );
+    ctx.lineWidth = 1 + trebleIntensity * 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
+    for (let step = 0; step < Math.pow(2, iterations); step++) {
+      let bits = step;
+      let bitCount = 0;
+      while (bits) {
+        bits &= bits - 1;
+        bitCount++;
+      }
+
+      const turn = (bitCount & 1) === 1 ? -Math.PI / 2 : Math.PI / 2;
+      angle += turn;
+
+      x += this.fastCos(angle) * segmentLength;
+      y += this.fastSin(angle) * segmentLength;
+
+      ctx.lineTo(x, y);
+    }
+
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  private renderLangtonsAnt(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    const imageData = ctx.createImageData(this.width, this.height);
+    const data = imageData.data;
+
+    const gridSize = 80 >> (audioIntensity > 0.7 ? 1 : 0);
+    const cellWidth = (this.width / gridSize) | 0;
+    const cellHeight = (this.height / gridSize) | 0;
+
+    let antX = gridSize >> 1;
+    let antY = gridSize >> 1;
+    let antDir = (this.time >> 4) & 3;
+
+    const grid = new Uint8Array(gridSize * gridSize);
+
+    const steps = 50 + ((audioIntensity * 100) | 0);
+    for (let step = 0; step < steps; step++) {
+      const cellIdx = antY * gridSize + antX;
+      const cellVal = grid[cellIdx] ?? 0;
+
+      if (cellVal === 0) {
+        antDir = (antDir + 1) & 3;
+        grid[cellIdx] = 1;
+      } else {
+        antDir = (antDir - 1) & 3;
+        grid[cellIdx] = 0;
+      }
+
+      switch (antDir) {
+        case 0:
+          antX = (antX + 1) % gridSize;
+          break;
+        case 1:
+          antY = (antY + 1) % gridSize;
+          break;
+        case 2:
+          antX = (antX - 1 + gridSize) % gridSize;
+          break;
+        case 3:
+          antY = (antY - 1 + gridSize) % gridSize;
+          break;
+      }
+    }
+
+    for (let gy = 0; gy < gridSize; gy++) {
+      for (let gx = 0; gx < gridSize; gx++) {
+        const cellVal = grid[gy * gridSize + gx] ?? 0;
+
+        const x0 = gx * cellWidth;
+        const y0 = gy * cellHeight;
+
+        const hue = cellVal
+          ? this.hueBase
+          : this.fastMod360(this.hueBase + 180);
+        const rgb = this.cachedHslToRgb(
+          hue / 360,
+          0.9,
+          cellVal ? 0.6 : 0.3,
+        );
+
+        const r = rgb[0] ?? 0;
+        const g = rgb[1] ?? 0;
+        const b = rgb[2] ?? 0;
+
+        for (let y = 0; y < cellHeight; y++) {
+          for (let x = 0; x < cellWidth; x++) {
+            const idx = ((y0 + y) * this.width + (x0 + x)) << 2;
+            data[idx] = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = 255;
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  private renderCelticKnot(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const knots = 3 + ((audioIntensity * 2) | 0);
+    const baseRadius = 120;
+
+    for (let k = 0; k < knots; k++) {
+      const knotRadius = baseRadius - k * 25;
+      const segments = 12 + ((k & 1) ? 8 : 0);
+      const rotation = this.time * 0.0015 * (k & 1 ? 1 : -1);
+
+      ctx.strokeStyle = this.hsla(
+        this.fastMod360(this.hueBase + k * 60),
+        90,
+        60,
+        0.4 + audioIntensity * 0.3,
+      );
+      ctx.lineWidth = 3 + bassIntensity * 2 - k;
+
+      for (let s = 0; s < segments; s++) {
+        const angle1 =
+          (s / segments) * FlowFieldRenderer.TWO_PI + rotation;
+        const angle2 =
+          ((s + 1) / segments) * FlowFieldRenderer.TWO_PI + rotation;
+
+        const isOver = ((s & 1) ^ ((k >> 1) & 1)) === 1;
+        const offsetAngle = isOver ? 0.15 : -0.15;
+
+        ctx.beginPath();
+
+        const x1 = this.fastCos(angle1) * knotRadius;
+        const y1 = this.fastSin(angle1) * knotRadius;
+        const x2 = this.fastCos(angle2) * knotRadius;
+        const y2 = this.fastSin(angle2) * knotRadius;
+
+        ctx.moveTo(x1, y1);
+
+        const midAngle = (angle1 + angle2) * 0.5;
+        const innerRadius = knotRadius * 0.7 + offsetAngle * 20;
+        const xMid = this.fastCos(midAngle) * innerRadius;
+        const yMid = this.fastSin(midAngle) * innerRadius;
+
+        ctx.quadraticCurveTo(xMid, yMid, x2, y2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  private renderGermanicKnotPendant(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const layers = 4 + ((audioIntensity * 2) | 0);
+    const baseRadius = 100 + bassIntensity * 40;
+    const rotation = this.time * 0.001 * (bassIntensity > 0.5 ? 1 : -1);
+
+    // Main pendant structure
+    for (let layer = 0; layer < layers; layer++) {
+      const layerRadius = baseRadius - layer * 20;
+      const segments = 8 + (layer * 2);
+      const layerHue = this.fastMod360(
+        this.hueBase + layer * 45 + ((this.time >> 2) & 0xff),
+      );
+
+      ctx.strokeStyle = this.hsla(
+        layerHue,
+        85,
+        55 + layer * 5,
+        0.5 + audioIntensity * 0.3 - layer * 0.1,
+      );
+      ctx.lineWidth = 4 - layer + bassIntensity * 2;
+      ctx.fillStyle = this.hsla(
+        layerHue,
+        80,
+        40 + layer * 3,
+        0.2 + trebleIntensity * 0.2,
+      );
+
+      // Draw interwoven bands
+      for (let band = 0; band < 2; band++) {
+        ctx.beginPath();
+        const bandOffset = (band * Math.PI) / segments;
+
+        for (let s = 0; s <= segments; s++) {
+          const angle =
+            (s / segments) * FlowFieldRenderer.TWO_PI +
+            rotation +
+            bandOffset;
+          const radius =
+            layerRadius +
+            this.fastSin(angle * 3 + this.time * 0.002) * (5 + layer * 2);
+
+          const x = this.fastCos(angle) * radius;
+          const y = this.fastSin(angle) * radius;
+
+          if (s === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Add decorative elements
+      for (let s = 0; s < segments; s++) {
+        const angle =
+          (s / segments) * FlowFieldRenderer.TWO_PI + rotation;
+        const radius = layerRadius * 0.85;
+
+        const x = this.fastCos(angle) * radius;
+        const y = this.fastSin(angle) * radius;
+
+        const dotSize = 2 + trebleIntensity * 2;
+        ctx.fillStyle = this.hsla(
+          this.fastMod360(layerHue + 30),
+          90,
+          70,
+          0.6 + audioIntensity * 0.2,
+        );
+        ctx.beginPath();
+        ctx.arc(x, y, dotSize, 0, FlowFieldRenderer.TWO_PI);
+        ctx.fill();
+      }
+    }
+
+    // Central ornament
+    const centerHue = this.fastMod360(this.hueBase + 180);
+    ctx.fillStyle = this.hsla(centerHue, 95, 60, 0.7 + bassIntensity * 0.2);
+    ctx.strokeStyle = this.hsla(centerHue, 90, 50, 0.9);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15 + audioIntensity * 10, 0, FlowFieldRenderer.TWO_PI);
+    ctx.fill();
+    ctx.stroke();
 
     ctx.restore();
   }
