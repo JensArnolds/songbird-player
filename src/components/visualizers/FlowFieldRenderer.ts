@@ -11615,60 +11615,81 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const imageData = ctx.createImageData(this.width, this.height);
-    const data = imageData.data;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    const time = this.time;
-    const timeShift = (time >> 3) & 0xff; // Bit shift for faster modulo
-    const timeFreq = time * 0.002;
-    const bassWave = bassIntensity * 255;
-    const trebleWave = trebleIntensity * 127;
+    const time = this.time * 0.0003; // Slower, smoother animation
+    const baseRadius = 120 + bassIntensity * 60;
+    const layers = 6 + ((audioIntensity * 4) | 0);
 
-    const step = audioIntensity > 0.75 ? 1 : 2; // Adaptive quality via bit comparison
+    // Create elegant layered plasma rings
+    for (let layer = 0; layer < layers; layer++) {
+      const layerProgress = layer / layers;
+      const radius = baseRadius * (0.3 + layerProgress * 0.7);
+      const rotation = time * (1 + layer * 0.2) * (layer & 1 ? 1 : -1);
+      const layerHue = this.fastMod360(
+        this.hueBase + layer * 30 + time * 5,
+      );
 
-    for (let y = 0; y < this.height; y += step) {
-      for (let x = 0; x < this.width; x += step) {
-        // Optimized plasma calculation using bitwise ops
-        const dx = ((x - this.centerX) >> 4) & 0x1ff; // Fast division by 16
-        const dy = ((y - this.centerY) >> 4) & 0x1ff;
+      // Draw intricate plasma ring with multiple waves
+      ctx.strokeStyle = this.hsla(
+        layerHue,
+        85,
+        60 + layerProgress * 20,
+        0.4 + audioIntensity * 0.3 - layerProgress * 0.2,
+      );
+      ctx.lineWidth = 2 + bassIntensity * 1.5 - layerProgress;
+      ctx.beginPath();
 
-        const v1 = this.fastSin((dx + timeShift) * 0.1) * 127;
-        const v2 = this.fastCos((dy - timeShift * 0.7) * 0.12) * 127;
-        const v3 =
-          this.fastSin(Math.sqrt(dx * dx + dy * dy) * 0.05 + timeFreq) * 127;
+      const points = 180;
+      for (let i = 0; i <= points; i++) {
+        const angle =
+          (i / points) * FlowFieldRenderer.TWO_PI + rotation;
+        const wave1 = this.fastSin(angle * 3 + time * 2) * (5 + layer * 2);
+        const wave2 = this.fastCos(angle * 5 - time * 1.5) * (3 + layer);
+        const wave3 =
+          this.fastSin(angle * 7 + time * 3) * (2 + audioIntensity * 3);
+        const currentRadius = radius + wave1 + wave2 + wave3;
 
-        // Bitwise addition (wraps at 256)
-        const value =
-          ((v1 + v2 + v3 + bassWave) & 0xff) ^ ((timeShift >> 1) & 0x7f);
+        const x = this.fastCos(angle) * currentRadius;
+        const y = this.fastSin(angle) * currentRadius;
 
-        const hueRaw = (value + (trebleWave & 0xff)) & 0xff;
-        const hue = this.fastMod360(hueRaw * FlowFieldRenderer.HUE_255_TO_360);
-        const saturation = 90 + ((value >> 1) & 0x1f);
-        const lightness = 50 + ((value >> 2) & 0x1f);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
 
-        const rgb = this.cachedHslToRgb(
-          hue / 360,
-          saturation / 100,
-          lightness / 100,
+      ctx.closePath();
+      ctx.stroke();
+
+      // Add inner detail rings
+      if (layer < layers - 1) {
+        const innerRadius = radius * 0.7;
+        ctx.strokeStyle = this.hsla(
+          this.fastMod360(layerHue + 60),
+          80,
+          50,
+          0.2 + trebleIntensity * 0.15,
         );
-        const r = rgb[0] ?? 0;
-        const g = rgb[1] ?? 0;
-        const b = rgb[2] ?? 0;
-
-        // Fill block
-        for (let dy2 = 0; dy2 < step && y + dy2 < this.height; dy2++) {
-          for (let dx2 = 0; dx2 < step && x + dx2 < this.width; dx2++) {
-            const i = ((y + dy2) * this.width + (x + dx2)) << 2; // Bit shift multiplication
-            data[i] = r;
-            data[i + 1] = g;
-            data[i + 2] = b;
-            data[i + 3] = 255;
-          }
-        }
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius, 0, FlowFieldRenderer.TWO_PI);
+        ctx.stroke();
       }
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    // Central gradient orb
+    const centerHue = this.fastMod360(this.hueBase + time * 10);
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 40 + bassIntensity * 30);
+    gradient.addColorStop(0, this.hsla(centerHue, 95, 75, 0.6 + audioIntensity * 0.2));
+    gradient.addColorStop(0.5, this.hsla(centerHue, 90, 65, 0.3));
+    gradient.addColorStop(1, this.hsla(centerHue, 85, 55, 0));
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, 40 + bassIntensity * 30, 0, FlowFieldRenderer.TWO_PI);
+    ctx.fill();
+
+    ctx.restore();
   }
 
   private renderBitfieldMatrix(
@@ -11677,55 +11698,88 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const imageData = ctx.createImageData(this.width, this.height);
-    const data = imageData.data;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    const time = (this.time >> 1) & 0xffff; // Quantized time
-    const audioInt = (audioIntensity * 255) | 0;
-    const bassInt = (bassIntensity * 127) | 0;
-    const trebleInt = (trebleIntensity * 127) | 0;
+    const time = this.time * 0.0005; // Slower, smoother
+    const cellSize = 12 + ((audioIntensity * 8) | 0);
+    const cols = Math.ceil(this.width / cellSize);
+    const rows = Math.ceil(this.height / cellSize);
+    const rotation = time * 0.3;
 
-    const cellSize = 8 + ((audioIntensity * 8) | 0);
+    // Create elegant geometric grid pattern
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const x = (col - cols / 2) * cellSize;
+        const y = (row - rows / 2) * cellSize;
+        const dist = Math.sqrt(x * x + y * y);
+        const angle = Math.atan2(y, x) + rotation;
 
-    for (let y = 0; y < this.height; y++) {
-      const cellY = (y / cellSize) | 0;
-      const localY = y % cellSize;
+        // Create intricate cell pattern
+        const cellHash = (col * 73 ^ row * 97) & 0xff;
+        const pattern = (cellHash >> 4) & 0x0f;
+        const hue = this.fastMod360(
+          this.hueBase + (dist * 0.1) + (pattern * 22.5),
+        );
 
-      for (let x = 0; x < this.width; x++) {
-        const cellX = (x / cellSize) | 0;
-        const localX = x % cellSize;
+        // Draw geometric shapes based on pattern
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle * 0.3);
 
-        // Bitwise generation
-        const cellValue = (cellX * 73 ^ cellY * 97 ^ time * 151) & 0xff;
+        const size = cellSize * 0.4 + this.fastSin(time * 2 + dist * 0.01) * (cellSize * 0.1);
+        const alpha = 0.3 + audioIntensity * 0.4 - (dist / 400) * 0.3;
 
-        // Generate bit pattern
-        const bitPattern = cellValue >> (localY & 3);
-        const isBitSet = (bitPattern & 1) === 1;
-
-        // Distance from center
-        const distVal = ((localX ^ localY) << 1) & 0xff;
-
-        let r, g, b;
-
-        if (isBitSet) {
-          r = 255;
-          g = (distVal & 0xff) ^ audioInt;
-          b = (distVal >> 1) & 0xff;
+        if (pattern < 4) {
+          // Draw squares
+          ctx.fillStyle = this.hsla(hue, 85, 60, alpha);
+          ctx.fillRect(-size / 2, -size / 2, size, size);
+          ctx.strokeStyle = this.hsla(this.fastMod360(hue + 30), 90, 70, alpha * 0.6);
+          ctx.lineWidth = 1;
+          ctx.strokeRect(-size / 2, -size / 2, size, size);
+        } else if (pattern < 8) {
+          // Draw circles
+          const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+          gradient.addColorStop(0, this.hsla(hue, 90, 70, alpha));
+          gradient.addColorStop(1, this.hsla(hue, 85, 50, 0));
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(0, 0, size, 0, FlowFieldRenderer.TWO_PI);
+          ctx.fill();
+        } else if (pattern < 12) {
+          // Draw triangles
+          ctx.fillStyle = this.hsla(hue, 88, 65, alpha);
+          ctx.beginPath();
+          for (let v = 0; v < 3; v++) {
+            const vAngle = (v / 3) * FlowFieldRenderer.TWO_PI - Math.PI / 2;
+            const vx = this.fastCos(vAngle) * size;
+            const vy = this.fastSin(vAngle) * size;
+            if (v === 0) ctx.moveTo(vx, vy);
+            else ctx.lineTo(vx, vy);
+          }
+          ctx.closePath();
+          ctx.fill();
         } else {
-          r = (distVal >> 2) & 0x7f;
-          g = (audioInt ^ bassInt) & 0xff;
-          b = (trebleInt & 0xff) >> 1;
+          // Draw hexagons
+          ctx.fillStyle = this.hsla(hue, 87, 62, alpha);
+          ctx.beginPath();
+          for (let v = 0; v < 6; v++) {
+            const vAngle = (v / 6) * FlowFieldRenderer.TWO_PI;
+            const vx = this.fastCos(vAngle) * size;
+            const vy = this.fastSin(vAngle) * size;
+            if (v === 0) ctx.moveTo(vx, vy);
+            else ctx.lineTo(vx, vy);
+          }
+          ctx.closePath();
+          ctx.fill();
         }
 
-        const i = (y * this.width + x) << 2;
-        data[i] = r;
-        data[i + 1] = g;
-        data[i + 2] = b;
-        data[i + 3] = 200;
+        ctx.restore();
       }
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    ctx.restore();
   }
 
   private renderMandelbrotSpiral(
@@ -11734,89 +11788,105 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    // Main mandelbrot
-    const imageData = ctx.createImageData(this.width, this.height);
-    const data = imageData.data;
+    const time = this.time * 0.0003; // Slower, smoother
+    const zoom = 0.6 + bassIntensity * 0.2;
+    const panX = this.fastSin(time * 0.5) * 0.2;
+    const panY = this.fastCos(time * 0.7) * 0.15;
+    const maxIter = 40 + ((audioIntensity * 15) | 0);
 
-    const time = this.time;
-    const zoom = 0.5 + bassIntensity * 0.3;
-    const panX = this.fastSin(time * 0.0005) * 0.3;
-    const panY = this.fastCos(time * 0.0007) * 0.2;
-    const maxIter = 30 + ((audioIntensity * 20) | 0);
+    // Draw elegant mandelbrot-inspired pattern with smooth gradients
+    const baseRadius = 150;
+    const rings = 8 + ((audioIntensity * 4) | 0);
 
-    const invWidth = 1 / this.width;
-    const invHeight = 1 / this.height;
-    const scaleX = 3.5 / (this.width * zoom);
-    const scaleY = 2.5 / (this.height * zoom);
+    for (let ring = 0; ring < rings; ring++) {
+      const ringProgress = ring / rings;
+      const radius = baseRadius * (0.2 + ringProgress * 0.8);
+      const ringHue = this.fastMod360(
+        this.hueBase + ring * 45 + time * 10,
+      );
 
-    for (let py = 0; py < this.height; py += 2) {
-      for (let px = 0; px < this.width; px += 2) {
-        const x0 = (px * invWidth - 0.5) * scaleX + panX;
-        const y0 = (py * invHeight - 0.5) * scaleY + panY;
+      // Create intricate mandelbrot-like boundary
+      const points = 240;
+      ctx.strokeStyle = this.hsla(
+        ringHue,
+        90,
+        65 + ringProgress * 15,
+        0.5 + audioIntensity * 0.3 - ringProgress * 0.2,
+      );
+      ctx.lineWidth = 2 + bassIntensity * 1.5 - ringProgress;
+      ctx.beginPath();
 
+      for (let i = 0; i <= points; i++) {
+        const angle = (i / points) * FlowFieldRenderer.TWO_PI + time * 0.2;
+        const x0 = (this.fastCos(angle) * radius * 0.3 + panX) * zoom;
+        const y0 = (this.fastSin(angle) * radius * 0.3 + panY) * zoom;
+
+        // Simplified mandelbrot iteration for boundary
         let x = x0;
         let y = y0;
         let iter = 0;
+        const maxLocalIter = maxIter * (1 - ringProgress * 0.5);
 
-        while (iter < maxIter) {
-          const xSq = x * x;
-          const ySq = y * y;
-
-          if (xSq + ySq > 4) break;
-
-          const xt = xSq - ySq + x0;
+        while (iter < maxLocalIter && x * x + y * y < 4) {
+          const xt = x * x - y * y + x0;
           y = 2 * x * y + y0;
           x = xt;
           iter++;
         }
 
-        const iterRatio = iter / maxIter;
-        const hue = this.fastMod360((iter << 3) + this.hueBase);
-        const lightness = iterRatio < 0.95 ? iterRatio * 85 : 100;
+        const iterRatio = iter / maxLocalIter;
+        const wave = this.fastSin(angle * 3 + time * 2) * (5 + ring * 2);
+        const currentRadius = radius * (0.8 + iterRatio * 0.2) + wave;
 
-        const rgb = this.cachedHslToRgb(hue / 360, 0.9, lightness / 100);
-        const r = rgb[0] ?? 0;
-        const g = rgb[1] ?? 0;
-        const b = rgb[2] ?? 0;
+        const px = this.fastCos(angle) * currentRadius;
+        const py = this.fastSin(angle) * currentRadius;
 
-        for (let dy = 0; dy < 2 && py + dy < this.height; dy++) {
-          for (let dx = 0; dx < 2 && px + dx < this.width; dx++) {
-            const i = ((py + dy) * this.width + (px + dx)) << 2;
-            data[i] = r;
-            data[i + 1] = g;
-            data[i + 2] = b;
-            data[i + 3] = 255;
-          }
-        }
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+
+      ctx.closePath();
+      ctx.stroke();
+
+      // Add inner detail
+      if (ring < rings - 1) {
+        const innerRadius = radius * 0.6;
+        ctx.strokeStyle = this.hsla(
+          this.fastMod360(ringHue + 30),
+          85,
+          55,
+          0.2 + trebleIntensity * 0.15,
+        );
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius, 0, FlowFieldRenderer.TWO_PI);
+        ctx.stroke();
       }
     }
 
-    ctx.putImageData(imageData, 0, 0);
-
-    // Spiral overlay
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    ctx.translate(this.centerX, this.centerY);
-
-    const spiralTurns = 5 + ((audioIntensity * 3) | 0);
-    const spiralPoints = 200;
-    const spiralAlpha = 0.3 + trebleIntensity * 0.3;
+    // Elegant spiral overlay
+    const spiralTurns = 4 + ((audioIntensity * 2) | 0);
+    const spiralPoints = 300;
+    const spiralHue = this.fastMod360(this.hueBase + 180 + time * 15);
 
     ctx.strokeStyle = this.hsla(
-      this.fastMod360(this.hueBase + 120),
+      spiralHue,
       95,
       70,
-      spiralAlpha,
+      0.4 + trebleIntensity * 0.2,
     );
-    ctx.lineWidth = 2 + bassIntensity * 2;
+    ctx.lineWidth = 2 + bassIntensity * 1.5;
     ctx.beginPath();
 
     for (let i = 0; i < spiralPoints; i++) {
       const t = i / spiralPoints;
       const angle =
-        t * spiralTurns * FlowFieldRenderer.TWO_PI + this.time * 0.003;
-      const radius = t * 250;
+        t * spiralTurns * FlowFieldRenderer.TWO_PI + time * 0.5;
+      const radius = t * 200 + this.fastSin(t * FlowFieldRenderer.TWO_PI * 3) * 10;
       const x = this.fastCos(angle) * radius;
       const y = this.fastSin(angle) * radius;
 
@@ -11836,33 +11906,36 @@ export class FlowFieldRenderer {
     const ctx = this.ctx;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    const cellSize = 40;
-    const cols = (this.width / cellSize) | 0;
-    const rows = (this.height / cellSize) | 0;
-    const timeInt = (this.time >> 3) & 0xff;
+    const time = this.time * 0.0004; // Slower, smoother
+    const cellSize = 50;
+    const cols = Math.ceil(this.width / cellSize);
+    const rows = Math.ceil(this.height / cellSize);
 
+    // Create elegant interconnected resonance pattern
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        // Bitwise hash for cell activation
-        const cellHash = (col * 73 ^ row * 97 ^ timeInt * 151) & 0xff;
-        const isActive = (cellHash >> 4) > 5;
+        const x = (col - cols / 2) * cellSize;
+        const y = (row - rows / 2) * cellSize;
+        const dist = Math.sqrt(x * x + y * y);
+        const angle = Math.atan2(y, x);
 
-        if (!isActive && Math.random() > audioIntensity) continue;
+        const cellHash = (col * 73 ^ row * 97) & 0xff;
+        const frequency = 0.05 + ((cellHash & 0x0f) * 0.005);
+        const wave = this.fastSin(time * 10 + dist * 0.02) * (cellSize * 0.15);
+        const hue = this.fastMod360(
+          this.hueBase + dist * 0.2 + (cellHash * 1.4),
+        );
+        const radius = cellSize * 0.25 + Math.abs(wave);
 
-        const x = col * cellSize + cellSize * 0.5;
-        const y = row * cellSize + cellSize * 0.5;
-
-        const frequency = 0.1 + ((cellHash & 0x0f) * 0.01);
-        const wave = this.fastSin(this.time * frequency) * (cellSize * 0.3);
-        const hue = this.fastMod360(this.hueBase + (cellHash << 1));
-        const radius = cellSize * 0.2 + Math.abs(wave);
-
-        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        // Draw elegant resonance orb
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 2);
         gradient.addColorStop(
           0,
-          this.hsla(hue, 95, 70, 0.6 + audioIntensity * 0.3),
+          this.hsla(hue, 90, 70, 0.5 + audioIntensity * 0.3),
         );
+        gradient.addColorStop(0.5, this.hsla(hue, 85, 60, 0.2));
         gradient.addColorStop(1, this.hsla(hue, 80, 50, 0));
 
         ctx.fillStyle = gradient;
@@ -11870,16 +11943,23 @@ export class FlowFieldRenderer {
         ctx.arc(x, y, radius, 0, FlowFieldRenderer.TWO_PI);
         ctx.fill();
 
-        // Grid lines
-        const lineAlpha = 0.15 + ((cellHash >> 5) & 3) * 0.1;
-        ctx.strokeStyle = this.hsla(hue, 70, 60, lineAlpha);
-        ctx.lineWidth = 1;
-        ctx.strokeRect(
-          col * cellSize,
-          row * cellSize,
-          cellSize,
-          cellSize,
-        );
+        // Add connecting lines for intricate pattern
+        if (col < cols - 1 && row < rows - 1) {
+          const nextX = ((col + 1) - cols / 2) * cellSize;
+          const nextY = ((row + 1) - rows / 2) * cellSize;
+          const lineAlpha = 0.1 + audioIntensity * 0.15;
+          ctx.strokeStyle = this.hsla(
+            this.fastMod360(hue + 60),
+            80,
+            55,
+            lineAlpha,
+          );
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(nextX, nextY);
+          ctx.stroke();
+        }
       }
     }
 
@@ -11894,47 +11974,69 @@ export class FlowFieldRenderer {
     const ctx = this.ctx;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    const time = this.time;
+    const time = this.time * 0.0004; // Slower, smoother
     const twoPi = FlowFieldRenderer.TWO_PI;
-    const bands = 8;
+    const bands = 12; // More bands for intricate pattern
     const invBands = 1 / bands;
+    const baseRadius = 180;
 
+    // Create elegant aurora bands in circular pattern
     for (let band = 0; band < bands; band++) {
-      const y = this.height * (band * invBands + 0.5 * invBands);
-      const bandHue = this.fastMod360(this.hueBase + band * 45);
+      const bandProgress = band / bands;
+      const radius = baseRadius * (0.4 + bandProgress * 0.6);
+      const bandHue = this.fastMod360(
+        this.hueBase + band * 30 + time * 8,
+      );
 
-      // Morse pattern: bitwise shift creates on/off pattern
-      const morsePattern = ((this.time >> (band + 4)) & 0xff);
-      const pulsing = (morsePattern & 0x0f) > 7 ? 1 : 0;
+      // Smooth wave pattern (no flashing)
+      const wavePhase = time * 0.5 + band * 0.3;
+      const waveAmplitude = 20 + audioIntensity * 30 + bassIntensity * 15;
 
-      const centerWave = bassIntensity * 100;
-      const maxAmplitude = 150 + audioIntensity * 100 + pulsing * 50;
-
+      ctx.strokeStyle = this.hsla(
+        bandHue,
+        88,
+        65 + bandProgress * 10,
+        0.4 + audioIntensity * 0.3 - bandProgress * 0.15,
+      );
+      ctx.lineWidth = 2.5 + bassIntensity * 1.5 - bandProgress;
       ctx.beginPath();
-      for (let x = 0; x < this.width; x += 4) {
-        const t = (x / this.width) * twoPi + time * 0.003;
-        const wave1 = this.fastSin(t * 2) * maxAmplitude * 0.6;
-        const wave2 = this.fastCos(t * 3 - band * 0.5) * maxAmplitude * 0.3;
+
+      const points = 360;
+      for (let i = 0; i <= points; i++) {
+        const angle = (i / points) * twoPi;
+        const wave1 = this.fastSin(angle * 2 + wavePhase) * waveAmplitude * 0.5;
+        const wave2 =
+          this.fastCos(angle * 3 - wavePhase * 0.7) * waveAmplitude * 0.3;
         const wave3 =
-          this.fastSin(t * (band + 1) + time * 0.002) * maxAmplitude * 0.1;
+          this.fastSin(angle * 5 + wavePhase * 1.3) * waveAmplitude * 0.2;
+        const currentRadius = radius + wave1 + wave2 + wave3;
 
-        const finalY = y + wave1 + wave2 + wave3 + centerWave * bassIntensity;
+        const x = this.fastCos(angle) * currentRadius;
+        const y = this.fastSin(angle) * currentRadius;
 
-        if (x === 0) ctx.moveTo(x, finalY);
-        else ctx.lineTo(x, finalY);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
 
-      const lineWidth = 2 + audioIntensity * 3 + (pulsing ? 2 : 0);
-      const alpha =
-        0.3 +
-        audioIntensity * 0.4 +
-        midIntensity * 0.2 +
-        (pulsing ? 0.1 : 0);
-
-      ctx.strokeStyle = this.hsla(bandHue, 90, 60, alpha);
-      ctx.lineWidth = lineWidth;
+      ctx.closePath();
       ctx.stroke();
+
+      // Add inner detail lines
+      if (band < bands - 1) {
+        const innerRadius = radius * 0.75;
+        ctx.strokeStyle = this.hsla(
+          this.fastMod360(bandHue + 20),
+          85,
+          55,
+          0.15 + midIntensity * 0.1,
+        );
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius, 0, twoPi);
+        ctx.stroke();
+      }
     }
 
     ctx.restore();
@@ -11946,45 +12048,81 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const imageData = ctx.createImageData(this.width, this.height);
-    const data = imageData.data;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    const time = this.time;
-    const shift1 = ((audioIntensity * 15) | 0) + 1;
-    const shift2 = ((trebleIntensity * 12) | 0) + 2;
-    const shift3 = ((bassIntensity * 10) | 0) + 3;
+    const time = this.time * 0.0003; // Slower, smoother
+    const layers = 6 + ((audioIntensity * 3) | 0);
+    const baseRadius = 140;
 
-    const timeWave = this.fastSin(time * 0.004) << 3;
-    const timeWave2 = this.fastCos(time * 0.006) * 6;
+    // Create elegant chromatic rings with subtle shifts
+    for (let layer = 0; layer < layers; layer++) {
+      const layerProgress = layer / layers;
+      const radius = baseRadius * (0.3 + layerProgress * 0.7);
+      const rotation = time * (1 + layer * 0.15) * (layer & 1 ? 1 : -1);
+      const layerHue = this.fastMod360(
+        this.hueBase + layer * 60 + time * 8,
+      );
 
-    // Create base pattern using bitwise operations
-    for (let y = 0; y < this.height; y++) {
-      for (let x = 0; x < this.width; x++) {
-        const dx = ((x - this.centerX) >> 3) & 0xff;
-        const dy = ((y - this.centerY) >> 3) & 0xff;
+      // Draw main ring with subtle chromatic shift
+      const points = 240;
+      ctx.strokeStyle = this.hsla(
+        layerHue,
+        90,
+        65 + layerProgress * 15,
+        0.5 + audioIntensity * 0.3 - layerProgress * 0.2,
+      );
+      ctx.lineWidth = 3 + bassIntensity * 2 - layerProgress;
+      ctx.beginPath();
 
-        const pattern = (dx ^ dy ^ ((time >> 1) & 0xff)) & 0xff;
-        const wave = this.fastSin((dx + dy) * 0.05 + time * 0.002) * 127;
+      for (let i = 0; i <= points; i++) {
+        const angle = (i / points) * FlowFieldRenderer.TWO_PI + rotation;
+        const wave1 = this.fastSin(angle * 4 + time * 2) * (3 + layer);
+        const wave2 = this.fastCos(angle * 6 - time * 1.5) * (2 + layer * 0.5);
+        const currentRadius = radius + wave1 + wave2;
 
-        // Aberration shifts
-        const rShift = ((shift1 + timeWave) | 0);
-        const gShift = ((shift2 + timeWave2) | 0);
-        const bShift = ((shift3) | 0);
+        const x = this.fastCos(angle) * currentRadius;
+        const y = this.fastSin(angle) * currentRadius;
 
-        const rVal = ((pattern + wave + bassIntensity * 60) >> 1) & 0xff;
-        const gVal =
-          ((pattern + wave * 0.7 + trebleIntensity * 60) >> 1) & 0xff;
-        const bVal = ((pattern - wave + audioIntensity * 60) >> 1) & 0xff;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
 
-        const i = (y * this.width + x) << 2;
-        data[i] = rVal;
-        data[i + 1] = gVal;
-        data[i + 2] = bVal;
-        data[i + 3] = 200;
+      ctx.closePath();
+      ctx.stroke();
+
+      // Add RGB channel separation effect (subtle)
+      const shift = 2 + trebleIntensity * 3;
+      for (let channel = 0; channel < 3; channel++) {
+        const channelHue = this.fastMod360(layerHue + channel * 120);
+        const offsetAngle = (channel - 1) * shift * 0.01;
+        ctx.strokeStyle = this.hsla(
+          channelHue,
+          85,
+          60,
+          0.15 + audioIntensity * 0.1,
+        );
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let i = 0; i <= points; i++) {
+          const angle =
+            (i / points) * FlowFieldRenderer.TWO_PI + rotation + offsetAngle;
+          const wave1 = this.fastSin(angle * 4 + time * 2) * (3 + layer);
+          const wave2 = this.fastCos(angle * 6 - time * 1.5) * (2 + layer * 0.5);
+          const currentRadius = radius + wave1 + wave2;
+
+          const x = this.fastCos(angle) * currentRadius;
+          const y = this.fastSin(angle) * currentRadius;
+
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
       }
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    ctx.restore();
   }
 
   private renderMengerSponge(
@@ -11997,63 +12135,101 @@ export class FlowFieldRenderer {
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(this.centerX, this.centerY);
 
+    const time = this.time * 0.0002; // Slower rotation
+    const rotation = time * 0.3;
     const depth = 3 + ((audioIntensity * 2) | 0);
-    const baseSize = 200 / Math.pow(3, depth - 1);
+    const baseSize = 180 / Math.pow(3, depth - 1);
 
     const drawMenger = (
       x: number,
       y: number,
       size: number,
       currentDepth: number,
-      rotation: number,
+      localRotation: number,
     ): void => {
-      if (currentDepth === 0 || size < 1) return;
+      if (currentDepth === 0 || size < 2) return;
 
       const invDepth = 1 / (depth - currentDepth + 1);
-      const hue = this.fastMod360(this.hueBase + currentDepth * 40);
+      const hue = this.fastMod360(
+        this.hueBase + currentDepth * 50 + time * 5,
+      );
 
       const subSize = size / 3;
       const offset = size / 3;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(localRotation + rotation * (currentDepth * 0.1));
 
       for (let dx = 0; dx < 3; dx++) {
         for (let dy = 0; dy < 3; dy++) {
           if (dx === 1 && dy === 1) continue;
 
-          const subX = x - size / 2 + dx * offset + offset / 2;
-          const subY = y - size / 2 + dy * offset + offset / 2;
+          const subX = -size / 2 + dx * offset + offset / 2;
+          const subY = -size / 2 + dy * offset + offset / 2;
 
+          // Draw elegant rounded squares
+          const cornerRadius = subSize * 0.1;
           ctx.fillStyle = this.hsla(
             hue,
-            85,
-            50 + invDepth * 30,
-            0.3 + audioIntensity * 0.3,
+            88,
+            55 + invDepth * 25,
+            0.4 + audioIntensity * 0.3 - invDepth * 0.2,
           );
           ctx.strokeStyle = this.hsla(
             this.fastMod360(hue + 120),
             90,
-            60,
-            0.6,
+            65,
+            0.7 - invDepth * 0.3,
           );
-          ctx.lineWidth = 1 + bassIntensity;
+          ctx.lineWidth = 1.5 + bassIntensity * 0.5;
 
-          ctx.fillRect(
+          // Rounded rectangle
+          ctx.beginPath();
+          ctx.roundRect(
             subX - subSize / 2,
             subY - subSize / 2,
             subSize,
             subSize,
+            cornerRadius,
           );
-          ctx.strokeRect(
-            subX - subSize / 2,
-            subY - subSize / 2,
-            subSize,
-            subSize,
-          );
+          ctx.fill();
+          ctx.stroke();
+
+          // Add inner detail
+          if (currentDepth > 1 && subSize > 8) {
+            const innerSize = subSize * 0.6;
+            ctx.strokeStyle = this.hsla(
+              this.fastMod360(hue + 60),
+              85,
+              50,
+              0.3,
+            );
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(
+              subX - innerSize / 2,
+              subY - innerSize / 2,
+              innerSize,
+              innerSize,
+              cornerRadius * 0.7,
+            );
+            ctx.stroke();
+          }
 
           if (currentDepth > 1) {
-            drawMenger(subX, subY, subSize, currentDepth - 1, rotation + 0.1);
+            drawMenger(
+              subX,
+              subY,
+              subSize,
+              currentDepth - 1,
+              localRotation + 0.15,
+            );
           }
         }
       }
+
+      ctx.restore();
     };
 
     drawMenger(0, 0, baseSize * 3, depth, 0);
@@ -12067,31 +12243,54 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const imageData = ctx.createImageData(this.width, this.height);
-    const data = imageData.data;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    const scale = 50 + audioIntensity * 30;
-    const octaves = 2 + ((bassIntensity * 2) | 0);
+    const time = this.time * 0.0002; // Slower, smoother
+    const scale = 60 + audioIntensity * 40;
+    const octaves = 3 + ((bassIntensity * 2) | 0);
+    const baseRadius = 160;
 
-    for (let y = 0; y < this.height; y += 2) {
-      for (let x = 0; x < this.width; x += 2) {
+    // Create elegant flowing noise-based patterns
+    const rings = 8 + ((audioIntensity * 4) | 0);
+
+    for (let ring = 0; ring < rings; ring++) {
+      const ringProgress = ring / rings;
+      const radius = baseRadius * (0.2 + ringProgress * 0.8);
+      const ringHue = this.fastMod360(
+        this.hueBase + ring * 45 + time * 8,
+      );
+
+      ctx.strokeStyle = this.hsla(
+        ringHue,
+        85,
+        60 + ringProgress * 20,
+        0.4 + audioIntensity * 0.3 - ringProgress * 0.2,
+      );
+      ctx.lineWidth = 2.5 + bassIntensity * 1.5 - ringProgress;
+      ctx.beginPath();
+
+      const points = 240;
+      for (let i = 0; i <= points; i++) {
+        const angle = (i / points) * FlowFieldRenderer.TWO_PI;
+        const nx = (this.fastCos(angle) * radius) / scale + time * 0.3;
+        const ny = (this.fastSin(angle) * radius) / scale + time * 0.2;
+
+        // Perlin noise calculation
         let value = 0;
         let amplitude = 1;
         let frequency = 1;
         let maxAmplitude = 0;
 
         for (let oct = 0; oct < octaves; oct++) {
-          const nx = (x / scale) * frequency + this.time * 0.0005 * frequency;
-          const ny = (y / scale) * frequency + this.time * 0.0003 * frequency;
-
-          const xi = nx | 0;
-          const yi = ny | 0;
+          const xi = (nx * frequency) | 0;
+          const yi = (ny * frequency) | 0;
           const hash1 = ((xi * 73) ^ (yi * 97)) & 0xff;
-          const hash2 =
-            ((hash1 * 101) ^ (this.time >> (5 + oct))) & 0xff;
+          const hash2 = ((hash1 * 101) ^ ((this.time >> 2) & 0xff)) & 0xff;
 
-          const fx = nx - xi;
-          const fy = ny - yi;
+          const fx = nx * frequency - xi;
+          const fy = ny * frequency - yi;
 
           const u = fx * fx * (3 - 2 * fx);
           const v = fy * fy * (3 - 2 * fy);
@@ -12105,28 +12304,36 @@ export class FlowFieldRenderer {
         }
 
         value /= maxAmplitude;
-        const brightness = ((value * 0.5 + 0.5) * 255) | 0;
+        const wave = value * (15 + ring * 2);
+        const currentRadius = radius + wave;
 
-        const hue = this.fastMod360(this.hueBase + value * 180);
-        const rgb = this.cachedHslToRgb(
-          hue / 360,
-          0.7 + trebleIntensity * 0.2,
-          brightness / 510,
+        const x = this.fastCos(angle) * currentRadius;
+        const y = this.fastSin(angle) * currentRadius;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      ctx.closePath();
+      ctx.stroke();
+
+      // Add inner detail
+      if (ring < rings - 1) {
+        const innerRadius = radius * 0.7;
+        ctx.strokeStyle = this.hsla(
+          this.fastMod360(ringHue + 30),
+          80,
+          50,
+          0.15 + trebleIntensity * 0.1,
         );
-
-        for (let dy2 = 0; dy2 < 2 && y + dy2 < this.height; dy2++) {
-          for (let dx2 = 0; dx2 < 2 && x + dx2 < this.width; dx2++) {
-            const idx = ((y + dy2) * this.width + (x + dx2)) << 2;
-            data[idx] = rgb[0] ?? 0;
-            data[idx + 1] = rgb[1] ?? 0;
-            data[idx + 2] = rgb[2] ?? 0;
-            data[idx + 3] = 220;
-          }
-        }
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius, 0, FlowFieldRenderer.TWO_PI);
+        ctx.stroke();
       }
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    ctx.restore();
   }
 
   private renderSuperformula(
@@ -12139,43 +12346,79 @@ export class FlowFieldRenderer {
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(this.centerX, this.centerY);
 
-    const m = 4 + ((bassIntensity * 6) | 0);
-    const n1 = 1 + audioIntensity * 2;
-    const n2 = 1 + trebleIntensity * 2;
-    const n3 = 1 + ((audioIntensity + bassIntensity) * 2) * 0.5;
+    const time = this.time * 0.0002; // Slower, smoother
+    const m = 4 + ((bassIntensity * 4) | 0);
+    const n1 = 1.2 + audioIntensity * 1.5;
+    const n2 = 1.2 + trebleIntensity * 1.5;
+    const n3 = 1.1 + ((audioIntensity + bassIntensity) * 1.5) * 0.5;
+    const rotation = time * 0.5;
 
-    const points = 360;
-    const maxRadius = 100 + audioIntensity * 80;
+    // Draw multiple elegant superformula layers
+    const layers = 4 + ((audioIntensity * 2) | 0);
+    const baseRadius = 120;
 
-    ctx.strokeStyle = this.hsla(
-      this.hueBase,
-      95,
-      65,
-      0.5 + bassIntensity * 0.3,
-    );
-    ctx.lineWidth = 2 + trebleIntensity * 2;
-    ctx.beginPath();
+    for (let layer = 0; layer < layers; layer++) {
+      const layerProgress = layer / layers;
+      const maxRadius = baseRadius * (0.4 + layerProgress * 0.6);
+      const layerHue = this.fastMod360(
+        this.hueBase + layer * 90 + time * 10,
+      );
 
-    for (let i = 0; i <= points; i++) {
-      const φ = (i / points) * FlowFieldRenderer.TWO_PI + this.time * 0.002;
-      const angle = (m * φ) / 4;
+      ctx.strokeStyle = this.hsla(
+        layerHue,
+        92,
+        65 + layerProgress * 15,
+        0.5 + audioIntensity * 0.3 - layerProgress * 0.2,
+      );
+      ctx.lineWidth = 2.5 + trebleIntensity * 1.5 - layerProgress;
+      ctx.fillStyle = this.hsla(
+        layerHue,
+        88,
+        50,
+        0.15 + audioIntensity * 0.15,
+      );
+      ctx.beginPath();
 
-      const cosVal = Math.abs(this.fastCos(angle));
-      const sinVal = Math.abs(this.fastSin(angle));
+      const points = 480; // More points for smoother curves
+      for (let i = 0; i <= points; i++) {
+        const φ =
+          (i / points) * FlowFieldRenderer.TWO_PI + rotation * (layer & 1 ? 1 : -1);
+        const angle = (m * φ) / 4;
 
-      const r =
-        Math.pow(Math.pow(cosVal, n1) + Math.pow(sinVal, n2), -1 / n3) *
-        maxRadius;
+        const cosVal = Math.abs(this.fastCos(angle));
+        const sinVal = Math.abs(this.fastSin(angle));
 
-      const x = this.fastCos(φ) * r;
-      const y = this.fastSin(φ) * r;
+        const r =
+          Math.pow(Math.pow(cosVal, n1) + Math.pow(sinVal, n2), -1 / n3) *
+          maxRadius;
 
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+        const x = this.fastCos(φ) * r;
+        const y = this.fastSin(φ) * r;
+
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Add inner detail
+      if (layer < layers - 1) {
+        const innerRadius = maxRadius * 0.6;
+        ctx.strokeStyle = this.hsla(
+          this.fastMod360(layerHue + 45),
+          85,
+          55,
+          0.2 + trebleIntensity * 0.1,
+        );
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius, 0, FlowFieldRenderer.TWO_PI);
+        ctx.stroke();
+      }
     }
 
-    ctx.closePath();
-    ctx.stroke();
     ctx.restore();
   }
 
@@ -12185,32 +12428,39 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const imageData = ctx.createImageData(this.width, this.height);
-    const data = imageData.data;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    const seedCount = 10 + ((audioIntensity * 10) | 0);
-    const seeds: [number, number, number][] = [];
+    const time = this.time * 0.0002; // Slower, smoother
+    const seedCount = 12 + ((audioIntensity * 8) | 0);
+    const seeds: [number, number, number, number][] = [];
+    const baseRadius = 180;
 
+    // Create elegant seed points in circular pattern
     for (let i = 0; i < seedCount; i++) {
-      const hash = (i * 73 ^ (this.time >> 3)) & 0xffff;
-      const x = ((hash & 0xff) / 256) * this.width;
-      const y = (((hash >> 8) & 0xff) / 256) * this.height;
+      const angle = (i / seedCount) * FlowFieldRenderer.TWO_PI + time * 0.3;
+      const radius = baseRadius * (0.3 + (i % 3) * 0.15);
+      const x = this.fastCos(angle) * radius;
+      const y = this.fastSin(angle) * radius;
       const hue = this.fastMod360(
-        this.hueBase + (i * 360) / seedCount,
+        this.hueBase + (i * 360) / seedCount + time * 5,
       );
-      seeds.push([x, y, hue]);
+      seeds.push([x, y, hue, radius]);
     }
 
-    for (let y = 0; y < this.height; y += 2) {
-      for (let x = 0; x < this.width; x += 2) {
+    // Draw elegant Voronoi cells as gradient-filled regions
+    const cellSize = 3;
+    for (let py = -this.height / 2; py < this.height / 2; py += cellSize) {
+      for (let px = -this.width / 2; px < this.width / 2; px += cellSize) {
         let minDist = Infinity;
         let nearestSeed = 0;
 
         for (let s = 0; s < seeds.length; s++) {
           const seed = seeds[s];
           if (!seed) continue;
-          const dx = x - seed[0];
-          const dy = y - seed[1];
+          const dx = px - seed[0];
+          const dy = py - seed[1];
           const dist = dx * dx + dy * dy;
 
           if (dist < minDist) {
@@ -12222,22 +12472,46 @@ export class FlowFieldRenderer {
         const seed = seeds[nearestSeed];
         if (!seed) continue;
         const hue = seed[2];
-        const alpha = 0.8 - (Math.sqrt(minDist) / 400) * 0.4;
-        const rgb = this.cachedHslToRgb(hue / 360, 0.85, 0.55);
+        const dist = Math.sqrt(minDist);
+        const alpha = 0.6 - (dist / 300) * 0.4;
+        const lightness = 0.5 + (dist / 400) * 0.2;
 
-        for (let dy2 = 0; dy2 < 2 && y + dy2 < this.height; dy2++) {
-          for (let dx2 = 0; dx2 < 2 && x + dx2 < this.width; dx2++) {
-            const idx = ((y + dy2) * this.width + (x + dx2)) << 2;
-            data[idx] = rgb[0] ?? 0;
-            data[idx + 1] = rgb[1] ?? 0;
-            data[idx + 2] = rgb[2] ?? 0;
-            data[idx + 3] = (alpha * 255) | 0;
-          }
-        }
+        ctx.fillStyle = this.hsla(hue, 88, lightness * 100, alpha);
+        ctx.fillRect(
+          px + this.centerX - cellSize / 2,
+          py + this.centerY - cellSize / 2,
+          cellSize,
+          cellSize,
+        );
       }
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    // Draw seed points as elegant orbs
+    for (const seed of seeds) {
+      if (!seed) continue;
+      const gradient = ctx.createRadialGradient(
+        seed[0] + this.centerX,
+        seed[1] + this.centerY,
+        0,
+        seed[0] + this.centerX,
+        seed[1] + this.centerY,
+        8 + bassIntensity * 5,
+      );
+      gradient.addColorStop(0, this.hsla(seed[2], 95, 75, 0.8));
+      gradient.addColorStop(1, this.hsla(seed[2], 90, 60, 0));
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(
+        seed[0] + this.centerX,
+        seed[1] + this.centerY,
+        8 + bassIntensity * 5,
+        0,
+        FlowFieldRenderer.TWO_PI,
+      );
+      ctx.fill();
+    }
+
+    ctx.restore();
   }
 
   private renderDragonCurve(
@@ -12250,41 +12524,58 @@ export class FlowFieldRenderer {
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(this.centerX, this.centerY);
 
-    const iterations = 12 + ((audioIntensity * 4) | 0);
-    const segmentLength = 8 - ((iterations - 12) >> 2);
+    const time = this.time * 0.0002; // Slower, smoother
+    const iterations = 13 + ((audioIntensity * 3) | 0);
+    const segmentLength = 7 - ((iterations - 13) >> 2);
+    const rotation = time * 0.3;
 
-    let x = 0;
-    let y = 0;
-    let angle = 0;
+    // Draw multiple elegant dragon curves
+    const curves = 3;
+    for (let curve = 0; curve < curves; curve++) {
+      const curveRotation = (curve / curves) * FlowFieldRenderer.TWO_PI + rotation;
+      const curveHue = this.fastMod360(
+        this.hueBase + curve * 120 + time * 8,
+      );
 
-    ctx.strokeStyle = this.hsla(
-      this.hueBase,
-      95,
-      65,
-      0.5 + bassIntensity * 0.3,
-    );
-    ctx.lineWidth = 1 + trebleIntensity * 2;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+      ctx.strokeStyle = this.hsla(
+        curveHue,
+        92,
+        65,
+        0.5 + audioIntensity * 0.3 - curve * 0.1,
+      );
+      ctx.lineWidth = 2 + trebleIntensity * 1.5;
+      ctx.beginPath();
 
-    for (let step = 0; step < Math.pow(2, iterations); step++) {
-      let bits = step;
-      let bitCount = 0;
-      while (bits) {
-        bits &= bits - 1;
-        bitCount++;
+      let x = 0;
+      let y = 0;
+      let angle = curveRotation;
+      ctx.moveTo(x, y);
+
+      const maxSteps = Math.min(Math.pow(2, iterations), 8000);
+      for (let step = 0; step < maxSteps; step++) {
+        let bits = step;
+        let bitCount = 0;
+        while (bits) {
+          bits &= bits - 1;
+          bitCount++;
+        }
+
+        const turn = (bitCount & 1) === 1 ? -Math.PI / 2 : Math.PI / 2;
+        angle += turn;
+
+        x += this.fastCos(angle) * segmentLength;
+        y += this.fastSin(angle) * segmentLength;
+
+        ctx.lineTo(x, y);
       }
 
-      const turn = (bitCount & 1) === 1 ? -Math.PI / 2 : Math.PI / 2;
-      angle += turn;
+      ctx.stroke();
 
-      x += this.fastCos(angle) * segmentLength;
-      y += this.fastSin(angle) * segmentLength;
-
-      ctx.lineTo(x, y);
+      // Add gradient fill for depth
+      ctx.fillStyle = this.hsla(curveHue, 85, 50, 0.1 + audioIntensity * 0.1);
+      ctx.fill();
     }
 
-    ctx.stroke();
     ctx.restore();
   }
 
@@ -12294,20 +12585,21 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const imageData = ctx.createImageData(this.width, this.height);
-    const data = imageData.data;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
 
-    const gridSize = 80 >> (audioIntensity > 0.7 ? 1 : 0);
-    const cellWidth = (this.width / gridSize) | 0;
-    const cellHeight = (this.height / gridSize) | 0;
+    const gridSize = 60 + ((audioIntensity * 20) | 0);
+    const cellSize = Math.min(this.width, this.height) / gridSize;
+    const time = this.time * 0.0001; // Slower evolution
 
     let antX = gridSize >> 1;
     let antY = gridSize >> 1;
-    let antDir = (this.time >> 4) & 3;
+    let antDir = ((this.time >> 5) & 3) % 4;
 
     const grid = new Uint8Array(gridSize * gridSize);
 
-    const steps = 50 + ((audioIntensity * 100) | 0);
+    const steps = 100 + ((audioIntensity * 200) | 0);
     for (let step = 0; step < steps; step++) {
       const cellIdx = antY * gridSize + antX;
       const cellVal = grid[cellIdx] ?? 0;
@@ -12336,39 +12628,49 @@ export class FlowFieldRenderer {
       }
     }
 
+    // Draw elegant cellular pattern
     for (let gy = 0; gy < gridSize; gy++) {
       for (let gx = 0; gx < gridSize; gx++) {
         const cellVal = grid[gy * gridSize + gx] ?? 0;
-
-        const x0 = gx * cellWidth;
-        const y0 = gy * cellHeight;
+        const x = (gx - gridSize / 2) * cellSize;
+        const y = (gy - gridSize / 2) * cellSize;
+        const dist = Math.sqrt(x * x + y * y);
 
         const hue = cellVal
-          ? this.hueBase
-          : this.fastMod360(this.hueBase + 180);
-        const rgb = this.cachedHslToRgb(
-          hue / 360,
-          0.9,
-          cellVal ? 0.6 : 0.3,
+          ? this.fastMod360(this.hueBase + dist * 0.1)
+          : this.fastMod360(this.hueBase + 180 + dist * 0.05);
+        const alpha = 0.4 + audioIntensity * 0.3 - (dist / 400) * 0.3;
+
+        // Draw elegant rounded cells
+        ctx.fillStyle = this.hsla(
+          hue,
+          88,
+          cellVal ? 65 : 40,
+          alpha,
         );
+        ctx.strokeStyle = this.hsla(
+          this.fastMod360(hue + 30),
+          85,
+          cellVal ? 75 : 50,
+          alpha * 0.6,
+        );
+        ctx.lineWidth = 1;
 
-        const r = rgb[0] ?? 0;
-        const g = rgb[1] ?? 0;
-        const b = rgb[2] ?? 0;
-
-        for (let y = 0; y < cellHeight; y++) {
-          for (let x = 0; x < cellWidth; x++) {
-            const idx = ((y0 + y) * this.width + (x0 + x)) << 2;
-            data[idx] = r;
-            data[idx + 1] = g;
-            data[idx + 2] = b;
-            data[idx + 3] = 255;
-          }
-        }
+        const cornerRadius = cellSize * 0.15;
+        ctx.beginPath();
+        ctx.roundRect(
+          x - cellSize / 2,
+          y - cellSize / 2,
+          cellSize,
+          cellSize,
+          cornerRadius,
+        );
+        ctx.fill();
+        ctx.stroke();
       }
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    ctx.restore();
   }
 
   private renderCelticKnot(
@@ -12381,22 +12683,35 @@ export class FlowFieldRenderer {
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(this.centerX, this.centerY);
 
-    const knots = 3 + ((audioIntensity * 2) | 0);
-    const baseRadius = 120;
+    const time = this.time * 0.0003; // Slower, smoother
+    const knots = 4 + ((audioIntensity * 2) | 0);
+    const baseRadius = 140;
 
+    // Create elegant interwoven Celtic knot pattern
     for (let k = 0; k < knots; k++) {
-      const knotRadius = baseRadius - k * 25;
-      const segments = 12 + ((k & 1) ? 8 : 0);
-      const rotation = this.time * 0.0015 * (k & 1 ? 1 : -1);
+      const knotProgress = k / knots;
+      const knotRadius = baseRadius * (0.5 + knotProgress * 0.5);
+      const segments = 16 + ((k & 1) ? 12 : 0);
+      const rotation = time * 0.5 * (k & 1 ? 1 : -1);
+      const knotHue = this.fastMod360(
+        this.hueBase + k * 45 + time * 6,
+      );
 
       ctx.strokeStyle = this.hsla(
-        this.fastMod360(this.hueBase + k * 60),
-        90,
-        60,
-        0.4 + audioIntensity * 0.3,
+        knotHue,
+        88,
+        60 + knotProgress * 15,
+        0.5 + audioIntensity * 0.3 - knotProgress * 0.15,
       );
-      ctx.lineWidth = 3 + bassIntensity * 2 - k;
+      ctx.lineWidth = 3.5 + bassIntensity * 2 - knotProgress;
+      ctx.fillStyle = this.hsla(
+        knotHue,
+        85,
+        50,
+        0.15 + audioIntensity * 0.15,
+      );
 
+      // Draw intricate interwoven pattern
       for (let s = 0; s < segments; s++) {
         const angle1 =
           (s / segments) * FlowFieldRenderer.TWO_PI + rotation;
@@ -12404,7 +12719,7 @@ export class FlowFieldRenderer {
           ((s + 1) / segments) * FlowFieldRenderer.TWO_PI + rotation;
 
         const isOver = ((s & 1) ^ ((k >> 1) & 1)) === 1;
-        const offsetAngle = isOver ? 0.15 : -0.15;
+        const offsetAngle = isOver ? 0.2 : -0.2;
 
         ctx.beginPath();
 
@@ -12415,12 +12730,44 @@ export class FlowFieldRenderer {
 
         ctx.moveTo(x1, y1);
 
+        // Create smooth curves for elegant interweaving
         const midAngle = (angle1 + angle2) * 0.5;
-        const innerRadius = knotRadius * 0.7 + offsetAngle * 20;
+        const innerRadius = knotRadius * 0.65 + offsetAngle * 25;
         const xMid = this.fastCos(midAngle) * innerRadius;
         const yMid = this.fastSin(midAngle) * innerRadius;
 
-        ctx.quadraticCurveTo(xMid, yMid, x2, y2);
+        // Use bezier curves for smoother interweaving
+        const cp1x = this.fastCos(angle1 + 0.1) * (knotRadius * 0.8);
+        const cp1y = this.fastSin(angle1 + 0.1) * (knotRadius * 0.8);
+        const cp2x = this.fastCos(angle2 - 0.1) * (knotRadius * 0.8);
+        const cp2y = this.fastSin(angle2 - 0.1) * (knotRadius * 0.8);
+
+        ctx.bezierCurveTo(cp1x, cp1y, xMid, yMid, x2, y2);
+        ctx.stroke();
+
+        // Add subtle fill for depth
+        if (s % 4 === 0) {
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.bezierCurveTo(cp1x, cp1y, xMid, yMid, x2, y2);
+          ctx.lineTo(this.centerX, this.centerY);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      // Add inner detail ring
+      if (k < knots - 1) {
+        const innerRadius = knotRadius * 0.5;
+        ctx.strokeStyle = this.hsla(
+          this.fastMod360(knotHue + 30),
+          85,
+          55,
+          0.2 + trebleIntensity * 0.1,
+        );
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius, 0, FlowFieldRenderer.TWO_PI);
         ctx.stroke();
       }
     }
@@ -12438,37 +12785,44 @@ export class FlowFieldRenderer {
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(this.centerX, this.centerY);
 
-    const baseRadius = 80 + bassIntensity * 40;
-    const rotation = this.time * 0.001 * (bassIntensity > 0.5 ? 1 : -1);
-    const pulse = 1 + this.fastSin(this.time * 0.003) * (audioIntensity * 0.1);
+    const time = this.time * 0.0002; // Slower, smoother
+    const baseRadius = 100 + bassIntensity * 50;
+    const rotation = time * 0.3 * (bassIntensity > 0.5 ? 1 : -1);
+    const pulse = 1 + this.fastSin(time * 1.5) * (audioIntensity * 0.08);
 
-    // Draw three interlocking triangles (Valknut)
+    // Draw elegant interlocking triangles (Valknut) with intricate details
     const triangles = 3;
     const triangleRotation = FlowFieldRenderer.TWO_PI / triangles;
 
     for (let t = 0; t < triangles; t++) {
       const triRotation = t * triangleRotation + rotation;
       const triHue = this.fastMod360(
-        this.hueBase + t * 120 + ((this.time >> 3) & 0xff),
+        this.hueBase + t * 120 + time * 6,
       );
 
+      const radius = baseRadius * pulse;
+
+      // Draw outer triangle with gradient
+      const gradient = ctx.createLinearGradient(
+        this.fastCos(triRotation) * radius,
+        this.fastSin(triRotation) * radius,
+        this.fastCos(triRotation + FlowFieldRenderer.TWO_PI / 3) * radius,
+        this.fastSin(triRotation + FlowFieldRenderer.TWO_PI / 3) * radius,
+      );
+      gradient.addColorStop(0, this.hsla(triHue, 90, 65, 0.5 + audioIntensity * 0.3));
+      gradient.addColorStop(1, this.hsla(this.fastMod360(triHue + 30), 88, 55, 0.4));
+
+      ctx.fillStyle = gradient;
       ctx.strokeStyle = this.hsla(
         triHue,
-        90,
-        60,
-        0.6 + audioIntensity * 0.3,
+        92,
+        70,
+        0.7 + audioIntensity * 0.2,
       );
-      ctx.fillStyle = this.hsla(
-        triHue,
-        85,
-        45,
-        0.3 + trebleIntensity * 0.2,
-      );
-      ctx.lineWidth = 3 + bassIntensity * 2;
+      ctx.lineWidth = 3.5 + bassIntensity * 2;
 
       // Draw triangle
       ctx.beginPath();
-      const radius = baseRadius * pulse;
 
       // Calculate triangle vertices (equilateral triangle)
       for (let v = 0; v < 3; v++) {
@@ -12488,7 +12842,14 @@ export class FlowFieldRenderer {
       ctx.stroke();
 
       // Add inner triangle for depth
-      const innerRadius = radius * 0.6;
+      const innerRadius = radius * 0.55;
+      ctx.strokeStyle = this.hsla(
+        this.fastMod360(triHue + 60),
+        88,
+        75,
+        0.5 + audioIntensity * 0.25,
+      );
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       for (let v = 0; v < 3; v++) {
         const angle =
@@ -12502,29 +12863,51 @@ export class FlowFieldRenderer {
         else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.strokeStyle = this.hsla(
-        this.fastMod360(triHue + 60),
-        85,
-        70,
-        0.4 + audioIntensity * 0.2,
-      );
-      ctx.lineWidth = 2;
       ctx.stroke();
+
+      // Add corner decorations
+      for (let v = 0; v < 3; v++) {
+        const angle =
+          (v / 3) * FlowFieldRenderer.TWO_PI +
+          triRotation -
+          Math.PI / 2;
+        const x = this.fastCos(angle) * radius;
+        const y = this.fastSin(angle) * radius;
+
+        const cornerGradient = ctx.createRadialGradient(x, y, 0, x, y, 6);
+        cornerGradient.addColorStop(0, this.hsla(triHue, 95, 80, 0.8));
+        cornerGradient.addColorStop(1, this.hsla(triHue, 90, 60, 0));
+        ctx.fillStyle = cornerGradient;
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, FlowFieldRenderer.TWO_PI);
+        ctx.fill();
+      }
     }
 
-    // Add central point
-    const centerHue = this.fastMod360(this.hueBase + 180);
-    ctx.fillStyle = this.hsla(
-      centerHue,
-      95,
-      65,
-      0.7 + bassIntensity * 0.2,
-    );
-    ctx.strokeStyle = this.hsla(centerHue, 90, 50, 0.9);
+    // Add elegant central point with gradient
+    const centerHue = this.fastMod360(this.hueBase + 180 + time * 4);
+    const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 12 + audioIntensity * 8);
+    centerGradient.addColorStop(0, this.hsla(centerHue, 95, 75, 0.8 + bassIntensity * 0.15));
+    centerGradient.addColorStop(0.5, this.hsla(centerHue, 90, 65, 0.5));
+    centerGradient.addColorStop(1, this.hsla(centerHue, 85, 55, 0));
+    ctx.fillStyle = centerGradient;
+    ctx.strokeStyle = this.hsla(centerHue, 92, 60, 0.9);
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(0, 0, 8 + audioIntensity * 5, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, 12 + audioIntensity * 8, 0, FlowFieldRenderer.TWO_PI);
     ctx.fill();
+    ctx.stroke();
+
+    // Add outer ring for elegance
+    ctx.strokeStyle = this.hsla(
+      this.fastMod360(centerHue + 90),
+      85,
+      60,
+      0.3 + trebleIntensity * 0.2,
+    );
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, baseRadius * 1.15, 0, FlowFieldRenderer.TWO_PI);
     ctx.stroke();
 
     ctx.restore();
