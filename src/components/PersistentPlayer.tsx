@@ -138,7 +138,6 @@ export default function PersistentPlayer() {
     isMuted: player.isMuted,
     isShuffled: player.isShuffled,
     repeatMode: player.repeatMode,
-    playbackRate: player.playbackRate,
     isLoading: player.isLoading,
     onPlayPause: player.togglePlay,
     onNext: player.playNext,
@@ -148,7 +147,6 @@ export default function PersistentPlayer() {
     onToggleMute: () => player.setIsMuted(!player.isMuted),
     onToggleShuffle: player.toggleShuffle,
     onCycleRepeat: player.cycleRepeatMode,
-    onPlaybackRateChange: player.setPlaybackRate,
     onSkipForward: player.skipForward,
     onSkipBackward: player.skipBackward,
     onToggleQueue: () => setShowQueue(!showQueue),
@@ -223,7 +221,6 @@ export default function PersistentPlayer() {
               isMuted={player.isMuted}
               isShuffled={player.isShuffled}
               repeatMode={player.repeatMode}
-              playbackRate={player.playbackRate}
               isLoading={player.isLoading}
               onPlayPause={player.togglePlay}
               onNext={player.playNext}
@@ -233,7 +230,6 @@ export default function PersistentPlayer() {
               onToggleMute={() => player.setIsMuted(!player.isMuted)}
               onToggleShuffle={player.toggleShuffle}
               onCycleRepeat={player.cycleRepeatMode}
-              onPlaybackRateChange={player.setPlaybackRate}
               onSkipForward={player.skipForward}
               onSkipBackward={player.skipBackward}
               onToggleQueue={() => setShowQueue(!showQueue)}

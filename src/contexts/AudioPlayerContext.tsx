@@ -33,7 +33,6 @@ interface AudioPlayerContextType {
   isMuted: boolean;
   isShuffled: boolean;
   repeatMode: "none" | "one" | "all";
-  playbackRate: number;
   isLoading: boolean;
   lastAutoQueueCount: number;
   showMobilePlayer: boolean;
@@ -58,7 +57,6 @@ interface AudioPlayerContextType {
   setIsMuted: (muted: boolean) => void;
   toggleShuffle: () => void;
   cycleRepeatMode: () => void;
-  setPlaybackRate: (rate: number) => void;
   skipForward: () => void;
   skipBackward: () => void;
 
@@ -418,7 +416,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     isMuted: player.isMuted,
     isShuffled: player.isShuffled,
     repeatMode: player.repeatMode,
-    playbackRate: player.playbackRate,
     isLoading: player.isLoading,
     lastAutoQueueCount: player.lastAutoQueueCount,
     showMobilePlayer,
@@ -443,7 +440,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     setIsMuted: player.setIsMuted,
     toggleShuffle: player.toggleShuffle,
     cycleRepeatMode: player.cycleRepeatMode,
-    setPlaybackRate: player.setPlaybackRate,
     skipForward: player.skipForward,
     skipBackward: player.skipBackward,
 

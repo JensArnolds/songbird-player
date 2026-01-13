@@ -5,7 +5,6 @@ const STORAGE_PREFIX = "hexmusic_" as const;
 export const STORAGE_KEYS = {
 
   VOLUME: `${STORAGE_PREFIX}volume`,
-  PLAYBACK_RATE: `${STORAGE_PREFIX}playback_rate`,
   QUEUE_STATE: `${STORAGE_PREFIX}queue_state`,
   CURRENT_TRACK: `${STORAGE_PREFIX}current_track`,
   CURRENT_TIME: `${STORAGE_PREFIX}current_time`,

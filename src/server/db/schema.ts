@@ -211,7 +211,6 @@ export const userPreferences = createTable(
       .unique()
       .references(() => users.id, { onDelete: "cascade" }),
     volume: d.real().default(0.7).notNull(),
-    playbackRate: d.real().default(1.0).notNull(),
     repeatMode: d.varchar({ length: 20 }).default("none").notNull(),
     shuffleEnabled: d.boolean().default(false).notNull(),
     equalizerEnabled: d.boolean().notNull().default(false),
