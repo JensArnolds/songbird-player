@@ -698,7 +698,7 @@ export const musicRouter = createTRPCRouter({
     }),
 
   getRecentSearches: protectedProcedure
-    .input(z.object({ limit: z.number().min(1).max(20).default(10) }))
+    .input(z.object({ limit: z.number().min(1).max(100).default(50) }))
     .query(async ({ ctx, input }) => {
 
       const items = await ctx.db

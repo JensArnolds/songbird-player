@@ -430,7 +430,7 @@ export default function MobileSearchBar({
                 Recent Searches
               </span>
             </div>
-            <div className="max-h-48 overflow-y-auto">
+            <div className="max-h-64 overflow-y-auto">
               {recentSearches.map((search, index) => (
                 <motion.button
                   key={search}
