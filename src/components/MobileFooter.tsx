@@ -75,6 +75,18 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
     router.push(`/${userHash}`);
   };
 
+  const handleSearchNavigation = () => {
+    hapticLight();
+    const currentQuery = searchParams.get("q");
+    // If already on search page with a query, do nothing (prevent clearing search)
+    if (pathname === "/" && currentQuery) {
+      return;
+    }
+    // Otherwise navigate to home (search bar will be visible)
+    setActiveTab("search");
+    router.push("/");
+  };
+
   const tabs = [
     {
       name: "home",
@@ -89,6 +101,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       icon: Search,
       path: "/",
       requiresAuth: false,
+      onClick: handleSearchNavigation,
     },
     {
       name: "library",
