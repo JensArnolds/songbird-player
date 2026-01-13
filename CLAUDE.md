@@ -416,18 +416,11 @@ ELECTRON_BUILD=true             # Set during Electron builds
 
 5. **User identification:** User profiles are accessed via `userHash` (not `username`). Always use `getCurrentUserHash` query for routing:
    ```tsx
-   const { data: userHash } = api.music.getCurrentUserHash.useQuery();
+   const { data: userHash} = api.music.getCurrentUserHash.useQuery();
    // Use: /${userHash}  NOT: /${session.user.name}
    ```
 
-6. **Mobile playback speed persistence:** Mobile browsers (Safari/Chrome) reset `playbackRate` asynchronously after `load()`. Always restore playbackRate in `loadedmetadata` event:
-   ```tsx
-   audioRef.current.addEventListener('loadedmetadata', () => {
-     audioRef.current.playbackRate = desiredRate;
-   }, { once: true });
-   ```
-
-7. **Mobile header spacing:** Content needs `pt-16 pb-24` on mobile to account for header + player. Desktop uses `md:pt-0 md:pb-24`.
+6. **Mobile header spacing:** Content needs `pt-16 pb-24` on mobile to account for header + player. Desktop uses `md:pt-0 md:pb-24`.
 
 8. **TypeScript strict indexing:** Arrays and objects may be `undefined`. Always check:
    ```tsx

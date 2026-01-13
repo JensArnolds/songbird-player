@@ -321,7 +321,6 @@ export interface AudioPlayerState {
   currentTime: number;
   duration: number;
   buffered: number;
-  playbackRate: number;
   error: PlayerError | null;
   streamUrl: string | null;
 }

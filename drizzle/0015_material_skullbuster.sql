@@ -1,0 +1,1 @@
+ALTER TABLE "hexmusic-stream_user_preferences" DROP COLUMN "playbackRate";

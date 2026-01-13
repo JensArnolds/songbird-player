@@ -58,7 +58,8 @@
       "Bash(timeout 5 pm2 logs:*)",
       "Bash(timeout 3 pm2 logs:*)",
       "Bash(NODE_OPTIONS='--no-deprecation' npx tsx:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(npm run db:push:*)"
     ],
     "deny": [],
     "ask": []
