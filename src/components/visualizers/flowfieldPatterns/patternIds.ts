@@ -98,4 +98,4 @@ export type Pattern =
   | "dragonCurve"
   | "langtonsAnt"
   | "celticKnot"
-  | "germanicKnotPendant";
+  | "germanicKnot";

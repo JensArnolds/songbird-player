@@ -151,7 +151,7 @@ export class FlowFieldRenderer {
     "dragonCurve",
     "langtonsAnt",
     "celticKnot",
-    "germanicKnotPendant",
+    "germanicKnot",
   ];
 
   private currentPattern: Pattern = "kaleidoscope";
@@ -3140,8 +3140,8 @@ export class FlowFieldRenderer {
           trebleIntensity,
         );
         break;
-      case "germanicKnotPendant":
-        this.renderGermanicKnotPendant(
+      case "germanicKnot":
+        this.renderGermanicKnot(
           audioIntensity,
           bassIntensity,
           trebleIntensity,
@@ -12428,7 +12428,7 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderGermanicKnotPendant(
+  private renderGermanicKnot(
     audioIntensity: number,
     bassIntensity: number,
     trebleIntensity: number,
@@ -12438,87 +12438,92 @@ export class FlowFieldRenderer {
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(this.centerX, this.centerY);
 
-    const layers = 4 + ((audioIntensity * 2) | 0);
-    const baseRadius = 100 + bassIntensity * 40;
+    const baseRadius = 80 + bassIntensity * 40;
     const rotation = this.time * 0.001 * (bassIntensity > 0.5 ? 1 : -1);
+    const pulse = 1 + this.fastSin(this.time * 0.003) * (audioIntensity * 0.1);
 
-    // Main pendant structure
-    for (let layer = 0; layer < layers; layer++) {
-      const layerRadius = baseRadius - layer * 20;
-      const segments = 8 + (layer * 2);
-      const layerHue = this.fastMod360(
-        this.hueBase + layer * 45 + ((this.time >> 2) & 0xff),
+    // Draw three interlocking triangles (Valknut)
+    const triangles = 3;
+    const triangleRotation = FlowFieldRenderer.TWO_PI / triangles;
+
+    for (let t = 0; t < triangles; t++) {
+      const triRotation = t * triangleRotation + rotation;
+      const triHue = this.fastMod360(
+        this.hueBase + t * 120 + ((this.time >> 3) & 0xff),
       );
 
       ctx.strokeStyle = this.hsla(
-        layerHue,
-        85,
-        55 + layer * 5,
-        0.5 + audioIntensity * 0.3 - layer * 0.1,
+        triHue,
+        90,
+        60,
+        0.6 + audioIntensity * 0.3,
       );
-      ctx.lineWidth = 4 - layer + bassIntensity * 2;
       ctx.fillStyle = this.hsla(
-        layerHue,
-        80,
-        40 + layer * 3,
-        0.2 + trebleIntensity * 0.2,
+        triHue,
+        85,
+        45,
+        0.3 + trebleIntensity * 0.2,
       );
+      ctx.lineWidth = 3 + bassIntensity * 2;
 
-      // Draw interwoven bands
-      for (let band = 0; band < 2; band++) {
-        ctx.beginPath();
-        const bandOffset = (band * Math.PI) / segments;
+      // Draw triangle
+      ctx.beginPath();
+      const radius = baseRadius * pulse;
 
-        for (let s = 0; s <= segments; s++) {
-          const angle =
-            (s / segments) * FlowFieldRenderer.TWO_PI +
-            rotation +
-            bandOffset;
-          const radius =
-            layerRadius +
-            this.fastSin(angle * 3 + this.time * 0.002) * (5 + layer * 2);
-
-          const x = this.fastCos(angle) * radius;
-          const y = this.fastSin(angle) * radius;
-
-          if (s === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
-
-      // Add decorative elements
-      for (let s = 0; s < segments; s++) {
+      // Calculate triangle vertices (equilateral triangle)
+      for (let v = 0; v < 3; v++) {
         const angle =
-          (s / segments) * FlowFieldRenderer.TWO_PI + rotation;
-        const radius = layerRadius * 0.85;
-
+          (v / 3) * FlowFieldRenderer.TWO_PI +
+          triRotation -
+          Math.PI / 2; // Start from top
         const x = this.fastCos(angle) * radius;
         const y = this.fastSin(angle) * radius;
 
-        const dotSize = 2 + trebleIntensity * 2;
-        ctx.fillStyle = this.hsla(
-          this.fastMod360(layerHue + 30),
-          90,
-          70,
-          0.6 + audioIntensity * 0.2,
-        );
-        ctx.beginPath();
-        ctx.arc(x, y, dotSize, 0, FlowFieldRenderer.TWO_PI);
-        ctx.fill();
+        if (v === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
+
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Add inner triangle for depth
+      const innerRadius = radius * 0.6;
+      ctx.beginPath();
+      for (let v = 0; v < 3; v++) {
+        const angle =
+          (v / 3) * FlowFieldRenderer.TWO_PI +
+          triRotation -
+          Math.PI / 2;
+        const x = this.fastCos(angle) * innerRadius;
+        const y = this.fastSin(angle) * innerRadius;
+
+        if (v === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = this.hsla(
+        this.fastMod360(triHue + 60),
+        85,
+        70,
+        0.4 + audioIntensity * 0.2,
+      );
+      ctx.lineWidth = 2;
+      ctx.stroke();
     }
 
-    // Central ornament
+    // Add central point
     const centerHue = this.fastMod360(this.hueBase + 180);
-    ctx.fillStyle = this.hsla(centerHue, 95, 60, 0.7 + bassIntensity * 0.2);
+    ctx.fillStyle = this.hsla(
+      centerHue,
+      95,
+      65,
+      0.7 + bassIntensity * 0.2,
+    );
     ctx.strokeStyle = this.hsla(centerHue, 90, 50, 0.9);
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(0, 0, 15 + audioIntensity * 10, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, 8 + audioIntensity * 5, 0, FlowFieldRenderer.TWO_PI);
     ctx.fill();
     ctx.stroke();
 

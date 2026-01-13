@@ -29,10 +29,15 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
   if (!isMobile) return null;
 
   const isActive = (path: string, tabName?: string) => {
-    // Handle search tab separately - only active when there's a search query
+    // Handle search tab separately - active when there's a search query OR when activeTab is "search" and on home page
     if (tabName === "search") {
       const searchQuery = searchParams.get("q");
-      return !!searchQuery;
+      if (searchQuery) return true;
+      // If no query but activeTab is "search" and we're on home page, show as active
+      return (
+        activeTab === "search" &&
+        (pathname === "/" || pathname.startsWith("/?"))
+      );
     }
     if (path === "/") {
       // Home is active when on "/" without search query
