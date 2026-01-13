@@ -11720,7 +11720,7 @@ export class FlowFieldRenderer {
         const cellHash = (col * 73 ^ cellHashRow) & 0xff;
         const pattern = (cellHash >> 4) & 0x0f;
         const hue = this.fastMod360(
-          this.hueBase + ((dist * 0.1) | 0) + (pattern << 4), // pattern * 16
+          this.hueBase + ((dist * 0.1) | 0) + (pattern * 22.5),
         );
 
         const size = cellSize04 + this.fastSin(time2 + dist * 0.01) * cellSize01;
@@ -12079,9 +12079,8 @@ export class FlowFieldRenderer {
 
       // Optimized: Use simple rectangles instead of rounded
       for (let dx = 0; dx < 3; dx++) {
-        if (dx === 1) continue; // Skip center column
         for (let dy = 0; dy < 3; dy++) {
-          if (dy === 1) continue; // Skip center row
+          if (dx === 1 && dy === 1) continue; // Skip only center cell
 
           const subX = -halfSize + dx * offset + offset * 0.5;
           const subY = -halfSize + dy * offset + offset * 0.5;
