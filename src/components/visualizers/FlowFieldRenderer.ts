@@ -12478,8 +12478,8 @@ export class FlowFieldRenderer {
 
         ctx.fillStyle = this.hsla(hue, 88, lightness * 100, alpha);
         ctx.fillRect(
-          px + this.centerX - cellSize / 2,
-          py + this.centerY - cellSize / 2,
+          px - cellSize / 2,
+          py - cellSize / 2,
           cellSize,
           cellSize,
         );
@@ -12490,11 +12490,11 @@ export class FlowFieldRenderer {
     for (const seed of seeds) {
       if (!seed) continue;
       const gradient = ctx.createRadialGradient(
-        seed[0] + this.centerX,
-        seed[1] + this.centerY,
+        seed[0],
+        seed[1],
         0,
-        seed[0] + this.centerX,
-        seed[1] + this.centerY,
+        seed[0],
+        seed[1],
         8 + bassIntensity * 5,
       );
       gradient.addColorStop(0, this.hsla(seed[2], 95, 75, 0.8));
@@ -12502,8 +12502,8 @@ export class FlowFieldRenderer {
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(
-        seed[0] + this.centerX,
-        seed[1] + this.centerY,
+        seed[0],
+        seed[1],
         8 + bassIntensity * 5,
         0,
         FlowFieldRenderer.TWO_PI,
@@ -12750,7 +12750,7 @@ export class FlowFieldRenderer {
           ctx.beginPath();
           ctx.moveTo(x1, y1);
           ctx.bezierCurveTo(cp1x, cp1y, xMid, yMid, x2, y2);
-          ctx.lineTo(this.centerX, this.centerY);
+          ctx.lineTo(0, 0);
           ctx.closePath();
           ctx.fill();
         }
