@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Three Knot and Cellular Automaton Patterns**: Added knotwork and algorithmic visualizer patterns
   - **langtonsAnt**: Cellular automaton following Langton's ant rules with audio-reactive grid
   - **celticKnot**: Interwoven Celtic knot pattern with multiple rotating layers
-  - **germanicKnotPendant**: Germanic-style knot pendant with layered structure and decorative elements
+  - **germanicKnot**: Valknut pattern (three interlocking triangles) with audio-reactive rotation and pulsing
   - All patterns use proper hue normalization and audio-reactive animations
   - **Impact**: Added cultural knotwork patterns and algorithmic visualizations
   - Locations:
@@ -110,6 +110,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replaced `360 / 255` division with pre-calculated constant multiplication
   - **Impact**: Slight performance improvement in PlasmaStorm effect rendering
   - Location: `src/components/visualizers/FlowFieldRenderer.ts:288, 11580`
+
+- **Extended Recent Searches**: Increased search history capacity and improved display
+  - Increased API limit from 20 to 100 searches, defaulting to 50
+  - Updated both mobile and desktop to fetch and display 50 recent searches (previously 5)
+  - Made desktop display more compact: reduced text size (text-sm → text-xs), padding (px-3 py-1.5 → px-2 py-1), and gap spacing
+  - Increased mobile dropdown height from max-h-48 to max-h-64 to accommodate more searches
+  - **Impact**: Users can now access up to 50 recent searches with improved desktop layout density
+  - Locations:
+    - `src/server/api/routers/music.ts:701` (API limit increase)
+    - `src/app/HomePageClient.tsx:77, 441-457` (desktop display and query)
+    - `src/components/MobileHeader.tsx:31` (mobile query)
+    - `src/components/MobileSearchBar.tsx:433` (mobile dropdown height)
+
+- **Client-Side Navigation Optimization**: Improved navigation to prevent page reloads
+  - Added `{ scroll: false }` option to all `router.push()` calls in mobile footer
+  - Prevents scroll jumps and ensures smooth client-side navigation
+  - **Impact**: Audio player continues playing during navigation, no page reloads
+  - Location: `src/components/MobileFooter.tsx:61, 84, 93`
+
+- **Search Tab Active State Fix**: Fixed search tab visual feedback
+  - Search tab now uses `activeTab` state as fallback when no query exists
+  - Prevents both home and search tabs from being active simultaneously
+  - **Impact**: Proper visual feedback when clicking search tab without existing query
+  - Location: `src/components/MobileFooter.tsx:31-49`
 
 ## [0.9.7] - 2026-01-13
 
