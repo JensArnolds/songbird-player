@@ -11009,9 +11009,13 @@ export class FlowFieldRenderer {
 
     this.hydrogenEnergyLevelTimer += 1;
     const transitionSpeed = 1 + audioIntensity * 2;
-    if (this.hydrogenEnergyLevelTimer >= this.hydrogenEnergyLevelDuration / transitionSpeed) {
+    if (
+      this.hydrogenEnergyLevelTimer >=
+      this.hydrogenEnergyLevelDuration / transitionSpeed
+    ) {
       this.hydrogenEnergyLevelTimer = 0;
-      this.hydrogenEnergyLevel = (this.hydrogenEnergyLevel % this.MAX_ENERGY_LEVEL) + 1;
+      this.hydrogenEnergyLevel =
+        (this.hydrogenEnergyLevel % this.MAX_ENERGY_LEVEL) + 1;
     }
 
     const n = this.hydrogenEnergyLevel;
@@ -11021,9 +11025,22 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
     const nucleusRadius = 8 + bassIntensity * 12;
-    const nucleusGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, nucleusRadius);
-    nucleusGradient.addColorStop(0, this.hsla(0, 100, 50, 0.8 + audioIntensity * 0.2));
-    nucleusGradient.addColorStop(0.5, this.hsla(0, 100, 60, 0.4 + audioIntensity * 0.3));
+    const nucleusGradient = ctx.createRadialGradient(
+      0,
+      0,
+      0,
+      0,
+      0,
+      nucleusRadius,
+    );
+    nucleusGradient.addColorStop(
+      0,
+      this.hsla(0, 100, 50, 0.8 + audioIntensity * 0.2),
+    );
+    nucleusGradient.addColorStop(
+      0.5,
+      this.hsla(0, 100, 60, 0.4 + audioIntensity * 0.3),
+    );
     nucleusGradient.addColorStop(1, this.hsla(0, 100, 70, 0));
     ctx.fillStyle = nucleusGradient;
     ctx.beginPath();
@@ -11039,23 +11056,68 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
 
     if (n === 1) {
-      this.drawHydrogen1sOrbital(ctx, orbitalRadius, audioIntensity, trebleIntensity);
+      this.drawHydrogen1sOrbital(
+        ctx,
+        orbitalRadius,
+        audioIntensity,
+        trebleIntensity,
+      );
     } else if (n === 2) {
-      this.drawHydrogen2sOrbital(ctx, orbitalRadius * 0.5, audioIntensity, trebleIntensity);
-      this.drawHydrogen2pOrbitals(ctx, orbitalRadius, audioIntensity, midIntensity, trebleIntensity);
+      this.drawHydrogen2sOrbital(
+        ctx,
+        orbitalRadius * 0.5,
+        audioIntensity,
+        trebleIntensity,
+      );
+      this.drawHydrogen2pOrbitals(
+        ctx,
+        orbitalRadius,
+        audioIntensity,
+        midIntensity,
+        trebleIntensity,
+      );
     } else if (n === 3) {
-      this.drawHydrogen3sOrbital(ctx, orbitalRadius * 0.33, audioIntensity, trebleIntensity);
-      this.drawHydrogen3pOrbitals(ctx, orbitalRadius * 0.66, audioIntensity, midIntensity, trebleIntensity);
-      this.drawHydrogen3dOrbitals(ctx, orbitalRadius, audioIntensity, bassIntensity, midIntensity, trebleIntensity);
+      this.drawHydrogen3sOrbital(
+        ctx,
+        orbitalRadius * 0.33,
+        audioIntensity,
+        trebleIntensity,
+      );
+      this.drawHydrogen3pOrbitals(
+        ctx,
+        orbitalRadius * 0.66,
+        audioIntensity,
+        midIntensity,
+        trebleIntensity,
+      );
+      this.drawHydrogen3dOrbitals(
+        ctx,
+        orbitalRadius,
+        audioIntensity,
+        bassIntensity,
+        midIntensity,
+        trebleIntensity,
+      );
     } else {
       for (let shell = 1; shell <= n; shell++) {
         const shellRadius = (orbitalRadius * shell) / n;
-        this.drawHydrogenShell(ctx, shellRadius, shell, audioIntensity, trebleIntensity);
+        this.drawHydrogenShell(
+          ctx,
+          shellRadius,
+          shell,
+          audioIntensity,
+          trebleIntensity,
+        );
       }
     }
     ctx.restore();
 
-    this.updateHydrogenElectrons(n, orbitalRadius, audioIntensity, bassIntensity);
+    this.updateHydrogenElectrons(
+      n,
+      orbitalRadius,
+      audioIntensity,
+      bassIntensity,
+    );
     this.drawHydrogenElectrons(ctx, n, audioIntensity, trebleIntensity);
   }
 
@@ -11071,8 +11133,14 @@ export class FlowFieldRenderer {
 
     const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
     const hue = this.fastMod360(this.hueBase + 180);
-    gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.1 + audioIntensity * 0.2));
-    gradient.addColorStop(0.5, this.hsla(hue, 70, 60, 0.05 + trebleIntensity * 0.15));
+    gradient.addColorStop(
+      0,
+      this.hsla(hue, 70, 60, 0.1 + audioIntensity * 0.2),
+    );
+    gradient.addColorStop(
+      0.5,
+      this.hsla(hue, 70, 60, 0.05 + trebleIntensity * 0.15),
+    );
     gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -11097,8 +11165,14 @@ export class FlowFieldRenderer {
 
     const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
     const hue = this.fastMod360(this.hueBase + 200);
-    gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.08 + audioIntensity * 0.15));
-    gradient.addColorStop(0.6, this.hsla(hue, 70, 60, 0.03 + trebleIntensity * 0.1));
+    gradient.addColorStop(
+      0,
+      this.hsla(hue, 70, 60, 0.08 + audioIntensity * 0.15),
+    );
+    gradient.addColorStop(
+      0.6,
+      this.hsla(hue, 70, 60, 0.03 + trebleIntensity * 0.1),
+    );
     gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -11121,9 +11195,27 @@ export class FlowFieldRenderer {
     const pulse = this.fastSin(this.time * 0.06) * (10 + midIntensity * 20);
     const currentRadius = radius + pulse;
 
-    this.drawHydrogenDumbbellOrbital(ctx, currentRadius, 0, audioIntensity, trebleIntensity);
-    this.drawHydrogenDumbbellOrbital(ctx, currentRadius, Math.PI / 2, audioIntensity, trebleIntensity);
-    this.drawHydrogenDumbbellOrbital(ctx, currentRadius * 0.7, Math.PI / 4, audioIntensity, trebleIntensity);
+    this.drawHydrogenDumbbellOrbital(
+      ctx,
+      currentRadius,
+      0,
+      audioIntensity,
+      trebleIntensity,
+    );
+    this.drawHydrogenDumbbellOrbital(
+      ctx,
+      currentRadius,
+      Math.PI / 2,
+      audioIntensity,
+      trebleIntensity,
+    );
+    this.drawHydrogenDumbbellOrbital(
+      ctx,
+      currentRadius * 0.7,
+      Math.PI / 4,
+      audioIntensity,
+      trebleIntensity,
+    );
   }
 
   private drawHydrogen3sOrbital(
@@ -11138,8 +11230,14 @@ export class FlowFieldRenderer {
 
     const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
     const hue = this.fastMod360(this.hueBase + 220);
-    gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.06 + audioIntensity * 0.12));
-    gradient.addColorStop(0.5, this.hsla(hue, 70, 60, 0.02 + trebleIntensity * 0.08));
+    gradient.addColorStop(
+      0,
+      this.hsla(hue, 70, 60, 0.06 + audioIntensity * 0.12),
+    );
+    gradient.addColorStop(
+      0.5,
+      this.hsla(hue, 70, 60, 0.02 + trebleIntensity * 0.08),
+    );
     gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -11163,9 +11261,27 @@ export class FlowFieldRenderer {
     const currentRadius = radius + pulse;
     const rotation = this.time * 0.01;
 
-    this.drawHydrogenDumbbellOrbital(ctx, currentRadius, rotation, audioIntensity, trebleIntensity);
-    this.drawHydrogenDumbbellOrbital(ctx, currentRadius, rotation + Math.PI / 2, audioIntensity, trebleIntensity);
-    this.drawHydrogenDumbbellOrbital(ctx, currentRadius * 0.8, rotation + Math.PI / 4, audioIntensity, trebleIntensity);
+    this.drawHydrogenDumbbellOrbital(
+      ctx,
+      currentRadius,
+      rotation,
+      audioIntensity,
+      trebleIntensity,
+    );
+    this.drawHydrogenDumbbellOrbital(
+      ctx,
+      currentRadius,
+      rotation + Math.PI / 2,
+      audioIntensity,
+      trebleIntensity,
+    );
+    this.drawHydrogenDumbbellOrbital(
+      ctx,
+      currentRadius * 0.8,
+      rotation + Math.PI / 4,
+      audioIntensity,
+      trebleIntensity,
+    );
   }
 
   private drawHydrogen3dOrbitals(
@@ -11183,7 +11299,13 @@ export class FlowFieldRenderer {
 
     for (let i = 0; i < 5; i++) {
       const angle = (i * twoPi) / 5 + rotation;
-      this.drawHydrogenCloverleafOrbital(ctx, currentRadius, angle, audioIntensity, trebleIntensity);
+      this.drawHydrogenCloverleafOrbital(
+        ctx,
+        currentRadius,
+        angle,
+        audioIntensity,
+        trebleIntensity,
+      );
     }
   }
 
@@ -11202,16 +11324,36 @@ export class FlowFieldRenderer {
     const twoPi = FlowFieldRenderer.TWO_PI;
     const hue = this.fastMod360(this.hueBase + 160);
 
-    const gradient1 = ctx.createRadialGradient(-lobeDistance, 0, 0, -lobeDistance, 0, lobeSize);
-    gradient1.addColorStop(0, this.hsla(hue, 70, 60, 0.3 + audioIntensity * 0.3));
+    const gradient1 = ctx.createRadialGradient(
+      -lobeDistance,
+      0,
+      0,
+      -lobeDistance,
+      0,
+      lobeSize,
+    );
+    gradient1.addColorStop(
+      0,
+      this.hsla(hue, 70, 60, 0.3 + audioIntensity * 0.3),
+    );
     gradient1.addColorStop(1, this.hsla(hue, 70, 60, 0));
     ctx.fillStyle = gradient1;
     ctx.beginPath();
     ctx.arc(-lobeDistance, 0, lobeSize, 0, twoPi);
     ctx.fill();
 
-    const gradient2 = ctx.createRadialGradient(lobeDistance, 0, 0, lobeDistance, 0, lobeSize);
-    gradient2.addColorStop(0, this.hsla(hue, 70, 60, 0.3 + audioIntensity * 0.3));
+    const gradient2 = ctx.createRadialGradient(
+      lobeDistance,
+      0,
+      0,
+      lobeDistance,
+      0,
+      lobeSize,
+    );
+    gradient2.addColorStop(
+      0,
+      this.hsla(hue, 70, 60, 0.3 + audioIntensity * 0.3),
+    );
     gradient2.addColorStop(1, this.hsla(hue, 70, 60, 0));
     ctx.fillStyle = gradient2;
     ctx.beginPath();
@@ -11249,7 +11391,10 @@ export class FlowFieldRenderer {
       const y = this.fastSin(lobeAngle) * lobeDistance;
 
       const gradient = ctx.createRadialGradient(x, y, 0, x, y, lobeSize);
-      gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.25 + audioIntensity * 0.25));
+      gradient.addColorStop(
+        0,
+        this.hsla(hue, 70, 60, 0.25 + audioIntensity * 0.25),
+      );
       gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -11267,13 +11412,17 @@ export class FlowFieldRenderer {
     audioIntensity: number,
     trebleIntensity: number,
   ): void {
-    const pulse = this.fastSin(this.time * 0.02 + shell) * (5 + trebleIntensity * 15);
+    const pulse =
+      this.fastSin(this.time * 0.02 + shell) * (5 + trebleIntensity * 15);
     const currentRadius = radius + pulse;
     const twoPi = FlowFieldRenderer.TWO_PI;
     const hue = this.fastMod360(this.hueBase + shell * 60 + this.time * 0.5);
 
     const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentRadius);
-    gradient.addColorStop(0, this.hsla(hue, 70, 60, 0.05 + audioIntensity * 0.1));
+    gradient.addColorStop(
+      0,
+      this.hsla(hue, 70, 60, 0.05 + audioIntensity * 0.1),
+    );
     gradient.addColorStop(1, this.hsla(hue, 70, 60, 0));
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -11323,8 +11472,12 @@ export class FlowFieldRenderer {
       const hue = this.fastMod360(n * 40 + this.time * 2);
 
       const gradient = ctx.createRadialGradient(
-        electron.x, electron.y, 0,
-        electron.x, electron.y, size * 2
+        electron.x,
+        electron.y,
+        0,
+        electron.x,
+        electron.y,
+        size * 2,
       );
       gradient.addColorStop(0, this.hsla(hue, 100, 70, alpha));
       gradient.addColorStop(0.5, this.hsla(hue, 100, 60, alpha * 0.5));
