@@ -37,6 +37,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `src/components/visualizers/flowfieldPatterns/patternIds.ts:88-93`
     - `src/components/visualizers/FlowFieldRenderer.ts:141-147, 3040-3080, 11544-11927`
 
+- **Five Additional Visualizer Effects**: Added five more mathematical and fractal-based visualizer patterns
+  - **mengerSponge**: Recursive 3D fractal pattern with audio-reactive depth
+  - **perlinNoiseField**: Multi-octave Perlin noise field with smooth gradient generation
+  - **superformula**: Mathematical superformula curves with audio-reactive parameters
+  - **voronoi**: Voronoi diagram with distance-based coloring and seed generation
+  - **dragonCurve**: Fractal dragon curve using bit-counting algorithm
+  - All effects use optimized calculations and audio-reactive properties
+  - **Impact**: Expanded visualizer library with mathematical and fractal patterns
+  - Locations:
+    - `src/components/visualizers/flowfieldPatterns/patternIds.ts:94-98`
+    - `src/components/visualizers/FlowFieldRenderer.ts:151-152, 3087-3125, 11928-12365`
+
+- **Three Knot and Cellular Automaton Patterns**: Added knotwork and algorithmic visualizer patterns
+  - **langtonsAnt**: Cellular automaton following Langton's ant rules with audio-reactive grid
+  - **celticKnot**: Interwoven Celtic knot pattern with multiple rotating layers
+  - **germanicKnotPendant**: Germanic-style knot pendant with layered structure and decorative elements
+  - All patterns use proper hue normalization and audio-reactive animations
+  - **Impact**: Added cultural knotwork patterns and algorithmic visualizations
+  - Locations:
+    - `src/components/visualizers/flowfieldPatterns/patternIds.ts:99-101`
+    - `src/components/visualizers/FlowFieldRenderer.ts:153-155, 3126-3138, 12366-12520`
+
 ### Fixed
 
 - **Mobile Footer Active State Logic**: Fixed duplicate active tab indicators
