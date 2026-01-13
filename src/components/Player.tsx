@@ -2,7 +2,6 @@
 
 "use client";
 
-import { PLAYBACK_RATES } from "@/config/player";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { api } from "@/trpc/react";
@@ -25,7 +24,6 @@ interface PlayerProps {
   isMuted: boolean;
   isShuffled: boolean;
   repeatMode: "none" | "one" | "all";
-  playbackRate: number;
   isLoading: boolean;
   onPlayPause: () => void;
   onNext: () => void;
@@ -35,7 +33,6 @@ interface PlayerProps {
   onToggleMute: () => void;
   onToggleShuffle: () => void;
   onCycleRepeat: () => void;
-  onPlaybackRateChange: (rate: number) => void;
   onSkipForward: () => void;
   onSkipBackward: () => void;
   onToggleQueue?: () => void;
@@ -55,7 +52,6 @@ export default function MaturePlayer({
   isMuted,
   isShuffled,
   repeatMode,
-  playbackRate,
   isLoading,
   onPlayPause,
   onNext,
@@ -65,7 +61,6 @@ export default function MaturePlayer({
   onToggleMute,
   onToggleShuffle,
   onCycleRepeat,
-  onPlaybackRateChange,
   onSkipForward,
   onSkipBackward,
   onToggleQueue,
@@ -74,7 +69,6 @@ export default function MaturePlayer({
   visualizerEnabled,
   onTogglePatternControls,
 }: PlayerProps) {
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
@@ -462,41 +456,6 @@ export default function MaturePlayer({
           )}
 
           {}
-          <div className="relative hidden md:block">
-            <button
-              onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-              className="rounded px-2 py-1 text-xs font-medium text-[var(--color-subtext)] transition hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
-            >
-              {playbackRate}x
-            </button>
-            {showSpeedMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowSpeedMenu(false)}
-                />
-                <div className="absolute right-0 bottom-full z-20 mb-2 rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,0.95)] py-2 shadow-lg shadow-[rgba(5,10,18,0.6)] backdrop-blur-lg">
-                  {PLAYBACK_RATES.map((rate) => (
-                    <button
-                      key={rate}
-                      onClick={() => {
-                        onPlaybackRateChange(rate);
-                        setShowSpeedMenu(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm transition hover:bg-[rgba(244,178,102,0.12)] ${
-                        playbackRate === rate
-                          ? "text-[var(--color-accent)]"
-                          : "text-[var(--color-subtext)]"
-                      }`}
-                    >
-                      {rate}x
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
           {}
           <div className="relative hidden items-center gap-2 md:flex">
             <button

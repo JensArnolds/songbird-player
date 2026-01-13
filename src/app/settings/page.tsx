@@ -150,21 +150,6 @@ export default function SettingsPage() {
         },
       },
       {
-        id: "playbackRate",
-        label: "Playback Speed",
-        description: `${(player.playbackRate ?? 1.0).toFixed(1)}x`,
-        type: "slider",
-        value: player.playbackRate ?? 1.0,
-        min: 0.5,
-        max: 2.0,
-        step: 0.1,
-        onChange: (value) => {
-          const rate = value as number;
-          player.setPlaybackRate(rate);
-          handleSlider("playbackRate", rate);
-        },
-      },
-      {
         id: "repeatMode",
         label: "Repeat",
         description:

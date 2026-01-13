@@ -70,7 +70,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const [isMuted, setIsMuted] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>("none");
-  const [playbackRate, setPlaybackRate] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [originalQueueOrder, setOriginalQueueOrder] = useState<Track[]>([]);
 
@@ -126,10 +125,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
   useEffect(() => {
     const savedVolume = localStorage.getOrDefault(STORAGE_KEYS.VOLUME, 0.7);
-    const savedRate = localStorage.getOrDefault(STORAGE_KEYS.PLAYBACK_RATE, 1);
 
     setVolume(savedVolume);
-    setPlaybackRate(savedRate);
 
     if (initialQueueState && initialQueueState.queuedTracks.length > 0) {
       logger.info("[useAudioPlayer] 📥 Restoring queue state from database");
@@ -206,10 +203,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, [volume]);
 
   useEffect(() => {
-    localStorage.set(STORAGE_KEYS.PLAYBACK_RATE, playbackRate);
-  }, [playbackRate]);
-
-  useEffect(() => {
     const queueState = {
       version: 2 as const,
       queuedTracks,
@@ -233,9 +226,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     if (typeof window !== "undefined" && !audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.volume = volume;
-      audioRef.current.playbackRate = playbackRate;
     }
-  }, [volume, playbackRate]);
+  }, [volume]);
 
   useEffect(() => {
     if (audioRef.current && currentTrack && !audioRef.current.src) {
@@ -253,18 +245,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
-      audioRef.current.playbackRate = playbackRate;
     }
-  }, [volume, isMuted, playbackRate]);
+  }, [volume, isMuted]);
 
   const handleTrackEnd = useCallback(() => {
     if (!currentTrack) return;
 
     if (repeatMode === "one") {
       if (audioRef.current) {
-        const currentRate = audioRef.current.playbackRate;
         audioRef.current.currentTime = 0;
-        audioRef.current.playbackRate = currentRate;
         audioRef.current.play().catch(() => {
 
         });
@@ -500,9 +489,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       try {
         audioRef.current.pause();
-        const currentRate = audioRef.current.playbackRate;
         audioRef.current.currentTime = 0;
-        audioRef.current.playbackRate = currentRate;
       } catch (error) {
         logger.debug("[useAudioPlayer] Error resetting audio:", error);
       }
@@ -524,19 +511,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             currentSrc: audioRef.current.src,
             readyState: audioRef.current.readyState,
           });
-          const currentRate = audioRef.current.playbackRate;
           audioRef.current.src = streamUrl;
           audioRef.current.load();
-          audioRef.current.playbackRate = currentRate;
-
-          // Mobile fix: Restore playbackRate after metadata loads
-          const restoreRate = () => {
-            if (audioRef.current && audioRef.current.playbackRate !== currentRate) {
-              audioRef.current.playbackRate = currentRate;
-              logger.debug("[useAudioPlayer] Restored playbackRate after metadata load:", currentRate);
-            }
-          };
-          audioRef.current.addEventListener('loadedmetadata', restoreRate, { once: true });
 
           logger.debug("[useAudioPlayer] Audio source set and load() called");
           return true;
@@ -801,9 +777,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const handlePreviousTrack = () => {
 
       if (audioRef.current && audioRef.current.currentTime > 3) {
-        const currentRate = audioRef.current.playbackRate;
         audioRef.current.currentTime = 0;
-        audioRef.current.playbackRate = currentRate;
       } else if (history.length > 0) {
 
         const prevTrack = history[history.length - 1];
@@ -820,32 +794,26 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const handleSeekBackward = (details: MediaSessionActionDetails) => {
       if (audioRef.current) {
         const seekTime = details.seekOffset ?? 10;
-        const currentRate = audioRef.current.playbackRate;
         audioRef.current.currentTime = Math.max(
           0,
           audioRef.current.currentTime - seekTime,
         );
-        audioRef.current.playbackRate = currentRate;
       }
     };
 
     const handleSeekForward = (details: MediaSessionActionDetails) => {
       if (audioRef.current) {
         const seekTime = details.seekOffset ?? 10;
-        const currentRate = audioRef.current.playbackRate;
         audioRef.current.currentTime = Math.min(
           audioRef.current.duration,
           audioRef.current.currentTime + seekTime,
         );
-        audioRef.current.playbackRate = currentRate;
       }
     };
 
     const handleSeekTo = (details: MediaSessionActionDetails) => {
       if (audioRef.current && details.seekTime !== undefined) {
-        const currentRate = audioRef.current.playbackRate;
         audioRef.current.currentTime = details.seekTime;
-        audioRef.current.playbackRate = currentRate;
       }
     };
 
@@ -908,9 +876,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       return;
     }
 
-    const currentRate = audioRef.current.playbackRate;
     audioRef.current.currentTime = time;
-    audioRef.current.playbackRate = currentRate;
     setCurrentTime(time);
   }, []);
 
@@ -1560,9 +1526,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     setIsPlaying(false);
     if (audioRef.current) {
       audioRef.current.pause();
-      const currentRate = audioRef.current.playbackRate;
       audioRef.current.currentTime = 0;
-      audioRef.current.playbackRate = currentRate;
     }
 
     clearPersistedQueueState();
@@ -1633,9 +1597,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
               paused: audioRef.current.paused,
               readyState: audioRef.current.readyState,
             });
-            const currentRate = audioRef.current.playbackRate;
             audioRef.current.currentTime = 0;
-            audioRef.current.playbackRate = currentRate;
             audioRef.current.play().catch((error) => {
               logger.error("Playback failed:", error);
               setIsPlaying(false);
@@ -1676,7 +1638,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     isMuted,
     isShuffled,
     repeatMode,
-    playbackRate,
     isLoading,
     lastAutoQueueCount,
 
@@ -1708,7 +1669,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     cycleRepeatMode,
     setVolume: setVolumeWithValidation,
     setIsMuted,
-    setPlaybackRate,
     adjustVolume,
     skipForward,
     skipBackward,

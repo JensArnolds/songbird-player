@@ -735,7 +735,6 @@ export const musicRouter = createTRPCRouter({
     .input(
       z.object({
         volume: z.number().min(0).max(1).optional(),
-        playbackRate: z.number().min(0.5).max(2).optional(),
         repeatMode: z.enum(["none", "one", "all"]).optional(),
         shuffleEnabled: z.boolean().optional(),
         equalizerEnabled: z.boolean().optional(),

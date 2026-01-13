@@ -24,8 +24,6 @@ export interface BasePlayerProps {
 
   repeatMode: RepeatMode;
 
-  playbackRate: number;
-
   isLoading: boolean;
 }
 
@@ -46,8 +44,6 @@ export interface PlayerControls {
   onToggleShuffle: () => void;
 
   onCycleRepeat: () => void;
-
-  onPlaybackRateChange: (rate: number) => void;
 
   onSkipForward: () => void;
 

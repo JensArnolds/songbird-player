@@ -2,7 +2,6 @@
 
 "use client";
 
-import { PLAYBACK_RATES } from "@/config/player";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import type { Track } from "@/types";
@@ -55,7 +54,6 @@ interface MobilePlayerProps {
   isMuted: boolean;
   isShuffled: boolean;
   repeatMode: "none" | "one" | "all";
-  playbackRate: number;
   isLoading: boolean;
   onPlayPause: () => void;
   onNext: () => void;
@@ -65,7 +63,6 @@ interface MobilePlayerProps {
   onToggleMute: () => void;
   onToggleShuffle: () => void;
   onCycleRepeat: () => void;
-  onPlaybackRateChange: (rate: number) => void;
   onSkipForward: () => void;
   onSkipBackward: () => void;
   onToggleQueue?: () => void;
@@ -85,7 +82,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     isMuted,
     isShuffled,
     repeatMode,
-    playbackRate,
     isLoading,
     onPlayPause,
     onNext,
@@ -94,7 +90,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onToggleMute,
     onToggleShuffle,
     onCycleRepeat,
-    onPlaybackRateChange,
     onSkipForward,
     onSkipBackward,
     onToggleQueue,
@@ -122,7 +117,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   );
 
   const [isExpanded, setIsExpanded] = useState(forceExpanded);
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
   const [hideAlbumCover, setHideAlbumCover] = useState(false);
   const [visualizerEnabled, setVisualizerEnabled] = useState(true);
@@ -456,13 +450,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                   <span className="text-xs font-semibold tracking-widest text-[var(--color-muted)] uppercase">
                     Now Playing
                   </span>
-                  <motion.button
-                    onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                    whileTap={{ scale: 0.9 }}
-                    className="touch-target rounded-full p-2 text-[var(--color-subtext)]"
-                  >
-                    <MoreHorizontal className="h-6 w-6" />
-                  </motion.button>
+                  <div className="w-10" />
                 </div>
 
                 {}
@@ -811,51 +799,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                   </motion.button>
 
                   {}
-                  <div className="relative">
-                    <motion.button
-                      onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                      whileTap={{ scale: 0.9 }}
-                      className="touch-target rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-subtext)]"
-                    >
-                      {playbackRate}x
-                    </motion.button>
-                    <AnimatePresence>
-                      {showSpeedMenu && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setShowSpeedMenu(false)}
-                          />
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            transition={springPresets.snappy}
-                            className="absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 rounded-xl border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,1)] py-2 shadow-xl"
-                          >
-                            {PLAYBACK_RATES.map((rate) => (
-                              <button
-                                key={rate}
-                                onClick={() => {
-                                  hapticLight();
-                                  onPlaybackRateChange(rate);
-                                  setShowSpeedMenu(false);
-                                }}
-                                className={`w-full px-6 py-3 text-center text-sm transition-colors ${
-                                  playbackRate === rate
-                                    ? "text-[var(--color-accent)]"
-                                    : "text-[var(--color-subtext)] hover:bg-[rgba(244,178,102,0.1)]"
-                                }`}
-                              >
-                                {rate}x
-                              </button>
-                            ))}
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
                   {}
                   {onToggleQueue && (
                     <motion.button
