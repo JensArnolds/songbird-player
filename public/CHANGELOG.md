@@ -5,6 +5,66 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.7] - 2026-01-13
+
+### Removed
+
+- **Complete Playback Speed Removal**: Removed all playback speed/rate adjustment functionality
+  - Removed playback speed slider from settings page
+  - Removed speed controls from mobile and desktop players (speed menu button and dropdown)
+  - Removed `playbackRate` state from audio player context and hooks
+  - Removed `playbackRate` column from database schema (user_preferences table)
+  - Removed `playbackRate` from tRPC API validation and mutations
+  - Removed `PLAYBACK_RATE` from localStorage storage keys
+  - Removed `playbackRate` from Electron persistent preferences
+  - Removed all audio element `playbackRate` assignments and preservation logic
+  - Removed `playbackRate` from TypeScript type definitions (BasePlayerProps, PlayerControls, PlayerState)
+  - Removed mobile playback speed gotcha from CLAUDE.md documentation
+  - **Rationale**: Feature was unnecessary and caused more issues than value
+  - **Impact**: All audio now plays at normal 1.0x speed with no user controls
+  - Locations:
+    - `src/app/settings/page.tsx` (removed speed slider)
+    - `src/components/MobilePlayer.tsx` (removed speed menu UI)
+    - `src/components/Player.tsx` (removed speed controls)
+    - `src/components/PersistentPlayer.tsx` (removed playbackRate props)
+    - `src/contexts/AudioPlayerContext.tsx` (removed from context)
+    - `src/hooks/useAudioPlayer.ts` (removed all playbackRate logic)
+    - `src/types/player.ts` (removed from interfaces)
+    - `src/types/index.ts` (removed from PlayerState)
+    - `src/server/db/schema.ts` (removed database column)
+    - `src/server/api/routers/music.ts` (removed from updatePreferences)
+    - `src/server/api/routers/equalizer.ts` (removed from default values)
+    - `src/config/storage.ts` (removed PLAYBACK_RATE key)
+    - `src/utils/electronStorage.ts` (removed from PERSISTENT_PREFERENCES)
+    - `CLAUDE.md` (removed gotcha #6)
+
+### Fixed
+
+- **Dependency Cleanup**: Cleaned up unused and incorrectly removed dependencies
+  - **Removed unused dependencies** (truly unused):
+    - `@tanstack/react-virtual`, `@use-gesture/react`, `morgan`, `@types/morgan`
+    - `react-audio-visualize`, `tone`, `vaul`
+    - `@next/bundle-analyzer`, `@svgr/cli`, `svgo`, `tsup`, `webpack`, `yargs`
+    - `electron-context-menu`, `electron-window-state-manager` (using custom implementations)
+  - **Reinstalled required dependencies** (incorrectly removed):
+    - `eslint-config-next` (used in eslint.config.js for Next.js linting rules)
+    - `prettier-plugin-tailwindcss` (used in prettier.config.js for class sorting)
+    - `wait-on` (used in electron:dev scripts)
+    - `postcss` (required by Tailwind CSS)
+    - `autoprefixer` (CSS vendor prefixing)
+  - **Rollup plugins** (already installed, not missing):
+    - `@rollup/plugin-json`, `@rollup/plugin-node-resolve`, `rollup-plugin-re`
+  - **Impact**: Cleaner dependencies, faster installs, no missing required packages
+  - Location: `package.json` devDependencies
+
+### Known Issues
+
+- **Mobile Browser Buffering Behavior**: On mobile devices, playback may exhibit very minor speed fluctuations (~1-2%) at regular intervals (~55 seconds)
+  - **Root Cause**: Mobile browsers (Safari, Chrome) automatically adjust playback rate slightly when approaching HLS stream segment boundaries (typically 60-second chunks) to maintain smooth playback and prevent stuttering
+  - **Impact**: Barely noticeable under normal listening conditions, prevents audio stuttering
+  - **Status**: This is standard mobile browser behavior for adaptive streaming and cannot be controlled via frontend code
+  - **Workaround**: None needed - this is expected behavior for mobile audio streaming
+
 ## [0.9.6] - 2026-01-11
 
 ### Fixed
