@@ -28,7 +28,7 @@ export default function MobileHeader() {
   const searchingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: recentSearches } = api.music.getRecentSearches.useQuery(
-    { limit: 5 },
+    { limit: 50 },
     { enabled: !!session },
   );
 

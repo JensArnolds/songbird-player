@@ -74,7 +74,7 @@ export default function HomePageClient() {
 
   const addSearchQuery = api.music.addSearchQuery.useMutation();
   const { data: recentSearches } = api.music.getRecentSearches.useQuery(
-    { limit: 5 },
+    { limit: 50 },
     { enabled: !!session },
   );
 
@@ -438,8 +438,8 @@ export default function HomePageClient() {
               </div>
 
               {session && recentSearches && recentSearches.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-[var(--color-subtext)]">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs font-medium text-[var(--color-subtext)]">
                     Recent:
                   </span>
                   {recentSearches.map((search: string) => (
@@ -449,7 +449,7 @@ export default function HomePageClient() {
                         hapticLight();
                         void handleSearch(search);
                       }}
-                      className="touch-active rounded-full bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text)] ring-1 ring-white/5 transition-all hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-accent-light)] hover:ring-[var(--color-accent)]/30"
+                      className="touch-active rounded-full bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-text)] ring-1 ring-white/5 transition-all hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-accent-light)] hover:ring-[var(--color-accent)]/30"
                     >
                       {search}
                     </button>

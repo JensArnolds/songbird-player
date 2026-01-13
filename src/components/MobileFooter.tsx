@@ -40,9 +40,13 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       );
     }
     if (path === "/") {
-      // Home is active when on "/" without search query
+      // Home is active when on "/" without search query AND activeTab is not "search"
       const searchQuery = searchParams.get("q");
-      return (pathname === "/" || pathname.startsWith("/?")) && !searchQuery;
+      return (
+        (pathname === "/" || pathname.startsWith("/?")) &&
+        !searchQuery &&
+        activeTab !== "search"
+      );
     }
     // Handle profile path (userHash route)
     if (path === "profile" && userHash) {
@@ -54,7 +58,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
   const handleNavigation = (path: string, tabName: string) => {
     hapticLight();
     setActiveTab(tabName);
-    router.push(path);
+    router.push(path, { scroll: false });
   };
 
   const handleCreatePlaylist = () => {
@@ -77,7 +81,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       return;
     }
     setActiveTab("profile");
-    router.push(`/${userHash}`);
+    router.push(`/${userHash}`, { scroll: false });
   };
 
   const handleSearchNavigation = () => {
@@ -89,7 +93,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
     }
     // Otherwise navigate to home (search bar will be visible)
     setActiveTab("search");
-    router.push("/");
+    router.push("/", { scroll: false });
   };
 
   const tabs = [
