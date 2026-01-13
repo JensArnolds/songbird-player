@@ -104,38 +104,10 @@ export default function MiniPlayer({
       animate={{ y: 0 }}
       exit={{ y: 100 }}
       transition={springPresets.gentle}
-      className="safe-bottom fixed right-0 bottom-0 left-0 z-50 border-t border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.96)] shadow-[0_-16px_48px_rgba(5,10,18,0.8)] backdrop-blur-2xl relative"
+      className="safe-bottom fixed right-0 left-0 z-50 border-t border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.96)] shadow-[0_-16px_48px_rgba(5,10,18,0.8)] backdrop-blur-2xl relative md:bottom-0 bottom-[68px]"
     >
       {}
       <AutoQueueBadge count={lastAutoQueueCount} />
-
-      {}
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-        <motion.div
-          animate={{
-            y: [0, -3, 0],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="flex flex-col items-center gap-1"
-        >
-          <div className="w-10 h-1 rounded-full bg-[var(--color-accent)]/60 shadow-lg shadow-[var(--color-accent)]/30" />
-          <svg
-            className="h-4 w-4 text-[var(--color-accent)]/40"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </motion.div>
-      </div>
 
       {}
       <div
@@ -152,7 +124,7 @@ export default function MiniPlayer({
 
       {}
       <motion.div
-        className="flex cursor-pointer items-center gap-4 px-5 py-4 relative group"
+        className="flex cursor-pointer items-center gap-3 px-4 py-3 relative"
         onTap={handleContainerTap}
         drag="y"
         dragConstraints={{ top: -80, bottom: 0 }}
@@ -162,46 +134,26 @@ export default function MiniPlayer({
         whileTap={{ scale: 0.99 }}
         transition={springPresets.snappy}
       >
-        {}
-        <motion.div 
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          style={{ opacity: swipeHintOpacity }}
-        >
-          <div className="bg-[var(--color-accent)]/30 backdrop-blur-md px-5 py-2.5 rounded-full border-2 border-[var(--color-accent)]/50 shadow-lg">
-            <span className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-wider">
-              Swipe Up to Expand
-            </span>
-          </div>
-        </motion.div>
-        
-        {}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-active:opacity-100 transition-opacity pointer-events-none">
-          <div className="bg-[var(--color-accent)]/20 backdrop-blur-sm px-4 py-2 rounded-full border border-[var(--color-accent)]/30">
-            <span className="text-xs font-semibold text-[var(--color-accent)] uppercase tracking-wide">
-              Tap to Expand
-            </span>
-          </div>
-        </div>
         {currentTrack.album.cover_small ? (
           <Image
             src={currentTrack.album.cover_small}
             alt={currentTrack.title}
-            width={64}
-            height={64}
-            className="flex-shrink-0 rounded-lg shadow-lg ring-2 ring-[rgba(244,178,102,0.3)]"
+            width={48}
+            height={48}
+            className="flex-shrink-0 rounded-md shadow-md"
             priority
             quality={75}
           />
         ) : (
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-[rgba(244,178,102,0.12)] text-[var(--color-muted)] ring-2 ring-[rgba(244,178,102,0.3)]">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-[rgba(244,178,102,0.12)] text-[var(--color-muted)]">
             🎵
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <h4 className="truncate font-medium text-[var(--color-text)]">
+          <h4 className="truncate text-sm font-medium text-[var(--color-text)]">
             {currentTrack.title}
           </h4>
-          <p className="truncate text-sm text-[var(--color-subtext)]">
+          <p className="truncate text-xs text-[var(--color-subtext)]">
             {currentTrack.artist.name}
           </p>
         </div>
@@ -219,15 +171,14 @@ export default function MiniPlayer({
             onPlayPause();
           }}
           data-drag-exempt="true"
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.88 }}
           transition={springPresets.snappy}
-          className="touch-target-lg flex-shrink-0 text-[var(--color-text)] active:bg-[var(--color-accent)]/10 rounded-full p-2 transition-colors"
+          className="touch-target flex-shrink-0 text-[var(--color-text)] rounded-full p-1.5"
           aria-label={isPlaying ? "Pause track" : "Play track"}
           type="button"
         >
           {isPlaying ? (
-            <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -235,7 +186,7 @@ export default function MiniPlayer({
               />
             </svg>
           ) : (
-            <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
@@ -243,33 +194,6 @@ export default function MiniPlayer({
               />
             </svg>
           )}
-        </motion.button>
-        <motion.button
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            hapticLight();
-            onNext();
-          }}
-          onTouchEnd={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            hapticLight();
-            onNext();
-          }}
-          data-drag-exempt="true"
-          disabled={queue.length === 0}
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.05 }}
-          transition={springPresets.snappy}
-          className="touch-target-lg flex-shrink-0 text-[var(--color-subtext)] hover:text-[var(--color-text)] disabled:opacity-50 active:bg-[var(--color-accent)]/10 rounded-full p-2 transition-colors disabled:active:bg-transparent"
-          aria-label="Next track"
-          aria-disabled={queue.length === 0}
-          type="button"
-        >
-          <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
-          </svg>
         </motion.button>
       </motion.div>
     </motion.div>

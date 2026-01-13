@@ -14,6 +14,7 @@ import HamburgerMenu from "@/components/HamburgerMenu";
 import Header from "@/components/Header";
 import MobileContentWrapper from "@/components/MobileContentWrapper";
 import MobileHeader from "@/components/MobileHeader";
+import { MobileFooterWrapper } from "@/components/MobileFooterWrapper";
 import PersistentPlayer from "@/components/PersistentPlayer";
 import { SessionProvider } from "@/components/SessionProvider";
 import { UIWrapper } from "@/components/UIWrapper";
@@ -120,13 +121,15 @@ export default function RootLayout({
                           {}
                           <MobileContentWrapper>
                             {}
-                            <div className="pt-16 pb-24 md:pt-0 md:pb-24">
+                            <div className="pt-16 pb-36 md:pt-0 md:pb-24">
                               {children}
                             </div>
                           </MobileContentWrapper>
                         </UIWrapper>
                         {}
                         <PersistentPlayer />
+                        {}
+                        <MobileFooterWrapper />
                         {}
                         <TrackContextMenu />
                         {}

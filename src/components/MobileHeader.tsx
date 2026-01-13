@@ -3,13 +3,10 @@
 "use client";
 
 import MobileSearchBar from "@/components/MobileSearchBar";
-import { useMenu } from "@/contexts/MenuContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
-import { hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
-import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -19,7 +16,6 @@ export default function MobileHeader() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
-  const { isMenuOpen, toggleMenu } = useMenu();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -178,42 +174,7 @@ export default function MobileHeader() {
       transition={springPresets.gentle}
       className="safe-top fixed top-0 right-0 left-0 z-50 border-b border-[rgba(244,178,102,0.12)] bg-[rgba(10,16,24,0.95)] shadow-lg backdrop-blur-xl"
     >
-      <div className="flex items-center gap-3 px-4 py-3">
-        {}
-        <motion.button
-          onClick={() => {
-            hapticMedium();
-            toggleMenu();
-          }}
-          whileTap={{ scale: 0.9 }}
-          className="touch-target flex-shrink-0 rounded-lg p-2 text-[var(--color-text)] transition hover:bg-[rgba(244,178,102,0.1)]"
-          aria-label="Menu"
-        >
-          <AnimatePresence mode="wait">
-            {isMenuOpen ? (
-              <motion.div
-                key="close"
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={springPresets.snappy}
-              >
-                <X className="h-6 w-6" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="menu"
-                initial={{ rotate: 90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: -90, opacity: 0 }}
-                transition={springPresets.snappy}
-              >
-                <Menu className="h-6 w-6" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.button>
-
+      <div className="flex items-center px-4 py-3">
         {}
         <div className="flex-1">
           <MobileSearchBar

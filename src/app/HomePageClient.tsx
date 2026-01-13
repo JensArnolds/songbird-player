@@ -60,6 +60,18 @@ export default function HomePageClient() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!mounted || !isMobile || !session) return;
+
+    const urlQuery = searchParams.get("q");
+    const albumId = searchParams.get("album");
+    const trackId = searchParams.get("track");
+
+    if (!urlQuery && !albumId && !trackId && session.user?.userHash) {
+      router.replace(`/${session.user.userHash}`);
+    }
+  }, [mounted, isMobile, session, searchParams, router]);
+
   const addSearchQuery = api.music.addSearchQuery.useMutation();
   const { data: recentSearches } = api.music.getRecentSearches.useQuery(
     { limit: 5 },
