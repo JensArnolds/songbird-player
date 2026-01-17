@@ -94,9 +94,7 @@ export default function TrackCard({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     hapticLight();
-    // Prefer deezer_id for sharing as it's the basis for sharing songs
-    const trackId = track.deezer_id ?? track.id;
-    const shareUrl = `${window.location.origin}?track=${trackId}`;
+    const shareUrl = window.location.href;
 
     try {
       if (navigator.share) {

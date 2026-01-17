@@ -57,6 +57,24 @@ export async function GET(
       );
       console.error("[Track API] Error details:", errorText);
 
+      if (response.status === 404 || response.status === 400) {
+        const deezerUrl = new URL(`https://api.deezer.com/track/${id}`);
+        console.log("[Track API] Falling back to Deezer API:", deezerUrl.toString());
+        const deezerResponse = await fetch(deezerUrl.toString(), {
+          signal: AbortSignal.timeout(10000),
+        });
+        if (deezerResponse.ok) {
+          const deezerData = (await deezerResponse.json()) as Record<
+            string,
+            unknown
+          >;
+          if (typeof deezerData.id === "number") {
+            deezerData.deezer_id = deezerData.id;
+          }
+          return NextResponse.json(deezerData);
+        }
+      }
+
       return NextResponse.json(
         {
           error: `Failed to fetch track: ${response.statusText}`,
@@ -68,6 +86,14 @@ export async function GET(
     }
 
     const data = await response.json();
+    if (data && typeof data === "object" && !("deezer_id" in data)) {
+      if (typeof (data as Record<string, unknown>).id === "number") {
+        (data as Record<string, unknown>).deezer_id = (data as Record<
+          string,
+          unknown
+        >).id;
+      }
+    }
     return NextResponse.json(data);
   } catch (error) {
     console.error("[Track API] Error fetching track:", error);

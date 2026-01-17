@@ -165,6 +165,9 @@ export class FlowFieldRenderer {
   private fractalOffsetX = -0.5;
   private fractalOffsetY = 0;
   private juliaC = { re: -0.7, im: 0.27 };
+  private fractalImageData: ImageData | null = null;
+  private fractalImageDataWidth = 0;
+  private fractalImageDataHeight = 0;
 
   private particleCount = 800;
   private particleSize = 2.0;
@@ -728,7 +731,16 @@ export class FlowFieldRenderer {
     midIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const imageData = ctx.createImageData(this.width, this.height);
+    if (
+      !this.fractalImageData ||
+      this.fractalImageDataWidth !== this.width ||
+      this.fractalImageDataHeight !== this.height
+    ) {
+      this.fractalImageData = ctx.createImageData(this.width, this.height);
+      this.fractalImageDataWidth = this.width;
+      this.fractalImageDataHeight = this.height;
+    }
+    const imageData = this.fractalImageData;
     const data = imageData.data;
 
     this.juliaC.re =
@@ -740,7 +752,7 @@ export class FlowFieldRenderer {
       (0.02 + audioIntensity * 0.05) *
       (1 + this.fastSin(this.time * 0.002) * 0.5);
 
-    const maxIter = 30 + ((audioIntensity * 30) | 0);
+    const maxIter = Math.min(40, 24 + ((audioIntensity * 20) | 0));
     const zoom = Math.pow(1.5, this.fractalZoom);
 
     const scaleX = 1 / (this.width * 0.25 * zoom);
@@ -750,7 +762,9 @@ export class FlowFieldRenderer {
     const invMaxIter = 1 / maxIter;
     const timeWave = this.fastSin(this.time * 0.002) * 60;
 
-    const step = audioIntensity > 0.7 ? 2 : 3;
+    const pixelCount = this.width * this.height;
+    const stepBoost = pixelCount > 500_000 ? 1 : 0;
+    const step = (audioIntensity > 0.75 ? 2 : 3) + stepBoost;
 
     for (let py = 0; py < this.height; py += step) {
       for (let px = 0; px < this.width; px += step) {

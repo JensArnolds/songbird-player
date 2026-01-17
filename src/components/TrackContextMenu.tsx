@@ -167,10 +167,7 @@ export function TrackContextMenu() {
     if (!track) return;
     hapticLight();
 
-    const shareUrl = new URL(window.location.origin);
-    // Prefer deezer_id for sharing as it's the basis for sharing songs
-    const trackId = track.deezer_id ?? track.id;
-    shareUrl.searchParams.set("track", trackId.toString());
+    const shareUrl = new URL(window.location.href);
 
     if (isShareSupported) {
       const success = await share({

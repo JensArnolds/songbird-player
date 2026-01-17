@@ -5,6 +5,27 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.12] - 2026-01-17
+
+### Fixed
+
+- **Mobile Search Clear Behavior**: Ensured clearing a non-empty search reliably returns to `/`
+  - Uses previous query tracking to avoid skipping the first clear
+  - **Impact**: Search URL clears consistently on mobile
+  - Location: `src/components/MobileHeader.tsx`
+
+- **Search Clear Regression Test**: Stabilized test coverage for clear behavior
+  - **Impact**: Prevents regressions in search clear routing
+  - Location: `src/__tests__/MobileHeader.test.tsx`
+
+- **Share URL Source**: Reverted track sharing to use the current page URL
+  - **Impact**: Shares now reflect the exact page context
+  - Locations:
+    - `src/components/TrackCard.tsx`
+    - `src/components/SwipeableTrackCard.tsx`
+    - `src/components/EnhancedTrackCard.tsx`
+    - `src/components/TrackContextMenu.tsx`
+
 ## [0.9.11] - 2026-01-17
 
 ### Added

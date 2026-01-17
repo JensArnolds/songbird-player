@@ -4,7 +4,7 @@
 
 import { useToast } from "@/contexts/ToastContext";
 import { api } from "@/trpc/react";
-import type { QueuedTrack, SmartQueueSettings, SmartQueueState, Track } from "@/types";
+import type { QueuedTrack, SmartQueueState, Track } from "@/types";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import {
@@ -25,16 +25,13 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical,
-  Loader2,
   Play,
   RefreshCw,
   Save,
   Search,
-  Settings,
   Sparkles,
   Trash2,
-  X,
-  Zap,
+  X
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";

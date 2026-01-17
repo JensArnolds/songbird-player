@@ -104,13 +104,6 @@ describe("MobileHeader", () => {
     });
 
     await Promise.resolve();
-    if (navigationState.push.mock.calls.length === 0) {
-      await act(async () => {
-        latestSearchBarProps?.onChange("");
-        latestSearchBarProps?.onClear?.();
-      });
-      await Promise.resolve();
-    }
     expect(navigationState.push).toHaveBeenCalledWith("/");
   });
 });

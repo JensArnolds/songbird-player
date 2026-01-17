@@ -1,6 +1,6 @@
 {
   "name": "songbird-player",
-  "version": "0.9.11",
+  "version": "0.9.12",
   "description": "A modern music streaming and discovery platform with intelligent recommendations, advanced audio features, and a beautiful user interface",
   "private": true,
   "type": "module",
@@ -148,7 +148,7 @@
     "eslint-plugin-drizzle": "^0.2.3",
     "jsdom": "^26.1.0",
     "postcss": "^8.5.6",
-    "prettier": "^3.7.4",
+    "prettier": "3.8.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",

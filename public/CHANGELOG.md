@@ -5,9 +5,61 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.12] - 2026-01-17
+
+### Fixed
+
+- **Mobile Search Clear Behavior**: Ensured clearing a non-empty search reliably returns to `/`
+  - Uses previous query tracking to avoid skipping the first clear
+  - **Impact**: Search URL clears consistently on mobile
+  - Location: `src/components/MobileHeader.tsx`
+
+- **Search Clear Regression Test**: Stabilized test coverage for clear behavior
+  - **Impact**: Prevents regressions in search clear routing
+  - Location: `src/__tests__/MobileHeader.test.tsx`
+
+- **Share URL Source**: Reverted track sharing to use the current page URL
+  - **Impact**: Shares now reflect the exact page context
+  - Locations:
+    - `src/components/TrackCard.tsx`
+    - `src/components/SwipeableTrackCard.tsx`
+    - `src/components/EnhancedTrackCard.tsx`
+    - `src/components/TrackContextMenu.tsx`
+
 ## [0.9.11] - 2026-01-17
 
 ### Added
+
+- **Deezer ID Database Columns**: Added `deezer_id` as dedicated columns to all tables storing song/track data
+  - Added `deezerId` column to `favorites`, `playlist_tracks`, `listening_history`, `listening_analytics`, and `audio_features` tables
+  - Added `seedDeezerId` column to `recommendation_cache` table
+  - Added `currentTrackDeezerId` column to `playback_state` table
+  - All columns are indexed for fast lookups and querying
+  - **Impact**: Deezer song IDs are now stored as dedicated columns, enabling efficient querying and serving as the basis for sharing songs
+  - **Migration**: Run `npm run db:migrate` or `npm run db:push` to apply schema changes
+  - Locations:
+    - `src/server/db/schema.ts`
+    - `src/server/api/routers/music.ts`
+    - `drizzle/0016_add_deezer_id_columns.sql`
+
+- **Deezer ID Type Support**: Added `deezer_id` field to Track type definition and validation
+  - Track interface now includes optional `deezer_id` field
+  - API routes automatically extract and preserve `deezer_id` from responses
+  - **Impact**: Type-safe handling of Deezer IDs throughout the application
+  - Locations:
+    - `src/types/index.ts`
+    - `src/app/api/album/[id]/tracks/route.ts`
+    - `src/app/api/artist/[id]/tracks/route.ts`
+
+- **Deezer ID in Sharing**: Updated all sharing functionality to prefer `deezer_id` when available
+  - Share URLs now use `deezer_id` as the primary identifier for tracks
+  - Falls back to `track.id` if `deezer_id` is not present
+  - **Impact**: Shared song links use consistent Deezer IDs for reliable sharing
+  - Locations:
+    - `src/components/TrackContextMenu.tsx`
+    - `src/components/TrackCard.tsx`
+    - `src/components/SwipeableTrackCard.tsx`
+    - `src/components/EnhancedTrackCard.tsx`
 
 - **Background Playback Toggle**: Added a user preference to keep audio playing in the background
   - New setting under Playback for background playback
@@ -65,6 +117,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GitLab Branding**: Updated the start page GitLab button to use the correct logo
   - **Impact**: Visual branding matches the GitLab destination
   - Location: `src/app/HomePageClient.tsx`
+
+- **Global Player Track Playback**: Aligned `play` vs `playTrack` semantics to avoid passing tracks into a parameterless resume call
+  - **Impact**: Prevents runtime errors when playing a selected track
+  - Locations:
+    - `src/contexts/AudioPlayerContext.tsx`
+    - `src/app/HomePageClient.tsx`
+    - `src/components/TrackContextMenu.tsx`
+    - `src/components/PlaylistContextMenu.tsx`
+    - `src/app/playlists/[id]/page.tsx`
+    - `src/app/artist/[id]/page.tsx`
+    - `src/app/album/[id]/page.tsx`
+    - `src/app/[userhash]/page.tsx`
+
+- **Artist Tracks API Filtering**: Filtered invalid entries before enriching tracks with `deezer_id`
+  - **Impact**: Prevents `null` or primitive entries in artist track responses
+  - Location: `src/app/api/artist/[id]/tracks/route.ts`
 
 ## [0.9.9] - 2026-01-17
 
