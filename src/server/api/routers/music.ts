@@ -1528,6 +1528,56 @@ export const musicRouter = createTRPCRouter({
           }));
 
         try {
+          const fetchTracksByDeezerIds = async (ids: number[]): Promise<Track[]> => {
+            if (ids.length === 0) return [];
+            const tracksResponse = await songbird.request<unknown>(
+              `/music/tracks/batch?ids=${ids.join(",")}`,
+            );
+            const tracks = Array.isArray(tracksResponse)
+              ? tracksResponse.filter((item): item is Track => isTrack(item))
+              : [];
+
+            const hydratedTracks = tracks.map((track) => ({
+              ...track,
+              deezer_id: track.deezer_id ?? track.id,
+            }));
+
+            const filtered = filterRecommendations(hydratedTracks, {
+              excludeTrackIds: [
+                ...(input.excludeTrackIds ?? []),
+                input.trackId,
+              ],
+              maxExplicit: input.excludeExplicit ? false : undefined,
+            });
+
+            return filtered.slice(0, input.limit);
+          };
+
+          const convertToDeezerIds = async (
+            tracks: Array<{ name: string; artist?: string }>,
+          ): Promise<number[]> => {
+            if (tracks.length === 0) return [];
+            const conversionResponse = await songbird.request<{
+              tracks?: Array<{ deezerId?: unknown }>;
+            }>("/api/deezer/tracks/convert", {
+              method: "POST",
+              body: JSON.stringify({
+                tracks: tracks.map((track) => ({
+                  name: track.name,
+                  artist: track.artist,
+                })),
+              }),
+            });
+
+            return Array.from(
+              new Set(
+                (conversionResponse.tracks ?? [])
+                  .map((track) => normalizeDeezerId(track.deezerId))
+                  .filter((id): id is number => typeof id === "number"),
+              ),
+            );
+          };
+
           const mode =
             input.similarityLevel === "strict"
               ? "strict"
@@ -1560,27 +1610,88 @@ export const musicRouter = createTRPCRouter({
           );
 
           if (deezerIds.length > 0) {
-            const tracksResponse = await songbird.request<unknown>(
-              `/music/tracks/batch?ids=${deezerIds.join(",")}`,
+            const tracks = await fetchTracksByDeezerIds(deezerIds);
+            if (tracks.length > 0) {
+              return tracks;
+            }
+          }
+
+          const similarResponse = await songbird.request<unknown>(
+            `/api/lastfm/track/similar?artist=${encodeURIComponent(
+              seedTrack.artist.name,
+            )}&track=${encodeURIComponent(seedTrack.title)}&limit=${Math.min(
+              input.limit + 10,
+              100,
+            )}`,
+          );
+
+          const similarCandidates = (() => {
+            const payload = similarResponse as {
+              similartracks?: { track?: Array<unknown> };
+              track?: Array<unknown>;
+            };
+            const rawTracks =
+              payload.similartracks?.track ?? payload.track ?? [];
+            return rawTracks
+              .map((entry) => {
+                if (!entry || typeof entry !== "object") return null;
+                const record = entry as Record<string, unknown>;
+                const name = typeof record.name === "string" ? record.name : null;
+                let artist: string | undefined;
+                const rawArtist = record.artist;
+                if (typeof rawArtist === "string") {
+                  artist = rawArtist;
+                } else if (rawArtist && typeof rawArtist === "object") {
+                  const artistRecord = rawArtist as Record<string, unknown>;
+                  if (typeof artistRecord.name === "string") {
+                    artist = artistRecord.name;
+                  }
+                }
+                if (!name) return null;
+                return { name, artist };
+              })
+              .filter((track): track is { name: string; artist?: string } =>
+                Boolean(track?.name),
+              );
+          })();
+
+          const similarDeezerIds = await convertToDeezerIds(similarCandidates);
+          if (similarDeezerIds.length > 0) {
+            const tracks = await fetchTracksByDeezerIds(similarDeezerIds);
+            if (tracks.length > 0) {
+              return tracks;
+            }
+          }
+
+          const spotifyResponse = await songbird.request<{
+            tracks?: Array<{
+              name?: string;
+              artists?: Array<{ name?: string }>;
+            }>;
+          }>("/api/spotify/recommendations/from-search", {
+            method: "POST",
+            body: JSON.stringify({
+              query: `${seedTrack.artist.name} ${seedTrack.title}`,
+              limit: Math.min(input.limit + 10, 100),
+            }),
+          });
+
+          const spotifyCandidates = (spotifyResponse.tracks ?? [])
+            .map((track) => {
+              if (!track?.name) return null;
+              const artist = track.artists?.[0]?.name;
+              return { name: track.name, artist };
+            })
+            .filter((track): track is { name: string; artist?: string } =>
+              Boolean(track?.name),
             );
-            const tracks = Array.isArray(tracksResponse)
-              ? tracksResponse.filter((item): item is Track => isTrack(item))
-              : [];
 
-            const hydratedTracks = tracks.map((track) => ({
-              ...track,
-              deezer_id: track.deezer_id ?? track.id,
-            }));
-
-            const filtered = filterRecommendations(hydratedTracks, {
-              excludeTrackIds: [
-                ...(input.excludeTrackIds ?? []),
-                input.trackId,
-              ],
-              maxExplicit: input.excludeExplicit ? false : undefined,
-            });
-
-            return filtered.slice(0, input.limit);
+          const spotifyDeezerIds = await convertToDeezerIds(spotifyCandidates);
+          if (spotifyDeezerIds.length > 0) {
+            const tracks = await fetchTracksByDeezerIds(spotifyDeezerIds);
+            if (tracks.length > 0) {
+              return tracks;
+            }
           }
         } catch (error) {
           console.error("[getSimilarTracks] Songbird recommendations failed:", error);

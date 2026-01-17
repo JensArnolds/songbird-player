@@ -26,7 +26,6 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical,
   Play,
-  RefreshCw,
   Save,
   Search,
   Sparkles,
@@ -101,22 +100,21 @@ function SortableQueueItem({
         onToggleSelect(e);
       }}
       tabIndex={0}
-      className={`group relative flex items-center gap-3 p-3 transition-colors cursor-pointer ${
-        isSelected
+      className={`group relative flex items-center gap-3 p-3 transition-colors cursor-pointer ${isSelected
           ? "bg-[rgba(88,198,177,0.18)] ring-2 ring-[rgba(88,198,177,0.4)]"
           : isActive
             ? "bg-[rgba(244,178,102,0.16)] ring-1 ring-[rgba(244,178,102,0.3)]"
             : isSmartTrack
               ? "bg-[rgba(88,198,177,0.04)] hover:bg-[rgba(88,198,177,0.08)]"
               : "hover:bg-[rgba(244,178,102,0.08)]"
-      }`}
+        }`}
     >
-      {}
+      { }
       {isSmartTrack && (
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--color-accent-strong)] rounded-r" />
       )}
 
-      {}
+      { }
       <button
         className="flex-shrink-0 cursor-grab text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)] active:cursor-grabbing"
         {...attributes}
@@ -125,12 +123,12 @@ function SortableQueueItem({
         <GripVertical className="h-5 w-5" />
       </button>
 
-      {}
+      { }
       <div className="w-6 flex-shrink-0 text-center text-sm text-[var(--color-muted)]">
         {index + 1}
       </div>
 
-      {}
+      { }
       <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-[rgba(255,255,255,0.05)]">
         {coverImage ? (
           <Image
@@ -147,7 +145,7 @@ function SortableQueueItem({
             🎵
           </div>
         )}
-        {}
+        { }
         <button
           onClick={onPlay}
           className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100"
@@ -157,7 +155,7 @@ function SortableQueueItem({
         </button>
       </div>
 
-      {}
+      { }
       <div className="min-w-0 flex-1">
         <h4 className="truncate text-sm font-medium text-[var(--color-text)]">
           {track.title}
@@ -173,12 +171,12 @@ function SortableQueueItem({
         </div>
       </div>
 
-      {}
+      { }
       <span className="flex-shrink-0 text-xs text-[var(--color-muted)] tabular-nums">
         {formatDuration(track.duration)}
       </span>
 
-      {}
+      { }
       {canRemove && (
         <button
           onClick={(e) => {
@@ -469,7 +467,7 @@ export function EnhancedQueue({
 
   return (
     <div className="fixed inset-y-0 right-0 z-[60] flex w-full max-w-md flex-col border-l border-[rgba(244,178,102,0.14)] bg-[rgba(10,16,24,0.96)] shadow-[0_0_40px_rgba(5,10,18,0.65)] backdrop-blur-lg">
-      {}
+      { }
       <div className="flex flex-col gap-3 border-b border-[rgba(244,178,102,0.12)] p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -530,7 +528,7 @@ export function EnhancedQueue({
           </div>
         </div>
 
-        {}
+        { }
         {selectedIndices.size > 0 && (
           <div className="flex items-center gap-2 rounded-lg border border-[rgba(88,198,177,0.25)] bg-[rgba(88,198,177,0.12)] p-3">
             <span className="text-sm font-medium text-[var(--color-text)]">
@@ -553,7 +551,7 @@ export function EnhancedQueue({
           </div>
         )}
 
-        {}
+        { }
         {queue.length > 0 && (
           <div className="relative">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)]" />
@@ -575,18 +573,18 @@ export function EnhancedQueue({
           </div>
         )}
 
-        {}
+        { }
         {
 
-}
+        }
 
-        {}
+        { }
         {
 
-}
+        }
       </div>
 
-      {}
+      { }
       <div
         ref={queueListRef}
         className="flex-1 overflow-y-auto overscroll-contain scroll-smooth"
@@ -619,7 +617,7 @@ export function EnhancedQueue({
               strategy={verticalListSortingStrategy}
             >
               <div>
-                {}
+                { }
                 {filteredNowPlaying && (
                   <div className="border-b border-[rgba(255,255,255,0.05)]">
                     <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider bg-[rgba(245,241,232,0.02)]">
@@ -642,7 +640,7 @@ export function EnhancedQueue({
                   </div>
                 )}
 
-                {}
+                { }
                 {filteredUserTracks.length > 0 && (
                   <div className="border-b border-[rgba(255,255,255,0.05)]">
                     <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)]">
@@ -669,71 +667,13 @@ export function EnhancedQueue({
                   </div>
                 )}
 
-                {}
-                {smartQueueState.isActive && smartTracks.length > 0 && (
-                  <div className="flex items-center gap-2 px-3 py-2 border-y border-[rgba(245,241,232,0.1)]">
-                    <button
-                      onClick={() => handleSmartTracksAction("refresh")}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[rgba(88,198,177,0.1)] hover:bg-[rgba(88,198,177,0.2)] transition-colors"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      Refresh
-                    </button>
-                    <button
-                      onClick={() => onClearSmartTracks?.()}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[rgba(248,139,130,0.1)] hover:bg-[rgba(248,139,130,0.2)] transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                      Clear smart tracks
-                    </button>
-                  </div>
-                )}
-
-                {}
-                {filteredSmartTracks.length > 0 && (
-                  <div className="border-b border-[rgba(255,255,255,0.05)]">
-                    <div className="px-3 py-2 text-xs font-semibold text-[var(--color-accent-strong)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)] flex items-center gap-2">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Next from: Smart Queue
-                    </div>
-                    <div className="divide-y divide-[rgba(255,255,255,0.05)]">
-                      {filteredSmartTracks.map(({ track, index, sortableId, isSmartTrack }) => (
-                        <div key={sortableId} data-track-id={track.id}>
-                          <SortableQueueItem
-                            sortableId={sortableId}
-                            track={track}
-                            index={index}
-                            isActive={currentTrack?.id === track.id}
-                            isSelected={selectedIndices.has(index)}
-                            onPlay={() => onPlayFrom(index)}
-                            onRemove={() => onRemove(index)}
-                            onToggleSelect={(e) => handleToggleSelect(index, e.shiftKey)}
-                            isSmartTrack={isSmartTrack}
-                            canRemove={index !== 0}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {}
-                {!smartQueueState.isActive && queuedTracks.length > 0 && onAddSmartTracks && (
-                  <button
-                    onClick={() => handleSmartTracksAction("add")}
-                    className="mx-3 my-2 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[rgba(88,198,177,0.1)] hover:bg-[rgba(88,198,177,0.2)] transition-colors"
-                  >
-                    <Sparkles className="h-4 w-4 text-[var(--color-accent-strong)]" />
-                    <span className="text-sm font-medium">Add smart tracks</span>
-                  </button>
-                )}
               </div>
             </SortableContext>
           </DndContext>
         )}
       </div>
 
-      {}
+      { }
       {queue.length > 0 && (
         <div className="border-t border-[rgba(244,178,102,0.12)] p-4 text-sm text-[var(--color-subtext)]">
           <div className="flex items-center justify-between">
