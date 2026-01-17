@@ -26,6 +26,8 @@ export default function MobileHeader() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const searchingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasSeenNonEmptyQueryRef = useRef(false);
+  const skipEmptyClearRef = useRef(false);
 
   const { data: recentSearches } = api.music.getRecentSearches.useQuery(
     { limit: 50 },
@@ -36,6 +38,8 @@ export default function MobileHeader() {
     const urlQuery = searchParams.get("q");
     if (urlQuery) {
       setSearchQuery(urlQuery);
+      hasSeenNonEmptyQueryRef.current = true;
+      skipEmptyClearRef.current = true;
     } else {
       setSearchQuery("");
     }
@@ -65,7 +69,11 @@ export default function MobileHeader() {
       setCountdown(0);
       // Only redirect to / if we're currently on a search page (has ?q= param)
       const currentUrlQuery = searchParams.get("q");
-      if (currentUrlQuery) {
+      if (skipEmptyClearRef.current && currentUrlQuery) {
+        skipEmptyClearRef.current = false;
+        return;
+      }
+      if (currentUrlQuery && hasSeenNonEmptyQueryRef.current) {
         router.push("/");
       }
       return;
@@ -77,8 +85,11 @@ export default function MobileHeader() {
     if (currentUrlQuery === trimmedQuery) {
       // URL already matches query, don't start new countdown
       setCountdown(0);
+      hasSeenNonEmptyQueryRef.current = true;
       return;
     }
+
+    hasSeenNonEmptyQueryRef.current = true;
 
     // Reset countdown to 2000ms
     setCountdown(2000);

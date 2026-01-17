@@ -5,7 +5,7 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.10] - 2026-01-17
+## [0.9.11] - 2026-01-17
 
 ### Added
 
@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `src/server/api/routers/music.ts`
 
 ### Fixed
+
+- **Mobile Search URL Persistence**: Prevented search URLs from reverting to the base route after search
+  - Avoids clearing the URL when the query is still active
+  - **Impact**: Search URLs stay stable after searching
+  - Location: `src/components/MobileHeader.tsx`
+
+- **Search URL Regression Test**: Added coverage to prevent future URL resets
+  - **Impact**: Guards against search URL regressions
+  - Location: `src/__tests__/MobileHeader.test.tsx`
 
 - **Queue State Persistence Types**: Serialized queue fields to match API schema
   - `queuedTracks.addedAt` now persists as ISO strings

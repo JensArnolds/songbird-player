@@ -97,6 +97,7 @@ export const favorites = createTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     trackId: d.bigint({ mode: "number" }).notNull(),
+    deezerId: d.bigint({ mode: "number" }),
     trackData: d.jsonb().notNull(),
     createdAt: d
       .timestamp({ withTimezone: true })
@@ -106,6 +107,7 @@ export const favorites = createTable(
   (t) => [
     index("favorite_user_idx").on(t.userId),
     index("favorite_track_idx").on(t.trackId),
+    index("favorite_deezer_id_idx").on(t.deezerId),
     index("favorite_user_track_idx").on(t.userId, t.trackId),
     unique("favorite_user_track_unique").on(t.userId, t.trackId),
   ],
@@ -144,6 +146,7 @@ export const playlistTracks = createTable(
       .notNull()
       .references(() => playlists.id, { onDelete: "cascade" }),
     trackId: d.bigint({ mode: "number" }).notNull(),
+    deezerId: d.bigint({ mode: "number" }),
     trackData: d.jsonb().notNull(),
     position: d.integer().notNull(),
     addedAt: d
@@ -154,6 +157,7 @@ export const playlistTracks = createTable(
   (t) => [
     index("playlist_track_playlist_idx").on(t.playlistId),
     index("playlist_track_position_idx").on(t.playlistId, t.position),
+    index("playlist_track_deezer_id_idx").on(t.deezerId),
     unique("playlist_track_unique").on(t.playlistId, t.trackId),
   ],
 );
@@ -167,6 +171,7 @@ export const listeningHistory = createTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     trackId: d.bigint({ mode: "number" }).notNull(),
+    deezerId: d.bigint({ mode: "number" }),
     trackData: d.jsonb().notNull(),
     playedAt: d
       .timestamp({ withTimezone: true })
@@ -177,6 +182,7 @@ export const listeningHistory = createTable(
   (t) => [
     index("history_user_idx").on(t.userId),
     index("history_played_idx").on(t.playedAt),
+    index("history_deezer_id_idx").on(t.deezerId),
     index("history_user_played_idx").on(t.userId, t.playedAt),
   ],
 );
@@ -303,6 +309,7 @@ export const playbackState = createTable(
       .integer()
       .references(() => playerSessions.id, { onDelete: "set null" }),
     currentTrack: d.jsonb(),
+    currentTrackDeezerId: d.bigint({ mode: "number" }),
     currentPosition: d.integer().default(0),
     queue: d.jsonb(),
     history: d.jsonb(),
@@ -317,6 +324,7 @@ export const playbackState = createTable(
   (t) => [
     index("playback_user_idx").on(t.userId),
     index("playback_session_idx").on(t.sessionId),
+    index("playback_current_deezer_id_idx").on(t.currentTrackDeezerId),
     index("playback_updated_idx").on(t.lastUpdated),
   ],
 );
@@ -330,6 +338,7 @@ export const listeningAnalytics = createTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     trackId: d.bigint({ mode: "number" }).notNull(),
+    deezerId: d.bigint({ mode: "number" }),
     trackData: d.jsonb().notNull(),
     sessionId: d
       .integer()
@@ -349,6 +358,7 @@ export const listeningAnalytics = createTable(
   (t) => [
     index("analytics_user_idx").on(t.userId),
     index("analytics_track_idx").on(t.trackId),
+    index("analytics_deezer_id_idx").on(t.deezerId),
     index("analytics_played_idx").on(t.playedAt),
     index("analytics_session_idx").on(t.sessionId),
     index("analytics_context_idx").on(t.playContext, t.contextId),
@@ -361,6 +371,7 @@ export const recommendationCache = createTable(
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     seedTrackId: d.bigint({ mode: "number" }).notNull(),
+    seedDeezerId: d.bigint({ mode: "number" }),
     recommendedTrackIds: d.jsonb().notNull(),
     recommendedTracksData: d.jsonb().notNull(),
     source: d.varchar({ length: 50 }).default("deezer").notNull(),
@@ -372,6 +383,7 @@ export const recommendationCache = createTable(
   }),
   (t) => [
     index("rec_cache_seed_idx").on(t.seedTrackId),
+    index("rec_cache_seed_deezer_id_idx").on(t.seedDeezerId),
     index("rec_cache_expires_idx").on(t.expiresAt),
     index("rec_cache_source_idx").on(t.source),
   ],
@@ -413,6 +425,7 @@ export const audioFeatures = createTable(
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     trackId: d.bigint({ mode: "number" }).notNull().unique(),
+    deezerId: d.bigint({ mode: "number" }),
     bpm: d.real(),
     key: d.varchar({ length: 10 }),
     energy: d.real(),
@@ -432,6 +445,7 @@ export const audioFeatures = createTable(
   }),
   (t) => [
     index("audio_features_track_idx").on(t.trackId),
+    index("audio_features_deezer_id_idx").on(t.deezerId),
     index("audio_features_bpm_idx").on(t.bpm),
     index("audio_features_energy_idx").on(t.energy),
     index("audio_features_key_idx").on(t.key),

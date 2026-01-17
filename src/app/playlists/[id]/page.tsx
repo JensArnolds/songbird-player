@@ -99,7 +99,7 @@ export default function PlaylistDetailPage() {
     if (first) {
 
       player.clearQueue();
-      player.play(first.track);
+      player.playTrack(first.track);
       if (rest.length > 0) {
         player.addToQueue(rest.map((t) => t.track));
       }

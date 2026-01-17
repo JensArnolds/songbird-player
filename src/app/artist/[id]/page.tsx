@@ -116,7 +116,7 @@ export default function ArtistPage({
     const [first, ...rest] = tracks;
     if (first) {
       player.clearQueue();
-      player.play(first);
+      player.playTrack(first);
       if (rest.length > 0) {
         player.addToQueue(rest);
       }
@@ -130,7 +130,7 @@ export default function ArtistPage({
     const [first, ...rest] = shuffled;
     if (first) {
       player.clearQueue();
-      player.play(first);
+      player.playTrack(first);
       if (rest.length > 0) {
         player.addToQueue(rest);
       }

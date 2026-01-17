@@ -635,13 +635,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     document.addEventListener("freeze", handleFreeze);
     document.addEventListener("resume", handleResume);
 
+    // On WebKit devices, use WebKit-specific handlers; otherwise use standard HTML5 handlers
+    // This prevents duplicate event handlers from firing
     if ("onwebkitbegininvokeactivity" in window) {
       window.addEventListener("pagehide", handleAudioInterruption);
       window.addEventListener("pageshow", handleAudioInterruptionEnd);
+    } else {
+      window.addEventListener("pagehide", handlePageHide);
+      window.addEventListener("pageshow", handlePageShow);
     }
-
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("pageshow", handlePageShow);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -650,9 +652,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       if ("onwebkitbegininvokeactivity" in window) {
         window.removeEventListener("pagehide", handleAudioInterruption);
         window.removeEventListener("pageshow", handleAudioInterruptionEnd);
+      } else {
+        window.removeEventListener("pagehide", handlePageHide);
+        window.removeEventListener("pageshow", handlePageShow);
       }
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("pageshow", handlePageShow);
     };
   }, [keepPlaybackAlive, onBackgroundResumeError]);
 

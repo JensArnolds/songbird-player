@@ -49,6 +49,7 @@ export interface Track {
   bpm?: number;
   gain?: number;
   release_date?: string;
+  deezer_id?: number | string; // Deezer song ID - critical for sharing and track identification
 }
 
 export type QueueSource =

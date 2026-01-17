@@ -132,10 +132,13 @@ export default function SwipeableTrackCard({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     hapticLight();
+    // Prefer deezer_id for sharing as it's the basis for sharing songs
+    const trackId = track.deezer_id ?? track.id;
+    const shareUrl = `${window.location.origin}?track=${trackId}`;
     const success = await share({
       title: `${track.title} - ${track.artist.name}`,
       text: `Check out "${track.title}" by ${track.artist.name} on darkfloor.art!`,
-      url: window.location.href,
+      url: shareUrl,
     });
     if (success) {
       showToast("Track shared successfully!", "success");

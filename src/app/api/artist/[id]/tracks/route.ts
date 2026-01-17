@@ -46,14 +46,34 @@ export async function GET(
       data: unknown[];
       total?: number;
     };
+    
+    const validTracks = (data.data || []).filter(
+      (track): track is Record<string, unknown> =>
+        typeof track === "object" && track !== null,
+    );
+
+    // Ensure deezer_id is set for all tracks - when coming from Deezer API, id IS the deezer_id
+    const enrichedTracks = validTracks.map((track) => {
+      const trackObj = track as {
+        id?: number;
+        deezer_id?: number;
+        [key: string]: unknown;
+      };
+      return {
+        ...trackObj,
+        // Set deezer_id to id if not already present (critical for sharing)
+        deezer_id: trackObj.deezer_id ?? trackObj.id,
+      };
+    });
+    
     console.log(
-      `[Artist Tracks API] Successfully fetched ${data.data?.length ?? 0} tracks for artist ${artistId}`,
+      `[Artist Tracks API] Successfully fetched ${enrichedTracks.length} tracks for artist ${artistId}`,
     );
 
     return NextResponse.json(
       {
-        data: data.data || [],
-        total: data.total ?? data.data?.length ?? 0,
+        data: enrichedTracks,
+        total: data.total ?? enrichedTracks.length,
       },
       {
         headers: {

@@ -124,7 +124,7 @@ export function TrackContextMenu() {
   const handlePlay = () => {
     if (!track) return;
     hapticMedium();
-    player.play(track);
+    player.playTrack(track);
     closeMenu();
   };
 
@@ -168,7 +168,9 @@ export function TrackContextMenu() {
     hapticLight();
 
     const shareUrl = new URL(window.location.origin);
-    shareUrl.searchParams.set("track", track.id.toString());
+    // Prefer deezer_id for sharing as it's the basis for sharing songs
+    const trackId = track.deezer_id ?? track.id;
+    shareUrl.searchParams.set("track", trackId.toString());
 
     if (isShareSupported) {
       const success = await share({

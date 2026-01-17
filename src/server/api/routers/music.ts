@@ -75,7 +75,20 @@ const trackSchema = z.object({
     type: z.literal("album"),
   }),
   type: z.literal("track"),
+  deezer_id: z.union([z.number(), z.string()]).optional(), // Deezer song ID - critical for sharing
 });
+
+// Helper function to extract deezer_id from a track object
+function getDeezerId(track: z.infer<typeof trackSchema>): number | undefined {
+  if (track.deezer_id !== undefined) {
+    return typeof track.deezer_id === "string" 
+      ? parseInt(track.deezer_id, 10) || undefined
+      : track.deezer_id;
+  }
+  // If no deezer_id is explicitly set, the id might be the deezer_id (when coming from Deezer API)
+  // But we can't assume this, so return undefined
+  return undefined;
+}
 
 async function syncAutoFavorites(database: typeof db, userId: string) {
 
@@ -135,11 +148,15 @@ async function syncAutoFavorites(database: typeof db, userId: string) {
   );
   if (toAdd.length > 0) {
     await database.insert(favorites).values(
-      toAdd.map((t: { trackId: number; trackData: unknown }) => ({
-        userId,
-        trackId: t.trackId,
-        trackData: t.trackData,
-      })),
+      toAdd.map((t: { trackId: number; trackData: unknown }) => {
+        const track = t.trackData as Track;
+        return {
+          userId,
+          trackId: t.trackId,
+          deezerId: getDeezerId(track as z.infer<typeof trackSchema>),
+          trackData: t.trackData,
+        };
+      }),
     );
   }
 }
@@ -163,6 +180,8 @@ export const musicRouter = createTRPCRouter({
       await ctx.db.insert(favorites).values({
         userId: ctx.session.user.id,
         trackId: input.track.id,
+        deezerId: getDeezerId(input.track),
+        // trackData stores the full track object as jsonb, preserving deezer_id and all other fields
         trackData: input.track as unknown as Record<string, unknown>,
       });
 
@@ -544,6 +563,8 @@ export const musicRouter = createTRPCRouter({
       await ctx.db.insert(playlistTracks).values({
         playlistId: input.playlistId,
         trackId: input.track.id,
+        deezerId: getDeezerId(input.track),
+        // trackData stores the full track object as jsonb, preserving deezer_id and all other fields
         trackData: input.track as unknown as Record<string, unknown>,
         position: nextPosition,
       });
@@ -649,6 +670,8 @@ export const musicRouter = createTRPCRouter({
       await ctx.db.insert(listeningHistory).values({
         userId: ctx.session.user.id,
         trackId: input.track.id,
+        deezerId: getDeezerId(input.track),
+        // trackData stores the full track object as jsonb, preserving deezer_id and all other fields
         trackData: input.track as unknown as Record<string, unknown>,
         duration: input.duration,
       });
@@ -961,6 +984,9 @@ export const musicRouter = createTRPCRouter({
         currentTrack: input.currentTrack as unknown as
           | Record<string, unknown>
           | undefined,
+        currentTrackDeezerId: input.currentTrack 
+          ? getDeezerId(input.currentTrack)
+          : undefined,
         currentPosition: input.currentPosition,
         queue: input.queue as unknown as Record<string, unknown>[] | undefined,
         history: input.history as unknown as
@@ -1039,6 +1065,7 @@ export const musicRouter = createTRPCRouter({
       await ctx.db.insert(listeningAnalytics).values({
         userId: ctx.session.user.id,
         trackId: input.track.id,
+        deezerId: getDeezerId(input.track),
         trackData: input.track as unknown as Record<string, unknown>,
         sessionId: input.sessionId,
         duration: input.duration,
@@ -1265,6 +1292,7 @@ export const musicRouter = createTRPCRouter({
 
       await ctx.db.insert(recommendationCache).values({
         seedTrackId: input.seedTrackId,
+        seedDeezerId: getDeezerId(seedTrack as z.infer<typeof trackSchema>),
         recommendedTrackIds: filtered.map((t) => t.id) as unknown as Record<
           string,
           unknown
@@ -1404,8 +1432,16 @@ export const musicRouter = createTRPCRouter({
 
           if (filtered.length > 0 && !cached) {
             try {
+              // Try to get deezer_id from the first filtered track or use trackId if it's from Deezer API
+              const seedDeezerId = filtered[0]?.deezer_id 
+                ? (typeof filtered[0].deezer_id === "string" 
+                    ? parseInt(filtered[0].deezer_id, 10) 
+                    : filtered[0].deezer_id)
+                : undefined;
+              
               await ctx.db.insert(recommendationCache).values({
                 seedTrackId: input.trackId,
+                seedDeezerId,
                 recommendedTrackIds: filtered.map(
                   (t) => t.id,
                 ) as unknown as Record<string, unknown>,
