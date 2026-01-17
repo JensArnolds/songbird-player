@@ -94,7 +94,7 @@ export default function TrackCard({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     hapticLight();
-    const shareUrl = window.location.href;
+    const shareUrl = `${window.location.origin}/track/${track.id}`;
 
     try {
       if (navigator.share) {

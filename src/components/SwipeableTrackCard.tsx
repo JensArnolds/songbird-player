@@ -132,7 +132,7 @@ export default function SwipeableTrackCard({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     hapticLight();
-    const shareUrl = window.location.href;
+    const shareUrl = `${window.location.origin}/track/${track.id}`;
     const success = await share({
       title: `${track.title} - ${track.artist.name}`,
       text: `Check out "${track.title}" by ${track.artist.name} on Starchild Music!`,

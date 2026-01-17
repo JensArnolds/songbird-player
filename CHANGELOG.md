@@ -1,9 +1,85 @@
 # Changelog
 
-All notable changes to darkfloor.art will be documented in this file.
+All notable changes to Starchild Music will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.9.14] - 2026-01-17
+
+### Added
+
+- **Background Playback Persistence**: Enhanced audio playback to continue when app goes to background or phone locks
+  - **Service Worker Keep-Alive**: Pings service worker every 25 seconds during playback to prevent page suspension
+  - **Visibility Change Handlers**: Detects when page is hidden/shown and auto-resumes playback if paused unexpectedly
+  - **Page Lifecycle API**: Handles freeze/resume events for better mobile browser support
+  - **Audio Element Configuration**: Added `preload="auto"` and `playsinline` attributes for optimal mobile playback
+  - **WebKit-Specific Handlers**: Special handling for iOS Safari page hide/show events
+  - **Impact**: Music continues playing when switching apps, locking phone, or backgrounding the browser
+  - Locations:
+    - `src/hooks/useAudioPlayer.ts` (visibility handlers, keep-alive interval)
+    - `public/sw.js` (KEEP_ALIVE message handler)
+    - `public/manifest.json` (scope and prefer_related_applications)
+
+- **Track Sharing with Rich Previews**: Created dedicated share routes with SEO metadata
+  - **Deezer ID-Based URLs**: All track sharing now uses `/track/{id}` format instead of current page URL
+  - **Rich Social Media Previews**: Album art, track title, artist, and album shown in link previews
+  - **SEO Metadata**: OpenGraph and Twitter Card tags for optimal social sharing
+  - **Dynamic Track Routes**: Created `/track/[id]` page with server-side metadata generation
+  - **Auto-Redirect**: Share links redirect to `/?track={id}` to auto-play the track
+  - **Impact**: Shareable links look professional on Discord, Twitter, Facebook with album artwork
+  - Locations:
+    - `src/app/track/[id]/page.tsx` (new route with metadata)
+    - `src/components/TrackCard.tsx`
+    - `src/components/EnhancedTrackCard.tsx`
+    - `src/components/SwipeableTrackCard.tsx`
+    - `src/components/TrackContextMenu.tsx`
+
+- **Visual Mini Player Design in OG Images**: Enhanced social media preview cards to look like interactive music players
+  - **Player-Style Layout**: Preview cards now display as a mini player interface with album art, track info, play button, and progress bar
+  - **Dynamic Progress Bar**: Shows a simulated playback position at 42% with gradient accent colors
+  - **Duration Display**: Shows current position and total track duration (e.g., "1:23 / 3:24")
+  - **Play Button**: Large circular accent-colored play button for visual emphasis
+  - **Compact Card Design**: Player card (1040px wide) with rounded corners, subtle glow, and dark theme
+  - **Impact**: Shared links look more interactive and music-focused, clearly indicating they're playable tracks
+  - Locations:
+    - `src/app/api/og/route.tsx` (redesigned OG image generator)
+    - `src/app/track/[id]/page.tsx` (passes duration parameter to OG image)
+
+### Changed
+
+- **Complete Rebrand**: Rebranded from darkfloor.art to Starchild Music (starchildmusic.com)
+  - **Package Name**: Updated npm package name to `starchildmusic`
+  - **Domain References**: Changed all URLs from `darkfloor.art` to `starchildmusic.com`
+  - **UI Branding**: Updated all visible text, logos, and metadata
+  - **Service Worker**: Cache names updated to `starchildmusic-*`
+  - **PWA Manifest**: App name changed to "Starchild Music - Music Streaming Platform"
+  - **SEO & Metadata**: Updated all OpenGraph, Twitter Card, and meta tags
+  - **Impact**: Consistent branding across the entire application
+  - Locations:
+    - `package.json` (name, homepage, keywords)
+    - `public/manifest.json` (app name, short_name)
+    - `public/sw.js` (cache names)
+    - `src/app/layout.tsx` (metadata)
+    - `src/app/page.tsx` (metadata)
+    - `src/components/Header.tsx`
+    - `src/components/HamburgerMenu.tsx`
+    - `src/components/WelcomeHero.tsx`
+    - `src/components/DynamicTitle.tsx`
+    - `src/app/license/page.tsx`
+    - `src/app/api/og/route.tsx`
+    - `src/utils/getBaseUrl.ts`
+    - `src/styles/globals.css`
+    - `ecosystem.config.cjs`
+    - `scripts/server.js`
+    - `README.md`
+    - `CLAUDE.md`
+
+- **PWA Icons**: Updated icon generation to use refined branding image
+  - **Source Image**: Changed to `emily-the-strange-raw.png` for cleaner icon appearance
+  - **Platform Compatibility**: Better adaptation to iOS rounded squares and Android adaptive icons
+  - **Impact**: App icon looks more professional on all mobile platforms
+  - Location: `scripts/generate-pwa-icons.cjs`
 
 ## [0.9.13] - 2026-01-17
 
