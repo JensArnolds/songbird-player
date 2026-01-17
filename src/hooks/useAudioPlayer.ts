@@ -226,6 +226,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     if (typeof window !== "undefined" && !audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.volume = volume;
+      audioRef.current.preload = "auto";
+
+      if ("mediaSession" in navigator) {
+        audioRef.current.setAttribute("x5-playsinline", "true");
+        audioRef.current.setAttribute("webkit-playsinline", "true");
+        audioRef.current.setAttribute("playsinline", "true");
+      }
     }
   }, [volume]);
 
@@ -499,6 +506,69 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       audio.removeEventListener("error", handleError);
     };
   }, [handleTrackEnd, currentTrack, onError, currentTime]);
+
+  useEffect(() => {
+    if (typeof document === "undefined" || typeof window === "undefined")
+      return;
+
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        logger.debug(
+          "[useAudioPlayer] 🌙 Page hidden - maintaining playback state",
+        );
+      } else {
+        logger.debug(
+          "[useAudioPlayer] 🌞 Page visible - checking playback state",
+        );
+
+        if (isPlayingRef.current && audio.paused) {
+          logger.warn(
+            "[useAudioPlayer] ⚠️ Audio was paused while in background, resuming...",
+          );
+          audio.play().catch((err) => {
+            logger.error("[useAudioPlayer] Failed to resume playback:", err);
+          });
+        }
+      }
+    };
+
+    const handleAudioInterruption = () => {
+      logger.debug("[useAudioPlayer] 🎧 Audio session interrupted");
+    };
+
+    const handleAudioInterruptionEnd = () => {
+      logger.debug(
+        "[useAudioPlayer] ✅ Audio session interruption ended, checking playback",
+      );
+
+      if (isPlayingRef.current && audio.paused) {
+        setTimeout(() => {
+          audio.play().catch((err) => {
+            logger.debug(
+              "[useAudioPlayer] Could not auto-resume after interruption:",
+              err,
+            );
+          });
+        }, 100);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    if ("onwebkitbegininvokeactivity" in window) {
+      window.addEventListener("pagehide", handleAudioInterruption);
+      window.addEventListener("pageshow", handleAudioInterruptionEnd);
+    }
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handleAudioInterruption);
+      window.removeEventListener("pageshow", handleAudioInterruptionEnd);
+    };
+  }, []);
 
   const loadTrack = useCallback(
     (track: Track, streamUrl: string) => {
