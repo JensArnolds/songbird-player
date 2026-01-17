@@ -20,6 +20,7 @@ interface MiniPlayerProps {
   onNext: () => void;
   onSeek: (time: number) => void;
   onTap: () => void;
+  onToggleQueue?: () => void;
 }
 
 export default function MiniPlayer({
@@ -33,6 +34,7 @@ export default function MiniPlayer({
   onNext,
   onSeek,
   onTap,
+  onToggleQueue,
 }: MiniPlayerProps) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const dragY = useMotionValue(0);
@@ -157,6 +159,32 @@ export default function MiniPlayer({
             {currentTrack.artist.name}
           </p>
         </div>
+        {onToggleQueue && (
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              hapticLight();
+              onToggleQueue();
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              hapticLight();
+              onToggleQueue();
+            }}
+            data-drag-exempt="true"
+            whileTap={{ scale: 0.88 }}
+            transition={springPresets.snappy}
+            className="touch-target flex-shrink-0 text-[var(--color-subtext)] rounded-full p-1.5"
+            aria-label="Open queue"
+            type="button"
+          >
+            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z" />
+            </svg>
+          </motion.button>
+        )}
         <motion.button
           onClick={(e) => {
             e.stopPropagation();
