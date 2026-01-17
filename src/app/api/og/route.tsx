@@ -169,10 +169,10 @@ export async function GET(request: NextRequest) {
           >
             <div
               style={{
-                fontSize: 48,
+                fontSize: 46,
                 fontWeight: 700,
                 color: "#f5f1e8",
-                marginBottom: 12,
+                marginBottom: 16,
                 lineHeight: 1.1,
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
@@ -180,31 +180,18 @@ export async function GET(request: NextRequest) {
                 overflow: "hidden",
               }}
             >
-              {title}
+              {title} - {artist}
             </div>
 
             <div
               style={{
-                fontSize: 36,
+                fontSize: 28,
                 color: "#a5afbf",
-                marginBottom: 8,
                 lineHeight: 1.2,
               }}
             >
-              {artist}
+              Album: {album || "Single"}
             </div>
-
-            {album && (
-              <div
-                style={{
-                  fontSize: 28,
-                  color: "#6b7688",
-                  lineHeight: 1.2,
-                }}
-              >
-                {album}
-              </div>
-            )}
           </div>
         </div>
 

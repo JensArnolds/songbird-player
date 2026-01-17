@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { TrackRedirect } from "./TrackRedirect";
 
 interface Track {
   id: number;
@@ -136,6 +136,5 @@ export default async function TrackPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-
-  redirect(`/?track=${id}`);
+  return <TrackRedirect id={id} />;
 }
