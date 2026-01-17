@@ -95,7 +95,7 @@ export default function EnhancedTrackCard({
     hapticLight();
     const success = await share({
       title: `${track.title} - ${track.artist.name}`,
-      text: `Check out "${track.title}" by ${track.artist.name} on darkfloor.art!`,
+      text: `Check out "${track.title}" by ${track.artist.name} on Starchild Music!`,
       url: window.location.href,
     });
 

@@ -216,7 +216,7 @@ export function PlaylistContextMenu() {
     const url = `${window.location.origin}/playlists/${playlist.id}`;
 
     const success = await share({
-      title: `${playlist.name} - darkfloor.art`,
+      title: `${playlist.name} - Starchild Music`,
       text: `Check out this playlist: ${playlist.name}${playlist.description ? ` - ${playlist.description}` : ""}`,
       url,
     });

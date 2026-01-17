@@ -138,7 +138,7 @@ function getSystemInfo() {
 function printStartupBanner() {
   console.clear();
 
-  logger.section("darkfloor.art Frontend Server", "🎵");
+  logger.section("Starchild Music Frontend Server", "🎵");
 
   // Environment Configuration
   console.log(chalk.bold("  Environment Configuration:"));

@@ -38,31 +38,31 @@ const geist = Geist({
 const baseUrl = getBaseUrl();
 
 export const metadata: Metadata = {
-  title: "darkfloor.art",
+  title: "Starchild Music",
   description:
     "Modern music streaming and discovery platform with advanced audio features and visual patterns",
-  applicationName: "darkfloor.art",
+  applicationName: "Starchild Music",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   manifest: "/manifest.json",
   openGraph: {
-    title: "darkfloor.art",
+    title: "Starchild Music",
     description:
       "Modern music streaming and discovery platform with advanced audio features and visual patterns",
     type: "website",
     url: baseUrl,
-    siteName: "darkfloor.art",
+    siteName: "Starchild Music",
     images: [
       {
         url: `${baseUrl}/api/og`,
         width: 1200,
         height: 630,
-        alt: "darkfloor.art - Modern music streaming platform",
+        alt: "Starchild Music - Modern music streaming platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "darkfloor.art",
+    title: "Starchild Music",
     description:
       "Modern music streaming and discovery platform with advanced audio features and visual patterns",
     images: [`${baseUrl}/api/og`],
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "darkfloor.art",
+    title: "Starchild Music",
   },
 };
 

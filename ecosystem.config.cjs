@@ -221,7 +221,7 @@ module.exports = {
   deploy: {
     production: {
       user: "node",
-      host: ["darkfloor.art"],
+      host: ["starchildmusic.com"],
       ref: "origin/main",
       repo: "git@github.com:soulwax/starchild-music-frontend.git",
       path: "/home/soulwax/workspace/Web/Frontends/starchild-music-frontend",

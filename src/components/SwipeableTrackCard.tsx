@@ -135,7 +135,7 @@ export default function SwipeableTrackCard({
     const shareUrl = window.location.href;
     const success = await share({
       title: `${track.title} - ${track.artist.name}`,
-      text: `Check out "${track.title}" by ${track.artist.name} on darkfloor.art!`,
+      text: `Check out "${track.title}" by ${track.artist.name} on Starchild Music!`,
       url: shareUrl,
     });
     if (success) {

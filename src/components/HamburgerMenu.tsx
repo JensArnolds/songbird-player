@@ -154,7 +154,7 @@ export default function HamburgerMenu() {
               <div className="flex items-center gap-3">
                 <Image
                   src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
-                  alt="darkfloor.art"
+                  alt="Starchild Music"
                   width={40}
                   height={40}
                   className="rounded-xl ring-2 ring-[rgba(244,178,102,0.3)]"
@@ -162,7 +162,7 @@ export default function HamburgerMenu() {
                 />
                 <div>
                   <h2 className="text-lg font-bold text-[var(--color-text)]">
-                    darkfloor.art
+                    Starchild Music
                   </h2>
                   {session && (
                     <p className="text-xs text-[var(--color-subtext)]">
@@ -246,7 +246,7 @@ export default function HamburgerMenu() {
             {}
             <div className="border-t border-[rgba(244,178,102,0.12)] p-6">
               <p className="text-center text-xs text-[var(--color-muted)]">
-                darkfloor.art v1.0
+                Starchild Music v1.0
               </p>
             </div>
           </motion.div>

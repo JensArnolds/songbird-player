@@ -3,8 +3,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "License - darkfloor.art",
-  description: "GNU General Public License v3.0 for darkfloor.art",
+  title: "License - Starchild Music",
+  description: "GNU General Public License v3.0 for Starchild Music",
 };
 
 export const dynamic = "force-dynamic";
@@ -38,7 +38,7 @@ export default function LicensePage() {
             Software License
           </h1>
           <p className="text-gray-400">
-            darkfloor.art is licensed under the GNU General Public License v3.0
+            Starchild Music is licensed under the GNU General Public License v3.0
           </p>
         </div>
 

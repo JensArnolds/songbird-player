@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const cover = searchParams.get("cover");
 
   if (!title || !artist) {
-    const emilyImageUrl = `https://darkfloor.art/emily-the-strange.png`;
+    const emilyImageUrl = `https://starchildmusic.com/emily-the-strange.png`;
 
     return new ImageResponse(
       <div
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
               letterSpacing: "-0.05em",
             }}
           >
-            darkfloor.art
+            Starchild Music
           </div>
           <div
             style={{
@@ -208,7 +208,7 @@ export async function GET(request: NextRequest) {
             fontWeight: 500,
           }}
         >
-          Play now on darkfloor.art
+          Play now on Starchild Music
         </div>
       </div>
     </div>,

@@ -86,14 +86,14 @@ export default function Header() {
           >
             <Image
               src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
-              alt="darkfloor.art"
+              alt="Starchild Music"
               width={40}
               height={40}
               className="h-10 w-10 rounded-xl shadow-lg ring-2 ring-[rgba(244,178,102,0.3)] transition-all group-hover:scale-105 group-hover:shadow-[rgba(244,178,102,0.35)]"
               priority
             />
             <span className="accent-gradient hidden text-lg font-bold md:block">
-              {isElectron ? "Starchild" : "darkfloor.art"}
+              {isElectron ? "Starchild" : "Starchild Music"}
             </span>
           </Link>
 

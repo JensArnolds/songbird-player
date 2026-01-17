@@ -1,8 +1,8 @@
-# 🌟 darkfloor.art
+# 🌟 Starchild Music
 
-![darkfloor.art Icon](.github/assets/emily-the-strange-icon.png)
+![Starchild Music Icon](.github/assets/emily-the-strange-icon.png)
 
-*An attempt at amodern full-stack music search & streaming interface.*
+*A modern full-stack music search & streaming platform.*
 
 ---
 

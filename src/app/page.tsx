@@ -75,28 +75,28 @@ export async function generateMetadata({
 
   const defaultOgImage = buildOgImageUrl(null, baseUrl);
   const defaultMetadata: Metadata = {
-    title: "darkfloor.art",
+    title: "Starchild Music",
     description:
       "Modern music streaming and discovery platform with advanced audio features and visual patterns",
     openGraph: {
-      title: "darkfloor.art",
+      title: "Starchild Music",
       description:
         "Modern music streaming and discovery platform with advanced audio features and visual patterns",
       type: "website",
       url: baseUrl,
-      siteName: "darkfloor.art",
+      siteName: "Starchild Music",
       images: [
         {
           url: defaultOgImage,
           width: 1200,
           height: 630,
-          alt: "darkfloor.art - Modern music streaming platform",
+          alt: "Starchild Music - Modern music streaming platform",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "darkfloor.art",
+      title: "Starchild Music",
       description:
         "Modern music streaming and discovery platform with advanced audio features and visual patterns",
       images: [defaultOgImage],
@@ -114,8 +114,8 @@ export async function generateMetadata({
     ? `${firstTrack.title} by ${firstTrack.artist.name}`
     : `Search: ${query}`;
   const description = firstTrack
-    ? `Listen to ${firstTrack.title} by ${firstTrack.artist.name}${firstTrack.album?.title ? ` from ${firstTrack.album.title}` : ""} on darkfloor.art`
-    : `Search results for "${query}" on darkfloor.art`;
+    ? `Listen to ${firstTrack.title} by ${firstTrack.artist.name}${firstTrack.album?.title ? ` from ${firstTrack.album.title}` : ""} on Starchild Music`
+    : `Search results for "${query}" on Starchild Music`;
 
   return {
     title: trackTitle,
@@ -125,7 +125,7 @@ export async function generateMetadata({
       description,
       type: "music.song",
       url: `${baseUrl}/?q=${encodeURIComponent(query)}`,
-      siteName: "darkfloor.art",
+      siteName: "Starchild Music",
       images: [
         {
           url: ogImage,
@@ -133,7 +133,7 @@ export async function generateMetadata({
           height: 630,
           alt: firstTrack
             ? `${firstTrack.title} by ${firstTrack.artist.name}`
-            : "darkfloor.art",
+            : "Starchild Music",
         },
       ],
     },

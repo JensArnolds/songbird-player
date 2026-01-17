@@ -58,7 +58,7 @@ export default function PublicProfilePage({
     haptic("light");
     await share({
       title: `${profile?.name}'s Music Profile`,
-      text: `Check out ${profile?.name}'s music on darkfloor.art!`,
+      text: `Check out ${profile?.name}'s music on Starchild Music!`,
       url: window.location.href,
     });
   };

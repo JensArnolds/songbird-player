@@ -25,7 +25,7 @@ export function DynamicTitle() {
       document.title = `${artist} - ${title}`;
     } else {
 
-      document.title = isElectron ? "Starchild" : "darkfloor.art";
+      document.title = isElectron ? "Starchild" : "Starchild Music";
     }
   }, [currentTrack, isPlaying, isElectron]);
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**darkfloor.art** (npm package: `songbird-player`) - A modern music streaming and discovery platform built with Next.js 15, TypeScript, and TailwindCSS v4. Features include audio playback with equalizer, smart recommendations, visual audio patterns, and a Spotify-like mobile experience.
+**starchildmusic.com** (npm package: `starchildmusic`) - A modern music streaming and discovery platform built with Next.js 15, TypeScript, and TailwindCSS v4. Features include audio playback with equalizer, smart recommendations, visual audio patterns, and a Spotify-like mobile experience.
 
 **Tech Stack:**
 - Next.js ^15.5.9 (App Router, Turbopack, standalone mode)
