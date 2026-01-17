@@ -24,7 +24,6 @@ import {
   type PanInfo,
 } from "framer-motion";
 import {
-  Activity,
   ChevronDown,
   Heart,
   ListMusic,
@@ -119,7 +118,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
   const [isExpanded, setIsExpanded] = useState(forceExpanded);
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
-  const [hideAlbumCover, setHideAlbumCover] = useState(false);
   const [visualizerEnabled, setVisualizerEnabled] = useState(true);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const [albumColorPalette, setAlbumColorPalette] =
@@ -473,7 +471,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     className="relative w-full max-w-[360px] cursor-grab active:cursor-grabbing"
                   >
                     {}
-                    {!hideAlbumCover && coverArt ? (
+                    {coverArt ? (
                       <div className="relative">
                         <Image
                           src={coverArt}
@@ -492,11 +490,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                         />
                       </div>
-                    ) : !hideAlbumCover ? (
+                    ) : (
                       <div className="flex aspect-square w-full items-center justify-center rounded-3xl bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
                         🎵
                       </div>
-                    ) : null}
+                    )}
 
                     {}
                     {
@@ -526,24 +524,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </motion.div>
                       )}
                     </AnimatePresence>
-
-                    {}
-                    <motion.button
-                      onClick={() => {
-                        hapticMedium();
-                        setHideAlbumCover(!hideAlbumCover);
-                      }}
-                      whileTap={{ scale: 0.9 }}
-                      className={`touch-target absolute top-3 right-3 rounded-full p-3 transition-all ${
-                        hideAlbumCover
-                          ? "bg-[rgba(244,178,102,0.3)] text-[var(--color-accent)]"
-                          : "bg-black/40 text-[var(--color-subtext)]"
-                      }`}
-                      title={hideAlbumCover ? "Show album art" : "Show visualizer"}
-                      aria-label={hideAlbumCover ? "Show album art" : "Show audio visualizer"}
-                    >
-                      <Activity className="h-5 w-5" />
-                    </motion.button>
 
                     {}
                     {isLoading && (

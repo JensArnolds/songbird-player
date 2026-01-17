@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-const sourceIcon = path.join(__dirname, '..', 'public', 'emily-the-strange.png');
+const sourceIcon = path.join(__dirname, '..', 'public', 'emily-the-strange-branding.png');
 const outputDir = path.join(__dirname, '..', 'public');
 
 const sizes = [192, 512];
