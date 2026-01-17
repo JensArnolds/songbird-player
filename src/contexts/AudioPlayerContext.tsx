@@ -162,7 +162,10 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         const result = await utils.music.getSimilarTracks.fetch({
           trackId: currentTrack.id,
           limit: 10,
-          useEnhanced: false,
+          useEnhanced: true,
+          similarityLevel:
+            normalizedSmartQueueSettings?.similarityPreference ?? "balanced",
+          excludeExplicit: normalizedSmartQueueSettings?.excludeExplicit,
         });
 
         return result || [];
@@ -171,7 +174,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         return [];
       }
     },
-    [utils],
+    [normalizedSmartQueueSettings, utils],
   );
 
   const initialQueueState = session && dbQueueState && dbQueueState.queuedTracks && dbQueueState.queuedTracks.length > 0 ? {

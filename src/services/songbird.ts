@@ -2,7 +2,8 @@
 
 import { env } from "@/env";
 
-const SONGBIRD_API_URL = env.NEXT_PUBLIC_SONGBIRD_API_URL;
+const SONGBIRD_API_URL =
+  env.NEXT_PUBLIC_SONGBIRD_API_URL ?? env.SONGBIRD_PUBLIC_API_URL;
 const SONGBIRD_API_KEY = env.SONGBIRD_API_KEY;
 
 async function songbirdRequest<T>(
@@ -11,7 +12,7 @@ async function songbirdRequest<T>(
 ): Promise<T> {
   if (!SONGBIRD_API_URL) {
     throw new Error(
-      "Songbird API URL is not configured. Set NEXT_PUBLIC_SONGBIRD_API_URL environment variable.",
+      "Songbird API URL is not configured. Set NEXT_PUBLIC_SONGBIRD_API_URL or SONGBIRD_PUBLIC_API_URL.",
     );
   }
 

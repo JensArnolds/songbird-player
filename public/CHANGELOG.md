@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Smart Queue Recommendations**: Smart tracks now use Songbird's Last.fm + Deezer conversion flow
+  - **Impact**: Auto-queue pulls richer recommendations with Deezer IDs
+  - Locations:
+    - `src/server/api/routers/music.ts`
+    - `src/contexts/AudioPlayerContext.tsx`
+    - `src/services/songbird.ts`
+
+- **tRPC Preferences Tests**: Added coverage for smart queue defaults and preference persistence
+  - **Impact**: Validates server preferences behavior
+  - Location: `src/__tests__/trpc.music.test.ts`
+
 - **Mobile Search Clear Behavior**: Ensured clearing a non-empty search reliably returns to `/`
   - Uses previous query tracking to avoid skipping the first clear
   - **Impact**: Search URL clears consistently on mobile
