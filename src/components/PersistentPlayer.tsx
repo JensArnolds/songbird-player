@@ -207,6 +207,7 @@ export default function PersistentPlayer() {
             onNext={player.playNext}
             onSeek={player.seek}
             onTap={() => player.setShowMobilePlayer(true)}
+            onToggleQueue={() => setShowQueue(true)}
           />
 
           {}

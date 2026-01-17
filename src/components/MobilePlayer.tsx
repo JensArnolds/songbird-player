@@ -3,6 +3,7 @@
 "use client";
 
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useToast } from "@/contexts/ToastContext";
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import type { Track } from "@/types";
 import {
@@ -33,6 +34,7 @@ import {
   Play,
   Repeat,
   Repeat1,
+  Sparkles,
   Shuffle,
   SkipBack,
   SkipForward,
@@ -98,7 +100,13 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     forceExpanded = false,
   } = props;
 
-  const { audioElement: contextAudioElement } = useGlobalPlayer();
+  const {
+    audioElement: contextAudioElement,
+    addSmartTracks,
+    refreshSmartTracks,
+    smartQueueState,
+  } = useGlobalPlayer();
+  const { showToast } = useToast();
 
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -211,6 +219,32 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     hapticLight();
     onCycleRepeat();
   };
+
+  const handleSmartQueueAction = useCallback(
+    async (action: "add" | "refresh") => {
+      try {
+        if (action === "refresh") {
+          await refreshSmartTracks();
+          showToast("Smart tracks refreshed", "success");
+          return;
+        }
+
+        const added = await addSmartTracks();
+        if (added.length === 0) {
+          showToast("No smart tracks found for this song", "info");
+        } else {
+          showToast(
+            `Added ${added.length} smart track${added.length === 1 ? "" : "s"}`,
+            "success",
+          );
+        }
+      } catch (error) {
+        console.error("[MobilePlayer] Smart tracks action failed:", error);
+        showToast("Failed to update smart tracks", "error");
+      }
+    },
+    [addSmartTracks, refreshSmartTracks, showToast],
+  );
 
   const toggleFavorite = () => {
     if (!currentTrack || !isAuthenticated) return;
@@ -1009,16 +1043,43 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       <h2 className="text-xl font-bold text-[var(--color-text)]">
                         Queue ({queue.length})
                       </h2>
-                      <motion.button
-                        onClick={() => {
-                          hapticLight();
-                          setShowQueuePanel(false);
-                        }}
-                        whileTap={{ scale: 0.9 }}
-                        className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)]"
-                      >
-                        <X className="h-6 w-6" />
-                      </motion.button>
+                      <div className="flex items-center gap-2">
+                        {queue.length > 0 && (
+                          <motion.button
+                            onClick={() => {
+                              hapticLight();
+                              handleSmartQueueAction(
+                                smartQueueState.isActive ? "refresh" : "add",
+                              );
+                            }}
+                            whileTap={{ scale: 0.9 }}
+                            className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(88,198,177,0.16)] hover:text-[var(--color-text)]"
+                            aria-label={
+                              smartQueueState.isActive
+                                ? "Refresh smart tracks"
+                                : "Add smart tracks"
+                            }
+                            title={
+                              smartQueueState.isActive
+                                ? "Refresh smart tracks"
+                                : "Add smart tracks"
+                            }
+                          >
+                            <Sparkles className="h-5 w-5" />
+                          </motion.button>
+                        )}
+                        <motion.button
+                          onClick={() => {
+                            hapticLight();
+                            setShowQueuePanel(false);
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)]"
+                          aria-label="Close queue"
+                        >
+                          <X className="h-6 w-6" />
+                        </motion.button>
+                      </div>
                     </div>
                     <div className="flex-1 overflow-y-auto">
                       {queue.length === 0 ? (
