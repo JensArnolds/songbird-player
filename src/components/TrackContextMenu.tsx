@@ -167,13 +167,13 @@ export function TrackContextMenu() {
     if (!track) return;
     hapticLight();
 
-    const shareUrl = new URL(window.location.href);
+    const shareUrl = `${window.location.origin}/track/${track.id}`;
 
     if (isShareSupported) {
       const success = await share({
         title: `${track.title} - ${track.artist.name}`,
         text: `Check out "${track.title}" by ${track.artist.name} on Starchild Music!`,
-        url: shareUrl.toString(),
+        url: shareUrl,
       });
 
       if (success) {
@@ -181,7 +181,7 @@ export function TrackContextMenu() {
       }
     } else {
       try {
-        await navigator.clipboard.writeText(shareUrl.toString());
+        await navigator.clipboard.writeText(shareUrl);
         showToast("Link copied to clipboard!", "success");
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
