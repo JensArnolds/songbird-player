@@ -659,6 +659,43 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     };
   }, [keepPlaybackAlive, onBackgroundResumeError]);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof navigator === "undefined")
+      return;
+    if (!("serviceWorker" in navigator)) return;
+
+    let keepAliveInterval: NodeJS.Timeout | null = null;
+
+    if (isPlaying && currentTrack) {
+      keepAliveInterval = setInterval(() => {
+        navigator.serviceWorker.ready
+          .then((registration) => {
+            if (registration.active) {
+              const messageChannel = new MessageChannel();
+              registration.active.postMessage(
+                { type: "KEEP_ALIVE" },
+                [messageChannel.port2],
+              );
+            }
+          })
+          .catch(() => {});
+      }, 25000);
+
+      logger.debug(
+        "[useAudioPlayer] 💓 Started service worker keep-alive pings",
+      );
+    }
+
+    return () => {
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        logger.debug(
+          "[useAudioPlayer] 🛑 Stopped service worker keep-alive pings",
+        );
+      }
+    };
+  }, [isPlaying, currentTrack]);
+
   const loadTrack = useCallback(
     (track: Track, streamUrl: string) => {
       if (!audioRef.current) return;
