@@ -16,8 +16,8 @@ function getSslConfig(connectionString: string) {
   }
 
   // Check if it's a cloud database that requires SSL
-  const isCloudDb = 
-    connectionString.includes("aivencloud.com") || 
+  const isCloudDb =
+    connectionString.includes("aivencloud.com") ||
     connectionString.includes("rds.amazonaws.com") ||
     connectionString.includes("sslmode=");
 
@@ -28,7 +28,7 @@ function getSslConfig(connectionString: string) {
 
   // Cloud database - try to find CA certificate
   const certPath = path.join(process.cwd(), "certs/ca.pem");
-  
+
   if (existsSync(certPath)) {
     console.log(`[DB] Using SSL certificate: ${certPath}`);
     return {
