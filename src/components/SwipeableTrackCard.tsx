@@ -321,9 +321,9 @@ export default function SwipeableTrackCard({
         </div>
 
         {}
-        {showActions && (
-          <div className="flex flex-shrink-0 items-center gap-0.5 md:gap-1">
-            {}
+        <div className="flex flex-shrink-0 items-center gap-0.5 md:gap-1">
+          {}
+          {showActions && (
             <motion.button
               onClick={(e) => {
                 e.stopPropagation();
@@ -344,36 +344,37 @@ export default function SwipeableTrackCard({
                 } ${isHeartAnimating ? "animate-heart-pulse" : ""}`}
               />
             </motion.button>
+          )}
 
-            {}
+          {}
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToQueue();
+            }}
+            whileTap={{ scale: 0.85 }}
+            transition={springPresets.immediate}
+            className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-accent-strong)]"
+            title="Add to queue"
+          >
+            <ListPlus className="h-5 w-5 md:h-[18px] md:w-[18px]" />
+          </motion.button>
+
+          {}
+          {isShareSupported && (
             <motion.button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddToQueue();
-              }}
+              onClick={handleShare}
               whileTap={{ scale: 0.85 }}
               transition={springPresets.immediate}
-              className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-accent-strong)]"
-              title="Add to queue"
+              className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-accent)]"
+              title="Share track"
             >
-              <ListPlus className="h-5 w-5 md:h-[18px] md:w-[18px]" />
+              <Share2 className="h-5 w-5 md:h-[18px] md:w-[18px]" />
             </motion.button>
+          )}
 
-            {}
-            {isShareSupported && (
-              <motion.button
-                onClick={handleShare}
-                whileTap={{ scale: 0.85 }}
-                transition={springPresets.immediate}
-                className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-accent)]"
-                title="Share track"
-              >
-                <Share2 className="h-5 w-5 md:h-[18px] md:w-[18px]" />
-              </motion.button>
-            )}
-
-            {}
-            <div className="relative">
+          {}
+          <div className="relative">
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -431,8 +432,7 @@ export default function SwipeableTrackCard({
                 </>
               )}
             </div>
-          </div>
-        )}
+        </div>
 
         <AddToPlaylistModal
           isOpen={showAddToPlaylistModal}
