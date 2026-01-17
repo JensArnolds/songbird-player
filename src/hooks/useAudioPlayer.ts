@@ -345,6 +345,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const handleTimeUpdate = () => {
       const newTime = audio.currentTime;
 
+      if (audio.playbackRate !== 1.0) {
+        logger.warn("[useAudioPlayer] Playback rate changed to", audio.playbackRate, "- resetting to 1.0");
+        audio.playbackRate = 1.0;
+      }
+
       if (
         Math.floor(newTime) % 5 === 0 &&
         Math.floor(newTime) !== Math.floor(currentTime)
@@ -358,7 +363,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       }
       setCurrentTime(newTime);
     };
-    const handleLoadedMetadata = () => setDuration(audio.duration);
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration);
+      if (audio.playbackRate !== 1.0) {
+        logger.debug("[useAudioPlayer] Resetting playbackRate to 1.0 after metadata loaded");
+        audio.playbackRate = 1.0;
+      }
+    };
     const handlePlay = () => {
 
       if (!isPlayPauseOperationRef.current && !isPlayingRef.current) {
@@ -373,7 +384,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     };
     const handleEnded = () => handleTrackEnd();
     const handleLoadStart = () => setIsLoading(true);
-    const handleCanPlay = () => setIsLoading(false);
+    const handleCanPlay = () => {
+      setIsLoading(false);
+      if (audio.playbackRate !== 1.0) {
+        logger.debug("[useAudioPlayer] Resetting playbackRate to 1.0 when canplay");
+        audio.playbackRate = 1.0;
+      }
+    };
     const handleError = (e: Event) => {
 
       const target = e.target as HTMLAudioElement;
@@ -515,6 +532,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           audioRef.current.load();
 
           logger.debug("[useAudioPlayer] Audio source set and load() called");
+          audioRef.current.playbackRate = 1.0;
           return true;
         } catch (error) {
 

@@ -40,6 +40,7 @@ import {
   Sliders,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -131,8 +132,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [seekDirection, setSeekDirection] = useState<
     "forward" | "backward" | null
   >(null);
+  const [showQueuePanel, setShowQueuePanel] = useState(false);
+  const [showEqualizerPanel, setShowEqualizerPanel] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const artworkRef = useRef<HTMLDivElement>(null);
+  const volumeRef = useRef<HTMLDivElement>(null);
 
   const { data: playlists, refetch: refetchPlaylists } =
     api.music.getPlaylists.useQuery(undefined, {
@@ -527,20 +531,16 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     <motion.button
                       onClick={() => {
                         hapticMedium();
-                        const newState = !visualizerEnabled;
-                        setVisualizerEnabled(newState);
-                        if (typeof window !== "undefined") {
-                          localStorage.setItem("visualizerEnabled", String(newState));
-                        }
+                        setHideAlbumCover(!hideAlbumCover);
                       }}
                       whileTap={{ scale: 0.9 }}
                       className={`touch-target absolute top-3 right-3 rounded-full p-3 transition-all ${
-                        visualizerEnabled
+                        hideAlbumCover
                           ? "bg-[rgba(244,178,102,0.3)] text-[var(--color-accent)]"
                           : "bg-black/40 text-[var(--color-subtext)]"
                       }`}
-                      title={visualizerEnabled ? "Disable visualizer" : "Enable visualizer"}
-                      aria-label={visualizerEnabled ? "Disable audio visualizer" : "Enable audio visualizer"}
+                      title={hideAlbumCover ? "Show album art" : "Show visualizer"}
+                      aria-label={hideAlbumCover ? "Show album art" : "Show audio visualizer"}
                     >
                       <Activity className="h-5 w-5" />
                     </motion.button>
@@ -781,50 +781,88 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                 {}
                 <div className="flex items-center justify-around border-t border-[rgba(255,255,255,0.08)] px-8 py-4">
                   {}
+                  <div className="flex flex-1 max-w-[180px] items-center gap-2">
+                    <motion.button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onToggleMute();
+                      }}
+                      whileTap={{ scale: 0.9 }}
+                      className="touch-target text-[var(--color-subtext)]"
+                      aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
+                    >
+                      {isMuted || volume === 0 ? (
+                        <VolumeX className="h-5 w-5" />
+                      ) : (
+                        <Volume2 className="h-5 w-5" />
+                      )}
+                    </motion.button>
+                    <div
+                      ref={volumeRef}
+                      className="relative h-1 flex-1 cursor-pointer rounded-full bg-[rgba(255,255,255,0.14)]"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const percentage = Math.max(0, Math.min(1, x / rect.width));
+                        props.onVolumeChange(percentage);
+                        hapticLight();
+                      }}
+                      onTouchMove={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const touch = e.touches[0];
+                        if (!touch) return;
+                        const x = touch.clientX - rect.left;
+                        const percentage = Math.max(0, Math.min(1, x / rect.width));
+                        props.onVolumeChange(percentage);
+                      }}
+                      role="slider"
+                      aria-label="Volume"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round((isMuted ? 0 : volume) * 100)}
+                    >
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
+                        style={{ width: `${isMuted ? 0 : volume * 100}%` }}
+                      />
+                      <div
+                        className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-lg"
+                        style={{ left: `${isMuted ? 0 : volume * 100}%`, transform: 'translate(-50%, -50%)' }}
+                      />
+                    </div>
+                  </div>
+
+                  {}
                   <motion.button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onToggleMute();
+                    onClick={() => {
+                      hapticMedium();
+                      setShowQueuePanel(!showQueuePanel);
+                      setShowEqualizerPanel(false);
                     }}
                     whileTap={{ scale: 0.9 }}
-                    className="touch-target text-[var(--color-subtext)]"
-                    aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
+                    className={`touch-target relative ${showQueuePanel ? "text-[var(--color-accent)]" : "text-[var(--color-subtext)]"}`}
                   >
-                    {isMuted || volume === 0 ? (
-                      <VolumeX className="h-5 w-5" />
-                    ) : (
-                      <Volume2 className="h-5 w-5" />
+                    <ListMusic className="h-5 w-5" />
+                    {queue.length > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-[#0f141d]">
+                        {queue.length > 9 ? "9+" : queue.length}
+                      </span>
                     )}
                   </motion.button>
 
                   {}
-                  {}
-                  {onToggleQueue && (
-                    <motion.button
-                      onClick={onToggleQueue}
-                      whileTap={{ scale: 0.9 }}
-                      className="touch-target relative text-[var(--color-subtext)]"
-                    >
-                      <ListMusic className="h-5 w-5" />
-                      {queue.length > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-[#0f141d]">
-                          {queue.length > 9 ? "9+" : queue.length}
-                        </span>
-                      )}
-                    </motion.button>
-                  )}
-
-                  {}
-                  {onToggleEqualizer && (
-                    <motion.button
-                      onClick={onToggleEqualizer}
-                      whileTap={{ scale: 0.9 }}
-                      className="touch-target text-[var(--color-subtext)]"
-                    >
-                      <Sliders className="h-5 w-5" />
-                    </motion.button>
-                  )}
+                  <motion.button
+                    onClick={() => {
+                      hapticMedium();
+                      setShowEqualizerPanel(!showEqualizerPanel);
+                      setShowQueuePanel(false);
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`touch-target ${showEqualizerPanel ? "text-[var(--color-accent)]" : "text-[var(--color-subtext)]"}`}
+                  >
+                    <Sliders className="h-5 w-5" />
+                  </motion.button>
 
                   {}
                   <div className="relative">
@@ -956,6 +994,155 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 }
               </div>
             </motion.div>
+
+            {}
+            <AnimatePresence>
+              {showQueuePanel && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+                    onClick={() => {
+                      hapticLight();
+                      setShowQueuePanel(false);
+                    }}
+                  />
+                  <motion.div
+                    initial={{ x: "100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "100%" }}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={{ left: 0, right: 0.2 }}
+                    onDragEnd={(_, info) => {
+                      if (info.offset.x > 100 || info.velocity.x > 300) {
+                        hapticLight();
+                        setShowQueuePanel(false);
+                      }
+                    }}
+                    transition={springPresets.gentle}
+                    className="safe-bottom fixed right-0 top-0 z-[101] flex h-full w-full max-w-md flex-col border-l border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.95)] shadow-[-8px_0_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                  >
+                    <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] p-4">
+                      <h2 className="text-xl font-bold text-[var(--color-text)]">
+                        Queue ({queue.length})
+                      </h2>
+                      <motion.button
+                        onClick={() => {
+                          hapticLight();
+                          setShowQueuePanel(false);
+                        }}
+                        whileTap={{ scale: 0.9 }}
+                        className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)]"
+                      >
+                        <X className="h-6 w-6" />
+                      </motion.button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                      {queue.length === 0 ? (
+                        <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+                          <div className="mb-4 text-6xl">🎵</div>
+                          <p className="mb-2 text-lg font-medium text-[var(--color-text)]">
+                            Queue is empty
+                          </p>
+                          <p className="text-sm text-[var(--color-subtext)]">
+                            Add tracks to start building your queue
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-[rgba(255,255,255,0.05)]">
+                          {queue.map((track, index) => (
+                            <div
+                              key={`${track.id}-${index}`}
+                              className="flex items-center gap-3 p-3 transition-colors hover:bg-[rgba(244,178,102,0.08)]"
+                            >
+                              <div className="w-6 flex-shrink-0 text-center text-sm text-[var(--color-muted)]">
+                                {index + 1}
+                              </div>
+                              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded">
+                                <Image
+                                  src={getCoverImage(track, "small")}
+                                  alt={track.title}
+                                  fill
+                                  sizes="48px"
+                                  className="object-cover"
+                                  quality={75}
+                                />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="truncate text-sm font-medium text-[var(--color-text)]">
+                                  {track.title}
+                                </h4>
+                                <p className="truncate text-xs text-[var(--color-subtext)]">
+                                  {track.artist.name}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+
+            {}
+            <AnimatePresence>
+              {showEqualizerPanel && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+                    onClick={() => {
+                      hapticLight();
+                      setShowEqualizerPanel(false);
+                    }}
+                  />
+                  <motion.div
+                    initial={{ x: "-100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "-100%" }}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={{ left: 0.2, right: 0 }}
+                    onDragEnd={(_, info) => {
+                      if (info.offset.x < -100 || info.velocity.x < -300) {
+                        hapticLight();
+                        setShowEqualizerPanel(false);
+                      }
+                    }}
+                    transition={springPresets.gentle}
+                    className="safe-bottom fixed left-0 top-0 z-[101] flex h-full w-full max-w-md flex-col border-r border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.95)] shadow-[8px_0_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                  >
+                    <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] p-4">
+                      <h2 className="text-xl font-bold text-[var(--color-text)]">
+                        Equalizer
+                      </h2>
+                      <motion.button
+                        onClick={() => {
+                          hapticLight();
+                          setShowEqualizerPanel(false);
+                        }}
+                        whileTap={{ scale: 0.9 }}
+                        className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)]"
+                      >
+                        <X className="h-6 w-6" />
+                      </motion.button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-6">
+                      <p className="text-center text-[var(--color-subtext)]">
+                        Equalizer controls will appear here
+                      </p>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </>
         )}
       </AnimatePresence>
