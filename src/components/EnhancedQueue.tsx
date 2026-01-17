@@ -409,6 +409,38 @@ export function EnhancedQueue({
     setLastSelectedIndex(null);
   }, []);
 
+  const handleSmartTracksAction = useCallback(
+    async (action: "add" | "refresh") => {
+      try {
+        if (action === "refresh") {
+          if (!onRefreshSmartTracks) {
+            showToast("Smart queue refresh is not available yet", "warning");
+            return;
+          }
+          await onRefreshSmartTracks();
+          showToast("Smart tracks refreshed", "success");
+          return;
+        }
+
+        if (!onAddSmartTracks) {
+          showToast("Smart queue is not available yet", "warning");
+          return;
+        }
+
+        const added = await onAddSmartTracks();
+        if (added.length === 0) {
+          showToast("No smart tracks found for this song", "info");
+        } else {
+          showToast(`Added ${added.length} smart track${added.length === 1 ? "" : "s"}`, "success");
+        }
+      } catch (error) {
+        console.error("[EnhancedQueue] Smart tracks action failed:", error);
+        showToast("Failed to update smart tracks", "error");
+      }
+    },
+    [onAddSmartTracks, onRefreshSmartTracks, showToast],
+  );
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!queueListRef.current?.contains(document.activeElement)) return;
@@ -446,19 +478,28 @@ export function EnhancedQueue({
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            {}
-            {
-
-}
-            {
-
-}
-            {
-
-}
-            {
-
-}
+            {queuedTracks.length > 0 && (
+              <button
+                onClick={() =>
+                  handleSmartTracksAction(
+                    smartQueueState.isActive ? "refresh" : "add",
+                  )
+                }
+                className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(88,198,177,0.12)] hover:text-[var(--color-text)]"
+                aria-label={
+                  smartQueueState.isActive
+                    ? "Refresh smart tracks"
+                    : "Add smart tracks"
+                }
+                title={
+                  smartQueueState.isActive
+                    ? "Refresh smart tracks"
+                    : "Add smart tracks"
+                }
+              >
+                <Sparkles className="h-5 w-5" />
+              </button>
+            )}
             {onSaveAsPlaylist && (queue.length > 0 || currentTrack) && (
               <button
                 onClick={onSaveAsPlaylist}
@@ -632,7 +673,7 @@ export function EnhancedQueue({
                 {smartQueueState.isActive && smartTracks.length > 0 && (
                   <div className="flex items-center gap-2 px-3 py-2 border-y border-[rgba(245,241,232,0.1)]">
                     <button
-                      onClick={() => onRefreshSmartTracks?.()}
+                      onClick={() => handleSmartTracksAction("refresh")}
                       className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[rgba(88,198,177,0.1)] hover:bg-[rgba(88,198,177,0.2)] transition-colors"
                     >
                       <RefreshCw className="h-4 w-4" />
@@ -679,7 +720,7 @@ export function EnhancedQueue({
                 {}
                 {!smartQueueState.isActive && queuedTracks.length > 0 && onAddSmartTracks && (
                   <button
-                    onClick={() => onAddSmartTracks()}
+                    onClick={() => handleSmartTracksAction("add")}
                     className="mx-3 my-2 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[rgba(88,198,177,0.1)] hover:bg-[rgba(88,198,177,0.2)] transition-colors"
                   >
                     <Sparkles className="h-4 w-4 text-[var(--color-accent-strong)]" />
