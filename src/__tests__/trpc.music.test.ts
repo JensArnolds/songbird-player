@@ -1,4 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/server/auth", () => ({
+  auth: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("@/server/db", () => ({
+  db: {},
+}));
+
+vi.mock("@/services/songbird", () => ({
+  songbird: {
+    request: vi.fn(),
+  },
+}));
+
 import { createCallerFactory } from "@/server/api/trpc";
 import { musicRouter } from "@/server/api/routers/music";
 
