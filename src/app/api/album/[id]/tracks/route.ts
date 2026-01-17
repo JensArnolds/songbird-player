@@ -115,13 +115,20 @@ export async function GET(
           return null;
         }
 
-        const trackObj = track as { album?: unknown; [key: string]: unknown };
+        const trackObj = track as { id?: number; album?: unknown; deezer_id?: number; [key: string]: unknown };
 
-        if (albumInfo && !trackObj.album) {
-          return { ...trackObj, album: albumInfo };
+        // Ensure deezer_id is set - when coming from Deezer API, id IS the deezer_id
+        const enrichedTrack = {
+          ...trackObj,
+          // Set deezer_id to id if not already present (critical for sharing)
+          deezer_id: trackObj.deezer_id ?? trackObj.id,
+        };
+
+        if (albumInfo && !enrichedTrack.album) {
+          return { ...enrichedTrack, album: albumInfo };
         }
 
-        return trackObj;
+        return enrichedTrack;
       })
       .filter((track): track is NonNullable<typeof track> => track !== null);
 

@@ -155,7 +155,7 @@ export function PlaylistContextMenu() {
 
       if (first) {
         player.clearQueue();
-        player.play(first);
+        player.playTrack(first);
         if (rest.length > 0) {
           player.addToQueue(rest);
         }

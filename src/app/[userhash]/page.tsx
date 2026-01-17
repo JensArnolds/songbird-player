@@ -22,7 +22,7 @@ export default function PublicProfilePage({
 }) {
   const { userhash } = use(params);
   const { share, isSupported: isShareSupported } = useWebShare();
-  const { play, addToQueue } = useGlobalPlayer();
+  const { playTrack, addToQueue } = useGlobalPlayer();
 
   const { data: profile, isLoading: profileLoading } =
     api.music.getPublicProfile.useQuery({ userHash: userhash });
@@ -119,7 +119,7 @@ export default function PublicProfilePage({
               <EnhancedTrackCard
                 key={`recent-${idx}`}
                 track={historyItem.trackData}
-                onPlay={(track) => play(track)}
+                onPlay={(track) => playTrack(track)}
                 onAddToQueue={(track) => addToQueue(track)}
               />
             );
@@ -150,7 +150,7 @@ export default function PublicProfilePage({
               <div key={`top-${idx}`} className="relative">
                 <EnhancedTrackCard
                   track={topTrack.track}
-                  onPlay={(track) => play(track)}
+                  onPlay={(track) => playTrack(track)}
                   onAddToQueue={(track) => addToQueue(track)}
                 />
                 <div className="badge-accent absolute top-2 right-2 text-[0.65rem] leading-none">
@@ -232,7 +232,7 @@ export default function PublicProfilePage({
               <EnhancedTrackCard
                 key={`fav-${idx}`}
                 track={track}
-                onPlay={(t) => play(t)}
+                onPlay={(t) => playTrack(t)}
                 onAddToQueue={(t) => addToQueue(t)}
               />
             );

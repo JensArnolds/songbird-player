@@ -179,7 +179,7 @@ export default function HomePageClient() {
         hapticSuccess();
 
         player.clearQueue();
-        player.play(track);
+        player.playTrack(track);
 
         setResults([track]);
         setTotal(1);
@@ -376,7 +376,7 @@ export default function HomePageClient() {
 
         const shuffled = [...response.data].sort(() => Math.random() - 0.5);
 
-        player.play(shuffled[0]!);
+      player.playTrack(shuffled[0]!);
 
         if (shuffled.length > 1) {
           player.addToQueue(shuffled.slice(1, 11), false);

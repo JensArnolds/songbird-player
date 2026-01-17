@@ -2,17 +2,17 @@
 
 "use client";
 
+import { useToast } from "@/contexts/ToastContext";
+import { api } from "@/trpc/react";
 import type { Track } from "@/types";
-import { getCoverImage } from "@/utils/images";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
-import Image from "next/image";
-import { motion } from "framer-motion";
+import { getCoverImage } from "@/utils/images";
 import { springPresets } from "@/utils/spring-animations";
+import { motion } from "framer-motion";
 import { Heart, ListPlus, MoreVertical, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { useState } from "react";
-import { api } from "@/trpc/react";
-import { useToast } from "@/contexts/ToastContext";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
 
 export interface TrackCardProps {
@@ -94,7 +94,9 @@ export default function TrackCard({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     hapticLight();
-    const shareUrl = `${window.location.origin}/track/${track.id}`;
+    // Prefer deezer_id for sharing as it's the basis for sharing songs
+    const trackId = track.deezer_id ?? track.id;
+    const shareUrl = `${window.location.origin}?track=${trackId}`;
 
     try {
       if (navigator.share) {

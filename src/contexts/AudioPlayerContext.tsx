@@ -98,7 +98,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   );
   const resumeErrorThrottleRef = useRef(0);
   const handleBackgroundResumeError = useCallback(
-    (reason: string) => {
+    (reason: string, error?: unknown) => {
       const now = Date.now();
       if (now - resumeErrorThrottleRef.current < 8000) return;
       resumeErrorThrottleRef.current = now;
@@ -108,6 +108,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       );
       console.warn(
         `[AudioPlayerContext] Background resume failed (${reason})`,
+        error,
       );
     },
     [showToast],
@@ -125,12 +126,17 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     { enabled: !!session },
   );
   const normalizedSmartQueueSettings = smartQueueSettings
-    ? ({
-        ...smartQueueSettings,
-        diversityFactor: 0.5,
-        excludeExplicit: false,
-        preferLiveVersions: false,
-      } as SmartQueueSettings)
+    ? (() => {
+        const smartQueueSettingsWithExtras =
+          smartQueueSettings as Partial<SmartQueueSettings>;
+        return {
+          ...smartQueueSettings,
+          diversityFactor: smartQueueSettingsWithExtras.diversityFactor ?? 0.5,
+          excludeExplicit: smartQueueSettingsWithExtras.excludeExplicit ?? false,
+          preferLiveVersions:
+            smartQueueSettingsWithExtras.preferLiveVersions ?? false,
+        } as SmartQueueSettings;
+      })()
     : undefined;
 
   const utils = api.useUtils();
@@ -349,6 +355,13 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     [player, isMobile],
   );
 
+  const playTrack = useCallback(
+    (track: Track) => {
+      play(track);
+    },
+    [play],
+  );
+
   const playNext = useCallback(() => {
 
     player.playNext();
@@ -481,7 +494,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     audioElement: player.audioRef.current,
 
     play,
-    playTrack: play,
+    playTrack,
     togglePlay: player.togglePlay,
     addToQueue: player.addToQueue,
     addToPlayNext: player.addToPlayNext,
