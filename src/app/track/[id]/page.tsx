@@ -24,41 +24,40 @@ interface Track {
 async function getTrack(id: string): Promise<Track | null> {
   try {
     const apiUrl = env.NEXT_PUBLIC_API_URL as string | undefined;
-    if (!apiUrl) {
-      console.error("[Track Page] NEXT_PUBLIC_API_URL not configured");
-      return null;
-    }
-
     const streamingKey = env.STREAMING_KEY;
-    if (!streamingKey) {
-      console.error("[Track Page] STREAMING_KEY not configured");
-      return null;
+
+    if (apiUrl && streamingKey) {
+      const normalizedApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
+      const url = new URL(`music/track/${id}`, normalizedApiUrl);
+      url.searchParams.set("key", streamingKey);
+
+      const response = await fetch(url.toString(), {
+        signal: AbortSignal.timeout(10000),
+        cache: "no-store",
+      });
+
+      if (response.ok) {
+        return (await response.json()) as Track;
+      }
+    } else {
+      if (!apiUrl) {
+        console.error("[Track Page] NEXT_PUBLIC_API_URL not configured");
+      }
+      if (!streamingKey) {
+        console.error("[Track Page] STREAMING_KEY not configured");
+      }
     }
 
-    const normalizedApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-    const url = new URL(`music/track/${id}`, normalizedApiUrl);
-    url.searchParams.set("key", streamingKey);
-
-    const response = await fetch(url.toString(), {
+    const deezerUrl = new URL(`https://api.deezer.com/track/${id}`);
+    const deezerResponse = await fetch(deezerUrl.toString(), {
       signal: AbortSignal.timeout(10000),
       cache: "no-store",
     });
-
-    if (!response.ok) {
-      if (response.status === 404 || response.status === 400) {
-        const deezerUrl = new URL(`https://api.deezer.com/track/${id}`);
-        const deezerResponse = await fetch(deezerUrl.toString(), {
-          signal: AbortSignal.timeout(10000),
-          cache: "no-store",
-        });
-        if (deezerResponse.ok) {
-          return (await deezerResponse.json()) as Track;
-        }
-      }
-      return null;
+    if (deezerResponse.ok) {
+      return (await deezerResponse.json()) as Track;
     }
 
-    return (await response.json()) as Track;
+    return null;
   } catch (error) {
     console.error("[Track Page] Error fetching track:", error);
     return null;
@@ -99,6 +98,7 @@ export async function generateMetadata({
     ogImageUrl.searchParams.set("cover", coverImage);
   }
   ogImageUrl.searchParams.set("duration", track.duration.toString());
+  ogImageUrl.searchParams.set("v", id);
 
   return {
     title: `${track.title} - ${track.artist.name} | Starchild Music`,
