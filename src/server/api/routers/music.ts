@@ -34,6 +34,7 @@ import {
   getCacheExpiryDate,
   shuffleWithDiversity,
 } from "@/server/services/recommendations";
+import { songbird } from "@/services/songbird";
 import { isTrack, type Track } from "@/types";
 
 const trackSchema = z.object({
@@ -1396,10 +1397,26 @@ export const musicRouter = createTRPCRouter({
           .enum(["strict", "balanced", "diverse"])
           .default("balanced"),
         useEnhanced: z.boolean().default(true),
+        excludeExplicit: z.boolean().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       return ctx.db.transaction(async () => {
+
+        const normalizeDeezerId = (value: unknown): number | null => {
+          if (typeof value === "number" && Number.isFinite(value)) {
+            return value;
+          }
+          if (typeof value === "string") {
+            const parsed = Number.parseInt(value, 10);
+            return Number.isFinite(parsed) ? parsed : null;
+          }
+          if (value && typeof value === "object") {
+            const record = value as Record<string, unknown>;
+            return normalizeDeezerId(record.deezerId ?? record.id);
+          }
+          return null;
+        };
 
         const cached = await ctx.db.query.recommendationCache.findFirst({
           where: and(
@@ -1428,6 +1445,7 @@ export const musicRouter = createTRPCRouter({
 
           const filtered = filterRecommendations(recommendations, {
             excludeTrackIds: [...(input.excludeTrackIds ?? []), input.trackId],
+            maxExplicit: input.excludeExplicit ? false : undefined,
           });
 
           if (filtered.length > 0 && !cached) {
@@ -1483,44 +1501,96 @@ export const musicRouter = createTRPCRouter({
               ...(input.excludeTrackIds ?? []),
               input.trackId,
             ],
+            maxExplicit: input.excludeExplicit ? false : undefined,
           }).slice(0, input.limit);
         }
-
-        const userFavorites = await ctx.db.query.favorites.findMany({
-          where: eq(favorites.userId, ctx.session.user.id),
-          limit: 100,
-        });
-
-        const userFavoriteArtistIds = [
-          ...new Set<number>(
-            userFavorites
-              .map(
-                (f: { trackData: unknown }) =>
-                  (f.trackData as Track | null)?.artist?.id,
-              )
-              .filter((id: unknown): id is number => typeof id === "number"),
-          ),
-        ];
 
         const recentHistory = await ctx.db.query.listeningHistory.findMany({
           where: eq(listeningHistory.userId, ctx.session.user.id),
           orderBy: desc(listeningHistory.playedAt),
           limit: 50,
         });
-        const recentlyPlayedTrackIds: number[] = recentHistory.map(
-          (h: { trackId: number }) => h.trackId,
-        );
 
-        console.log("[getSimilarTracks] Enhanced recommendations:", {
-          seedTrack: `${seedTrack.title} - ${seedTrack.artist.name}`,
-          similarityLevel: input.similarityLevel,
-          userFavoriteArtists: userFavoriteArtistIds.length,
-          recentlyPlayed: recentlyPlayedTrackIds.length,
-        });
+        const seedInputs = [
+          seedTrack,
+          ...recentHistory
+            .map((entry: { trackData: unknown }) => entry.trackData as Track)
+            .filter((track) => isTrack(track)),
+        ]
+          .filter((track, index, self) =>
+            self.findIndex((t) => t.id === track.id) === index,
+          )
+          .slice(0, 3)
+          .map((track) => ({
+            name: track.title,
+            artist: track.artist.name,
+            album: track.album?.title,
+          }));
+
+        try {
+          const mode =
+            input.similarityLevel === "strict"
+              ? "strict"
+              : input.similarityLevel === "diverse"
+                ? "diverse"
+                : "normal";
+
+          const recommendationResponse = await songbird.request<{
+            recommendations?: Array<{
+              name: string;
+              artist: string;
+              deezerId?: unknown;
+            }>;
+          }>("/api/lastfm/recommendations/spice-up-with-deezer", {
+            method: "POST",
+            body: JSON.stringify({
+              songs: seedInputs,
+              limit: Math.min(input.limit + 10, 100),
+              mode,
+              convertToDeezer: true,
+            }),
+          });
+
+          const deezerIds = Array.from(
+            new Set(
+              (recommendationResponse.recommendations ?? [])
+                .map((rec) => normalizeDeezerId(rec.deezerId))
+                .filter((id): id is number => typeof id === "number"),
+            ),
+          );
+
+          if (deezerIds.length > 0) {
+            const tracksResponse = await songbird.request<unknown>(
+              `/music/tracks/batch?ids=${deezerIds.join(",")}`,
+            );
+            const tracks = Array.isArray(tracksResponse)
+              ? tracksResponse.filter((item): item is Track => isTrack(item))
+              : [];
+
+            const hydratedTracks = tracks.map((track) => ({
+              ...track,
+              deezer_id: track.deezer_id ?? track.id,
+            }));
+
+            const filtered = filterRecommendations(hydratedTracks, {
+              excludeTrackIds: [
+                ...(input.excludeTrackIds ?? []),
+                input.trackId,
+              ],
+              maxExplicit: input.excludeExplicit ? false : undefined,
+            });
+
+            return filtered.slice(0, input.limit);
+          }
+        } catch (error) {
+          console.error("[getSimilarTracks] Songbird recommendations failed:", error);
+        }
 
         const recommendations = await fetchEnhancedRecommendations(seedTrack, {
-          userFavoriteArtistIds,
-          recentlyPlayedTrackIds,
+          userFavoriteArtistIds: [],
+          recentlyPlayedTrackIds: recentHistory.map(
+            (h: { trackId: number }) => h.trackId,
+          ),
           similarityLevel: input.similarityLevel,
           limit: input.limit + 10,
         });
@@ -1530,6 +1600,7 @@ export const musicRouter = createTRPCRouter({
             ...(input.excludeTrackIds ?? []),
             input.trackId,
           ],
+          maxExplicit: input.excludeExplicit ? false : undefined,
         });
 
         return filtered.slice(0, input.limit);
