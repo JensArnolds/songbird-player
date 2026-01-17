@@ -39,7 +39,6 @@ export default function MobileHeader() {
     if (urlQuery) {
       setSearchQuery(urlQuery);
       hasSeenNonEmptyQueryRef.current = true;
-      previousSearchQueryRef.current = urlQuery;
     } else {
       setSearchQuery("");
     }
