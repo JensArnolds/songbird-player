@@ -195,6 +195,15 @@ export default function SettingsPage() {
           handleToggle("shuffleEnabled", enabled);
         },
       },
+      {
+        id: "keepPlaybackAlive",
+        label: "Background Playback",
+        description: "Keep audio playing when the app is in the background",
+        type: "toggle",
+        value: preferences?.keepPlaybackAlive ?? true,
+        onChange: (value) =>
+          handleToggle("keepPlaybackAlive", value as boolean),
+      },
     ],
   };
 

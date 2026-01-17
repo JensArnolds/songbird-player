@@ -1,8 +1,6 @@
 // File: src/constants/visualizer.ts
 
-export const VISUALIZER_TYPES = [
-  "flowfield",
-] as const;
+export const VISUALIZER_TYPES = ["flowfield", "kaleidoscope"] as const;
 
 export type VisualizerType = (typeof VISUALIZER_TYPES)[number];
 

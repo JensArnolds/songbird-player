@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 export interface ToastProps {
   message: string;
-  type?: "success" | "error" | "info";
+  type?: "success" | "error" | "info" | "warning";
   duration?: number;
   onClose?: () => void;
 }
@@ -38,6 +38,7 @@ export default function Toast({
     success: "bg-green-600",
     error: "bg-red-600",
     info: "bg-blue-600",
+    warning: "bg-amber-500",
   };
 
   const icons = {
@@ -64,6 +65,15 @@ export default function Toast({
         <path
           fillRule="evenodd"
           d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    warning: (
+      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M8.257 3.099c.765-1.36 2.721-1.36 3.486 0l6.32 11.248c.75 1.335-.213 2.999-1.742 2.999H3.68c-1.53 0-2.492-1.664-1.743-2.999l6.32-11.248zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-7a1 1 0 00-.993.883L9 8v4a1 1 0 001.993.117L11 12V8a1 1 0 00-1-1z"
           clipRule="evenodd"
         />
       </svg>

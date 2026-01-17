@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-const sourceIcon = path.join(__dirname, '..', 'public', 'emily-the-strange-branding.png');
+const sourceIcon = path.join(__dirname, '..', 'public', 'emily-the-strange-raw.png');
 const outputDir = path.join(__dirname, '..', 'public');
 
 const sizes = [192, 512];
@@ -27,7 +27,11 @@ async function generateIcons() {
         .toFile(outputPath);
       console.log(`✓ Generated ${size}x${size} icon`);
     } catch (error) {
-      console.error(`✗ Failed to generate ${size}x${size} icon:`, error.message);
+      if (error instanceof Error) {
+        console.error(`✗ Failed to generate ${size}x${size} icon:`, error.message);
+      } else {
+        console.error(`✗ Failed to generate ${size}x${size} icon: Unknown error`, error);
+      }
     }
   }
 

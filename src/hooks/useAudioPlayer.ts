@@ -30,6 +30,8 @@ interface UseAudioPlayerOptions {
     currentQueueLength: number,
   ) => Promise<Track[]>;
   onError?: (error: string, trackId?: number) => void;
+  keepPlaybackAlive?: boolean;
+  onBackgroundResumeError?: (reason: string, error: unknown) => void;
   smartQueueSettings?: SmartQueueSettings;
   initialQueueState?: {
     queuedTracks: QueuedTrack[];
@@ -46,6 +48,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     onTrackEnd,
     onDuplicateTrack,
     onError,
+    keepPlaybackAlive = true,
+    onBackgroundResumeError,
     initialQueueState,
   } = options;
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -85,6 +89,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     null,
   );
   const isPlayingRef = useRef(isPlaying);
+  const shouldResumeOnFocusRef = useRef(false);
 
   const queue = useMemo(
     () => queuedTracks.map((qt) => qt.track),
@@ -228,10 +233,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       audioRef.current.volume = volume;
       audioRef.current.preload = "auto";
 
-      if ("mediaSession" in navigator) {
-        audioRef.current.setAttribute("x5-playsinline", "true");
-        audioRef.current.setAttribute("webkit-playsinline", "true");
-        audioRef.current.setAttribute("playsinline", "true");
+      audioRef.current.setAttribute("x5-playsinline", "true");
+      audioRef.current.setAttribute("webkit-playsinline", "true");
+      audioRef.current.setAttribute("playsinline", "true");
+      audioRef.current.setAttribute("aria-hidden", "true");
+      audioRef.current.setAttribute("data-audio-element", "global-player");
+      audioRef.current.style.display = "none";
+
+      if (!audioRef.current.isConnected) {
+        document.body.appendChild(audioRef.current);
       }
     }
   }, [volume]);
@@ -511,32 +521,78 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     if (typeof document === "undefined" || typeof window === "undefined")
       return;
 
+    if (!keepPlaybackAlive) {
+      shouldResumeOnFocusRef.current = false;
+      return;
+    }
+
     const audio = audioRef.current;
     if (!audio) return;
+
+    const markShouldResume = () => {
+      shouldResumeOnFocusRef.current =
+        isPlayingRef.current || (!audio.paused && !audio.ended);
+    };
+
+    const resumePlayback = async (reason: string) => {
+      if (!audio.src) return;
+      try {
+        const { getAudioConnection } = await import(
+          "@/utils/audioContextManager"
+        );
+        const connection = getAudioConnection(audio);
+        if (connection?.audioContext.state === "suspended") {
+          await connection.audioContext.resume();
+        }
+      } catch (err) {
+        logger.debug(
+          `[useAudioPlayer] Failed to resume audio context (${reason}):`,
+          err,
+        );
+        onBackgroundResumeError?.(reason, err);
+      }
+
+      if (audio.paused) {
+        audio
+          .play()
+          .then(() => {
+            shouldResumeOnFocusRef.current = false;
+          })
+          .catch((err) => {
+            logger.debug(
+              `[useAudioPlayer] Could not resume playback (${reason}):`,
+              err,
+            );
+            onBackgroundResumeError?.(reason, err);
+          });
+      } else {
+        shouldResumeOnFocusRef.current = false;
+      }
+    };
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
         logger.debug(
           "[useAudioPlayer] 🌙 Page hidden - maintaining playback state",
         );
+        markShouldResume();
       } else {
         logger.debug(
           "[useAudioPlayer] 🌞 Page visible - checking playback state",
         );
 
-        if (isPlayingRef.current && audio.paused) {
+        if (shouldResumeOnFocusRef.current && audio.paused) {
           logger.warn(
             "[useAudioPlayer] ⚠️ Audio was paused while in background, resuming...",
           );
-          audio.play().catch((err) => {
-            logger.error("[useAudioPlayer] Failed to resume playback:", err);
-          });
+          void resumePlayback("visibility");
         }
       }
     };
 
     const handleAudioInterruption = () => {
       logger.debug("[useAudioPlayer] 🎧 Audio session interrupted");
+      markShouldResume();
     };
 
     const handleAudioInterruptionEnd = () => {
@@ -544,31 +600,61 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         "[useAudioPlayer] ✅ Audio session interruption ended, checking playback",
       );
 
-      if (isPlayingRef.current && audio.paused) {
+      if (shouldResumeOnFocusRef.current && audio.paused) {
         setTimeout(() => {
-          audio.play().catch((err) => {
-            logger.debug(
-              "[useAudioPlayer] Could not auto-resume after interruption:",
-              err,
-            );
-          });
+          void resumePlayback("interruption");
         }, 100);
       }
     };
 
+    const handlePageHide = () => {
+      logger.debug("[useAudioPlayer] 📭 Page hidden (pagehide)");
+      markShouldResume();
+    };
+
+    const handlePageShow = () => {
+      logger.debug("[useAudioPlayer] 📬 Page shown (pageshow)");
+      if (shouldResumeOnFocusRef.current && audio.paused) {
+        void resumePlayback("pageshow");
+      }
+    };
+
+    const handleFreeze = () => {
+      logger.debug("[useAudioPlayer] 🧊 Page frozen");
+      markShouldResume();
+    };
+
+    const handleResume = () => {
+      logger.debug("[useAudioPlayer] 🔥 Page resumed");
+      if (shouldResumeOnFocusRef.current && audio.paused) {
+        void resumePlayback("resume");
+      }
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("freeze", handleFreeze);
+    document.addEventListener("resume", handleResume);
 
     if ("onwebkitbegininvokeactivity" in window) {
       window.addEventListener("pagehide", handleAudioInterruption);
       window.addEventListener("pageshow", handleAudioInterruptionEnd);
     }
 
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("pageshow", handlePageShow);
+
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("pagehide", handleAudioInterruption);
-      window.removeEventListener("pageshow", handleAudioInterruptionEnd);
+      document.removeEventListener("freeze", handleFreeze);
+      document.removeEventListener("resume", handleResume);
+      if ("onwebkitbegininvokeactivity" in window) {
+        window.removeEventListener("pagehide", handleAudioInterruption);
+        window.removeEventListener("pageshow", handleAudioInterruptionEnd);
+      }
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("pageshow", handlePageShow);
     };
-  }, []);
+  }, [keepPlaybackAlive, onBackgroundResumeError]);
 
   const loadTrack = useCallback(
     (track: Track, streamUrl: string) => {

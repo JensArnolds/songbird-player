@@ -18,7 +18,7 @@ interface ToastMessage extends Omit<ToastProps, "onClose"> {
 interface ToastContextType {
   showToast: (
     message: string,
-    type?: "success" | "error" | "info",
+    type?: "success" | "error" | "info" | "warning",
     duration?: number,
   ) => void;
 }
@@ -31,11 +31,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const showToast = useCallback(
     (
       message: string,
-      type: "success" | "error" | "info" = "success",
+      type: "success" | "error" | "info" | "warning" = "success",
       duration = 3000,
     ) => {
       const id = Math.random().toString(36).substr(2, 9);
-      setToasts((prev) => [...prev, { id, message, type, duration }]);
+      setToasts((prev) => [...prev, { id, message, type, duration } as ToastMessage]);
     },
     [],
   );

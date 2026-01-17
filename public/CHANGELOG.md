@@ -5,6 +5,96 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.10] - 2026-01-17
+
+### Added
+
+- **Background Playback Toggle**: Added a user preference to keep audio playing in the background
+  - New setting under Playback for background playback
+  - Stored as `keepPlaybackAlive` in user preferences (default true)
+  - **Impact**: Users can opt out of background playback behavior
+  - Locations:
+    - `src/app/settings/page.tsx`
+    - `src/server/db/schema.ts`
+    - `src/server/api/routers/music.ts`
+
+### Fixed
+
+- **Queue State Persistence Types**: Serialized queue fields to match API schema
+  - `queuedTracks.addedAt` now persists as ISO strings
+  - Coerced `queueSource` to `"user" | "smart"` for storage
+  - **Impact**: Eliminates queue persistence type errors
+  - Location: `src/contexts/AudioPlayerContext.tsx`
+
+- **Smart Queue Settings Shape**: Normalized missing fields with defaults
+  - Added `diversityFactor`, `excludeExplicit`, and `preferLiveVersions` defaults
+  - **Impact**: Prevents SmartQueue settings type mismatch
+  - Location: `src/contexts/AudioPlayerContext.tsx`
+
+- **Toast Warning Support**: Added `warning` to toast types and UI styling
+  - **Impact**: Allows background resume warnings without type errors
+  - Locations:
+    - `src/components/Toast.tsx`
+    - `src/contexts/ToastContext.tsx`
+
+- **Background Playback Resilience**: Improved resume handling across visibility, pagehide/pageshow, and lifecycle events
+  - Added resume error feedback via toast with throttling
+  - Ensured WebKit-specific listeners are cleaned up conditionally
+  - **Impact**: More reliable playback continuity after app backgrounding
+  - Locations:
+    - `src/hooks/useAudioPlayer.ts`
+    - `src/contexts/AudioPlayerContext.tsx`
+
+- **Visualizer Type Setting**: Restored server-side support for Flow Field selection
+  - API now accepts both `flowfield` and `kaleidoscope`
+  - Updated visualizer type constants accordingly
+  - **Impact**: Visualizer Type dropdown saves correctly
+  - Locations:
+    - `src/server/api/routers/music.ts`
+    - `src/constants/visualizer.ts`
+
+- **GitLab Branding**: Updated the start page GitLab button to use the correct logo
+  - **Impact**: Visual branding matches the GitLab destination
+  - Location: `src/app/HomePageClient.tsx`
+
+## [0.9.9] - 2026-01-17
+
+### Added
+
+- **Mobile Player Overhauls**: Implemented full mobile player improvements
+  - Mini player fixed to sit above the footer while playing
+  - Sliding Queue panel (from right) and Equalizer panel (from left), both with swipe-to-dismiss
+  - Mobile volume slider control in the fullscreen player
+  - Desktop share button for track cards (Web Share API + clipboard fallback)
+  - **Impact**: Better mobile UX, faster access to queue/equalizer, and desktop share support
+  - Locations:
+    - `src/components/MiniPlayer.tsx`
+    - `src/components/MobilePlayer.tsx`
+    - `src/components/TrackCard.tsx`
+
+- **PWA Icon Generation**: Added Emily the Strange PWA icon pipeline
+  - Sharp-based icon generator script and updated source asset
+  - **Impact**: Updated PWA icons for install experience
+  - Locations:
+    - `scripts/generate-pwa-icons.cjs`
+    - `public/icon-192.png`
+    - `public/icon-512.png`
+
+### Fixed
+
+- **Playback Rate Stability**: Added aggressive enforcement to prevent random speedups on mobile
+  - Ratechange listener + 100ms interval + timeupdate checks
+  - **Impact**: Playback stays at 1.0 speed
+  - Location: `src/hooks/useAudioPlayer.ts`
+
+- **Mobile Album Art Always On**: Removed mobile visualizer toggle and always show album art
+  - **Impact**: Simplified mobile UI and consistent art display
+  - Location: `src/components/MobilePlayer.tsx`
+
+- **Missing Icon Import**: Added missing `X` icon import for panel close buttons
+  - **Impact**: Prevents runtime rendering issues on mobile panels
+  - Location: `src/components/MobilePlayer.tsx`
+
 ## [0.9.8] - 2026-01-13
 
 ### Added

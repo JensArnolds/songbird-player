@@ -6,18 +6,21 @@ import { useToast } from "@/contexts/ToastContext";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
-import type { QueuedTrack, SmartQueueState, Track } from "@/types";
+import type {
+  QueuedTrack,
+  SmartQueueSettings,
+  SmartQueueState,
+  Track,
+} from "@/types";
 import { useSession } from "next-auth/react";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
-  type Dispatch,
   type ReactNode,
-  type RefObject,
-  type SetStateAction,
 } from "react";
 
 interface AudioPlayerContextType {
@@ -43,6 +46,7 @@ interface AudioPlayerContextType {
   audioElement: HTMLAudioElement | null;
 
   play: (track: Track) => void;
+  playTrack: (track: Track) => void;
   togglePlay: () => Promise<void>;
   addToQueue: (track: Track | Track[], checkDuplicates?: boolean) => void;
   addToPlayNext: (track: Track | Track[]) => void;
@@ -88,6 +92,26 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const addToHistory = api.music.addToHistory.useMutation();
   const createPlaylistMutation = api.music.createPlaylist.useMutation();
   const addToPlaylistMutation = api.music.addToPlaylist.useMutation();
+  const { data: preferences } = api.music.getUserPreferences.useQuery(
+    undefined,
+    { enabled: !!session },
+  );
+  const resumeErrorThrottleRef = useRef(0);
+  const handleBackgroundResumeError = useCallback(
+    (reason: string) => {
+      const now = Date.now();
+      if (now - resumeErrorThrottleRef.current < 8000) return;
+      resumeErrorThrottleRef.current = now;
+      showToast(
+        "Background playback was interrupted. Tap play to resume.",
+        "warning",
+      );
+      console.warn(
+        `[AudioPlayerContext] Background resume failed (${reason})`,
+      );
+    },
+    [showToast],
+  );
 
   const saveQueueStateMutation = api.music.saveQueueState.useMutation();
   const clearQueueStateMutation = api.music.clearQueueState.useMutation();
@@ -100,6 +124,14 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     undefined,
     { enabled: !!session },
   );
+  const normalizedSmartQueueSettings = smartQueueSettings
+    ? ({
+        ...smartQueueSettings,
+        diversityFactor: 0.5,
+        excludeExplicit: false,
+        preferLiveVersions: false,
+      } as SmartQueueSettings)
+    : undefined;
 
   const utils = api.useUtils();
 
@@ -154,6 +186,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const player = useAudioPlayer({
     initialQueueState: initialQueueState,
+    keepPlaybackAlive: preferences?.keepPlaybackAlive ?? true,
+    onBackgroundResumeError: handleBackgroundResumeError,
     onTrackChange: (track) => {
       if (track && session) {
         if (hasCompleteTrackData(track)) {
@@ -199,17 +233,38 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         showToast("Playback failed. Please try again.", "error");
       }
     },
-    smartQueueSettings: smartQueueSettings ?? undefined,
+    smartQueueSettings: normalizedSmartQueueSettings,
   });
 
   useEffect(() => {
     if (!session) return;
 
     const persistTimer = setTimeout(() => {
+      const queuedTracksForSave: Array<{
+        track: Track;
+        queueId: string;
+        queueSource: "user" | "smart";
+        addedAt: string;
+      }> = player.queuedTracks.map((qt) => ({
+        track: qt.track,
+        queueId: qt.queueId,
+        queueSource: qt.queueSource === "smart" ? "smart" : "user",
+        addedAt:
+          qt.addedAt instanceof Date
+            ? qt.addedAt.toISOString()
+            : String(qt.addedAt),
+      }));
       const queueState = {
         version: 2 as const,
-        queuedTracks: player.queuedTracks,
-        smartQueueState: player.smartQueueState,
+        queuedTracks: queuedTracksForSave,
+        smartQueueState: {
+          ...player.smartQueueState,
+          lastRefreshedAt: player.smartQueueState.lastRefreshedAt
+            ? player.smartQueueState.lastRefreshedAt instanceof Date
+              ? player.smartQueueState.lastRefreshedAt.toISOString()
+              : String(player.smartQueueState.lastRefreshedAt)
+            : null,
+        },
         history: player.history,
         currentTime: player.currentTime,
         isShuffled: player.isShuffled,
@@ -426,6 +481,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     audioElement: player.audioRef.current,
 
     play,
+    playTrack: play,
     togglePlay: player.togglePlay,
     addToQueue: player.addToQueue,
     addToPlayNext: player.addToPlayNext,
