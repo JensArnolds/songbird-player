@@ -8,7 +8,7 @@ import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { springPresets } from "@/utils/spring-animations";
-import { Heart, ListPlus, MoreVertical } from "lucide-react";
+import { Heart, ListPlus, MoreVertical, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { api } from "@/trpc/react";
@@ -91,6 +91,30 @@ export default function TrackCard({
     onPlay(track);
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    hapticLight();
+    const shareUrl = `${window.location.origin}/track/${track.id}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: track.title,
+          text: `Listen to "${track.title}" by ${track.artist.name}`,
+          url: shareUrl,
+        });
+        showToast("Shared successfully!", "success");
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast(`Link copied to clipboard!`, "success");
+      }
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") {
+        showToast("Failed to share", "error");
+      }
+    }
+  };
+
   return (
     <motion.div
       onClick={handlePlay}
@@ -162,6 +186,15 @@ export default function TrackCard({
               <ListPlus className="h-5 w-5" />
             </button>
           )}
+
+          {}
+          <button
+            onClick={handleShare}
+            className="hidden rounded-full p-2 text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-[var(--color-accent-light)] md:block"
+            title="Share track"
+          >
+            <Share2 className="h-5 w-5" />
+          </button>
 
           {}
           <button
