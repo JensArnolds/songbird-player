@@ -2,7 +2,7 @@
 
 "use client";
 
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Settings, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 import Image from "next/image";
@@ -119,8 +119,35 @@ export default function Header() {
                 >
                   Playlists
                 </Link>
+                {userProfile?.userHash && (
+                  <Link
+                    href={`/${userProfile.userHash}`}
+                    className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+                  >
+                    Profile
+                  </Link>
+                )}
+                <Link
+                  href="/settings"
+                  className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+                >
+                  Settings
+                </Link>
               </>
             )}
+            <button
+              onClick={() => {
+                if (window.history.length > 1) {
+                  router.back();
+                } else {
+                  router.push("/");
+                }
+              }}
+              className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+              aria-label="Close"
+            >
+              Close
+            </button>
           </nav>
 
           {}

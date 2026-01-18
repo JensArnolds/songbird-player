@@ -820,6 +820,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         const x = e.clientX - rect.left;
                         const percentage = Math.max(0, Math.min(1, x / rect.width));
                         props.onVolumeChange(percentage);
+                        hapticLight();
                       }}
                       onTouchStart={(e) => {
                         e.preventDefault();
@@ -829,6 +830,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         const x = touch.clientX - rect.left;
                         const percentage = Math.max(0, Math.min(1, x / rect.width));
                         props.onVolumeChange(percentage);
+                        hapticLight();
                       }}
                       onTouchMove={(e) => {
                         e.preventDefault();
@@ -841,6 +843,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       }}
                       onTouchEnd={(e) => {
                         e.preventDefault();
+                        hapticLight();
                       }}
                       role="slider"
                       aria-label="Volume"
