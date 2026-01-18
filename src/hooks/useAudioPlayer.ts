@@ -359,22 +359,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const playbackRateEnforcer = setInterval(() => {
-      if (audio.playbackRate !== 1.0) {
-        logger.warn(
-          `[useAudioPlayer] ⚡ Interval enforcer caught playbackRate=${audio.playbackRate} at ${audio.currentTime.toFixed(2)}s - forcing to 1.0`,
-        );
-        audio.playbackRate = 1.0;
-      }
-    }, 100);
-
     const handleTimeUpdate = () => {
       const newTime = audio.currentTime;
-
-      if (audio.playbackRate !== 1.0) {
-        logger.warn("[useAudioPlayer] Playback rate changed to", audio.playbackRate, "- resetting to 1.0");
-        audio.playbackRate = 1.0;
-      }
 
       if (
         Math.floor(newTime) % 5 === 0 &&
@@ -391,10 +377,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     };
     const handleLoadedMetadata = () => {
       setDuration(audio.duration);
-      if (audio.playbackRate !== 1.0) {
-        logger.debug("[useAudioPlayer] Resetting playbackRate to 1.0 after metadata loaded");
-        audio.playbackRate = 1.0;
-      }
     };
     const handlePlay = () => {
 
@@ -412,18 +394,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const handleLoadStart = () => setIsLoading(true);
     const handleCanPlay = () => {
       setIsLoading(false);
-      if (audio.playbackRate !== 1.0) {
-        logger.debug("[useAudioPlayer] Resetting playbackRate to 1.0 when canplay");
-        audio.playbackRate = 1.0;
-      }
-    };
-    const handleRateChange = () => {
-      if (audio.playbackRate !== 1.0) {
-        logger.warn(
-          `[useAudioPlayer] 🚨 PLAYBACK RATE CHANGED to ${audio.playbackRate} at ${audio.currentTime.toFixed(2)}s - FORCING back to 1.0`,
-        );
-        audio.playbackRate = 1.0;
-      }
     };
     const handleError = (e: Event) => {
 
@@ -500,11 +470,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("loadstart", handleLoadStart);
     audio.addEventListener("canplay", handleCanPlay);
-    audio.addEventListener("ratechange", handleRateChange);
     audio.addEventListener("error", handleError);
 
     return () => {
-      clearInterval(playbackRateEnforcer);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("play", handlePlay);
@@ -512,7 +480,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("loadstart", handleLoadStart);
       audio.removeEventListener("canplay", handleCanPlay);
-      audio.removeEventListener("ratechange", handleRateChange);
       audio.removeEventListener("error", handleError);
     };
   }, [handleTrackEnd, currentTrack, onError, currentTime]);
@@ -748,7 +715,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           audioRef.current.load();
 
           logger.debug("[useAudioPlayer] Audio source set and load() called");
-          audioRef.current.playbackRate = 1.0;
           return true;
         } catch (error) {
 
