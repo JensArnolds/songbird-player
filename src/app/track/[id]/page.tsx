@@ -81,10 +81,10 @@ export async function generateMetadata({
   }
 
   const coverImage =
-    track.album.cover_xl ||
-    track.album.cover_big ||
     track.album.cover_medium ||
-    track.album.cover_small;
+    track.album.cover_small ||
+    track.album.cover_big ||
+    track.album.cover_xl;
 
   const description = `Listen to "${track.title}" by ${track.artist.name}${track.album.title ? ` from ${track.album.title}` : ""} on Starchild Music`;
 
