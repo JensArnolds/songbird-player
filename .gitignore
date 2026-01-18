@@ -78,3 +78,10 @@ public/**/*.js
 nul
 resources/
 electron/azure-vault.json
+
+CLAUDE.md
+REPOSITORY_ANALYSIS.md
+.github/docs/*
+.claude
+.cursor
+
