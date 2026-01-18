@@ -93,6 +93,7 @@ export async function GET(request: NextRequest) {
   const durationSeconds = duration ? parseInt(duration, 10) : 0;
   const formattedDuration = durationSeconds > 0 ? formatDuration(durationSeconds) : "0:00";
   const progressPercent = 42;
+  const coverDataUrl = await getCoverDataUrl(cover);
 
   return new ImageResponse(
     <div
@@ -132,9 +133,9 @@ export async function GET(request: NextRequest) {
               display: "flex",
             }}
           >
-            {cover ? (
+            {coverDataUrl ? (
               <img
-                src={cover}
+                src={coverDataUrl}
                 width={280}
                 height={280}
                 style={{
@@ -303,4 +304,46 @@ export async function GET(request: NextRequest) {
       height: 630,
     },
   );
+}
+
+async function getCoverDataUrl(coverUrl: string | null) {
+  if (!coverUrl) {
+    return null;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1500);
+    const response = await fetch(coverUrl, {
+      signal: controller.signal,
+      cache: "force-cache",
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const contentLength = response.headers.get("content-length");
+    if (contentLength && Number(contentLength) > 2_000_000) {
+      return null;
+    }
+
+    const buffer = await response.arrayBuffer();
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    const base64 = arrayBufferToBase64(buffer);
+    return `data:${contentType};base64,${base64}`;
+  } catch {
+    return null;
+  }
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer) {
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i += 1) {
+    binary += String.fromCharCode(bytes[i] ?? 0);
+  }
+  return btoa(binary);
 }
