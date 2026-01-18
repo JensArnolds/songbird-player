@@ -119,14 +119,6 @@ export default function Header() {
                 >
                   Playlists
                 </Link>
-                {userProfile?.userHash && (
-                  <Link
-                    href={`/${userProfile.userHash}`}
-                    className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
-                  >
-                    Profile
-                  </Link>
-                )}
                 <Link
                   href="/settings"
                   className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
@@ -135,6 +127,16 @@ export default function Header() {
                 </Link>
               </>
             )}
+            <Link
+              href={
+                session && userProfile?.userHash
+                  ? `/${userProfile.userHash}`
+                  : "/api/auth/signin"
+              }
+              className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+            >
+              Profile
+            </Link>
             <button
               onClick={() => {
                 if (window.history.length > 1) {
