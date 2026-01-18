@@ -1,6 +1,6 @@
 # 🌟 Starchild Music
 
-![Starchild Music Icon](.github/assets/emily-the-strange-icon.png)
+![Starchild Music Icon](.github/assets/emily-the-strange.png)
 
 *A modern full-stack music search & streaming platform.*
 
@@ -23,6 +23,7 @@
 ### Audio Playback System
 
 **Core Playback:**
+
 - **HTML5 Audio API**: Primary playback engine with Web Audio API for advanced processing
 - **Spotify-Style Queue**: Queue structure where `queue[0]` is the current track, `queue[1+]` are upcoming tracks
 - **Playback Controls**:
@@ -33,6 +34,7 @@
   - Shuffle mode with original order restoration
 
 **Queue Management:**
+
 - **Multi-Select**: Keyboard and mouse selection for bulk operations
 - **Drag & Drop**: Reorder tracks in queue
 - **Queue Persistence**: Save and restore queue state (authenticated users)
@@ -43,6 +45,7 @@
 ### Audio Enhancement
 
 **9-Band Equalizer:**
+
 - Frequency bands: 31Hz, 62Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz
 - 8 built-in presets (Rock, Pop, Jazz, Classical, Electronic, Hip-Hop, Vocal, Flat)
 - Custom band adjustment with real-time processing
@@ -50,6 +53,7 @@
 - Web Audio API integration for hardware-accelerated processing
 
 **Audio Visualizers:**
+
 - Multiple visualization types: Spectrum Analyzer, Waveform, Circular, Frequency Bands, Radial Spectrum, Spectral Waves, Particle System, Frequency Rings
 - FlowFieldRenderer with 80+ visualization patterns
 - KaleidoscopeRenderer for mirrored effects
@@ -59,12 +63,14 @@
 ### User Management
 
 **Authentication:**
+
 - **NextAuth.js**: Discord OAuth 2.0 authentication
 - **Session Management**: Database-backed sessions (30-day expiry)
 - **User Profiles**: Public/private profile settings with user hash URLs
 - **Profile Pages**: Shareable user profiles at `/[userhash]`
 
 **User Data:**
+
 - **Playlists**: Create, edit, delete, and share playlists
 - **Favorites**: Track favorite songs with auto-sync based on play count
 - **Listening History**: Complete playback history with analytics
@@ -74,6 +80,7 @@
 ### Responsive Design
 
 **Mobile (<768px):**
+
 - MobileHeader with hamburger menu and search
 - Bottom navigation bar with swipeable panes
 - MiniPlayer (bottom-stuck compact player)
@@ -83,6 +90,7 @@
 - Touch-optimized controls with haptic feedback
 
 **Desktop (≥768px):**
+
 - Traditional header navigation
 - Desktop player at bottom
 - Keyboard shortcuts (Space, Arrow keys, M for mute, etc.)
@@ -321,10 +329,12 @@ The application uses two backend APIs for music operations:
 Primary API for music search and streaming.
 
 **Endpoints:**
+
 - `GET /music/search?q={query}` - Search for music tracks
 - `GET /music/stream?trackId={id}&kbps={bitrate}` - Stream a music track
 
 **Documentation:**
+
 - Swagger UI available at [https://api.darkfloor.art/](https://api.darkfloor.art/)
 - OpenAPI specification (JSON/YAML) available for download
 
@@ -333,12 +343,14 @@ Primary API for music search and streaming.
 Advanced API that orchestrates Spotify, Last.fm, and Deezer for comprehensive music discovery, recommendations, playlist experimentation, and streaming.
 
 **Features:**
+
 - Music discovery across multiple sources
 - Intelligent recommendations
 - Playlist experimentation
 - Streaming capabilities
 
 **Documentation:**
+
 - Swagger UI available at [https://songbird.darkfloor.art/](https://songbird.darkfloor.art/)
 - OpenAPI specification (JSON/YAML) available for download
 - Environment: Production
@@ -383,11 +395,13 @@ addToPlaylist.mutate({ playlistId: "123", trackId: 456 });
 ### API Integration Flow
 
 **Search Flow:**
+
 ```
 Frontend → tRPC (music.search) → Backend API (Darkfloor/Songbird) → Response
 ```
 
 **Streaming Flow:**
+
 ```
 Frontend → getStreamUrlById() → Backend API (/music/stream) → Audio Stream
 ```
@@ -395,6 +409,7 @@ Frontend → getStreamUrlById() → Backend API (/music/stream) → Audio Stream
 **Stream URL Generation:**
 
 Stream URLs are generated via `getStreamUrlById()` function:
+
 ```typescript
 const streamUrl = getStreamUrlById(trackId.toString());
 // Returns: `${NEXT_PUBLIC_API_URL}/music/stream?trackId=${trackId}&kbps=320`
@@ -459,6 +474,7 @@ This project is licensed under the **GPL-3.0 License**. See the LICENSE file for
 ### Available Scripts
 
 **Development:**
+
 ```bash
 npm run dev          # Development server (port 3222)
 npm run dev:next     # Next.js dev server only
@@ -466,6 +482,7 @@ npm run electron:dev # Electron + Next.js dev
 ```
 
 **Database:**
+
 ```bash
 npm run db:generate  # Generate migration files
 npm run db:migrate   # Apply migrations
@@ -474,6 +491,7 @@ npm run db:studio    # Open Drizzle Studio GUI
 ```
 
 **Build & Production:**
+
 ```bash
 npm run build        # Production build
 npm run start        # Start production server
@@ -481,6 +499,7 @@ npm run preview      # Build + start (test production)
 ```
 
 **Electron:**
+
 ```bash
 npm run electron:build       # Build for current platform
 npm run electron:build:win   # Build Windows installer
@@ -489,6 +508,7 @@ npm run electron:build:linux # Build Linux AppImage/DEB
 ```
 
 **Code Quality:**
+
 ```bash
 npm run typecheck    # TypeScript type checking
 npm run lint         # ESLint
@@ -499,6 +519,7 @@ npm run check        # Lint + typecheck
 ```
 
 **PM2 (Production):**
+
 ```bash
 npm run pm2:start    # Start production server
 npm run pm2:dev      # Start development server
@@ -521,6 +542,7 @@ This project uses **PM2** for production process management, providing automatic
 #### Starting the Server
 
 **Production Mode:**
+
 ```bash
 # Build and start production server
 npm run pm2:start
@@ -531,6 +553,7 @@ pm2 start ecosystem.config.cjs --env production
 ```
 
 **Development Mode:**
+
 ```bash
 # Start development server with PM2
 npm run pm2:dev
@@ -572,19 +595,24 @@ pm2 restart darkfloor-art-prod --update-env
 The production server uses a **multi-layer startup process** to ensure reliability:
 
 #### 1. **PM2 Pre-Start Hook**
+
 Before starting the server, PM2 runs:
+
 ```bash
 node scripts/ensure-build.js
 ```
 
 This script:
+
 - Checks if `.next/BUILD_ID` file exists
 - Automatically runs `npm run build` if build is missing
 - Prevents crash loops by ensuring build exists before startup
 - Logs build process for debugging
 
 #### 2. **Server Script Validation**
+
 The `scripts/server.js` wrapper performs additional validation:
+
 - Verifies `.next` directory exists
 - Checks for `BUILD_ID` file (required by Next.js)
 - Validates `.next/server` directory
@@ -592,7 +620,9 @@ The `scripts/server.js` wrapper performs additional validation:
 - Prevents infinite restart loops
 
 #### 3. **Next.js Production Server**
+
 Once validation passes:
+
 - Next.js starts in production mode (`next start`)
 - Binds to configured port (uses PORT from .env, default: 3222)
 - Health check endpoint becomes available at `/api/health`
@@ -601,14 +631,18 @@ Once validation passes:
 ### Server Shutdown Mechanism
 
 #### Graceful Shutdown
+
 PM2 handles graceful shutdown through:
+
 - **SIGTERM/SIGINT signals**: PM2 sends these to the process
 - **Kill timeout**: 5 seconds grace period before force kill
 - **Next.js cleanup**: Next.js handles cleanup automatically
 - **Database pool closure**: Database connections are closed gracefully
 
 #### Force Shutdown
+
 If graceful shutdown fails:
+
 ```bash
 pm2 delete darkfloor-art-prod  # Force remove
 pm2 kill  # Kill PM2 daemon (use with caution)
@@ -617,6 +651,7 @@ pm2 kill  # Kill PM2 daemon (use with caution)
 ### Monitoring & Logs
 
 #### View Logs
+
 ```bash
 # Production logs
 npm run pm2:logs
@@ -635,6 +670,7 @@ pm2 logs darkfloor-art-prod --lines 100
 ```
 
 #### Check Status
+
 ```bash
 # List all processes
 npm run pm2:status
@@ -647,7 +683,9 @@ pm2 show darkfloor-art-prod
 ```
 
 #### Log Files
+
 Logs are stored in `logs/pm2/`:
+
 - `error.log` - Error output only
 - `out.log` - Standard output only
 - `combined.log` - All logs combined
@@ -679,6 +717,7 @@ curl http://localhost:3222/api/health
 ```
 
 PM2 is configured to:
+
 - Check health endpoint every few seconds
 - Restart process if health check fails
 - Grace period of 5 seconds after startup before health checks begin
@@ -686,12 +725,14 @@ PM2 is configured to:
 ### Automatic Restart Behavior
 
 PM2 automatically restarts the process when:
+
 - Process crashes (exit code != 0)
 - Memory exceeds 2GB (`max_memory_restart: "2G"`)
 - Health check fails (if configured)
 - Manual restart command issued
 
 **Restart Limits:**
+
 - Maximum 10 restarts within restart delay window
 - Exponential backoff prevents crash loops
 - Minimum uptime of 30 seconds before considered stable
@@ -700,13 +741,16 @@ PM2 automatically restarts the process when:
 ### Build Management
 
 #### Automatic Build Recovery
+
 If the production build is missing:
+
 1. PM2 pre-start hook detects missing BUILD_ID
 2. Automatically runs `npm run build`
 3. Server starts only if build succeeds
 4. Process exits cleanly if build fails (no crash loop)
 
 #### Manual Build
+
 ```bash
 # Build for production
 npm run build
@@ -721,11 +765,13 @@ npm run deploy
 ### Environment Configuration
 
 The server loads environment variables in this order:
+
 1. `.env` - Base configuration
 2. `.env.production` or `.env.development` - Environment-specific
 3. `.env.local` - Local overrides (never committed)
 
 **Production Environment Variables:**
+
 ```bash
 NODE_ENV=production
 PORT=3222
@@ -733,6 +779,7 @@ HOSTNAME=localhost
 ```
 
 **Development Environment Variables:**
+
 ```bash
 NODE_ENV=development
 PORT=3222  # Single port configuration - set in .env
@@ -742,24 +789,28 @@ HOSTNAME=0.0.0.0
 ### Troubleshooting Server Issues
 
 #### Process Won't Start
+
 1. Check if build exists: `test -f .next/BUILD_ID`
 2. Build manually: `npm run build`
 3. Check logs: `pm2 logs darkfloor-art-prod --err`
 4. Verify port is available: `netstat -tlnp | grep 3222`
 
 #### Process Keeps Restarting
+
 1. Check error logs: `pm2 logs --err`
 2. Verify build is complete: Check `.next/BUILD_ID` exists
 3. Check memory usage: `pm2 monit`
 4. Review restart count: `pm2 describe darkfloor-art-prod`
 
 #### Health Check Failing
+
 1. Test endpoint manually: `curl http://localhost:3222/api/health`
 2. Check database connection in health endpoint
 3. Verify server is actually running: `pm2 status`
 4. Check for port conflicts
 
 #### Build Issues
+
 1. Clear build cache: `rm -rf .next`
 2. Rebuild: `npm run build`
 3. Check for TypeScript errors: `npm run typecheck`
@@ -810,6 +861,7 @@ This project uses **TailwindCSS v4** with pure CSS Variables (no `@apply` direct
 ### Issue: Audio not playing / Web Audio Context errors
 
 **Solution**:
+
 1. Web Audio API requires user gesture - click/tap to initialize
 2. Check browser console for autoplay policy errors
 3. Ensure user interaction before calling `play()`
@@ -818,6 +870,7 @@ This project uses **TailwindCSS v4** with pure CSS Variables (no `@apply` direct
 ### Issue: Queue not persisting
 
 **Solution**:
+
 1. Check localStorage is enabled in browser
 2. For authenticated users, check database connection
 3. Verify `saveQueueState` mutation is working
@@ -875,11 +928,13 @@ This project uses **TailwindCSS v4** with pure CSS Variables (no `@apply` direct
 ### Audio Player Architecture
 
 **State Management:**
+
 - Global `AudioPlayerContext` provides centralized player state across all components
 - `useAudioPlayer` hook contains core playback logic (1,800+ lines)
 - Queue structure: `queue[0]` is current track, `queue[1+]` are upcoming tracks
 
 **Audio Chain:**
+
 ```
 Track → getStreamUrlById() → Darkfloor API (/music/stream) → HTMLAudioElement → Web Audio API → Equalizer → Speakers
                                       ↓
@@ -887,6 +942,7 @@ Track → getStreamUrlById() → Darkfloor API (/music/stream) → HTMLAudioElem
 ```
 
 **Key Features:**
+
 - **Queue Persistence**: Queue state saved to localStorage and database (authenticated users)
 - **Playback History**: Tracks added to history on completion
 - **Smart Queue**: Similarity-based recommendations (optional)
@@ -896,6 +952,7 @@ Track → getStreamUrlById() → Darkfloor API (/music/stream) → HTMLAudioElem
 ### Authentication Flow
 
 **NextAuth.js Integration:**
+
 1. User clicks "Sign in with Discord"
 2. Redirects to Discord OAuth
 3. Discord callback returns to `/api/auth/callback/discord`
@@ -904,6 +961,7 @@ Track → getStreamUrlById() → Darkfloor API (/music/stream) → HTMLAudioElem
 6. User profile accessible at `/[userhash]`
 
 **Session Management:**
+
 - Database-backed sessions (not JWT)
 - Automatic session refresh (24-hour update age)
 - Secure cookies in production (HTTP-only, SameSite=Lax)
@@ -912,12 +970,14 @@ Track → getStreamUrlById() → Darkfloor API (/music/stream) → HTMLAudioElem
 ### Queue System
 
 **Spotify-Style Queue:**
+
 - Current track is always `queue[0]`
 - Upcoming tracks are `queue[1]`, `queue[2]`, etc.
 - History tracks are stored separately
 - Queue can be shuffled (original order preserved for restoration)
 
 **Queue Operations:**
+
 - `play(track)` - Play track immediately (replaces current)
 - `addToQueue(tracks)` - Add tracks to end of queue
 - `addToPlayNext(tracks)` - Add tracks after current track
@@ -927,6 +987,7 @@ Track → getStreamUrlById() → Darkfloor API (/music/stream) → HTMLAudioElem
 - `reorderQueue(oldIndex, newIndex)` - Move track position
 
 **Queue Persistence:**
+
 - LocalStorage: Queue state saved automatically (all users)
 - Database: Queue state synced to database (authenticated users)
 - Restore: Queue automatically restored on app load
@@ -934,6 +995,7 @@ Track → getStreamUrlById() → Darkfloor API (/music/stream) → HTMLAudioElem
 ### Database Schema
 
 **Key Tables:**
+
 - `users` - User accounts with profile data
 - `sessions` - Active user sessions (NextAuth)
 - `accounts` - OAuth account links
@@ -1041,6 +1103,7 @@ Contributions are welcome! Please ensure:
 Built with the **T3 Stack** - a modern, type-safe full-stack framework for Next.js applications.
 
 **Key Technologies:**
+
 - [Next.js](https://nextjs.org/) - React framework
 - [tRPC](https://trpc.io/) - End-to-end typesafe APIs
 - [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
