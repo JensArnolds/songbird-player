@@ -5,6 +5,19 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.15] - 2026-01-19
+
+### Added
+
+- **Auto-Play for Shared Search Links**: Search query links now automatically play the first result
+  - **URL Format**: Links like `https://starchildmusic.com/?q=jetlag+jenny+45ACID` auto-play first match
+  - **Smart Detection**: Only triggers for URL parameter searches, not manual user searches
+  - **One-Time Playback**: Uses ref-based tracking to prevent re-triggering on re-renders
+  - **Graceful Fallbacks**: No auto-play if search fails or returns empty results
+  - **Mobile Integration**: Includes haptic feedback on successful auto-play
+  - **Impact**: Shared discovery links provide instant playback, creating a seamless listening experience
+  - Location: `src/app/HomePageClient.tsx`
+
 ## [0.9.14] - 2026-01-17
 
 ### Added
