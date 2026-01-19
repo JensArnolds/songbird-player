@@ -52,6 +52,7 @@ export default function HomePageClient() {
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const lastUrlQueryRef = useRef<string | null>(null);
   const lastTrackIdRef = useRef<string | null>(null);
+  const shouldAutoPlayRef = useRef(false);
 
   const player = useGlobalPlayer();
 
@@ -98,16 +99,27 @@ export default function HomePageClient() {
         if (session) {
           addSearchQuery.mutate({ query: searchQuery });
         }
+
+        if (shouldAutoPlayRef.current && response.data.length > 0) {
+          const firstTrack = response.data[0];
+          if (firstTrack) {
+            console.log("[HomePageClient] Auto-playing first search result:", firstTrack.title);
+            hapticSuccess();
+            player.playTrack(firstTrack);
+            shouldAutoPlayRef.current = false;
+          }
+        }
       } catch (error) {
         console.error("Search failed:", error);
         setResults([]);
         setTotal(0);
         setApiOffset(0);
+        shouldAutoPlayRef.current = false;
       } finally {
         setLoading(false);
       }
     },
-    [session, addSearchQuery, currentQuery],
+    [session, addSearchQuery, currentQuery, player],
   );
 
   const handleAlbumClick = useCallback(
@@ -220,6 +232,7 @@ export default function HomePageClient() {
         lastTrackIdRef.current = null;
         setQuery(urlQuery);
         setIsInitialized(true);
+        shouldAutoPlayRef.current = true;
         void performSearch(urlQuery);
       }
     } else {
@@ -661,6 +674,40 @@ export default function HomePageClient() {
                     <span>Changelog</span>
                   </motion.button>
                 </div>
+
+                {}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...springPresets.gentle, delay: 0.3 }}
+                  className="mt-12 w-full max-w-2xl border-t border-white/5 pt-8"
+                >
+                  <h4 className="mb-4 text-center text-sm font-semibold text-[var(--color-text)]">
+                    Infrastructure & Architecture
+                  </h4>
+                  <div className="space-y-3 text-xs text-[var(--color-subtext)] md:text-sm">
+                    <p className="leading-relaxed">
+                      Starchild Music runs on a <span className="text-[var(--color-accent)]">dual-deployment architecture</span>:
+                      a custom VM server (<span className="font-mono text-[var(--color-text)]">starchildmusic.com</span>)
+                      for backend services and database access, alongside a Vercel edge deployment
+                      (<span className="font-mono text-[var(--color-text)]">darkfloor.art</span>) for global CDN distribution
+                      and optimized performance.
+                    </p>
+                    <p className="leading-relaxed">
+                      Use the <span className="text-[var(--color-accent)]">deployment icon</span> in the header
+                      (desktop only) to switch between environments. The VM provides full backend control and direct
+                      database access, while Vercel offers edge-optimized static delivery and serverless functions
+                      with automatic scaling.
+                    </p>
+                    <p className="leading-relaxed">
+                      Music data is sourced from our <span className="text-[var(--color-accent)]">custom API</span> at
+                      <span className="font-mono text-[var(--color-text)]"> api.starchildmusic.com</span>, with fallback
+                      to Deezer&apos;s public API. User data, preferences, and playlists are stored in a
+                      <span className="text-[var(--color-accent)]"> Neon serverless PostgreSQL</span> database,
+                      shared across both deployments for seamless sync.
+                    </p>
+                  </div>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>

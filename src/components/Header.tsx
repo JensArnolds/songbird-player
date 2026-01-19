@@ -30,10 +30,15 @@ export default function Header() {
 
   useEffect(() => {
     setIsElectron(!!window.electron?.isElectron);
-    setIsVercelDeployment(
-      typeof window !== "undefined" &&
-        window.location.hostname.endsWith("vercel.app"),
-    );
+
+    if (typeof window !== "undefined" && env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL) {
+      try {
+        const vercelUrl = new URL(env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL);
+        setIsVercelDeployment(window.location.hostname === vercelUrl.hostname);
+      } catch {
+        setIsVercelDeployment(false);
+      }
+    }
   }, []);
 
   useEffect(() => {
