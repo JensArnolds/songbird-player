@@ -28,9 +28,9 @@ const nodeEnv = process.env.NODE_ENV || "production";
 const isDev = nodeEnv === "development";
 
 if (isDev) {
-  // DEVELOPMENT MODE: ONLY load .env.development (no other files)
-  console.log('[ENV] Development mode: Loading ONLY .env.development');
-  dotenv.config({ path: path.resolve(__dirname, "../.env.development"), override: true });
+  // DEVELOPMENT MODE: ONLY load .env (no other files)
+  console.log('[ENV] Development mode: Loading ONLY .env');
+  dotenv.config({ path: path.resolve(__dirname, "../.env"), override: true });
 } else {
   // PRODUCTION MODE: Load environment files in priority order
   // Priority: .env.local > .env.production > .env
@@ -55,10 +55,10 @@ console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing
 console.log("AUTH_SECRET:", process.env.AUTH_SECRET ? "✓ Set (" + process.env.AUTH_SECRET.length + " chars)" : "✗ Missing");
 console.log("====================================\n");
 
-// PORT is required - use PORT from env (set by PM2 or loaded from .env/.env.development)
+// PORT is required - use PORT from env (set by PM2 or loaded from .env)
 if (!process.env.PORT) {
   console.error(
-    "Error: PORT environment variable is required. Please set it in .env file (production) or .env.development file (development) or via PM2.",
+    "Error: PORT environment variable is required. Please set it in .env file or via PM2.",
   );
   process.exit(1);
 }

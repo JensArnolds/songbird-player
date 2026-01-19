@@ -5,6 +5,65 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.16] - 2026-01-19
+
+### Added
+
+- **Health Check Request Logging**: Added comprehensive development-mode logging for health check requests
+  - **Request Details**: Logs method, URL, origin, user-agent, referer, and client IP
+  - **Response Details**: Logs status, response time, database check result, and memory usage
+  - **Error Logging**: Detailed error messages for database check failures
+  - **Impact**: Easier debugging of health check issues and CORS problems during development
+  - Location: `src/app/api/health/route.ts`
+
+- **CORS Configuration Documentation**: Created comprehensive documentation for API CORS setup
+  - **Detailed Guide**: Complete CORS configuration request document with code examples
+  - **Quick Reference**: Concise prompt for quick copy-paste requests
+  - **Implementation Examples**: Express.js, FastAPI, and Nginx configuration examples
+  - **Testing Instructions**: Browser console and cURL test commands
+  - **Impact**: Clear instructions for backend team to configure CORS properly
+  - Locations:
+    - `docs/CORS_CONFIGURATION_REQUEST.md`
+    - `docs/CORS_PROMPT.txt`
+
+### Changed
+
+- **Environment Configuration**: Development mode now loads from `.env` instead of `.env.development`
+  - **Unified Configuration**: Single `.env` file for development, simplifying environment management
+  - **Consistent Behavior**: Both `npm run dev` and SSL certificate generation use the same file
+  - **Impact**: Easier development setup with a single source of truth for environment variables
+  - Locations:
+    - `scripts/server.js`
+    - `scripts/generate-ssl-cert.js`
+
+- **Header API Health Status**: Enhanced API health monitoring in desktop header
+  - **Periodic Checks**: Health status now updates every 30 seconds automatically
+  - **Improved Error Handling**: Better error logging and status detection
+  - **CORS Mode**: Explicitly sets `mode: "cors"` for health check requests
+  - **Text Update**: Changed "API OK" to "Api Healthy" for consistency
+  - **Impact**: More reliable and visible API health monitoring
+  - Location: `src/components/Header.tsx`
+
+- **Header Navigation Authentication**: Improved authentication flow for header navigation links
+  - **Library & Playlists**: Now redirect to Discord OAuth2 login (`/api/auth/signin`) when not authenticated
+  - **Consistent Behavior**: All protected routes now have consistent authentication handling
+  - **Impact**: Better user experience with clear authentication prompts
+  - Location: `src/components/Header.tsx`
+
+### Fixed
+
+- **Content-Security-Policy Violation**: Added `https://api.starchildmusic.com` to CSP `connect-src` directive
+  - **Health Check Access**: Allows frontend to make health check requests to the API
+  - **CORS Compatibility**: Works in conjunction with CORS configuration for proper cross-origin requests
+  - **Impact**: Health check badge now works correctly without CSP violations
+  - Location: `src/middleware.ts`
+
+- **HTML Nesting Error**: Fixed invalid `<a>` tag nesting in header component
+  - **Structure Fix**: Moved API health badge link outside of logo link to prevent nested anchors
+  - **Hydration Fix**: Resolves React hydration error that was breaking client-side interactivity
+  - **Impact**: Eliminates console errors and ensures proper HTML structure
+  - Location: `src/components/Header.tsx`
+
 ## [0.9.15] - 2026-01-19
 
 ### Added

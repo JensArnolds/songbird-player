@@ -94,6 +94,7 @@ export interface SmartQueueState {
   lastRefreshedAt: Date | null;
   seedTrackId: number | null;
   trackCount: number;
+  isLoading?: boolean;
 }
 
 export interface SmartQueueSettings {

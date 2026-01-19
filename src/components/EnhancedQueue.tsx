@@ -2,6 +2,7 @@
 
 "use client";
 
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useToast } from "@/contexts/ToastContext";
 import { api } from "@/trpc/react";
 import type { QueuedTrack, SmartQueueState, Track } from "@/types";
@@ -483,7 +484,8 @@ export function EnhancedQueue({
                     smartQueueState.isActive ? "refresh" : "add",
                   )
                 }
-                className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(88,198,177,0.12)] hover:text-[var(--color-text)]"
+                disabled={smartQueueState.isLoading}
+                className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(88,198,177,0.12)] hover:text-[var(--color-text)] disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={
                   smartQueueState.isActive
                     ? "Refresh smart tracks"
@@ -495,7 +497,11 @@ export function EnhancedQueue({
                     : "Add smart tracks"
                 }
               >
-                <Sparkles className="h-5 w-5" />
+                {smartQueueState.isLoading ? (
+                  <LoadingSpinner size="sm" label="Loading smart tracks" />
+                ) : (
+                  <Sparkles className="h-5 w-5" />
+                )}
               </button>
             )}
             {onSaveAsPlaylist && (queue.length > 0 || currentTrack) && (
@@ -668,29 +674,43 @@ export function EnhancedQueue({
                 )}
 
                 { }
-                {filteredSmartTracks.length > 0 && (
+                {(filteredSmartTracks.length > 0 || smartQueueState.isLoading) && (
                   <div className="border-b border-[rgba(255,255,255,0.05)]">
-                    <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)]">
-                      Smart tracks
+                    <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)] flex items-center gap-2">
+                      <span>Smart tracks</span>
+                      {smartQueueState.isLoading && (
+                        <LoadingSpinner size="sm" label="Loading smart tracks" />
+                      )}
                     </div>
-                    <div className="divide-y divide-[rgba(255,255,255,0.05)]">
-                      {filteredSmartTracks.map(({ track, index, sortableId, isSmartTrack }) => (
-                        <div key={sortableId} data-track-id={track.id}>
-                          <SortableQueueItem
-                            sortableId={sortableId}
-                            track={track}
-                            index={index}
-                            isActive={currentTrack?.id === track.id}
-                            isSelected={selectedIndices.has(index)}
-                            onPlay={() => onPlayFrom(index)}
-                            onRemove={() => onRemove(index)}
-                            onToggleSelect={(e) => handleToggleSelect(index, e.shiftKey)}
-                            isSmartTrack={isSmartTrack}
-                            canRemove={index !== 0}
-                          />
+                    {smartQueueState.isLoading && filteredSmartTracks.length === 0 ? (
+                      <div className="px-3 py-4 flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <LoadingSpinner size="md" label="Loading smart tracks" />
+                          <p className="text-xs text-[var(--color-subtext)]">
+                            Finding similar tracks...
+                          </p>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-[rgba(255,255,255,0.05)]">
+                        {filteredSmartTracks.map(({ track, index, sortableId, isSmartTrack }) => (
+                          <div key={sortableId} data-track-id={track.id}>
+                            <SortableQueueItem
+                              sortableId={sortableId}
+                              track={track}
+                              index={index}
+                              isActive={currentTrack?.id === track.id}
+                              isSelected={selectedIndices.has(index)}
+                              onPlay={() => onPlayFrom(index)}
+                              onRemove={() => onRemove(index)}
+                              onToggleSelect={(e) => handleToggleSelect(index, e.shiftKey)}
+                              isSmartTrack={isSmartTrack}
+                              canRemove={index !== 0}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

@@ -15,8 +15,8 @@ const nodeEnv = process.env.NODE_ENV || "development";
 const isDev = nodeEnv === "development";
 
 if (isDev) {
-  // DEVELOPMENT MODE: Load .env.development
-  dotenv.config({ path: path.resolve(projectRoot, ".env.development") });
+  // DEVELOPMENT MODE: Load .env
+  dotenv.config({ path: path.resolve(projectRoot, ".env") });
 } else {
   // PRODUCTION MODE: Load .env.local > .env.production > .env
   dotenv.config({ path: path.resolve(projectRoot, ".env.local") });

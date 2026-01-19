@@ -54,16 +54,36 @@ export default function Header() {
 
     const checkHealth = async () => {
       try {
-        const response = await fetch(healthUrl, { cache: "no-store" });
+        const response = await fetch(healthUrl, {
+          cache: "no-store",
+          mode: "cors",
+        });
         if (!isMounted) return;
+        
         if (!response.ok) {
+          console.warn(
+            "[Header] API health check failed:",
+            response.status,
+            response.statusText,
+          );
           setApiHealthy(false);
           return;
         }
+        
         const payload = (await response.json()) as { status?: string };
-        setApiHealthy(payload.status === "ok");
-      } catch {
+        const isOk = payload.status === "ok";
+        
+        if (!isOk) {
+          console.warn(
+            "[Header] API health check: status is not 'ok'",
+            payload,
+          );
+        }
+        
+        setApiHealthy(isOk);
+      } catch (error) {
         if (isMounted) {
+          console.error("[Header] API health check error:", error);
           setApiHealthy(false);
         }
       }
@@ -71,8 +91,15 @@ export default function Header() {
 
     void checkHealth();
 
+    const interval = setInterval(() => {
+      if (isMounted) {
+        void checkHealth();
+      }
+    }, 30000);
+
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, []);
 
@@ -119,42 +146,44 @@ export default function Header() {
       <header className="sticky top-0 z-30 border-b border-[rgba(244,178,102,0.12)] bg-[rgba(10,16,24,0.88)] shadow-lg shadow-[rgba(5,10,18,0.6)] backdrop-blur-xl">
         <div className="container flex items-center justify-between py-3.5">
           {}
-          <Link
-            href="/"
-            onClick={handleLogoClick}
-            className="group flex items-center gap-3"
-          >
-            <Image
-              src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
-              alt="Starchild Music"
-              width={40}
-              height={40}
-              className="h-10 w-10 rounded-xl shadow-lg ring-2 ring-[rgba(244,178,102,0.3)] transition-all group-hover:scale-105 group-hover:shadow-[rgba(244,178,102,0.35)]"
-              priority
-            />
-            <div className="hidden items-center gap-2 md:flex">
-              <span className="accent-gradient text-lg font-bold">
-                {isElectron ? "Starchild" : "Starchild Music"}
-              </span>
-              {apiHealthy !== null && apiHealthUrl && (
-                <Link
-                  href={apiHealthUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
-                  aria-label="API health status"
-                  title={`API health: ${apiHealthUrl}`}
-                >
-                  <span
-                    className={`inline-block h-2 w-2 rounded-full ${
-                      apiHealthy ? "bg-emerald-400" : "bg-rose-400"
-                    }`}
-                  />
-                  <span>{apiHealthy ? "API OK" : "API Down"}</span>
-                </Link>
-              )}
-            </div>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              onClick={handleLogoClick}
+              className="group flex items-center gap-3"
+            >
+              <Image
+                src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
+                alt="Starchild Music"
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-xl shadow-lg ring-2 ring-[rgba(244,178,102,0.3)] transition-all group-hover:scale-105 group-hover:shadow-[rgba(244,178,102,0.35)]"
+                priority
+              />
+              <div className="hidden items-center gap-2 md:flex">
+                <span className="accent-gradient text-lg font-bold">
+                  {isElectron ? "Starchild" : "Starchild Music"}
+                </span>
+              </div>
+            </Link>
+            {apiHealthy !== null && apiHealthUrl && (
+              <Link
+                href={apiHealthUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)] md:flex"
+                aria-label="API health status"
+                title={`API health: ${apiHealthUrl}`}
+              >
+                <span
+                  className={`inline-block h-2 w-2 rounded-full ${
+                    apiHealthy ? "bg-emerald-400" : "bg-rose-400"
+                  }`}
+                />
+                <span>{apiHealthy ? "Api Healthy" : "API Down"}</span>
+              </Link>
+            )}
+          </div>
 
           {}
           <nav className="hidden items-center gap-6 md:flex">
@@ -164,27 +193,25 @@ export default function Header() {
             >
               Home
             </Link>
+            <Link
+              href={session ? "/library" : "/api/auth/signin"}
+              className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+            >
+              Library
+            </Link>
+            <Link
+              href={session ? "/playlists" : "/api/auth/signin"}
+              className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+            >
+              Playlists
+            </Link>
             {session && (
-              <>
-                <Link
-                  href="/library"
-                  className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
-                >
-                  Library
-                </Link>
-                <Link
-                  href="/playlists"
-                  className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
-                >
-                  Playlists
-                </Link>
-                <Link
-                  href="/settings"
-                  className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
-                >
-                  Settings
-                </Link>
-              </>
+              <Link
+                href="/settings"
+                className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+              >
+                Settings
+              </Link>
             )}
             <Link
               href={

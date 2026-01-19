@@ -60,6 +60,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     lastRefreshedAt: null,
     seedTrackId: null,
     trackCount: 0,
+    isLoading: false,
   });
 
   const [history, setHistory] = useState<Track[]>([]);
@@ -136,7 +137,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     if (initialQueueState && initialQueueState.queuedTracks.length > 0) {
       logger.info("[useAudioPlayer] 📥 Restoring queue state from database");
       setQueuedTracks(initialQueueState.queuedTracks);
-      setSmartQueueState(initialQueueState.smartQueueState);
+      setSmartQueueState({
+        ...initialQueueState.smartQueueState,
+        isLoading: false, // Always reset loading state when restoring
+      });
       setHistory(initialQueueState.history);
       setIsShuffled(initialQueueState.isShuffled);
       setRepeatMode(initialQueueState.repeatMode);
@@ -177,7 +181,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         if (isV2State(persistedState)) {
           setQueuedTracks(persistedState.queuedTracks);
           if (persistedState.smartQueueState) {
-            setSmartQueueState(persistedState.smartQueueState);
+            setSmartQueueState({
+              ...persistedState.smartQueueState,
+              isLoading: false, // Always reset loading state when restoring
+            });
           }
         } else if ("queue" in persistedState && persistedState.queue) {
 
@@ -1496,6 +1503,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         seedTrack.title,
       );
 
+      // Set loading state
+      setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
+
       try {
 
         if (options.onAutoQueueTrigger) {
@@ -1515,6 +1525,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
               lastRefreshedAt: new Date(),
               seedTrackId: seedTrack.id,
               trackCount: tracksToAdd.length,
+              isLoading: false,
             });
             logger.debug(
               `[useAudioPlayer] ✅ Added ${tracksToAdd.length} smart tracks to queue`,
@@ -1522,9 +1533,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             return tracksToAdd;
           }
         }
+        setSmartQueueState((prev) => ({ ...prev, isLoading: false }));
         return [];
       } catch (error) {
         logger.error("[useAudioPlayer] ❌ Failed to add smart tracks:", error);
+        setSmartQueueState((prev) => ({ ...prev, isLoading: false }));
         return [];
       }
     },
@@ -1552,6 +1565,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       return;
     }
 
+    // Set loading state
+    setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
+
     try {
       const recommendedTracks = await options.onAutoQueueTrigger(
         seedTrack,
@@ -1575,6 +1591,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         lastRefreshedAt: new Date(),
         seedTrackId: seedTrack.id,
         trackCount: smartQueuedTracks.length,
+        isLoading: false,
       });
 
       logger.debug(
@@ -1582,6 +1599,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       );
     } catch (error) {
       logger.error("[useAudioPlayer] ❌ Failed to refresh smart tracks:", error);
+      setSmartQueueState((prev) => ({ ...prev, isLoading: false }));
     }
   }, [queuedTracks, options.onAutoQueueTrigger, createQueuedTrack]);
 
@@ -1593,6 +1611,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       lastRefreshedAt: null,
       seedTrackId: null,
       trackCount: 0,
+      isLoading: false,
     });
   }, []);
 

@@ -74,7 +74,7 @@ export function middleware(request: NextRequest) {
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https://cdn-images.dzcdn.net https://api.deezer.com https://cdn.discordapp.com https://media.discordapp.net https://discord.com https://discordapp.com;
       font-src 'self' data:;
-      connect-src 'self' https://api.darkfloor.art https://songbird.darkfloor.art wss://*.darkfloor.art;
+      connect-src 'self' https://api.darkfloor.art https://songbird.darkfloor.art https://api.starchildmusic.com wss://*.darkfloor.art;
       media-src 'self' https://api.darkfloor.art blob:;
       worker-src 'self' blob:;
       frame-ancestors 'self';
