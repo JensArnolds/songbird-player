@@ -233,7 +233,7 @@ export default function HomePageClient() {
         setQuery(urlQuery);
         setIsInitialized(true);
         shouldAutoPlayRef.current = true;
-        void performSearch(urlQuery);
+        void performSearch(urlQuery, true);
       }
     } else {
       if (!isInitialized) {

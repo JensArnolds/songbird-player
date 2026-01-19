@@ -2,14 +2,14 @@
 
 "use client";
 
-import { LogOut, User, Settings, X } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { env } from "@/env";
 import { api } from "@/trpc/react";
+import { LogOut, User } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { env } from "@/env";
 
 export default function Header() {
   const { data: session } = useSession();
@@ -141,19 +141,6 @@ export default function Header() {
             >
               Profile
             </Link>
-            <button
-              onClick={() => {
-                if (window.history.length > 1) {
-                  router.back();
-                } else {
-                  router.push("/");
-                }
-              }}
-              className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
-              aria-label="Close"
-            >
-              Close
-            </button>
           </nav>
 
           {}
