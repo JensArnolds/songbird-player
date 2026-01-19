@@ -19,6 +19,7 @@ export default function Header() {
   const [imageError, setImageError] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
   const [isVercelDeployment, setIsVercelDeployment] = useState(false);
+  const [isDarkfloorHost, setIsDarkfloorHost] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { data: userProfile } = api.music.getCurrentUserProfile.useQuery(
@@ -31,13 +32,10 @@ export default function Header() {
   useEffect(() => {
     setIsElectron(!!window.electron?.isElectron);
 
-    if (typeof window !== "undefined" && env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL) {
-      try {
-        const vercelUrl = new URL(env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL);
-        setIsVercelDeployment(window.location.hostname === vercelUrl.hostname);
-      } catch {
-        setIsVercelDeployment(false);
-      }
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname.toLowerCase();
+      setIsDarkfloorHost(hostname.includes("darkfloor"));
+      setIsVercelDeployment(hostname.includes("darkfloor"));
     }
   }, []);
 
@@ -160,8 +158,7 @@ export default function Header() {
           {}
           <div className="flex items-center gap-3">
             {}
-            {isVercelDeployment &&
-            env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER ? (
+            {isDarkfloorHost && env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER ? (
               <Link
                 href={env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER}
                 target="_blank"
@@ -200,7 +197,7 @@ export default function Header() {
                   />
                 </svg>
               </Link>
-            ) : env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL ? (
+            ) : !isDarkfloorHost && env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL ? (
               <Link
                 href={env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL}
                 target="_blank"
