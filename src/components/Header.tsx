@@ -34,8 +34,9 @@ export default function Header() {
 
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname.toLowerCase();
-      setIsDarkfloorHost(hostname.includes("darkfloor"));
-      setIsVercelDeployment(hostname.includes("darkfloor"));
+      const isDarkfloor = hostname.includes("darkfloor");
+      setIsDarkfloorHost(isDarkfloor);
+      setIsVercelDeployment(isDarkfloor);
     }
   }, []);
 
@@ -158,9 +159,12 @@ export default function Header() {
           {}
           <div className="flex items-center gap-3">
             {}
-            {isDarkfloorHost && env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER ? (
+            {isDarkfloorHost ? (
               <Link
-                href={env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER}
+                href={
+                  env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER ??
+                  "https://starchildmusic.com"
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hidden items-center transition-opacity hover:opacity-80 md:flex"

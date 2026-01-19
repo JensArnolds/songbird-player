@@ -575,6 +575,11 @@ export default function HomePageClient() {
                     ? "Tap to start playing music instantly, or search for something specific."
                     : "Search for songs, artists, albums - anything you want to listen to."}
                 </p>
+                <p className="mt-3 max-w-md px-4 text-xs text-[var(--color-muted)] md:text-sm">
+                  We run two synced frontends (darkfloor + Starchild). Both connect to the
+                  same Neon database, so your library, playlists, and history stay in sync
+                  no matter which site you use.
+                </p>
 
                 {}
                 {isMobile && (
