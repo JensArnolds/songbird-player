@@ -363,6 +363,26 @@ export class FlowFieldRenderer {
   }
 
   private formatPatternName(pattern: Pattern): string {
+    const neutralNames: Partial<Record<Pattern, string>> = {
+      pentagram: "Star Weave",
+      sigils: "Glyph Weave",
+      necromanticSigil: "Ancient Sigil",
+      demonicGate: "Arcane Gate",
+      cursedRunes: "Runic Flow",
+      nightmareFuel: "Dream Drift",
+      infernalFlame: "Ember Flame",
+      shadowRealm: "Dusk Realm",
+      bloodMoon: "Crimson Moon",
+      forbiddenRitual: "Mystic Ceremony",
+      voidWhisper: "Quiet Void",
+      soulFragment: "Soul Spectrum",
+      abyssalDepth: "Deep Current",
+    };
+
+    if (neutralNames[pattern]) {
+      return neutralNames[pattern]!;
+    }
+
     return pattern
       .replace(/([A-Z])/g, " $1")
       .replace(/^./, (str) => str.toUpperCase())
