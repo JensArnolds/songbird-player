@@ -1578,19 +1578,42 @@ export const musicRouter = createTRPCRouter({
             );
           };
 
+          // API v1.0.0 Compatibility:
+          // - Default mode changed from "normal" to "balanced" (breaking change)
+          // - "normal" mode is no longer accepted, must use "balanced"
+          // - Response format enhanced with: foundSongs, songResults, seedQuality (optional), warnings (optional)
+          // See: https://songbirdapi.com/docs for full API v1.0.0 breaking changes
           const mode =
             input.similarityLevel === "strict"
               ? "strict"
               : input.similarityLevel === "diverse"
                 ? "diverse"
-                : "normal";
+                : "balanced"; // Changed from "normal" to "balanced" for API v1.0.0 compatibility
 
           const recommendationResponse = await songbird.request<{
+            mode?: string;
+            inputSongs?: number;
+            foundSongs?: number;
             recommendations?: Array<{
               name: string;
               artist: string;
               deezerId?: unknown;
             }>;
+            songResults?: Array<{
+              input: { name: string; artist?: string };
+              track?: unknown;
+              confidence?: number;
+              searchMethod?: string;
+              error?: string | null;
+            }>;
+            seedQuality?: {
+              overallScore?: number;
+              uniqueArtists?: number;
+              popularityRange?: { min: number; max: number; average: number };
+              diversityScore?: number;
+              recommendations?: string[];
+            };
+            warnings?: string[];
           }>("/api/lastfm/recommendations/spice-up-with-deezer", {
             method: "POST",
             body: JSON.stringify({
@@ -1600,6 +1623,21 @@ export const musicRouter = createTRPCRouter({
               convertToDeezer: true,
             }),
           });
+
+          // Handle new response format (v1.0.0)
+          // Log warnings if present
+          if (recommendationResponse.warnings && recommendationResponse.warnings.length > 0) {
+            console.warn("[getSimilarTracks] API warnings:", recommendationResponse.warnings);
+          }
+
+          // Check if some songs weren't found
+          if (recommendationResponse.foundSongs !== undefined && 
+              recommendationResponse.inputSongs !== undefined &&
+              recommendationResponse.foundSongs < recommendationResponse.inputSongs) {
+            console.warn(
+              `[getSimilarTracks] Only ${recommendationResponse.foundSongs} of ${recommendationResponse.inputSongs} input songs were found`,
+            );
+          }
 
           const deezerIds = Array.from(
             new Set(

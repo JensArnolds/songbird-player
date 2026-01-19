@@ -5,6 +5,27 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.18] - 2026-01-19
+
+### Changed
+
+- **Songbird API v1.0.0 Compatibility**: Updated frontend to handle breaking changes in Songbird API v1.0.0
+  - **Mode Parameter Update**: Changed default mode from `"normal"` to `"balanced"` (breaking change in API)
+    - The `"normal"` mode is no longer accepted by the API
+    - All similarity level mappings now use `"balanced"` as the default instead of `"normal"`
+  - **Enhanced Response Format**: Updated response type handling to support new API v1.0.0 fields
+    - Added support for `foundSongs` (required) - Number of songs successfully found
+    - Added support for `songResults` (required) - Detailed results for each input song
+    - Added support for `seedQuality` (optional) - Seed quality analysis metrics
+    - Added support for `warnings` (optional) - Warning messages for partial failures
+  - **Improved Error Handling**: Added logging for API warnings and partial failures
+    - Logs warnings when present in API response
+    - Logs when `foundSongs < inputSongs` to detect partial song matching failures
+  - **Backward Compatibility**: All new fields are optional in type definitions, ensuring graceful degradation
+  - **Impact**: Frontend is now fully compatible with Songbird API v1.0.0 breaking changes
+  - Locations:
+    - `src/server/api/routers/music.ts` (getSimilarTracks procedure)
+
 ## [0.9.17] - 2026-01-19
 
 ### Added
