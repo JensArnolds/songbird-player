@@ -1466,10 +1466,56 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const refreshSmartTracks = useCallback(async (): Promise<void> => {
     logger.debug("[useAudioPlayer] 🔄 Refreshing smart tracks");
 
-    setQueuedTracks((prev) => prev.filter((qt) => qt.queueSource !== "smart"));
+    const currentQueuedTrack = queuedTracks[0];
+    if (!currentQueuedTrack) {
+      logger.warn(
+        "[useAudioPlayer] ⚠️ Cannot refresh smart tracks: no current track",
+      );
+      return;
+    }
 
-    await addSmartTracks();
-  }, [addSmartTracks]);
+    const seedTrack = currentQueuedTrack.track;
+    const baseQueue = queuedTracks.filter((qt) => qt.queueSource !== "smart");
+
+    if (!options.onAutoQueueTrigger) {
+      logger.warn(
+        "[useAudioPlayer] ⚠️ Cannot refresh smart tracks: auto queue trigger missing",
+      );
+      return;
+    }
+
+    try {
+      const recommendedTracks = await options.onAutoQueueTrigger(
+        seedTrack,
+        baseQueue.length,
+      );
+
+      const shuffled = [...recommendedTracks];
+      for (let i = shuffled.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
+      }
+
+      const tracksToAdd = shuffled.slice(0, 5);
+      const smartQueuedTracks = tracksToAdd.map((t) =>
+        createQueuedTrack(t, "smart"),
+      );
+
+      setQueuedTracks([...baseQueue, ...smartQueuedTracks]);
+      setSmartQueueState({
+        isActive: smartQueuedTracks.length > 0,
+        lastRefreshedAt: new Date(),
+        seedTrackId: seedTrack.id,
+        trackCount: smartQueuedTracks.length,
+      });
+
+      logger.debug(
+        `[useAudioPlayer] ✅ Refreshed smart tracks (${smartQueuedTracks.length})`,
+      );
+    } catch (error) {
+      logger.error("[useAudioPlayer] ❌ Failed to refresh smart tracks:", error);
+    }
+  }, [queuedTracks, options.onAutoQueueTrigger, createQueuedTrack]);
 
   const clearSmartTracks = useCallback(() => {
     logger.debug("[useAudioPlayer] 🧹 Clearing smart tracks");

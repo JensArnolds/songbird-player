@@ -101,6 +101,7 @@ export class FlowFieldRenderer {
     "cosmicWeb",
     "vortexSpiral",
     "sacredSpiral",
+    "runicSpiral",
     "elementalCross",
     "dragonEye",
     "ancientGlyphs",
@@ -2843,6 +2844,9 @@ export class FlowFieldRenderer {
       case "runes":
         this.renderRunes(audioIntensity, bassIntensity, trebleIntensity);
         break;
+      case "runicSpiral":
+        this.renderRunicSpiral(audioIntensity, bassIntensity, trebleIntensity);
+        break;
       case "sigils":
         this.renderSigils(audioIntensity, bassIntensity, midIntensity);
         break;
@@ -3580,6 +3584,68 @@ export class FlowFieldRenderer {
       ctx.fillRect(-halfSize2, -halfSize2, size2, size2);
       ctx.restore();
     }
+  }
+
+  private renderRunicSpiral(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    this.renderRunes(audioIntensity, bassIntensity, trebleIntensity);
+
+    const ctx = this.ctx;
+    const maxRadius = Math.min(this.width, this.height) * 0.35;
+    const turns = 5;
+    const points = 96;
+
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.strokeStyle = this.hsla(
+      this.fastMod360(this.hueBase + 40),
+      60,
+      60,
+      0.45 + audioIntensity * 0.35,
+    );
+    ctx.lineWidth = 1.5 + trebleIntensity * 1.5;
+    ctx.beginPath();
+
+    for (let i = 0; i <= points; i += 1) {
+      const t = i / points;
+      const angle =
+        t * Math.PI * 2 * turns + this.time * 0.0004 + trebleIntensity * 0.3;
+      const radius =
+        t *
+        maxRadius *
+        (0.75 + 0.25 * this.fastSin(this.time * 0.001 + t * 6));
+      const x = this.centerX + this.fastCos(angle) * radius;
+      const y = this.centerY + this.fastSin(angle) * radius;
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+
+    ctx.stroke();
+
+    for (let i = 0; i <= points; i += 8) {
+      const t = i / points;
+      const angle = t * Math.PI * 2 * turns - this.time * 0.00025;
+      const radius = t * maxRadius;
+      const x = this.centerX + this.fastCos(angle) * radius;
+      const y = this.centerY + this.fastSin(angle) * radius;
+      const size = 6 + bassIntensity * 6 + t * 3;
+
+      ctx.beginPath();
+      ctx.moveTo(x, y - size);
+      ctx.lineTo(x + size * 0.7, y);
+      ctx.lineTo(x, y + size);
+      ctx.lineTo(x - size * 0.7, y);
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    ctx.restore();
   }
 
   private renderSigils(

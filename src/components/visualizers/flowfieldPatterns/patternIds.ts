@@ -48,6 +48,7 @@ export type Pattern =
   | "cosmicWeb"
   | "vortexSpiral"
   | "sacredSpiral"
+  | "runicSpiral"
   | "elementalCross"
   | "dragonEye"
   | "ancientGlyphs"
