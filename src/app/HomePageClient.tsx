@@ -706,8 +706,8 @@ export default function HomePageClient() {
                     </p>
                     <p className="leading-relaxed">
                       Music data is sourced from our <span className="text-[var(--color-accent)]">custom API</span> at
-                      <span className="font-mono text-[var(--color-text)]"> api.starchildmusic.com</span>, with fallback
-                      to Deezer&apos;s public API. User data, preferences, and playlists are stored in a
+                      <span className="font-mono text-[var(--color-text)]"> api.starchildmusic.com</span>. 
+                      User data, preferences, and playlists are stored in a
                       <span className="text-[var(--color-accent)]"> Neon serverless PostgreSQL</span> database,
                       shared across both deployments for seamless sync.
                     </p>
