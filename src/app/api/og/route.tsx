@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
                 overflow: "hidden",
               }}
             >
-              {title} - {artist}
+              {`${title} - ${artist}`}
             </div>
 
             <div
@@ -323,6 +323,41 @@ export async function GET(request: NextRequest) {
   );
 }
 
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  timeoutMs: number,
+): Promise<Response> {
+  const isVitest =
+    typeof process !== "undefined" && !!process.env.VITEST;
+  const canAbort =
+    typeof AbortController !== "undefined" && !isVitest;
+
+  if (canAbort) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(input, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      fetch(input),
+      new Promise<Response>((_, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error("Request timed out")),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 async function getCoverDataUrl(coverUrl: string | null) {
   if (!coverUrl) {
     console.log("[OG Route] No cover URL provided");
@@ -331,13 +366,7 @@ async function getCoverDataUrl(coverUrl: string | null) {
 
   try {
     console.log("[OG Route] Fetching cover image:", coverUrl.substring(0, 80));
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000);
-    const response = await fetch(coverUrl, {
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    clearTimeout(timeout);
+    const response = await fetchWithTimeout(coverUrl, 3000);
 
     if (!response.ok) {
       console.error("[OG Route] Cover fetch failed:", response.status, response.statusText);
