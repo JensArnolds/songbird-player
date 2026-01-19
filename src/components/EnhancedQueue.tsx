@@ -667,6 +667,33 @@ export function EnhancedQueue({
                   </div>
                 )}
 
+                { }
+                {filteredSmartTracks.length > 0 && (
+                  <div className="border-b border-[rgba(255,255,255,0.05)]">
+                    <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)]">
+                      Smart tracks
+                    </div>
+                    <div className="divide-y divide-[rgba(255,255,255,0.05)]">
+                      {filteredSmartTracks.map(({ track, index, sortableId, isSmartTrack }) => (
+                        <div key={sortableId} data-track-id={track.id}>
+                          <SortableQueueItem
+                            sortableId={sortableId}
+                            track={track}
+                            index={index}
+                            isActive={currentTrack?.id === track.id}
+                            isSelected={selectedIndices.has(index)}
+                            onPlay={() => onPlayFrom(index)}
+                            onRemove={() => onRemove(index)}
+                            onToggleSelect={(e) => handleToggleSelect(index, e.shiftKey)}
+                            isSmartTrack={isSmartTrack}
+                            canRemove={index !== 0}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
               </div>
             </SortableContext>
           </DndContext>
