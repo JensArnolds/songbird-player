@@ -41,12 +41,16 @@ export default function Header() {
     }
   }, []);
 
+  const [apiHealthUrl, setApiHealthUrl] = useState<string | null>(null);
+
   useEffect(() => {
     const apiUrl = env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) return;
 
     let isMounted = true;
-    const healthUrl = `${apiUrl.replace(/\/$/, "")}/health`;
+    const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
+    const healthUrl = `${normalizedApiUrl}/health`;
+    setApiHealthUrl(healthUrl);
 
     const checkHealth = async () => {
       try {
@@ -132,13 +136,14 @@ export default function Header() {
               <span className="accent-gradient text-lg font-bold">
                 {isElectron ? "Starchild" : "Starchild Music"}
               </span>
-              {apiHealthy !== null && env.NEXT_PUBLIC_API_URL && (
+              {apiHealthy !== null && apiHealthUrl && (
                 <Link
-                  href={`${env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/health`}
+                  href={apiHealthUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
                   aria-label="API health status"
+                  title={`API health: ${apiHealthUrl}`}
                 >
                   <span
                     className={`inline-block h-2 w-2 rounded-full ${

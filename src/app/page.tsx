@@ -3,15 +3,17 @@
 import type { SearchResponse, Track } from "@/types";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { type Metadata } from "next";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 import HomePageClient from "./HomePageClient";
 
 const baseUrl = getBaseUrl();
 
-async function getFirstTrackFromSearch(query: string): Promise<Track | null> {
+async function getFirstTrackFromSearch(
+  query: string,
+  baseUrl: string,
+): Promise<Track | null> {
   try {
-
-    const baseUrl = getBaseUrl();
     const url = new URL("/api/music/search", baseUrl);
     url.searchParams.set("q", query);
     const res = await fetch(url.toString(), {
@@ -61,8 +63,25 @@ function buildOgImageUrl(track: Track | null, baseUrl: string): string {
   if (coverImage) {
     params.set("cover", coverImage);
   }
+  if (typeof track.duration === "number") {
+    params.set("duration", track.duration.toString());
+  }
+  params.set("v", track.id.toString());
 
   return `${baseUrl}/api/og?${params.toString()}`;
+}
+
+async function getRequestBaseUrl(): Promise<string> {
+  const headerList = await headers();
+  const forwardedHost = headerList.get("x-forwarded-host");
+  const host = forwardedHost ?? headerList.get("host");
+  const protocol = headerList.get("x-forwarded-proto") ?? "https";
+
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+
+  return getBaseUrl();
 }
 
 export async function generateMetadata({
@@ -72,8 +91,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const params = await searchParams;
   const query = params?.q;
+  const requestBaseUrl = await getRequestBaseUrl();
 
-  const defaultOgImage = buildOgImageUrl(null, baseUrl);
+  const defaultOgImage = buildOgImageUrl(null, requestBaseUrl);
   const defaultMetadata: Metadata = {
     title: "Starchild Music",
     description:
@@ -83,7 +103,7 @@ export async function generateMetadata({
       description:
         "Modern music streaming and discovery platform with advanced audio features and visual patterns",
       type: "website",
-      url: baseUrl,
+      url: requestBaseUrl,
       siteName: "Starchild Music",
       images: [
         {
@@ -107,8 +127,8 @@ export async function generateMetadata({
     return defaultMetadata;
   }
 
-  const firstTrack = await getFirstTrackFromSearch(query);
-  const ogImage = buildOgImageUrl(firstTrack, baseUrl);
+  const firstTrack = await getFirstTrackFromSearch(query, requestBaseUrl);
+  const ogImage = buildOgImageUrl(firstTrack, requestBaseUrl);
 
   const trackTitle = firstTrack
     ? `${firstTrack.title} by ${firstTrack.artist.name}`
@@ -124,7 +144,7 @@ export async function generateMetadata({
       title: trackTitle,
       description,
       type: "music.song",
-      url: `${baseUrl}/?q=${encodeURIComponent(query)}`,
+      url: `${requestBaseUrl}/?q=${encodeURIComponent(query)}`,
       siteName: "Starchild Music",
       images: [
         {
