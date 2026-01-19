@@ -94,7 +94,8 @@ export default function TrackCard({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     hapticLight();
-    const shareUrl = `${window.location.origin}/track/${track.id}`;
+    const trackId = track.deezer_id ?? track.id;
+    const shareUrl = `${window.location.origin}/track/${trackId}`;
 
     try {
       if (navigator.share) {
@@ -177,6 +178,15 @@ export default function TrackCard({
           </button>
 
           {}
+          <button
+            onClick={handleShare}
+            className="rounded-full p-2 text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-[var(--color-accent-light)]"
+            title="Share track"
+          >
+            <Share2 className="h-5 w-5" />
+          </button>
+
+          {}
           {onAddToQueue && (
             <button
               onClick={handleAddToQueue}
@@ -186,15 +196,6 @@ export default function TrackCard({
               <ListPlus className="h-5 w-5" />
             </button>
           )}
-
-          {}
-          <button
-            onClick={handleShare}
-            className="hidden rounded-full p-2 text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-[var(--color-accent-light)] md:block"
-            title="Share track"
-          >
-            <Share2 className="h-5 w-5" />
-          </button>
 
           {}
           <button

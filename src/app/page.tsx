@@ -134,7 +134,7 @@ export async function generateMetadata({
     ? `${firstTrack.title} by ${firstTrack.artist.name}`
     : `Search: ${query}`;
   const description = firstTrack
-    ? `Listen to ${firstTrack.title} by ${firstTrack.artist.name}${firstTrack.album?.title ? ` from ${firstTrack.album.title}` : ""} on Starchild Music`
+    ? `🎵 ${firstTrack.title} by ${firstTrack.artist.name}${firstTrack.album?.title ? ` • ${firstTrack.album.title}` : ""} • Stream on Starchild Music`
     : `Search results for "${query}" on Starchild Music`;
 
   return {

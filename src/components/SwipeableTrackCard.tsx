@@ -132,7 +132,8 @@ export default function SwipeableTrackCard({
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     hapticLight();
-    const shareUrl = `${window.location.origin}/track/${track.id}`;
+    const trackId = track.deezer_id ?? track.id;
+    const shareUrl = `${window.location.origin}/track/${trackId}`;
     const success = await share({
       title: `${track.title} - ${track.artist.name}`,
       text: `Check out "${track.title}" by ${track.artist.name} on Starchild Music!`,
@@ -347,6 +348,19 @@ export default function SwipeableTrackCard({
           )}
 
           {}
+          {showActions && (
+            <motion.button
+              onClick={handleShare}
+              whileTap={{ scale: 0.85 }}
+              transition={springPresets.immediate}
+              className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-accent)]"
+              title="Share track"
+            >
+              <Share2 className="h-5 w-5 md:h-[18px] md:w-[18px]" />
+            </motion.button>
+          )}
+
+          {}
           <motion.button
             onClick={(e) => {
               e.stopPropagation();
@@ -359,19 +373,6 @@ export default function SwipeableTrackCard({
           >
             <ListPlus className="h-5 w-5 md:h-[18px] md:w-[18px]" />
           </motion.button>
-
-          {}
-          {isShareSupported && (
-            <motion.button
-              onClick={handleShare}
-              whileTap={{ scale: 0.85 }}
-              transition={springPresets.immediate}
-              className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-accent)]"
-              title="Share track"
-            >
-              <Share2 className="h-5 w-5 md:h-[18px] md:w-[18px]" />
-            </motion.button>
-          )}
 
           {}
           <div className="relative">

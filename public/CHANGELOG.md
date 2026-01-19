@@ -5,6 +5,46 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.17] - 2026-01-19
+
+### Added
+
+- **Share Button on All Track Cards**: Added share button next to heart (favorite) button on every song card
+  - **Deezer ID-Based Sharing**: Share URLs use `track.deezer_id` when available, falling back to `track.id`
+  - **Consistent Placement**: Share button positioned immediately after heart button on all card types
+  - **Always Visible**: Share button is now always visible (removed conditional rendering restrictions)
+  - **Universal Support**: Implemented across all track card components (TrackCard, EnhancedTrackCard, SwipeableTrackCard)
+  - **Impact**: Easy sharing of tracks with Deezer ID-based URLs for reliable track identification
+  - Locations:
+    - `src/components/TrackCard.tsx`
+    - `src/components/EnhancedTrackCard.tsx`
+    - `src/components/SwipeableTrackCard.tsx`
+
+- **Loading Spinner for Smart Tracks**: Added visual loading indicator while smart tracks are being fetched
+  - **Queue Loading State**: Shows spinner in "Smart tracks" section header and content area during fetch
+  - **Button State**: Share button shows spinner icon and is disabled during loading
+  - **User Feedback**: Displays "Finding similar tracks..." message when loading with no existing tracks
+  - **State Management**: Added `isLoading` property to `SmartQueueState` interface
+  - **Impact**: Clear visual feedback when smart tracks are being generated, improving user experience
+  - Locations:
+    - `src/types/index.ts` (SmartQueueState interface)
+    - `src/hooks/useAudioPlayer.ts` (loading state management)
+    - `src/components/EnhancedQueue.tsx` (loading UI)
+
+### Changed
+
+- **Enhanced SEO Embeds for Discord**: Redesigned Open Graph images for better Discord embed previews
+  - **Prominent Album Cover**: Full-size square album art (570×570px) on the left side of embed
+  - **Improved Typography**: Larger, bolder text with better hierarchy (title: 56px, artist: 36px, album: 28px)
+  - **Cleaner Layout**: Optimized spacing and layout for Discord's 1200×630px embed format
+  - **Better Readability**: Removed overlays that could interfere with album art visibility
+  - **Embedded Images**: Album covers are embedded directly in generated images via base64 encoding
+  - **Branding**: Updated to "Play now on Starchild Music" for clearer call-to-action
+  - **Impact**: Rich, beautiful previews on Discord with album art and song info clearly visible
+  - Locations:
+    - `src/app/api/og/route.tsx` (OG image generation)
+    - `src/app/page.tsx` (metadata description enhancement)
+
 ## [0.9.16] - 2026-01-19
 
 ### Added

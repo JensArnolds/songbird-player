@@ -120,199 +120,283 @@ export async function GET(request: NextRequest) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#0b1118",
+        backgroundColor: "#0a1018",
         backgroundImage:
-          "radial-gradient(circle at 25% 25%, rgba(244, 178, 102, 0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(88, 198, 177, 0.1) 0%, transparent 50%)",
+          "radial-gradient(circle at 20% 30%, rgba(244, 178, 102, 0.12) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(88, 198, 177, 0.1) 0%, transparent 50%)",
       }}
     >
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
-          width: 1040,
-          backgroundColor: "rgba(19, 26, 36, 0.95)",
+          flexDirection: "row",
+          width: 1140,
+          height: 570,
+          backgroundColor: "rgba(15, 22, 32, 0.95)",
           borderRadius: 24,
-          padding: "60px",
+          padding: 0,
           boxShadow:
-            "0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)",
-          border: "1px solid rgba(244, 178, 102, 0.15)",
+            "0 20px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 40 }}>
-          <div
-            style={{
-              width: 280,
-              height: 280,
-              borderRadius: 16,
-              overflow: "hidden",
-              marginRight: 48,
-              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
-              display: "flex",
-            }}
-          >
-            {coverDataUrl ? (
-              <img
-                src={coverDataUrl}
-                width={280}
-                height={280}
-                style={{
-                  objectFit: "cover",
-                }}
-                alt="Album cover"
-              />
-            ) : (
-              <div
-                style={{
-                  width: 280,
-                  height: 280,
-                  background: "linear-gradient(135deg, #1a2332 0%, #0b1118 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 120,
-                  color: "#2a3645",
-                }}
-              >
-                ♪
-              </div>
-            )}
-          </div>
+        {/* Album Art Section - Square, prominent */}
+        <div
+          style={{
+            width: 570,
+            height: "100%",
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "linear-gradient(135deg, #1a2332 0%, #0f1620 100%)",
+            flexShrink: 0,
+          }}
+        >
+          {coverDataUrl ? (
+            <img
+              src={coverDataUrl}
+              width={570}
+              height={570}
+              style={{
+                objectFit: "cover",
+                display: "flex",
+                width: "100%",
+                height: "100%",
+              }}
+              alt="Album cover"
+            />
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                background: "linear-gradient(135deg, #1a2332 0%, #0f1620 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 200,
+                color: "#2a3645",
+              }}
+            >
+              ♪
+            </div>
+          )}
+        </div>
 
+        {/* Content Section */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            padding: "60px 50px",
+            justifyContent: "space-between",
+            minWidth: 0,
+          }}
+        >
+          {/* Track Info - Top Section */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              flex: 1,
+              gap: 16,
             }}
           >
+            {/* Song Title */}
             <div
               style={{
-                fontSize: 46,
-                fontWeight: 700,
+                fontSize: 56,
+                fontWeight: 800,
                 color: "#f5f1e8",
-                marginBottom: 16,
                 lineHeight: 1.1,
+                letterSpacing: "-0.03em",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
+                textShadow: "0 2px 12px rgba(0, 0, 0, 0.4)",
+                wordBreak: "break-word",
               }}
             >
-              {`${title} - ${artist}`}
+              {title}
             </div>
 
+            {/* Artist Name */}
             <div
               style={{
-                fontSize: 28,
+                fontSize: 36,
+                fontWeight: 600,
                 color: "#a5afbf",
                 lineHeight: 1.2,
+                display: "-webkit-box",
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                textShadow: "0 1px 4px rgba(0, 0, 0, 0.3)",
               }}
             >
-              Album: {album || "Single"}
+              {artist}
             </div>
-          </div>
-        </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 24,
-          }}
-        >
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
-              backgroundColor: "#f4b266",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 4px 16px rgba(244, 178, 102, 0.4)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 32,
-                color: "#0b1118",
-                marginLeft: 4,
-              }}
-            >
-              ▶
-            </div>
+            {/* Album Name */}
+            {album && (
+              <div
+                style={{
+                  fontSize: 28,
+                  color: "#6b7688",
+                  lineHeight: 1.3,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  fontWeight: 500,
+                }}
+              >
+                {album}
+              </div>
+            )}
           </div>
 
+          {/* Bottom Section - Player & Branding */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              flex: 1,
+              gap: 24,
             }}
           >
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                height: 8,
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                borderRadius: 4,
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  height: "100%",
-                  width: `${progressPercent}%`,
-                  background: "linear-gradient(90deg, #f4b266 0%, #ffd6a0 100%)",
-                  borderRadius: 4,
-                }}
-              />
-            </div>
-
+            {/* Player Controls */}
             <div
               style={{
                 display: "flex",
-                justifyContent: "space-between",
-                marginTop: 12,
+                alignItems: "center",
+                gap: 24,
+              }}
+            >
+              {/* Play Button */}
+              <div
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  background: "linear-gradient(135deg, #f4b266 0%, #ffd6a0 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 8px 24px rgba(244, 178, 102, 0.4), 0 0 0 3px rgba(244, 178, 102, 0.15)",
+                  border: "2px solid rgba(255, 255, 255, 0.15)",
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 40,
+                    color: "#0a1018",
+                    marginLeft: 4,
+                    fontWeight: 700,
+                  }}
+                >
+                  ▶
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: 1,
+                  gap: 10,
+                  minWidth: 0,
+                }}
+              >
+                <div
+                  style={{
+                    position: "relative",
+                    width: "100%",
+                    height: 12,
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    borderRadius: 6,
+                    overflow: "hidden",
+                    boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.4)",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      height: "100%",
+                      width: `${progressPercent}%`,
+                      background: "linear-gradient(90deg, #f4b266 0%, #ffd6a0 50%, #f4b266 100%)",
+                      backgroundSize: "200% 100%",
+                      borderRadius: 6,
+                      boxShadow: "0 0 16px rgba(244, 178, 102, 0.7)",
+                    }}
+                  />
+                </div>
+
+                {/* Time Display */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 24,
+                      color: "#f4b266",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {formatDuration(Math.floor(durationSeconds * (progressPercent / 100)))}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 24,
+                      color: "#6b7688",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {formattedDuration}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Branding */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                paddingTop: 20,
+                borderTop: "1px solid rgba(255, 255, 255, 0.1)",
               }}
             >
               <div
                 style={{
-                  fontSize: 20,
-                  color: "#a5afbf",
+                  fontSize: 28,
+                  lineHeight: 1,
                 }}
               >
-                {formatDuration(Math.floor(durationSeconds * (progressPercent / 100)))}
+                🎵
               </div>
               <div
                 style={{
-                  fontSize: 20,
+                  fontSize: 22,
                   color: "#6b7688",
+                  fontWeight: 500,
+                  letterSpacing: "0.03em",
                 }}
               >
-                {formattedDuration}
+                Play now on Starchild Music
               </div>
             </div>
           </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginTop: 32,
-            fontSize: 18,
-            color: "#6b7688",
-            gap: 8,
-          }}
-        >
-          <span>🎵</span>
-          <span>Starchild Music</span>
         </div>
       </div>
     </div>,
