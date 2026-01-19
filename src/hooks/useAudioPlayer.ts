@@ -29,6 +29,10 @@ interface UseAudioPlayerOptions {
     currentTrack: Track,
     currentQueueLength: number,
   ) => Promise<Track[]>;
+  onCustomSmartTracksFetch?: (
+    currentTrack: Track,
+    options: { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
+  ) => Promise<Track[]>;
   onError?: (error: string, trackId?: number) => void;
   keepPlaybackAlive?: boolean;
   onBackgroundResumeError?: (reason: string, error: unknown) => void;
@@ -1488,7 +1492,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, []);
 
   const addSmartTracks = useCallback(
-    async (count = 5): Promise<Track[]> => {
+    async (
+      countOrOptions?: number | { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
+    ): Promise<Track[]> => {
       const currentQueuedTrack = queuedTracks[0];
       if (!currentQueuedTrack) {
         logger.warn(
@@ -1498,40 +1504,55 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       }
 
       const seedTrack = currentQueuedTrack.track;
+      
+      // Parse options
+      const count = typeof countOrOptions === "number" ? countOrOptions : countOrOptions?.count ?? 5;
+      const similarityLevel = typeof countOrOptions === "object" && countOrOptions?.similarityLevel
+        ? countOrOptions.similarityLevel
+        : undefined;
+
       logger.debug(
         "[useAudioPlayer] 🎵 Adding smart tracks based on:",
         seedTrack.title,
+        { count, similarityLevel },
       );
 
       // Set loading state
       setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
 
       try {
+        let recommendedTracks: Track[] = [];
 
-        if (options.onAutoQueueTrigger) {
-          const recommendedTracks = await options.onAutoQueueTrigger(
+        // Use custom fetch if similarity level is specified, otherwise use default trigger
+        if (similarityLevel && options.onCustomSmartTracksFetch) {
+          recommendedTracks = await options.onCustomSmartTracksFetch(seedTrack, {
+            count,
+            similarityLevel,
+          });
+        } else if (options.onAutoQueueTrigger) {
+          const fetchedTracks = await options.onAutoQueueTrigger(
             seedTrack,
             queuedTracks.length,
           );
-          const tracksToAdd = recommendedTracks.slice(0, count);
+          recommendedTracks = fetchedTracks.slice(0, count);
+        }
 
-          if (tracksToAdd.length > 0) {
-            const smartQueuedTracks = tracksToAdd.map((t) =>
-              createQueuedTrack(t, "smart"),
-            );
-            setQueuedTracks((prev) => [...prev, ...smartQueuedTracks]);
-            setSmartQueueState({
-              isActive: true,
-              lastRefreshedAt: new Date(),
-              seedTrackId: seedTrack.id,
-              trackCount: tracksToAdd.length,
-              isLoading: false,
-            });
-            logger.debug(
-              `[useAudioPlayer] ✅ Added ${tracksToAdd.length} smart tracks to queue`,
-            );
-            return tracksToAdd;
-          }
+        if (recommendedTracks.length > 0) {
+          const smartQueuedTracks = recommendedTracks.map((t) =>
+            createQueuedTrack(t, "smart"),
+          );
+          setQueuedTracks((prev) => [...prev, ...smartQueuedTracks]);
+          setSmartQueueState({
+            isActive: true,
+            lastRefreshedAt: new Date(),
+            seedTrackId: seedTrack.id,
+            trackCount: recommendedTracks.length,
+            isLoading: false,
+          });
+          logger.debug(
+            `[useAudioPlayer] ✅ Added ${recommendedTracks.length} smart tracks to queue`,
+          );
+          return recommendedTracks;
         }
         setSmartQueueState((prev) => ({ ...prev, isLoading: false }));
         return [];

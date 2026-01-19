@@ -72,7 +72,9 @@ interface AudioPlayerContextType {
   clearQueueAndHistory: () => void;
   isValidTrack: (track: Track | null | undefined) => track is Track;
 
-  addSmartTracks: (count?: number) => Promise<Track[]>;
+  addSmartTracks: (
+    countOrOptions?: number | { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
+  ) => Promise<Track[]>;
   refreshSmartTracks: () => Promise<void>;
   clearSmartTracks: () => void;
   getQueueSections: () => { userTracks: QueuedTrack[]; smartTracks: QueuedTrack[] };
@@ -177,6 +179,29 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     [normalizedSmartQueueSettings, utils],
   );
 
+  const handleCustomSmartTracksFetch = useCallback(
+    async (
+      currentTrack: Track,
+      options: { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
+    ): Promise<Track[]> => {
+      try {
+        const result = await utils.music.getSimilarTracks.fetch({
+          trackId: currentTrack.id,
+          limit: options.count,
+          useEnhanced: true,
+          similarityLevel: options.similarityLevel,
+          excludeExplicit: normalizedSmartQueueSettings?.excludeExplicit,
+        });
+
+        return result || [];
+      } catch (error) {
+        console.error("[AudioPlayerContext] Failed to fetch custom smart tracks:", error);
+        return [];
+      }
+    },
+    [normalizedSmartQueueSettings, utils],
+  );
+
   const initialQueueState = session && dbQueueState && dbQueueState.queuedTracks && dbQueueState.queuedTracks.length > 0 ? {
     queuedTracks: dbQueueState.queuedTracks.map((qt: any) => ({
       ...qt,
@@ -216,6 +241,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       }
     },
     onAutoQueueTrigger: handleAutoQueueTrigger,
+    onCustomSmartTracksFetch: handleCustomSmartTracksFetch,
     onError: (error, trackId) => {
       console.error(
         `[AudioPlayerContext] Playback error for track ${trackId}:`,

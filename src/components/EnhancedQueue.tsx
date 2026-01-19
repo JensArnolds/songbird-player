@@ -3,9 +3,10 @@
 "use client";
 
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { QueueSettingsModal } from "@/components/QueueSettingsModal";
 import { useToast } from "@/contexts/ToastContext";
 import { api } from "@/trpc/react";
-import type { QueuedTrack, SmartQueueState, Track } from "@/types";
+import type { QueuedTrack, SimilarityPreference, SmartQueueState, Track } from "@/types";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import {
@@ -29,6 +30,7 @@ import {
   Play,
   Save,
   Search,
+  Settings,
   Sparkles,
   Trash2,
   X
@@ -205,7 +207,9 @@ interface EnhancedQueueProps {
   onReorder: (oldIndex: number, newIndex: number) => void;
   onPlayFrom: (index: number) => void;
   onSaveAsPlaylist?: () => void;
-  onAddSmartTracks?: (count?: number) => Promise<Track[]>;
+  onAddSmartTracks?: (
+    countOrOptions?: number | { count: number; similarityLevel: SimilarityPreference },
+  ) => Promise<Track[]>;
   onRefreshSmartTracks?: () => Promise<void>;
   onClearSmartTracks?: () => void;
 
@@ -235,12 +239,28 @@ export function EnhancedQueue({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [smartTracksCount, setSmartTracksCount] = useState(5);
+  const [similarityLevel, setSimilarityLevel] = useState<SimilarityPreference>("balanced");
 
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const { showToast } = useToast();
   const utils = api.useUtils();
   const queueListRef = useRef<HTMLDivElement>(null);
+
+  // Load smart queue settings
+  const { data: smartQueueSettings } = api.music.getSmartQueueSettings.useQuery(
+    undefined,
+    { enabled: isAuthenticated },
+  );
+
+  useEffect(() => {
+    if (smartQueueSettings) {
+      setSmartTracksCount(smartQueueSettings.autoQueueCount);
+      setSimilarityLevel(smartQueueSettings.similarityPreference);
+    }
+  }, [smartQueueSettings]);
 
   useEffect(() => {
     if (currentTrack && queueListRef.current) {
@@ -440,6 +460,33 @@ export function EnhancedQueue({
     [onAddSmartTracks, onRefreshSmartTracks, showToast],
   );
 
+  const handleApplySettings = useCallback(
+    async (settings: { count: number; similarityLevel: SimilarityPreference }) => {
+      if (!onAddSmartTracks) {
+        showToast("Smart queue is not available yet", "warning");
+        return;
+      }
+
+      try {
+        setSmartTracksCount(settings.count);
+        setSimilarityLevel(settings.similarityLevel);
+        const added = await onAddSmartTracks({
+          count: settings.count,
+          similarityLevel: settings.similarityLevel,
+        });
+        if (added.length === 0) {
+          showToast("No smart tracks found for this song", "info");
+        } else {
+          showToast(`Added ${added.length} smart track${added.length === 1 ? "" : "s"}`, "success");
+        }
+      } catch (error) {
+        console.error("[EnhancedQueue] Failed to add smart tracks with custom settings:", error);
+        showToast("Failed to add smart tracks", "error");
+      }
+    },
+    [onAddSmartTracks, showToast],
+  );
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!queueListRef.current?.contains(document.activeElement)) return;
@@ -478,31 +525,41 @@ export function EnhancedQueue({
           </div>
           <div className="flex items-center gap-2">
             {queuedTracks.length > 0 && (
-              <button
-                onClick={() =>
-                  handleSmartTracksAction(
-                    smartQueueState.isActive ? "refresh" : "add",
-                  )
-                }
-                disabled={smartQueueState.isLoading}
-                className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(88,198,177,0.12)] hover:text-[var(--color-text)] disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label={
-                  smartQueueState.isActive
-                    ? "Refresh smart tracks"
-                    : "Add smart tracks"
-                }
-                title={
-                  smartQueueState.isActive
-                    ? "Refresh smart tracks"
-                    : "Add smart tracks"
-                }
-              >
-                {smartQueueState.isLoading ? (
-                  <LoadingSpinner size="sm" label="Loading smart tracks" />
-                ) : (
-                  <Sparkles className="h-5 w-5" />
-                )}
-              </button>
+              <>
+                <button
+                  onClick={() =>
+                    handleSmartTracksAction(
+                      smartQueueState.isActive ? "refresh" : "add",
+                    )
+                  }
+                  disabled={smartQueueState.isLoading}
+                  className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(88,198,177,0.12)] hover:text-[var(--color-text)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label={
+                    smartQueueState.isActive
+                      ? "Refresh smart tracks"
+                      : "Add smart tracks"
+                  }
+                  title={
+                    smartQueueState.isActive
+                      ? "Refresh smart tracks"
+                      : "Add smart tracks"
+                  }
+                >
+                  {smartQueueState.isLoading ? (
+                    <LoadingSpinner size="sm" label="Loading smart tracks" />
+                  ) : (
+                    <Sparkles className="h-5 w-5" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowSettingsModal(true)}
+                  className="hidden rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)] md:flex"
+                  aria-label="Smart tracks settings"
+                  title="Smart tracks settings"
+                >
+                  <Settings className="h-5 w-5" />
+                </button>
+              </>
             )}
             {onSaveAsPlaylist && (queue.length > 0 || currentTrack) && (
               <button
@@ -739,6 +796,15 @@ export function EnhancedQueue({
           )}
         </div>
       )}
+
+      {/* Settings Modal */}
+      <QueueSettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        onApply={handleApplySettings}
+        initialCount={smartTracksCount}
+        initialSimilarityLevel={similarityLevel}
+      />
     </div>
   );
 }
