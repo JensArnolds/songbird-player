@@ -20,6 +20,7 @@ export default function Header() {
   const [isElectron, setIsElectron] = useState(false);
   const [isVercelDeployment, setIsVercelDeployment] = useState(false);
   const [isDarkfloorHost, setIsDarkfloorHost] = useState(false);
+  const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { data: userProfile } = api.music.getCurrentUserProfile.useQuery(
@@ -38,6 +39,37 @@ export default function Header() {
       setIsDarkfloorHost(isDarkfloor);
       setIsVercelDeployment(isDarkfloor);
     }
+  }, []);
+
+  useEffect(() => {
+    const apiUrl = env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) return;
+
+    let isMounted = true;
+    const healthUrl = `${apiUrl.replace(/\/$/, "")}/health`;
+
+    const checkHealth = async () => {
+      try {
+        const response = await fetch(healthUrl, { cache: "no-store" });
+        if (!isMounted) return;
+        if (!response.ok) {
+          setApiHealthy(false);
+          return;
+        }
+        const payload = (await response.json()) as { status?: string };
+        setApiHealthy(payload.status === "ok");
+      } catch {
+        if (isMounted) {
+          setApiHealthy(false);
+        }
+      }
+    };
+
+    void checkHealth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -96,9 +128,27 @@ export default function Header() {
               className="h-10 w-10 rounded-xl shadow-lg ring-2 ring-[rgba(244,178,102,0.3)] transition-all group-hover:scale-105 group-hover:shadow-[rgba(244,178,102,0.35)]"
               priority
             />
-            <span className="accent-gradient hidden text-lg font-bold md:block">
-              {isElectron ? "Starchild" : "Starchild Music"}
-            </span>
+            <div className="hidden items-center gap-2 md:flex">
+              <span className="accent-gradient text-lg font-bold">
+                {isElectron ? "Starchild" : "Starchild Music"}
+              </span>
+              {apiHealthy !== null && env.NEXT_PUBLIC_API_URL && (
+                <Link
+                  href={`${env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/health`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
+                  aria-label="API health status"
+                >
+                  <span
+                    className={`inline-block h-2 w-2 rounded-full ${
+                      apiHealthy ? "bg-emerald-400" : "bg-rose-400"
+                    }`}
+                  />
+                  <span>{apiHealthy ? "API OK" : "API Down"}</span>
+                </Link>
+              )}
+            </div>
           </Link>
 
           {}
