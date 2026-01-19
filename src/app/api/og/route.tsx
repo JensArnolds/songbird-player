@@ -4,6 +4,8 @@ import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 export const runtime = "edge";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -14,7 +16,17 @@ export async function GET(request: NextRequest) {
   const cover = searchParams.get("cover");
   const duration = searchParams.get("duration");
 
+  console.log("[OG Route] Generating preview:", {
+    title,
+    artist,
+    album,
+    hasCover: !!cover,
+    coverUrl: cover?.substring(0, 50),
+    duration,
+  });
+
   if (!title || !artist) {
+    console.log("[OG Route] Missing required params, using default image");
     const emilyImageUrl = `https://starchildmusic.com/emily-the-strange.png`;
 
     return new ImageResponse(
@@ -94,6 +106,11 @@ export async function GET(request: NextRequest) {
   const formattedDuration = durationSeconds > 0 ? formatDuration(durationSeconds) : "0:00";
   const progressPercent = 42;
   const coverDataUrl = await getCoverDataUrl(cover);
+
+  console.log("[OG Route] Rendering track card:", {
+    hasCoverDataUrl: !!coverDataUrl,
+    duration: formattedDuration,
+  });
 
   return new ImageResponse(
     <div
@@ -308,32 +325,38 @@ export async function GET(request: NextRequest) {
 
 async function getCoverDataUrl(coverUrl: string | null) {
   if (!coverUrl) {
+    console.log("[OG Route] No cover URL provided");
     return null;
   }
 
   try {
+    console.log("[OG Route] Fetching cover image:", coverUrl.substring(0, 80));
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 1500);
+    const timeout = setTimeout(() => controller.abort(), 3000);
     const response = await fetch(coverUrl, {
       signal: controller.signal,
-      cache: "force-cache",
+      cache: "no-store",
     });
     clearTimeout(timeout);
 
     if (!response.ok) {
+      console.error("[OG Route] Cover fetch failed:", response.status, response.statusText);
       return null;
     }
 
     const contentLength = response.headers.get("content-length");
     if (contentLength && Number(contentLength) > 2_000_000) {
+      console.warn("[OG Route] Cover image too large:", contentLength);
       return null;
     }
 
     const buffer = await response.arrayBuffer();
     const contentType = response.headers.get("content-type") || "image/jpeg";
     const base64 = arrayBufferToBase64(buffer);
+    console.log("[OG Route] Cover image fetched successfully, size:", buffer.byteLength);
     return `data:${contentType};base64,${base64}`;
-  } catch {
+  } catch (error) {
+    console.error("[OG Route] Error fetching cover image:", error);
     return null;
   }
 }
