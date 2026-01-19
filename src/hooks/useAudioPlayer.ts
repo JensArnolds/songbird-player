@@ -232,6 +232,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       audioRef.current = new Audio();
       audioRef.current.volume = volume;
       audioRef.current.preload = "auto";
+      audioRef.current.playbackRate = 1;
+      audioRef.current.defaultPlaybackRate = 1;
+
+      const preserve = audioRef.current as HTMLAudioElement & {
+        preservesPitch?: boolean;
+        webkitPreservesPitch?: boolean;
+      };
+      preserve.preservesPitch = true;
+      preserve.webkitPreservesPitch = true;
 
       audioRef.current.setAttribute("x5-playsinline", "true");
       audioRef.current.setAttribute("webkit-playsinline", "true");
@@ -359,6 +368,36 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const audio = audioRef.current;
     if (!audio) return;
 
+    const enforcePlaybackRate = () => {
+      if (!audioRef.current) return;
+      const currentAudio = audioRef.current;
+      if (
+        currentAudio.playbackRate !== 1 ||
+        currentAudio.defaultPlaybackRate !== 1
+      ) {
+        logger.warn(
+          "[useAudioPlayer] ⚠️ Playback rate drift detected, resetting to 1.0",
+          {
+            playbackRate: currentAudio.playbackRate,
+            defaultPlaybackRate: currentAudio.defaultPlaybackRate,
+          },
+        );
+        currentAudio.playbackRate = 1;
+        currentAudio.defaultPlaybackRate = 1;
+      }
+
+      const preserve = currentAudio as HTMLAudioElement & {
+        preservesPitch?: boolean;
+        webkitPreservesPitch?: boolean;
+      };
+      if (preserve.preservesPitch === false) {
+        preserve.preservesPitch = true;
+      }
+      if (preserve.webkitPreservesPitch === false) {
+        preserve.webkitPreservesPitch = true;
+      }
+    };
+
     const handleTimeUpdate = () => {
       const newTime = audio.currentTime;
 
@@ -377,9 +416,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     };
     const handleLoadedMetadata = () => {
       setDuration(audio.duration);
+      enforcePlaybackRate();
     };
     const handlePlay = () => {
-
+      enforcePlaybackRate();
       if (!isPlayPauseOperationRef.current && !isPlayingRef.current) {
         setIsPlaying(true);
       }
@@ -463,6 +503,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       setIsPlaying(false);
     };
 
+    const handleRateChange = () => {
+      enforcePlaybackRate();
+    };
+
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("play", handlePlay);
@@ -471,6 +515,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     audio.addEventListener("loadstart", handleLoadStart);
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("error", handleError);
+    audio.addEventListener("ratechange", handleRateChange);
+
+    const playbackRateInterval = setInterval(() => {
+      enforcePlaybackRate();
+    }, 10000);
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
@@ -481,6 +530,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       audio.removeEventListener("loadstart", handleLoadStart);
       audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("error", handleError);
+      audio.removeEventListener("ratechange", handleRateChange);
+      clearInterval(playbackRateInterval);
     };
   }, [handleTrackEnd, currentTrack, onError, currentTime]);
 
@@ -712,6 +763,14 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             readyState: audioRef.current.readyState,
           });
           audioRef.current.src = streamUrl;
+          audioRef.current.playbackRate = 1;
+          audioRef.current.defaultPlaybackRate = 1;
+          const preserve = audioRef.current as HTMLAudioElement & {
+            preservesPitch?: boolean;
+            webkitPreservesPitch?: boolean;
+          };
+          preserve.preservesPitch = true;
+          preserve.webkitPreservesPitch = true;
           audioRef.current.load();
 
           logger.debug("[useAudioPlayer] Audio source set and load() called");
@@ -800,6 +859,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         paused: audioRef.current.paused,
         currentTime: audioRef.current.currentTime,
       });
+
+      audioRef.current.playbackRate = 1;
+      audioRef.current.defaultPlaybackRate = 1;
+      const preserve = audioRef.current as HTMLAudioElement & {
+        preservesPitch?: boolean;
+        webkitPreservesPitch?: boolean;
+      };
+      preserve.preservesPitch = true;
+      preserve.webkitPreservesPitch = true;
 
       const { getAudioConnection, ensureConnectionChain } =
         await import("@/utils/audioContextManager");

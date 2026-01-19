@@ -18,7 +18,12 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      userHash?: string | null;
     } & DefaultSession["user"];
+  }
+
+  interface User {
+    userHash?: string | null;
   }
 }
 
@@ -149,6 +154,7 @@ export const authConfig = {
           name: user.name ?? null,
           email: user.email ?? null,
           image: user.image ?? null,
+          userHash: user.userHash ?? null,
         },
       };
     },
