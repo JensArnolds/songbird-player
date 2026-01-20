@@ -1,4 +1,3 @@
-// File: src/app/api/artist/[id]/tracks/route.ts
 
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -52,8 +51,7 @@ export async function GET(
         typeof track === "object" && track !== null,
     );
 
-    // Ensure deezer_id is set for all tracks - when coming from Deezer API, id IS the deezer_id
-    const enrichedTracks = validTracks.map((track) => {
+        const enrichedTracks = validTracks.map((track) => {
       const trackObj = track as {
         id?: number;
         deezer_id?: number;
@@ -61,8 +59,7 @@ export async function GET(
       };
       return {
         ...trackObj,
-        // Set deezer_id to id if not already present (critical for sharing)
-        deezer_id: trackObj.deezer_id ?? trackObj.id,
+                deezer_id: trackObj.deezer_id ?? trackObj.id,
       };
     });
     
