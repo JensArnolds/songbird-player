@@ -13,4 +13,10 @@ declare global {
   interface Window {
     electron: ElectronAPI;
   }
+
+  namespace NodeJS {
+    interface Process {
+      resourcesPath?: string;
+    }
+  }
 }

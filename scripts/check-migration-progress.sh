@@ -1,4 +1,6 @@
 #!/bin/bash
+# File: scripts/check-migration-progress.sh
+
 # Check migration progress in a separate terminal
 # Run: bash scripts/check-migration-progress.sh
 

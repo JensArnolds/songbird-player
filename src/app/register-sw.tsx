@@ -1,3 +1,5 @@
+// File: src/app/register-sw.tsx
+
 "use client";
 
 import { useEffect } from "react";

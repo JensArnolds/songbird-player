@@ -1,3 +1,5 @@
+// File: src/components/MobileFooter.tsx
+
 "use client";
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
@@ -29,27 +31,23 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
   if (!isMobile) return null;
 
   const isActive = (path: string, tabName?: string) => {
-    // Handle search tab separately - active when there's a search query OR when activeTab is "search" and on home page
-    if (tabName === "search") {
+        if (tabName === "search") {
       const searchQuery = searchParams.get("q");
       if (searchQuery) return true;
-      // If no query but activeTab is "search" and we're on home page, show as active
-      return (
+            return (
         activeTab === "search" &&
         (pathname === "/" || pathname.startsWith("/?"))
       );
     }
     if (path === "/") {
-      // Home is active when on "/" without search query AND activeTab is not "search"
-      const searchQuery = searchParams.get("q");
+            const searchQuery = searchParams.get("q");
       return (
         (pathname === "/" || pathname.startsWith("/?")) &&
         !searchQuery &&
         activeTab !== "search"
       );
     }
-    // Handle profile path (userHash route)
-    if (path === "profile" && userHash) {
+        if (path === "profile" && userHash) {
       return pathname === `/${userHash}`;
     }
     return pathname.startsWith(path);
@@ -76,8 +74,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       router.push("/api/auth/signin");
       return;
     }
-    // Prevent navigation if userHash isn't loaded yet
-    if (!userHash) {
+        if (!userHash) {
       return;
     }
     setActiveTab("profile");
@@ -87,12 +84,10 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
   const handleSearchNavigation = () => {
     hapticLight();
     const currentQuery = searchParams.get("q");
-    // If already on search page with a query, do nothing (prevent clearing search)
-    if (pathname === "/" && currentQuery) {
+        if (pathname === "/" && currentQuery) {
       return;
     }
-    // Otherwise navigate to home (search bar will be visible)
-    setActiveTab("search");
+        setActiveTab("search");
     router.push("/", { scroll: false });
   };
 

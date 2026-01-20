@@ -1,3 +1,5 @@
+// File: next.config.js
+
 import "./src/env.js";
 
 if (typeof process !== "undefined") {

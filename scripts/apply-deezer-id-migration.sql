@@ -1,3 +1,5 @@
+-- File: scripts/apply-deezer-id-migration.sql
+
 -- Apply deezer_id migration manually
 -- Run with: psql $DATABASE_URL -f scripts/apply-deezer-id-migration.sql
 -- Or copy-paste into your database client

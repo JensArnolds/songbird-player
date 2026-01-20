@@ -1,3 +1,5 @@
+// File: src/__tests__/track-seo.test.ts
+
 import { describe, expect, it, vi } from "vitest";
 
 const mockTrack = {

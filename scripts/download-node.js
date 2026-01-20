@@ -1,22 +1,18 @@
 #!/usr/bin/env node
 // File: scripts/download-node.js
 
+import { exec } from "child_process";
 import fs from "fs";
 import https from "https";
 import path from "path";
 import { fileURLToPath } from "url";
-import { execSync, exec } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configuration
-const NODE_VERSION = "20.18.2"; // LTS version matching your dev environment
-const PLATFORM = process.platform; // 'win32', 'darwin', 'linux'
-const ARCH = process.arch; // 'x64', 'arm64'
-
+const NODE_VERSION = "20.18.2"; const PLATFORM = process.platform; const ARCH = process.arch; 
 const OUTPUT_DIR = path.join(__dirname, "..", "resources", "node");
 
 /**
@@ -32,8 +28,7 @@ function downloadFile(url, dest) {
 
     https.get(url, (response) => {
       if (response.statusCode === 302 || response.statusCode === 301) {
-        // Handle redirect
-        const redirectUrl = response.headers.location;
+                const redirectUrl = response.headers.location;
         if (!redirectUrl) {
           reject(new Error("Redirect location not found"));
           return;
@@ -72,34 +67,29 @@ function downloadFile(url, dest) {
 async function extractZip(zipPath, outputDir) {
   console.log(`Extracting: ${zipPath}`);
 
-  // Ensure output directory exists
-  if (!fs.existsSync(outputDir)) {
+    if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
   try {
-    // Try using tar.exe first (available on Windows 10+)
-    // tar.exe can extract zip files on Windows
-    await execAsync(`tar -xf "${zipPath}" -C "${outputDir}"`, {
+            await execAsync(`tar -xf "${zipPath}" -C "${outputDir}"`, {
       windowsHide: true,
     });
     console.log("Extraction complete (using tar)");
   } catch (tarError) {
     console.log("tar extraction failed, trying alternative method...");
 
-    // Fallback: Try using tar without -C flag
-    try {
+        try {
       const originalDir = process.cwd();
       process.chdir(outputDir);
       await execAsync(`tar -xf "${zipPath}"`, { windowsHide: true });
       process.chdir(originalDir);
       console.log("Extraction complete (using tar, alternative method)");
     } catch (altError) {
-      // If tar fails, provide helpful error message
-      throw new Error(
+            throw new Error(
         `Failed to extract zip file. Please install 7-Zip or update to Windows 10+.\n` +
-        `Tar error: ${tarError.message}\n` +
-        `Alternative error: ${altError.message}`
+        `Tar error: ${(tarError instanceof Error ? tarError.message : String(tarError))}\n` +
+        `Alternative error: ${(altError instanceof Error ? altError.message : String(altError))}`
       );
     }
   }
@@ -118,7 +108,8 @@ async function extractTarGz(tarPath, outputDir) {
     });
     console.log("Extraction complete");
   } catch (error) {
-    throw new Error(`Failed to extract: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to extract: ${errorMessage}`);
   }
 }
 
@@ -132,24 +123,20 @@ async function main() {
   console.log(`Node Version: ${NODE_VERSION}`);
   console.log(`Output: ${OUTPUT_DIR}\n`);
 
-  // Determine download URL and file extension
-  let downloadUrl;
+    let downloadUrl;
   let fileName;
   let extractedDirName;
 
   if (PLATFORM === "win32") {
-    // Windows
-    fileName = `node-v${NODE_VERSION}-win-${ARCH}.zip`;
+        fileName = `node-v${NODE_VERSION}-win-${ARCH}.zip`;
     extractedDirName = `node-v${NODE_VERSION}-win-${ARCH}`;
     downloadUrl = `https://nodejs.org/dist/v${NODE_VERSION}/${fileName}`;
   } else if (PLATFORM === "darwin") {
-    // macOS
-    fileName = `node-v${NODE_VERSION}-darwin-${ARCH}.tar.gz`;
+        fileName = `node-v${NODE_VERSION}-darwin-${ARCH}.tar.gz`;
     extractedDirName = `node-v${NODE_VERSION}-darwin-${ARCH}`;
     downloadUrl = `https://nodejs.org/dist/v${NODE_VERSION}/${fileName}`;
   } else if (PLATFORM === "linux") {
-    // Linux
-    fileName = `node-v${NODE_VERSION}-linux-${ARCH}.tar.gz`;
+        fileName = `node-v${NODE_VERSION}-linux-${ARCH}.tar.gz`;
     extractedDirName = `node-v${NODE_VERSION}-linux-${ARCH}`;
     downloadUrl = `https://nodejs.org/dist/v${NODE_VERSION}/${fileName}`;
   } else {
@@ -157,27 +144,23 @@ async function main() {
     process.exit(1);
   }
 
-  // Create resources directory
-  const resourcesDir = path.join(__dirname, "..", "resources");
+    const resourcesDir = path.join(__dirname, "..", "resources");
   if (!fs.existsSync(resourcesDir)) {
     fs.mkdirSync(resourcesDir, { recursive: true });
   }
 
-  // Check if Node.js is already downloaded
-  if (fs.existsSync(OUTPUT_DIR)) {
+    if (fs.existsSync(OUTPUT_DIR)) {
     console.log("Node.js runtime already exists, skipping download");
     console.log(`Location: ${OUTPUT_DIR}\n`);
     return;
   }
 
-  // Download Node.js
-  const downloadPath = path.join(resourcesDir, fileName);
+    const downloadPath = path.join(resourcesDir, fileName);
 
   try {
     await downloadFile(downloadUrl, downloadPath);
 
-    // Extract based on platform
-    const tempExtractDir = path.join(resourcesDir, "temp-node");
+        const tempExtractDir = path.join(resourcesDir, "temp-node");
     if (!fs.existsSync(tempExtractDir)) {
       fs.mkdirSync(tempExtractDir, { recursive: true });
     }
@@ -188,23 +171,22 @@ async function main() {
       await extractTarGz(downloadPath, tempExtractDir);
     }
 
-    // Move extracted directory to final location
-    const extractedPath = path.join(tempExtractDir, extractedDirName);
+        const extractedPath = path.join(tempExtractDir, extractedDirName);
     if (fs.existsSync(extractedPath)) {
       fs.renameSync(extractedPath, OUTPUT_DIR);
     } else {
       throw new Error(`Extracted directory not found: ${extractedPath}`);
     }
 
-    // Cleanup
-    console.log("Cleaning up temporary files...");
+        console.log("Cleaning up temporary files...");
     fs.unlinkSync(downloadPath);
     fs.rmSync(tempExtractDir, { recursive: true, force: true });
 
     console.log("\n✓ Node.js runtime downloaded and prepared successfully");
     console.log(`Location: ${OUTPUT_DIR}\n`);
   } catch (error) {
-    console.error("\n✗ Error downloading Node.js:", error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("\n✗ Error downloading Node.js:", errorMessage);
     process.exit(1);
   }
 }

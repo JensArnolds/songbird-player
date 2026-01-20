@@ -1,3 +1,5 @@
+// File: src/components/SmoothSlider.tsx
+
 "use client";
 
 import { haptic } from "@/utils/haptics";

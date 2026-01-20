@@ -76,19 +76,15 @@ const trackSchema = z.object({
     type: z.literal("album"),
   }),
   type: z.literal("track"),
-  deezer_id: z.union([z.number(), z.string()]).optional(), // Deezer song ID - critical for sharing
-});
+  deezer_id: z.union([z.number(), z.string()]).optional(), });
 
-// Helper function to extract deezer_id from a track object
 function getDeezerId(track: z.infer<typeof trackSchema>): number | undefined {
   if (track.deezer_id !== undefined) {
     return typeof track.deezer_id === "string" 
       ? parseInt(track.deezer_id, 10) || undefined
       : track.deezer_id;
   }
-  // If no deezer_id is explicitly set, the id might be the deezer_id (when coming from Deezer API)
-  // But we can't assume this, so return undefined
-  return undefined;
+      return undefined;
 }
 
 async function syncAutoFavorites(database: typeof db, userId: string) {
@@ -182,8 +178,7 @@ export const musicRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-        // trackData stores the full track object as jsonb, preserving deezer_id and all other fields
-        trackData: input.track as unknown as Record<string, unknown>,
+                trackData: input.track as unknown as Record<string, unknown>,
       });
 
       return { success: true, alreadyExists: false };
@@ -565,8 +560,7 @@ export const musicRouter = createTRPCRouter({
         playlistId: input.playlistId,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-        // trackData stores the full track object as jsonb, preserving deezer_id and all other fields
-        trackData: input.track as unknown as Record<string, unknown>,
+                trackData: input.track as unknown as Record<string, unknown>,
         position: nextPosition,
       });
 
@@ -672,8 +666,7 @@ export const musicRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-        // trackData stores the full track object as jsonb, preserving deezer_id and all other fields
-        trackData: input.track as unknown as Record<string, unknown>,
+                trackData: input.track as unknown as Record<string, unknown>,
         duration: input.duration,
       });
 
@@ -836,9 +829,7 @@ export const musicRouter = createTRPCRouter({
         where: eq(userPreferences.userId, ctx.session.user.id),
       });
 
-      // Normalize queueState to match schema: ensure track is always present in queuedTracks
-      // Schema requires: { track: unknown; queueSource: ...; addedAt: ...; queueId: ... }
-      const normalizedQueueState = input.queueState
+                  const normalizedQueueState = input.queueState
         ? ({
             version: input.queueState.version,
             queuedTracks: input.queueState.queuedTracks.map((item) => ({
@@ -1486,8 +1477,7 @@ export const musicRouter = createTRPCRouter({
 
           if (filtered.length > 0 && !cached) {
             try {
-              // Try to get deezer_id from the first filtered track or use trackId if it's from Deezer API
-              const seedDeezerId = filtered[0]?.deezer_id 
+                            const seedDeezerId = filtered[0]?.deezer_id 
                 ? (typeof filtered[0].deezer_id === "string" 
                     ? parseInt(filtered[0].deezer_id, 10) 
                     : filtered[0].deezer_id)
@@ -1614,18 +1604,12 @@ export const musicRouter = createTRPCRouter({
             );
           };
 
-          // API v1.0.0 Compatibility:
-          // - Default mode changed from "normal" to "balanced" (breaking change)
-          // - "normal" mode is no longer accepted, must use "balanced"
-          // - Response format enhanced with: foundSongs, songResults, seedQuality (optional), warnings (optional)
-          // See: https://songbirdapi.com/docs for full API v1.0.0 breaking changes
-          const mode =
+                                                            const mode =
             input.similarityLevel === "strict"
               ? "strict"
               : input.similarityLevel === "diverse"
                 ? "diverse"
-                : "balanced"; // Changed from "normal" to "balanced" for API v1.0.0 compatibility
-
+                : "balanced"; 
           const recommendationResponse = await songbird.request<{
             mode?: string;
             inputSongs?: number;
@@ -1660,14 +1644,11 @@ export const musicRouter = createTRPCRouter({
             }),
           });
 
-          // Handle new response format (v1.0.0)
-          // Log warnings if present
-          if (recommendationResponse.warnings && recommendationResponse.warnings.length > 0) {
+                              if (recommendationResponse.warnings && recommendationResponse.warnings.length > 0) {
             console.warn("[getSimilarTracks] API warnings:", recommendationResponse.warnings);
           }
 
-          // Check if some songs weren't found
-          if (recommendationResponse.foundSongs !== undefined && 
+                    if (recommendationResponse.foundSongs !== undefined && 
               recommendationResponse.inputSongs !== undefined &&
               recommendationResponse.foundSongs < recommendationResponse.inputSongs) {
             console.warn(

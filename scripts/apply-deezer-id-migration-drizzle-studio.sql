@@ -1,3 +1,5 @@
+-- File: scripts/apply-deezer-id-migration-drizzle-studio.sql
+
 -- ============================================
 -- Deezer ID Migration Script
 -- Run this in Drizzle Studio SQL Console

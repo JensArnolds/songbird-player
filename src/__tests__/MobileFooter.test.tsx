@@ -1,3 +1,5 @@
+// File: src/__tests__/MobileFooter.test.tsx
+
 import MobileFooter from "@/components/MobileFooter";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";

@@ -18,7 +18,6 @@ const config = {
     nodeResolve({
       preferBuiltins: true,
     }),
-    // Fix for formidable require reassignment
     replace({
       patterns: [
         {
@@ -30,8 +29,6 @@ const config = {
     }),
     commonjs(),
     json(),
-    // Terser disabled due to issues with WebSocket module
-    // terser()
   ],
 };
 

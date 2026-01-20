@@ -1,3 +1,5 @@
+// File: src/__tests__/og-image-darkfloor-links.test.ts
+
 import { beforeAll, describe, expect, it } from "vitest";
 import { GET } from "@/app/api/og/route";
 import type { NextRequest } from "next/server";

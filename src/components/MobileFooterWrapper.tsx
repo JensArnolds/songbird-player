@@ -1,3 +1,5 @@
+// File: src/components/MobileFooterWrapper.tsx
+
 "use client";
 
 import { useState } from "react";

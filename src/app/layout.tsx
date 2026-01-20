@@ -1,6 +1,5 @@
 // File: src/app/layout.tsx
 
-// @ts-expect-error - CSS import
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";

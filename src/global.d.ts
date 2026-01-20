@@ -1,6 +1,15 @@
 // File: src/global.d.ts
 
 declare module "*.css";
+declare module "eslint-plugin-drizzle";
+
+declare global {
+  namespace NodeJS {
+    interface Process {
+      resourcesPath?: string;
+    }
+  }
+}
 
 interface ElectronAPI {
   getAppVersion: () => Promise<string>;

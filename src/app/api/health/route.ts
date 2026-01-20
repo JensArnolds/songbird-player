@@ -7,8 +7,7 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
   const isDev = process.env.NODE_ENV === "development";
 
-  // Log request details in development mode
-  if (isDev) {
+    if (isDev) {
     const origin = request.headers.get("origin");
     const userAgent = request.headers.get("user-agent");
     const referer = request.headers.get("referer");
@@ -69,8 +68,7 @@ export async function GET(request: NextRequest) {
 
   const responseTime = Date.now() - startTime;
 
-  // Log response details in development mode
-  if (isDev) {
+    if (isDev) {
     console.log("[Health Check] Response sent:", {
       status: "ok",
       responseTime: `${responseTime}ms`,

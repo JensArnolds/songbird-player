@@ -1,3 +1,5 @@
+-- File: scripts/sync-migration-journal.sql
+
 -- ============================================
 -- Sync Drizzle Migration Journal
 -- Run this in Drizzle Studio SQL Console

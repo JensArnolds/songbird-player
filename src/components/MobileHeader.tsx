@@ -43,8 +43,7 @@ export default function MobileHeader() {
       setSearchQuery("");
     }
 
-    // Clear any pending fallback timeouts
-    if (searchingTimeoutRef.current) {
+        if (searchingTimeoutRef.current) {
       clearTimeout(searchingTimeoutRef.current);
       searchingTimeoutRef.current = null;
     }
@@ -53,22 +52,18 @@ export default function MobileHeader() {
     setCountdown(0);
   }, [searchParams]);
 
-  // Debounced search: search every 2 seconds while typing
-  useEffect(() => {
-    // Clear existing timeout and countdown
-    if (searchTimeoutRef.current) {
+    useEffect(() => {
+        if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
     }
 
-    // If query is empty, clear search immediately (only if we're on the home page)
-    const previousQuery = previousSearchQueryRef.current;
+        const previousQuery = previousSearchQueryRef.current;
     if (!searchQuery.trim()) {
       setCountdown(0);
-      // Only redirect to / if we're currently on a search page (has ?q= param)
-      const currentUrlQuery = searchParams.get("q");
+            const currentUrlQuery = searchParams.get("q");
       if (currentUrlQuery && previousQuery.trim()) {
         router.push("/");
       }
@@ -76,12 +71,10 @@ export default function MobileHeader() {
       return;
     }
 
-    // Check if URL already matches the query (prevents redundant countdown after manual search)
-    const currentUrlQuery = searchParams.get("q");
+        const currentUrlQuery = searchParams.get("q");
     const trimmedQuery = searchQuery.trim();
     if (currentUrlQuery === trimmedQuery) {
-      // URL already matches query, don't start new countdown
-      setCountdown(0);
+            setCountdown(0);
       hasSeenNonEmptyQueryRef.current = true;
       previousSearchQueryRef.current = searchQuery;
       return;
@@ -90,11 +83,9 @@ export default function MobileHeader() {
     hasSeenNonEmptyQueryRef.current = true;
     previousSearchQueryRef.current = searchQuery;
 
-    // Reset countdown to 2000ms
-    setCountdown(2000);
+        setCountdown(2000);
 
-    // Update countdown every 100ms for smooth animation
-    countdownIntervalRef.current = setInterval(() => {
+        countdownIntervalRef.current = setInterval(() => {
       setCountdown((prev) => {
         const newValue = Math.max(0, prev - 100);
         if (newValue === 0) {
@@ -106,20 +97,17 @@ export default function MobileHeader() {
       });
     }, 100);
 
-    // Set new timeout for 2 seconds
-    searchTimeoutRef.current = setTimeout(() => {
+        searchTimeoutRef.current = setTimeout(() => {
       setIsSearching(true);
       setCountdown(0);
       router.push(`/?q=${encodeURIComponent(trimmedQuery)}`);
 
-      // Fallback: Force clear searching state after 3s if effect doesn't fire
-      searchingTimeoutRef.current = setTimeout(() => {
+            searchingTimeoutRef.current = setTimeout(() => {
         setIsSearching(false);
       }, 3000);
     }, 2000);
 
-    // Cleanup on unmount or query change
-    return () => {
+        return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
@@ -134,13 +122,11 @@ export default function MobileHeader() {
 
   if (!isMobile) return null;
 
-  // Check if current query matches URL (search is complete)
-  const urlQuery = searchParams.get("q") ?? "";
+    const urlQuery = searchParams.get("q") ?? "";
   const isSearchComplete = urlQuery === searchQuery.trim() && searchQuery.trim().length > 0;
 
   const handleSearch = (query: string) => {
-    // Clear debounce timeout and countdown
-    if (searchTimeoutRef.current) {
+        if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     if (countdownIntervalRef.current) {
@@ -155,8 +141,7 @@ export default function MobileHeader() {
       setIsSearching(true);
       router.push(`/?q=${encodeURIComponent(query.trim())}`);
 
-      // Fallback: Force clear searching state after 3s if effect doesn't fire
-      searchingTimeoutRef.current = setTimeout(() => {
+            searchingTimeoutRef.current = setTimeout(() => {
         setIsSearching(false);
       }, 3000);
     } else {
@@ -165,8 +150,7 @@ export default function MobileHeader() {
   };
 
   const handleClear = () => {
-    // Clear debounce timeout and countdown
-    if (searchTimeoutRef.current) {
+        if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     if (countdownIntervalRef.current) {
@@ -178,8 +162,7 @@ export default function MobileHeader() {
     setCountdown(0);
     setIsSearching(false);
     setSearchQuery("");
-    // Navigation is handled by useEffect when searchQuery becomes empty
-  };
+      };
 
   return (
     <motion.header

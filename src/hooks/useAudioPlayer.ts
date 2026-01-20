@@ -15,8 +15,8 @@ import { getStreamUrlById } from "@/utils/api";
 import { logger } from "@/utils/logger";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  loadPersistedQueueState,
   clearPersistedQueueState,
+  loadPersistedQueueState,
 } from "./useQueuePersistence";
 
 type RepeatMode = "none" | "one" | "all";
@@ -143,8 +143,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       setQueuedTracks(initialQueueState.queuedTracks);
       setSmartQueueState({
         ...initialQueueState.smartQueueState,
-        isLoading: false, // Always reset loading state when restoring
-      });
+        isLoading: false,       });
       setHistory(initialQueueState.history);
       setIsShuffled(initialQueueState.isShuffled);
       setRepeatMode(initialQueueState.repeatMode);
@@ -187,8 +186,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           if (persistedState.smartQueueState) {
             setSmartQueueState({
               ...persistedState.smartQueueState,
-              isLoading: false, // Always reset loading state when restoring
-            });
+              isLoading: false,             });
           }
         } else if ("queue" in persistedState && persistedState.queue) {
 
@@ -664,9 +662,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     document.addEventListener("freeze", handleFreeze);
     document.addEventListener("resume", handleResume);
 
-    // On WebKit devices, use WebKit-specific handlers; otherwise use standard HTML5 handlers
-    // This prevents duplicate event handlers from firing
-    if ("onwebkitbegininvokeactivity" in window) {
+            if ("onwebkitbegininvokeactivity" in window) {
       window.addEventListener("pagehide", handleAudioInterruption);
       window.addEventListener("pageshow", handleAudioInterruptionEnd);
     } else {
@@ -1501,8 +1497,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       const seedTrack = currentQueuedTrack.track;
       
-      // Parse options
-      const count = typeof countOrOptions === "number" ? countOrOptions : countOrOptions?.count ?? 5;
+            const count = typeof countOrOptions === "number" ? countOrOptions : countOrOptions?.count ?? 5;
       const similarityLevel = typeof countOrOptions === "object" && countOrOptions?.similarityLevel
         ? countOrOptions.similarityLevel
         : undefined;
@@ -1513,14 +1508,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         { count, similarityLevel },
       );
 
-      // Set loading state
-      setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
+            setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
 
       try {
         let recommendedTracks: Track[] = [];
 
-        // Use custom fetch if similarity level is specified, otherwise use default trigger
-        if (similarityLevel && options.onCustomSmartTracksFetch) {
+                if (similarityLevel && options.onCustomSmartTracksFetch) {
           recommendedTracks = await options.onCustomSmartTracksFetch(seedTrack, {
             count,
             similarityLevel,
@@ -1582,8 +1575,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       return;
     }
 
-    // Set loading state
-    setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
+        setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
 
     try {
       const recommendedTracks = await options.onAutoQueueTrigger(

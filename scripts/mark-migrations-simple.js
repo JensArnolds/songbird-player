@@ -1,29 +1,23 @@
 #!/usr/bin/env node
 // File: scripts/mark-migrations-simple.js
 
-// Simple script to mark migrations as applied
-
 import dotenv from 'dotenv';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { Pool } from 'pg';
 
 dotenv.config({ path: '.env.local' });
-dotenv.config(); // Also load .env as fallback
-
-// Determine SSL configuration based on database type
+dotenv.config(); 
 /**
  * @param {string} connectionString
  * @returns {import('pg').ClientConfig['ssl'] | undefined}
  */
 function getSslConfig(connectionString) {
-  // Neon handles SSL automatically via connection string
-  if (connectionString.includes("neon.tech")) {
+    if (connectionString.includes("neon.tech")) {
     return undefined;
   }
 
-  // Check if it's a cloud database that requires SSL
-  const isCloudDb = 
+    const isCloudDb = 
     connectionString.includes("aivencloud.com") || 
     connectionString.includes("rds.amazonaws.com") ||
     connectionString.includes("sslmode=");
@@ -32,8 +26,7 @@ function getSslConfig(connectionString) {
     return undefined;
   }
 
-  // Cloud database - try to find CA certificate
-  const certPath = join(process.cwd(), "certs/ca.pem");
+    const certPath = join(process.cwd(), "certs/ca.pem");
   
   if (existsSync(certPath)) {
     return {
@@ -42,21 +35,18 @@ function getSslConfig(connectionString) {
     };
   }
 
-  // Fallback: Use DB_SSL_CA environment variable if set
-  if (process.env.DB_SSL_CA) {
+    if (process.env.DB_SSL_CA) {
     return {
       rejectUnauthorized: process.env.NODE_ENV === "production",
       ca: process.env.DB_SSL_CA,
     };
   }
 
-  // Certificate not found - use lenient SSL
-  return {
+    return {
     rejectUnauthorized: false,
   };
 }
 
-// Debug: Check if DATABASE_URL is loaded
 if (!process.env.DATABASE_URL) {
   console.error('❌ Error: DATABASE_URL environment variable is required');
   console.error('   Make sure .env.local exists and contains DATABASE_URL');
@@ -98,8 +88,7 @@ async function main() {
   });
 
   try {
-    // Create table if it doesn't exist
-    await pool.query(`
+        await pool.query(`
       CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
         id SERIAL PRIMARY KEY,
         hash text NOT NULL UNIQUE,
@@ -130,8 +119,7 @@ async function main() {
     console.log(`   Marked: ${marked} migrations`);
     console.log(`   Skipped: ${skipped} migrations (already applied)\n`);
 
-    // Verify
-    const verifyResult = await pool.query(
+        const verifyResult = await pool.query(
       'SELECT COUNT(*) as count FROM "__drizzle_migrations"'
     );
     console.log(`📊 Total migrations in tracking table: ${verifyResult.rows[0].count}\n`);

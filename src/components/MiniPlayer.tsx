@@ -40,8 +40,7 @@ export default function MiniPlayer({
   const dragY = useMotionValue(0);
   const opacity = useTransform(dragY, [0, -50], [1, 0.85]);
   const scale = useTransform(dragY, [0, -50], [1, 0.96]);
-  
-  // Visual feedback: show hint when dragging up
+
   const swipeHintOpacity = useTransform(dragY, [0, -20, -50], [0, 1, 1]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -67,9 +66,9 @@ export default function MiniPlayer({
 
     return Boolean(
       target.closest("button") ??
-        target.closest("input") ??
-        target.closest("select") ??
-        target.closest("[data-drag-exempt='true']"),
+      target.closest("input") ??
+      target.closest("select") ??
+      target.closest("[data-drag-exempt='true']"),
     );
   };
 
@@ -89,14 +88,11 @@ export default function MiniPlayer({
     const offset = info.offset.y;
     const velocity = info.velocity.y;
 
-    // Very low threshold for easier swipe-up: 20px or velocity > 150
-    // This makes it much easier to pop up the player
     if (offset < -20 || velocity < -150) {
       hapticMedium();
       onTap();
     }
-    
-    // Reset drag position
+
     dragY.set(0);
   };
 
@@ -108,10 +104,10 @@ export default function MiniPlayer({
       transition={springPresets.gentle}
       className="safe-bottom fixed right-0 left-0 z-[60] border-t border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.96)] shadow-[0_-16px_48px_rgba(5,10,18,0.8)] backdrop-blur-2xl md:bottom-0 bottom-[68px]"
     >
-      {}
+      { }
       <AutoQueueBadge count={lastAutoQueueCount} />
 
-      {}
+      { }
       <div
         className="h-1 w-full cursor-pointer bg-[rgba(255,255,255,0.12)]"
         data-drag-exempt="true"
@@ -124,7 +120,7 @@ export default function MiniPlayer({
         />
       </div>
 
-      {}
+      { }
       <motion.div
         className="flex cursor-pointer items-center gap-3 px-4 py-3 relative"
         onTap={handleContainerTap}

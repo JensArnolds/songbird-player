@@ -7,8 +7,7 @@
  * but Drizzle doesn't know the migrations have been applied.
  * 
  * Usage:
- *   DATABASE_URL="postgresql://..." npx tsx scripts/mark-migrations-applied.ts
- */
+ *   DATABASE_URL="postgresql: */
 
 import dotenv from "dotenv";
 import { existsSync, readFileSync } from "fs";
@@ -16,19 +15,14 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { Pool } from "pg";
 
-// Load environment variables (explicitly load .env.local)
 dotenv.config({ path: ".env.local" });
-dotenv.config(); // Also load .env as fallback
-
-// Determine SSL configuration based on database type
+dotenv.config(); 
 function getSslConfig(connectionString: string) {
-  // Neon handles SSL automatically via connection string
-  if (connectionString.includes("neon.tech")) {
+    if (connectionString.includes("neon.tech")) {
     return undefined;
   }
 
-  // Check if it's a cloud database that requires SSL
-  const isCloudDb = 
+    const isCloudDb = 
     connectionString.includes("aivencloud.com") || 
     connectionString.includes("rds.amazonaws.com") ||
     connectionString.includes("sslmode=");
@@ -37,8 +31,7 @@ function getSslConfig(connectionString: string) {
     return undefined;
   }
 
-  // Cloud database - try to find CA certificate
-  const certPath = join(process.cwd(), "certs/ca.pem");
+    const certPath = join(process.cwd(), "certs/ca.pem");
   
   if (existsSync(certPath)) {
     return {
@@ -47,16 +40,14 @@ function getSslConfig(connectionString: string) {
     };
   }
 
-  // Fallback: Use DB_SSL_CA environment variable if set
-  if (process.env.DB_SSL_CA) {
+    if (process.env.DB_SSL_CA) {
     return {
       rejectUnauthorized: process.env.NODE_ENV === "production",
       ca: process.env.DB_SSL_CA,
     };
   }
 
-  // Certificate not found - use lenient SSL
-  return {
+    return {
     rejectUnauthorized: false,
   };
 }
@@ -90,12 +81,10 @@ async function main() {
   });
 
   try {
-    // Test connection
-    await pool.query("SELECT 1");
+        await pool.query("SELECT 1");
     log("✓ Database connection successful\n", "green");
 
-    // Ensure __drizzle_migrations table exists
-    await pool.query(`
+        await pool.query(`
       CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
         id SERIAL PRIMARY KEY,
         hash text NOT NULL UNIQUE,
@@ -104,16 +93,14 @@ async function main() {
     `);
     log("✓ Migration tracking table ready\n", "green");
 
-    // Read the journal to get migration tags
-    const journalPath = join(process.cwd(), "drizzle", "meta", "_journal.json");
+        const journalPath = join(process.cwd(), "drizzle", "meta", "_journal.json");
     const journalContent = await readFile(journalPath, "utf-8");
     const journal = JSON.parse(journalContent);
 
     const migrations = journal.entries || [];
     log(`Found ${migrations.length} migrations in journal\n`, "cyan");
 
-    // Get already applied migrations
-    const appliedResult = await pool.query(
+        const appliedResult = await pool.query(
       'SELECT hash FROM "__drizzle_migrations"'
     );
     const appliedHashes = new Set(
@@ -124,16 +111,14 @@ async function main() {
     let skipped = 0;
 
     for (const entry of migrations) {
-      const tag = entry.tag; // e.g., "0000_eager_gideon"
-      
+      const tag = entry.tag;       
       if (appliedHashes.has(tag)) {
         log(`⊘ ${tag} - already marked as applied`, "yellow");
         skipped++;
         continue;
       }
 
-      // Mark as applied using the timestamp from journal or current time
-      const createdAt = entry.when || Date.now();
+            const createdAt = entry.when || Date.now();
       await pool.query(
         'INSERT INTO "__drizzle_migrations" (hash, created_at) VALUES ($1, $2) ON CONFLICT (hash) DO NOTHING',
         [tag, createdAt]
@@ -146,8 +131,7 @@ async function main() {
     log(`   Marked: ${marked} migrations`, "green");
     log(`   Skipped: ${skipped} migrations (already applied)\n`, "green");
 
-    // Verify
-    const verifyResult = await pool.query(
+        const verifyResult = await pool.query(
       'SELECT COUNT(*) as count FROM "__drizzle_migrations"'
     );
     log(

@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-# File: scripts/db-sync.cjs
-
-// Cross-platform script to handle database migration/push in prebuild
-// Tries db:migrate first, falls back to db:push if migrate fails
 
 const { execSync } = require('child_process');
 
@@ -27,7 +23,6 @@ function runCommand(command, silent = false) {
 
 console.log('🔄 Attempting to apply database migrations...\n');
 
-// Try to run migrations (show output)
 const migrateResult = runCommand('npm run db:migrate', false);
 
 if (migrateResult.success) {
@@ -37,8 +32,6 @@ if (migrateResult.success) {
 
 console.log(`\n⚠️  Migration failed (exit code: ${migrateResult.exitCode})`);
 
-// Check if the error is about tables already existing
-// If so, try to mark migrations as applied first (silent to avoid noise)
 const markAppliedResult = runCommand('npm run db:mark-applied', true);
 
 if (markAppliedResult.success) {
@@ -53,7 +46,6 @@ if (markAppliedResult.success) {
   }
 }
 
-// Fall back to db:push
 console.log('\n⚠️  Falling back to db:push...\n');
 const pushResult = runCommand('npm run db:push', false);
 

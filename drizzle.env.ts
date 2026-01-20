@@ -2,12 +2,12 @@
 
 import { config as dotenvConfig } from "dotenv";
 
-// Load .env.local FIRST with override: true to ensure it takes precedence
-// Then load .env as fallback. This ensures .env.local has priority.
-dotenvConfig({ path: ".env.local", override: true });
-dotenvConfig(); // Load .env as fallback
 
-// If DATABASE_URL is set, we don't need individual DB credentials
+
+dotenvConfig({ path: ".env.local", override: true });
+dotenvConfig(); 
+
+
 const useConnectionString = !!process.env.DATABASE_URL;
 
 const required = (key: string) => {

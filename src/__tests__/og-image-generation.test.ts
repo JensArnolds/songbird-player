@@ -1,3 +1,5 @@
+// File: src/__tests__/og-image-generation.test.ts
+
 import { describe, expect, it, vi, beforeAll } from "vitest";
 import { GET } from "@/app/api/og/route";
 import type { NextRequest } from "next/server";

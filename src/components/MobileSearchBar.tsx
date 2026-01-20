@@ -198,10 +198,8 @@ export default function MobileSearchBar({
   const showClear = value.length > 0 && !isLoading;
   const showRecentSearches = isFocused && !value && recentSearches.length > 0;
   const showAutoSearch = showAutoSearchIndicator && value.trim().length > 0 && !isLoading && !isListening;
-  // countdownProgress represents remaining time (100% = full time, 0% = time's up) - used for circular indicator
-  const countdownProgress = Math.max(0, Math.min(100, (autoSearchCountdown / 2000) * 100));
-  // elapsedProgress represents elapsed time (0% = start, 100% = complete) - used for linear progress bar
-  const elapsedProgress = Math.max(0, Math.min(100, (1 - autoSearchCountdown / 2000) * 100));
+    const countdownProgress = Math.max(0, Math.min(100, (autoSearchCountdown / 2000) * 100));
+    const elapsedProgress = Math.max(0, Math.min(100, (1 - autoSearchCountdown / 2000) * 100));
 
   return (
     <div className="relative w-full">

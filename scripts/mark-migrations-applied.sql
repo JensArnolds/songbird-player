@@ -1,10 +1,9 @@
 -- File: scripts/mark-migrations-applied.sql
-
 -- Script to mark all existing migrations as applied
 -- Run this with: psql $DATABASE_URL -f scripts/mark-migrations-applied.sql
 -- Or copy-paste into your database client
-
 -- Create the migrations tracking table if it doesn't exist
+
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
   id SERIAL PRIMARY KEY,
   hash text NOT NULL UNIQUE,

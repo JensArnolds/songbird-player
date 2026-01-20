@@ -1,3 +1,5 @@
+// File: src/components/CreatePlaylistModal.tsx
+
 "use client";
 
 import { useToast } from "@/contexts/ToastContext";

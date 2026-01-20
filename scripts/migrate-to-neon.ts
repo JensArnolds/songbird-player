@@ -5,8 +5,7 @@
  * Migration script to transfer all data from source database to NEON Postgres
  * 
  * Usage:
- *   OLD_DATABASE_URL="postgresql://..." DATABASE_URL_UNPOOLED="postgresql://..." npm run migrate:neon
- * 
+ *   OLD_DATABASE_URL="postgresql: * 
  * Environment variables:
  *   - OLD_DATABASE_URL: Source database (old database to migrate from)
  *   - DATABASE_UNPOOLED: Target database (Neon unpooled connection)
@@ -23,15 +22,11 @@ import { Pool } from "pg";
 import { createInterface } from "readline";
 import { fileURLToPath } from "url";
 
-// Load environment variables explicitly (prioritize .env.local)
 dotenv.config({ path: ".env.local" });
-dotenv.config(); // Also load .env as fallback
-
-// Get __dirname equivalent for ES modules
+dotenv.config(); 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ANSI color codes for better output
 const colors = {
   reset: "\x1b[0m",
   bright: "\x1b[1m",
@@ -62,26 +57,21 @@ function warn(message: string) {
   console.warn(`${colors.yellow}⚠ ${message}${colors.reset}`);
 }
 
-// Get SSL config for a connection string
 function getSslConfig(connectionString: string) {
-  // Neon handles SSL automatically via connection string
-  if (connectionString.includes("neon.tech")) {
+    if (connectionString.includes("neon.tech")) {
     return undefined;
   }
 
-  // Check if it's a cloud database that requires SSL
-  const isCloudDb = 
+    const isCloudDb = 
     connectionString.includes("aivencloud.com") || 
     connectionString.includes("rds.amazonaws.com") ||
     connectionString.includes("sslmode=");
 
   if (!isCloudDb && connectionString.includes("localhost")) {
-    // Local database - SSL not needed
-    return undefined;
+        return undefined;
   }
 
-  // Cloud database - try to find CA certificate
-  const possibleCertPaths = [
+    const possibleCertPaths = [
     path.join(process.cwd(), "certs/ca.pem"),
     path.join(__dirname, "../certs/ca.pem"),
   ];
@@ -95,16 +85,14 @@ function getSslConfig(connectionString: string) {
     }
   }
 
-  // Fallback: use DB_SSL_CA env var
-  if (process.env.DB_SSL_CA) {
+    if (process.env.DB_SSL_CA) {
     return {
       rejectUnauthorized: process.env.NODE_ENV === "production",
       ca: process.env.DB_SSL_CA,
     };
   }
 
-  // Certificate not found - use lenient SSL with warning
-  console.warn("[Migration] ⚠️  WARNING: Cloud database detected but no CA certificate found!");
+    console.warn("[Migration] ⚠️  WARNING: Cloud database detected but no CA certificate found!");
   console.warn("[Migration] ⚠️  Using rejectUnauthorized: false - vulnerable to MITM attacks");
   console.warn("[Migration] ⚠️  Set DB_SSL_CA environment variable or place your CA certificate at: certs/ca.pem");
   return {
@@ -112,7 +100,6 @@ function getSslConfig(connectionString: string) {
   };
 }
 
-// Get all tables in dependency order (respecting foreign keys)
 async function getTablesInOrder(sourcePool: Pool): Promise<string[]> {
   const result = await sourcePool.query(`
     SELECT 
@@ -125,8 +112,7 @@ async function getTablesInOrder(sourcePool: Pool): Promise<string[]> {
 
   const tables = result.rows.map((row: any) => row.tablename);
 
-  // Get foreign key dependencies to determine order
-  const fkResult = await sourcePool.query(`
+    const fkResult = await sourcePool.query(`
     SELECT
       tc.table_name AS child_table,
       ccu.table_name AS parent_table
@@ -150,15 +136,13 @@ async function getTablesInOrder(sourcePool: Pool): Promise<string[]> {
     dependencies.get(row.child_table)!.add(row.parent_table);
   }
 
-  // Topological sort
-  const sorted: string[] = [];
+    const sorted: string[] = [];
   const visited = new Set<string>();
   const visiting = new Set<string>();
 
   function visit(table: string) {
     if (visiting.has(table)) {
-      // Circular dependency - just add it
-      if (!visited.has(table)) {
+            if (!visited.has(table)) {
         sorted.push(table);
         visited.add(table);
       }
@@ -186,8 +170,7 @@ async function getTablesInOrder(sourcePool: Pool): Promise<string[]> {
     visit(table);
   }
 
-  // Add any tables that weren't included (shouldn't happen, but just in case)
-  for (const table of tables) {
+    for (const table of tables) {
     if (!visited.has(table)) {
       sorted.push(table);
     }
@@ -196,20 +179,17 @@ async function getTablesInOrder(sourcePool: Pool): Promise<string[]> {
   return sorted;
 }
 
-// Get table row count
 async function getTableCount(pool: Pool, tableName: string): Promise<number> {
   const result = await pool.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
   return parseInt(result.rows[0].count, 10);
 }
 
-// Copy data from source to target table
 async function copyTable(
   sourcePool: Pool,
   targetPool: Pool,
   tableName: string
 ): Promise<number> {
-  // Get column names and types from source
-  const sourceColumnsResult = await sourcePool.query(`
+    const sourceColumnsResult = await sourcePool.query(`
     SELECT column_name, data_type, udt_name
     FROM information_schema.columns
     WHERE table_schema = 'public'
@@ -217,8 +197,7 @@ async function copyTable(
     ORDER BY ordinal_position;
   `, [tableName]);
 
-  // Get column names from target
-  const targetColumnsResult = await targetPool.query(`
+    const targetColumnsResult = await targetPool.query(`
     SELECT column_name
     FROM information_schema.columns
     WHERE table_schema = 'public'
@@ -229,8 +208,7 @@ async function copyTable(
   const sourceColumns = sourceColumnsResult.rows.map((row: any) => row.column_name);
   const targetColumns = new Set(targetColumnsResult.rows.map((row: any) => row.column_name));
   
-  // Only use columns that exist in both source and target
-  const columns = sourceColumns.filter((col) => targetColumns.has(col));
+    const columns = sourceColumns.filter((col) => targetColumns.has(col));
   const missingColumns = sourceColumns.filter((col) => !targetColumns.has(col));
   
   if (missingColumns.length > 0) {
@@ -250,9 +228,7 @@ async function copyTable(
   });
   const columnList = columns.map((col) => `"${col}"`).join(", ");
 
-  // Check if table has sequences (for auto-increment columns)
-  // Only check for columns that exist in both databases
-  const sequenceResult = await sourcePool.query(`
+      const sequenceResult = await sourcePool.query(`
     SELECT column_name, column_default
     FROM information_schema.columns
     WHERE table_schema = 'public'
@@ -260,14 +236,12 @@ async function copyTable(
       AND column_default LIKE 'nextval%';
   `, [tableName]);
 
-  // Filter sequences to only include columns that exist in target
-  const validSequences = sequenceResult.rows.filter((row: any) => 
+    const validSequences = sequenceResult.rows.filter((row: any) => 
     columns.includes(row.column_name)
   );
   const hasSequences = validSequences.length > 0;
 
-  // Check if table exists on target
-  const tableExists = await targetPool.query(`
+    const tableExists = await targetPool.query(`
     SELECT EXISTS (
       SELECT FROM information_schema.tables 
       WHERE table_schema = 'public' 
@@ -279,35 +253,27 @@ async function copyTable(
     throw new Error(`Table "${tableName}" does not exist on target database. Please run migrations first.`);
   }
 
-  // Disable user-defined triggers only (not system triggers like RI constraints)
-  // NEON and some managed databases don't allow disabling system triggers
-  try {
+      try {
     await targetPool.query(`
       ALTER TABLE "${tableName}" DISABLE TRIGGER USER;
     `);
   } catch (err: any) {
-    // If USER triggers can't be disabled, try to disable specific user triggers
-    // If that fails too, continue without disabling triggers
-    if (!err.message.includes("permission denied") && !err.message.includes("system trigger")) {
+            if (!err.message.includes("permission denied") && !err.message.includes("system trigger")) {
       throw err;
     }
-    // Continue without disabling triggers - PostgreSQL will handle constraints
-  }
+      }
 
   try {
-    // Get all data from source
-    const sourceData = await sourcePool.query(`SELECT ${columnList} FROM "${tableName}"`);
+        const sourceData = await sourcePool.query(`SELECT ${columnList} FROM "${tableName}"`);
 
     if (sourceData.rows.length === 0) {
       return 0;
     }
 
-    // Build insert query
-    const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
+        const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
     const insertQuery = `INSERT INTO "${tableName}" (${columnList}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`;
 
-    // Insert in batches for better performance
-    const batchSize = 1000;
+        const batchSize = 1000;
     let inserted = 0;
 
     for (let i = 0; i < sourceData.rows.length; i += batchSize) {
@@ -320,25 +286,20 @@ async function copyTable(
             const value = row[col];
             const dataType = columnTypes.get(col);
             
-            // Handle JSONB columns - ensure they're properly serialized
-            if (dataType === 'jsonb' || dataType === 'json') {
+                        if (dataType === 'jsonb' || dataType === 'json') {
               if (value === null || value === undefined) {
                 return null;
               }
-              // If it's already a string, validate it's valid JSON
-              if (typeof value === 'string') {
+                            if (typeof value === 'string') {
                 try {
-                  // Validate it's valid JSON by parsing
-                  JSON.parse(value);
+                                    JSON.parse(value);
                   return value;
                 } catch (e) {
-                  // Invalid JSON string - log and skip this value
-                  warn(`⚠️  Skipping row in ${tableName}: Invalid JSON in column "${col}": ${value.substring(0, 100)}`);
+                                    warn(`⚠️  Skipping row in ${tableName}: Invalid JSON in column "${col}": ${value.substring(0, 100)}`);
                   throw new Error(`Invalid JSON in ${tableName}.${col}`);
                 }
               }
-              // If it's an object/array, stringify it
-              if (typeof value === 'object') {
+                            if (typeof value === 'object') {
                 try {
                   return JSON.stringify(value);
                 } catch (e) {
@@ -354,11 +315,9 @@ async function copyTable(
             await targetPool.query(insertQuery, values);
             inserted++;
           } catch (insertErr: any) {
-            // If it's a JSON error, log the problematic row and continue
-            if (insertErr.code === '22P02' && insertErr.message.includes('json')) {
+                        if (insertErr.code === '22P02' && insertErr.message.includes('json')) {
               warn(`⚠️  Skipping row in ${tableName} due to JSON error: ${insertErr.message.substring(0, 100)}`);
-              // Continue to next row instead of failing the whole batch
-              continue;
+                            continue;
             }
             throw insertErr;
           }
@@ -370,16 +329,14 @@ async function copyTable(
       }
     }
 
-    // Reset sequences if needed
-    if (hasSequences) {
+        if (hasSequences) {
       for (const seqRow of validSequences) {
         const maxResult = await targetPool.query(
           `SELECT COALESCE(MAX("${seqRow.column_name}"), 0) as max_val FROM "${tableName}"`
         );
         const maxVal = parseInt(maxResult.rows[0].max_val, 10) || 0;
         
-        // Get sequence name from column_default
-        const seqMatch = seqRow.column_default.match(/nextval\('([^']+)'/);
+                const seqMatch = seqRow.column_default.match(/nextval\('([^']+)'/);
         if (seqMatch && seqMatch[1]) {
           const seqName = seqMatch[1].replace(/^public\./, "");
           await targetPool.query(`SELECT setval('${seqName}', $1, true)`, [maxVal]);
@@ -389,12 +346,10 @@ async function copyTable(
 
     return inserted;
   } finally {
-    // Re-enable user-defined triggers
-    try {
+        try {
       await targetPool.query(`ALTER TABLE "${tableName}" ENABLE TRIGGER USER;`);
     } catch (err: any) {
-      // Ignore errors when re-enabling triggers (they may not have been disabled)
-      if (!err.message.includes("permission denied") && !err.message.includes("system trigger")) {
+            if (!err.message.includes("permission denied") && !err.message.includes("system trigger")) {
         console.warn(`Warning: Could not re-enable triggers for ${tableName}: ${err.message}`);
       }
     }
@@ -404,15 +359,12 @@ async function copyTable(
 async function main() {
   log("\n🚀 Starting database migration to NEON Postgres\n", "bright");
 
-  // Get connection strings
-  // Source: OLD_DATABASE_URL (preferred) or SOURCE_DATABASE_URL or DATABASE_URL (fallback)
-  const sourceUrl = 
+      const sourceUrl = 
     process.env.OLD_DATABASE_URL || 
     process.env.SOURCE_DATABASE_URL || 
     process.env.DATABASE_URL;
   
-  // Target: DATABASE_UNPOOLED (preferred) or TARGET_DATABASE_URL (fallback)
-  const targetUrl = 
+    const targetUrl = 
     process.env.DATABASE_UNPOOLED || 
     process.env.TARGET_DATABASE_URL;
 
@@ -434,8 +386,7 @@ async function main() {
   const sourceSsl = getSslConfig(sourceUrl);
   const targetSsl = getSslConfig(targetUrl);
 
-  // Create connection pools
-  const sourcePool = new Pool({
+    const sourcePool = new Pool({
     connectionString: sourceUrl,
     ssl: sourceSsl,
     max: 5,
@@ -448,21 +399,18 @@ async function main() {
   });
 
   try {
-    // Test connections
-    log("Testing database connections...", "cyan");
+        log("Testing database connections...", "cyan");
     await sourcePool.query("SELECT 1");
     success("Source database connection successful");
     
     await targetPool.query("SELECT 1");
     success("Target database connection successful\n");
 
-    // Get all tables
-    log("Discovering tables...", "cyan");
+        log("Discovering tables...", "cyan");
     const tables = await getTablesInOrder(sourcePool);
     success(`Found ${tables.length} tables: ${tables.join(", ")}\n`);
 
-    // Check if schema exists on target
-    log("Checking if schema exists on target database...", "cyan");
+        log("Checking if schema exists on target database...", "cyan");
     const schemaCheck = await targetPool.query(`
       SELECT COUNT(*) as count
       FROM information_schema.tables
@@ -487,8 +435,7 @@ async function main() {
       success(`Schema exists on target database (${tableCount} tables found)\n`);
     }
 
-    // Get row counts from source
-    log("Counting rows in source database...", "cyan");
+        log("Counting rows in source database...", "cyan");
     const sourceCounts = new Map<string, number>();
     for (const table of tables) {
       const count = await getTableCount(sourcePool, table);
@@ -501,8 +448,7 @@ async function main() {
     const totalRows = Array.from(sourceCounts.values()).reduce((a, b) => a + b, 0);
     log(`\nTotal rows to migrate: ${totalRows.toLocaleString()}\n`, "bright");
 
-    // Ask for confirmation
-    if (process.env.SKIP_CONFIRM !== "true") {
+        if (process.env.SKIP_CONFIRM !== "true") {
       const rl = createInterface({
         input: process.stdin,
         output: process.stdout,
@@ -522,8 +468,7 @@ async function main() {
       }
     }
 
-    // Migrate each table
-    log("\n🔄 Starting data migration...\n", "bright");
+        log("\n🔄 Starting data migration...\n", "bright");
     const startTime = Date.now();
     let totalMigrated = 0;
 
@@ -554,8 +499,7 @@ async function main() {
     log(`   Total rows migrated: ${totalMigrated.toLocaleString()}`, "green");
     log(`   Duration: ${duration}s\n`, "green");
 
-    // Verify migration
-    log("Verifying migration...", "cyan");
+        log("Verifying migration...", "cyan");
     let verified = true;
     for (const table of tables) {
       const sourceCount = sourceCounts.get(table) ?? 0;
@@ -586,7 +530,6 @@ async function main() {
   }
 }
 
-// Run the migration
 main().catch((err) => {
   error(`Fatal error: ${err.message}`);
   console.error(err);

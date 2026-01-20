@@ -1,8 +1,4 @@
 // File: electron/prepare-package.js
-// Prepare Next.js standalone package for Electron
-// This script copies static files and public folder into the standalone directory
-// as required by Next.js standalone output
-// @ts-check
 
 const fs = require("fs");
 const path = require("path");
@@ -40,8 +36,7 @@ function copyDir(src, dest) {
     return;
   }
 
-  // Create destination directory
-  fs.mkdirSync(dest, { recursive: true });
+    fs.mkdirSync(dest, { recursive: true });
 
   const entries = fs.readdirSync(src, { withFileTypes: true });
 
@@ -58,26 +53,21 @@ function copyDir(src, dest) {
 }
 
 try {
-  // Copy .next/static to standalone/.next/static
-  console.log("[Prepare] Copying .next/static...");
+    console.log("[Prepare] Copying .next/static...");
   copyDir(staticSource, staticDest);
   console.log("[Prepare] ✓ Static files copied");
 
-  // Copy public to standalone/public
-  console.log("[Prepare] Copying public...");
+    console.log("[Prepare] Copying public...");
   copyDir(publicSource, publicDest);
   console.log("[Prepare] ✓ Public files copied");
 
-  // Generate CA certificate from environment variable if not already present
-  console.log("[Prepare] Generating database CA certificate...");
+    console.log("[Prepare] Generating database CA certificate...");
   const caCertPath = path.join(rootDir, "certs", "ca.pem");
 
   if (process.env.DB_SSL_CA) {
-    // Ensure certs directory exists
-    fs.mkdirSync(path.join(rootDir, "certs"), { recursive: true });
+        fs.mkdirSync(path.join(rootDir, "certs"), { recursive: true });
 
-    // Write certificate from environment variable
-    fs.writeFileSync(caCertPath, process.env.DB_SSL_CA);
+        fs.writeFileSync(caCertPath, process.env.DB_SSL_CA);
     console.log("[Prepare] ✓ Generated ca.pem from DB_SSL_CA environment variable");
   } else if (!fs.existsSync(caCertPath)) {
     console.warn("[Prepare] ⚠️  Warning: DB_SSL_CA not set and certs/ca.pem doesn't exist");
@@ -86,13 +76,11 @@ try {
     console.log("[Prepare] ✓ Using existing certs/ca.pem");
   }
 
-  // Copy certs to standalone/certs
-  console.log("[Prepare] Copying certs to standalone directory...");
+    console.log("[Prepare] Copying certs to standalone directory...");
   copyDir(certsSource, certsDest);
   console.log("[Prepare] ✓ Certificate files copied to standalone");
 
-  // Copy .env.local to standalone directory for packaged builds
-  const envLocalSource = path.join(rootDir, ".env.local");
+    const envLocalSource = path.join(rootDir, ".env.local");
   const envLocalDest = path.join(standaloneDir, ".env.local");
 
   if (fs.existsSync(envLocalSource)) {
@@ -103,10 +91,7 @@ try {
     console.warn("[Prepare] ⚠️  Warning: .env.local not found - packaged app will use system environment variables");
   }
 
-  // CRITICAL: Ensure ELECTRON_BUILD=true is set in packaged apps
-  // This prevents NextAuth from using secure cookies (__Secure-*, __Host-*)
-  // which don't work on localhost HTTP in Electron
-  console.log("[Prepare] Ensuring ELECTRON_BUILD=true in .env.local...");
+        console.log("[Prepare] Ensuring ELECTRON_BUILD=true in .env.local...");
   if (fs.existsSync(envLocalDest)) {
     const envContent = fs.readFileSync(envLocalDest, "utf8");
     if (!envContent.includes("ELECTRON_BUILD=true")) {
@@ -120,8 +105,7 @@ try {
     console.log("[Prepare] ✓ Created .env.local with ELECTRON_BUILD=true");
   }
 
-  // Add dev tools flag if requested (append to .env.local in standalone)
-  if (process.env.ELECTRON_DEV_TOOLS === "true") {
+    if (process.env.ELECTRON_DEV_TOOLS === "true") {
     console.log("[Prepare] Adding dev tools flag to .env.local...");
     const envContent = fs.readFileSync(envLocalDest, "utf8");
     if (!envContent.includes("ELECTRON_DEV_TOOLS=true")) {

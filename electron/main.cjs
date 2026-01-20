@@ -1,6 +1,3 @@
-// File: electron/main.cjs
-// Load environment variables from .env.local ONLY
-
 const path = require("path");
 const fs = require("fs");
 
@@ -9,10 +6,8 @@ const fs = require("fs");
 // For packaged: uses .env.local copied to standalone directory
 try {
   const dotenv = require("dotenv");
-  
-  // Try project root first (development)
+
   const envLocalPath = path.resolve(__dirname, "../.env.local");
-  // Try standalone directory (packaged build)
   const standaloneEnvLocalPath = path.resolve(__dirname, "../.next/standalone/.env.local");
 
   if (fs.existsSync(envLocalPath)) {
@@ -25,11 +20,9 @@ try {
     console.log("[Electron] No .env.local found - using system environment variables");
   }
 } catch (err) {
-  // dotenv not available - this is OK in production with system env vars
   console.log("[Electron] dotenv not available (using system environment variables)");
 }
 
-// Log critical environment variables for debugging (mask sensitive values)
 console.log("[Electron] Environment check:");
 console.log("  NODE_ENV:", process.env.NODE_ENV || "not set");
 console.log("  PORT:", process.env.PORT || "not set");
@@ -52,7 +45,6 @@ const {
 const { spawn } = require("child_process");
 const http = require("http");
 
-// Production detection: packaged apps or explicit ELECTRON_PROD flag
 const isDev = !app.isPackaged && process.env.ELECTRON_PROD !== "true";
 const enableDevTools = isDev || process.env.ELECTRON_DEV_TOOLS === "true";
 const port = parseInt(process.env.PORT || "3222", 10);
@@ -62,7 +54,6 @@ let mainWindow = null;
 /** @type {import('child_process').ChildProcess | null} */
 let serverProcess = null;
 
-// Window state storage
 const windowStateFile = path.join(app.getPath("userData"), "window-state.json");
 
 /**
@@ -153,7 +144,7 @@ const waitForServer = (port, maxAttempts = 30) => {
         `Checking server on port ${port} (attempt ${attempts + 1}/${maxAttempts})`,
       );
       http
-        .get(`http://localhost:${port}`, (res) => {
+        .get(`http://localhost:${port}`, (/** @type {import('http').IncomingMessage} */ res) => {
           log(`Server responded with status: ${res.statusCode}`);
           if (res.statusCode === 200 || res.statusCode === 304) {
             resolve(true);
@@ -161,10 +152,16 @@ const waitForServer = (port, maxAttempts = 30) => {
             retry();
           }
         })
-        .on("error", (err) => {
-          log(`Server check error: ${err.message}`);
-          retry();
-        });
+        .on(
+          "error",
+          /**
+           * @param {Error} err
+           */
+          (err) => {
+            log(`Server check error: ${err?.message ?? String(err)}`);
+            retry();
+          },
+        );
     };
 
     const retry = () => {
@@ -184,7 +181,6 @@ const waitForServer = (port, maxAttempts = 30) => {
 const startServer = async () => {
   const serverPort = await findAvailablePort(port);
 
-  // Determine paths - standalone directory contains everything
   const standaloneDir = app.isPackaged
     ? path.join(process.resourcesPath, ".next", "standalone")
     : path.join(__dirname, "..", ".next", "standalone");
@@ -196,7 +192,6 @@ const startServer = async () => {
   log("  Server:", serverPath);
   log("  isPackaged:", app.isPackaged);
 
-  // Check if server.js exists
   if (!fs.existsSync(serverPath)) {
     const error = `Server file not found: ${serverPath}`;
     log("ERROR:", error);
@@ -206,13 +201,10 @@ const startServer = async () => {
 
   log("Server file exists, starting...");
 
-  // Determine which Node.js executable to use
   let nodeExecutable = "node";
 
   if (app.isPackaged) {
-    // In packaged app, try to find Node.js in these locations:
-    // 1. Bundled with app in resources
-    // 2. System PATH (requires Node.js installed)
+
     const bundledNodePath = path.join(process.resourcesPath, "node", "node.exe");
 
     if (fs.existsSync(bundledNodePath)) {
@@ -238,7 +230,7 @@ const startServer = async () => {
   }
 
   return new Promise((resolve, reject) => {
-    // Run server from standalone directory (it contains .next/static and public)
+    /** @type {import('child_process').ChildProcess | null} */
     serverProcess = spawn(nodeExecutable, [serverPath], {
       env: {
         ...process.env,
@@ -246,28 +238,28 @@ const startServer = async () => {
         HOSTNAME: "localhost",
         NODE_ENV: "production",
       },
+      /** @type {string} */
       cwd: standaloneDir,
       stdio: ["ignore", "pipe", "pipe"],
     });
 
-    serverProcess.stdout?.on("data", (data) => {
+    serverProcess?.stdout?.on("data", (data) => {
       log("[Server STDOUT]:", data.toString().trim());
     });
 
-    serverProcess.stderr?.on("data", (data) => {
+    serverProcess?.stderr?.on("data", (data) => {
       log("[Server STDERR]:", data.toString().trim());
     });
 
-    serverProcess.on("error", (err) => {
+    serverProcess?.on("error", (/** @type {Error} */ err) => {
       log("[Server ERROR]:", err);
       reject(err);
     });
 
-    serverProcess.on("exit", (code, signal) => {
+    serverProcess?.on("exit", (code, signal) => {
       log(`[Server EXIT] Code: ${code}, Signal: ${signal}`);
     });
 
-    // Wait for server to be ready
     waitForServer(serverPort).then((ready) => {
       if (ready) {
         log(`Server started successfully on port ${serverPort}`);
@@ -287,7 +279,7 @@ const createWindow = async () => {
   log(`Packaged: ${app.isPackaged}`);
   log(`ELECTRON_PROD: ${process.env.ELECTRON_PROD}`);
   log(`Dev Tools Enabled: ${enableDevTools}`);
-  let serverUrl;
+  let serverUrl = "";
 
   if (isDev) {
     log("Development mode - connecting to dev server");
@@ -364,11 +356,13 @@ const createWindow = async () => {
     }
   });
 
-  // Handle OAuth redirects and navigation
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    log("Window open handler triggered for URL:", url);
+  mainWindow.webContents.setWindowOpenHandler(
+    /**
+     * @param {import('electron').HandlerDetails} details
+     */
+    ({ url }) => {
+      log("Window open handler triggered for URL:", url);
 
-    // Allow OAuth URLs to open in the same window
     if (url.includes("discord.com/oauth2") || url.includes("discord.com/api/oauth2")) {
       log("Opening Discord OAuth in same window");
       return {
@@ -384,37 +378,41 @@ const createWindow = async () => {
       };
     }
 
-    // Open external URLs in default browser
     shell.openExternal(url);
     return { action: "deny" };
   });
 
-  // Handle navigation within the app
-  mainWindow.webContents.on("will-navigate", (event, url) => {
-    log("Navigation requested to:", url);
+  mainWindow.webContents.on(
+    "will-navigate",
+    /**
+     * @param {import('electron').Event} event
+     * @param {string} url
+     */
+    (event, url) => {
+      log("Navigation requested to:", url);
 
-    const parsedUrl = new URL(url);
-    const appUrl = new URL(serverUrl);
+      const parsedUrl = new URL(url);
+      const appUrl = new URL(serverUrl);
 
-    // Allow same-origin navigation (including auth callbacks)
-    if (parsedUrl.origin === appUrl.origin) {
-      log("Allowing same-origin navigation");
-      return;
-    }
+      if (parsedUrl.origin === appUrl.origin) {
+        log("Allowing same-origin navigation");
+        return;
+      }
 
-    // Allow Discord OAuth URLs
-    if (url.includes("discord.com/oauth2") || url.includes("discord.com/api/oauth2")) {
-      log("Allowing Discord OAuth navigation");
-      return;
-    }
+      if (url.includes("discord.com/oauth2") || url.includes("discord.com/api/oauth2")) {
+        log("Allowing Discord OAuth navigation");
+        return;
+      }
 
-    // Prevent navigation to other external sites
-    log("Preventing navigation to external site, opening in browser instead");
-    event.preventDefault();
-    shell.openExternal(url);
-  });
+      log("Preventing navigation to external site, opening in browser instead");
+      event.preventDefault();
+      shell.openExternal(url);
+    });
 
-  mainWindow.webContents.on("did-navigate", (event, url) => {
+  mainWindow.webContents.on("did-navigate", (
+    /** @type {import('electron').Event} */ _event,
+    /** @type {string} */ url,
+  ) => {
     log("Navigated to:", url);
   });
 
@@ -428,6 +426,11 @@ const createWindow = async () => {
 
   mainWindow.webContents.on(
     "did-fail-load",
+    /**
+     * @param {import('electron').Event} event
+     * @param {number} errorCode
+     * @param {string} errorDescription
+     */
     (event, errorCode, errorDescription) => {
       log("Page failed to load:", errorCode, errorDescription);
     },
@@ -445,7 +448,6 @@ const createWindow = async () => {
   mainWindow.loadURL(serverUrl);
 
   mainWindow.on("close", () => {
-    // Save window state before closing
     if (mainWindow) {
       saveWindowState(mainWindow);
     }
@@ -481,24 +483,24 @@ const registerMediaKeys = () => {
 app.whenReady().then(() => {
   log("App ready");
 
-  // Configure session persistence
   const ses = session.defaultSession;
 
-  // Set persistent storage path for cookies and cache
   const userDataPath = app.getPath("userData");
   log("User data path:", userDataPath);
 
-  // Log storage path
   log("Storage path:", ses.getStoragePath());
 
-  // Set cookie persistence - cookies won't expire on app restart
-  ses.cookies.on("changed", (_event, cookie, cause, removed) => {
+  ses.cookies.on("changed", (
+    /** @type {import('electron').Event} */ _event,
+    /** @type {import('electron').Cookie} */ cookie,
+    /** @type {string} */ cause,
+    /** @type {boolean} */ removed,
+  ) => {
     if (!removed && isDev) {
       log(`Cookie set: ${cookie.name} (${cause})`);
     }
   });
 
-  // Flush cookie store to ensure persistence
   ses.cookies.flushStore().then(() => {
     log("Session configured with persistent storage");
   });
@@ -525,10 +527,8 @@ const shutdownServer = () => {
 
     log("Shutting down server gracefully...");
 
-    // Try graceful shutdown first (SIGTERM)
     serverProcess.kill("SIGTERM");
 
-    // Force kill after 5 seconds if not stopped
     const killTimeout = setTimeout(() => {
       if (serverProcess) {
         log("Force killing server process");
@@ -553,13 +553,12 @@ app.on("window-all-closed", async () => {
   }
 });
 
-app.on("will-quit", async (event) => {
+app.on("will-quit", async (/** @type {import('electron').Event} */ event) => {
   log("App will quit");
   event.preventDefault();
 
   globalShortcut.unregisterAll();
 
-  // Flush cookies before quitting to ensure they're saved
   try {
     await session.defaultSession.cookies.flushStore();
     log("Cookies flushed to disk");
@@ -576,10 +575,10 @@ if (!isDev) {
   Menu.setApplicationMenu(null);
 }
 
-process.on("uncaughtException", (err) => {
+process.on("uncaughtException", (/** @type {Error} */ err) => {
   log("Uncaught exception:", err);
 });
 
-process.on("unhandledRejection", (err) => {
+process.on("unhandledRejection", (/** @type {unknown} */ err) => {
   log("Unhandled rejection:", err);
 });

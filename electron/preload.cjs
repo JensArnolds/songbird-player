@@ -1,5 +1,3 @@
-// File: electron/preload.cjs
-
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electron", {
@@ -22,14 +20,25 @@ contextBridge.exposeInMainWorld("electron", {
   receive: (channel, func) => {
     const validChannels = ["fromMain"];
     if (validChannels.includes(channel)) {
-      ipcRenderer.on(channel, (event, ...args) => func(...args));
+      ipcRenderer.on(
+        channel,
+        /**
+         * @param {import('electron').IpcRendererEvent} _event
+         * @param {...unknown} args
+         */
+        (_event, ...args) => func(...args),
+      );
     }
   },
   /**
    * @param {(key: string) => void} callback
    */
   onMediaKey: (callback) => {
-    ipcRenderer.on("media-key", (_event, key) => callback(key));
+      ipcRenderer.on(
+        "media-key",
+        (/** @type {import('electron').IpcRendererEvent} */ _event, /** @type {string} */ key) =>
+          callback(key),
+      );
   },
   removeMediaKeyListener: () => {
     ipcRenderer.removeAllListeners("media-key");

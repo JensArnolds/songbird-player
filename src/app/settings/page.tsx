@@ -167,15 +167,12 @@ export default function SettingsPage() {
         ],
         onChange: (value) => {
           const mode = value as "none" | "one" | "all";
-          // Cycle through modes: none -> all -> one -> none
-          // Keep cycling until we reach the target mode
-          const modeOrder: ("none" | "one" | "all")[] = ["none", "all", "one"];
+                              const modeOrder: ("none" | "one" | "all")[] = ["none", "all", "one"];
           const currentMode = player.repeatMode;
           const targetIndex = modeOrder.indexOf(mode);
           const currentIndex = modeOrder.indexOf(currentMode);
 
-          // Calculate how many cycles needed
-          const cyclesNeeded = (targetIndex - currentIndex + 3) % 3;
+                    const cyclesNeeded = (targetIndex - currentIndex + 3) % 3;
           for (let i = 0; i < cyclesNeeded; i++) {
             player.cycleRepeatMode();
           }

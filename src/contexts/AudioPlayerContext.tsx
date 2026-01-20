@@ -317,8 +317,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     }, 1000);
 
     return () => clearTimeout(persistTimer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
+      }, [
     session,
     player.queuedTracks,
     player.smartQueueState,
@@ -353,8 +352,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     }
 
     setLastUserId(currentUserId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.id, lastUserId]);
+      }, [session?.user?.id, lastUserId]);
 
   useEffect(() => {
     const cleanupInterval = setInterval(

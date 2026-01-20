@@ -1,3 +1,5 @@
+// File: scripts/generate-og-image.js
+
 import sharp from "sharp";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";

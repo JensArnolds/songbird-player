@@ -1,3 +1,5 @@
+// File: src/app/track/[id]/TrackRedirect.tsx
+
  "use client";
 
 import Link from "next/link";

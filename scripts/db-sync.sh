@@ -1,9 +1,6 @@
 #!/bin/bash
 # File: scripts/db-sync.sh
 
-# Script to handle database migration/push in prebuild
-# Tries db:migrate first, falls back to db:push if migrate fails
-
 set +e  # Don't exit on error, we'll handle it
 
 echo "🔄 Attempting to apply database migrations..."

@@ -17,35 +17,24 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ============================================
-// ENVIRONMENT LOADING
-// ============================================
-// Store PM2-provided PORT before loading .env files (PM2 env vars should take precedence)
 const pm2Port = process.env.PORT;
 
-// Determine environment before loading env-specific files
 const nodeEnv = process.env.NODE_ENV || "production";
 const isDev = nodeEnv === "development";
 
 if (isDev) {
-  // DEVELOPMENT MODE: ONLY load .env (no other files)
-  console.log('[ENV] Development mode: Loading ONLY .env');
+    console.log('[ENV] Development mode: Loading ONLY .env');
   dotenv.config({ path: path.resolve(__dirname, "../.env"), override: true });
 } else {
-  // PRODUCTION MODE: Load environment files in priority order
-  // Priority: .env.local > .env.production > .env
-  // With override: false, FIRST loaded wins (highest priority)
-  dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: false });
+        dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: false });
   dotenv.config({ path: path.resolve(__dirname, "../.env.production"), override: false });
   dotenv.config({ path: path.resolve(__dirname, "../.env"), override: false });
 }
 
-// Restore PM2-provided PORT if it was set (PM2 env vars take precedence over .env files)
 if (pm2Port) {
   process.env.PORT = pm2Port;
 }
 
-// Debug: Log critical environment variables
 console.log("=== Environment Variables Loaded ===");
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("PORT:", process.env.PORT);
@@ -55,7 +44,6 @@ console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing
 console.log("AUTH_SECRET:", process.env.AUTH_SECRET ? "✓ Set (" + process.env.AUTH_SECRET.length + " chars)" : "✗ Missing");
 console.log("====================================\n");
 
-// PORT is required - use PORT from env (set by PM2 or loaded from .env)
 if (!process.env.PORT) {
   console.error(
     "Error: PORT environment variable is required. Please set it in .env file or via PM2.",
@@ -63,13 +51,8 @@ if (!process.env.PORT) {
   process.exit(1);
 }
 const port = process.env.PORT;
-// In dev mode, bind to all interfaces (0.0.0.0) to allow network access
-// In production, use localhost or HOSTNAME from env
 const hostname = process.env.HOSTNAME || (isDev ? "0.0.0.0" : "localhost");
 
-// ============================================
-// CENTRALIZED LOGGING WITH CHALK
-// ============================================
 const logger = {
   /** @param {string} message */
   info: (message) => {
@@ -113,9 +96,6 @@ const logger = {
   },
 };
 
-// ============================================
-// SYSTEM INFO
-// ============================================
 function getSystemInfo() {
   const cpus = os.cpus();
   const totalMemory = (os.totalmem() / 1024 / 1024 / 1024).toFixed(2);
@@ -132,16 +112,12 @@ function getSystemInfo() {
   };
 }
 
-// ============================================
-// STARTUP BANNER
-// ============================================
 function printStartupBanner() {
   console.clear();
 
   logger.section("Starchild Music Frontend Server", "🎵");
 
-  // Environment Configuration
-  console.log(chalk.bold("  Environment Configuration:"));
+    console.log(chalk.bold("  Environment Configuration:"));
   console.log(
     `    ${chalk.gray("•")} Environment:     ${chalk.bold.cyan(nodeEnv.toUpperCase())}`,
   );
@@ -158,8 +134,7 @@ function printStartupBanner() {
     `    ${chalk.gray("•")} Process ID:      ${chalk.bold.magenta(process.pid)}\n`,
   );
 
-  // System Information
-  const sysInfo = getSystemInfo();
+    const sysInfo = getSystemInfo();
   console.log(chalk.bold("  System Information:"));
   console.log(
     `    ${chalk.gray("•")} Platform:        ${chalk.white(sysInfo.platform)} (${sysInfo.arch})`,
@@ -174,8 +149,7 @@ function printStartupBanner() {
     `    ${chalk.gray("•")} Memory:          ${chalk.white(sysInfo.freeMemory)} free of ${chalk.white(sysInfo.totalMemory)}\n`,
   );
 
-  // Database Configuration
-  if (process.env.DB_HOST) {
+    if (process.env.DB_HOST) {
     console.log(chalk.bold("  Database Configuration:"));
     console.log(
       `    ${chalk.gray("•")} Host:            ${chalk.white(process.env.DB_HOST)}`,
@@ -191,8 +165,7 @@ function printStartupBanner() {
     );
   }
 
-  // API Configuration
-  if (process.env.NEXT_PUBLIC_API_URL) {
+    if (process.env.NEXT_PUBLIC_API_URL) {
     console.log(chalk.bold("  API Configuration:"));
     console.log(
       `    ${chalk.gray("•")} API URL:         ${chalk.white(process.env.NEXT_PUBLIC_API_URL)}`,
@@ -214,24 +187,19 @@ function printStartupBanner() {
   console.log("");
 }
 
-// ============================================
-// BUILD VALIDATION & AUTO-RECOVERY
-// ============================================
 /**
  * Ensures production build exists, building automatically if missing
  * @returns {boolean} True if build is valid or was built successfully, false otherwise
  */
 function ensureProductionBuild() {
   if (isDev) {
-    return true; // No validation needed in development
-  }
+    return true;   }
 
   const buildIdPath = path.resolve(__dirname, "../.next/BUILD_ID");
   const nextDirPath = path.resolve(__dirname, "../.next");
   const serverDirPath = path.resolve(__dirname, "../.next/server");
 
-  // Check if build exists and is complete
-  const buildExists =
+    const buildExists =
     existsSync(buildIdPath) &&
     existsSync(nextDirPath) &&
     existsSync(serverDirPath);
@@ -239,8 +207,7 @@ function ensureProductionBuild() {
   if (!buildExists) {
     logger.warn("Production build not found or incomplete");
 
-    // Try to build automatically
-    logger.info("Attempting to build automatically...");
+        logger.info("Attempting to build automatically...");
     try {
       execSync("npm run build", {
         cwd: path.resolve(__dirname, ".."),
@@ -248,8 +215,7 @@ function ensureProductionBuild() {
         env: { ...process.env, NODE_ENV: "production" },
       });
 
-      // Verify build was successful
-      if (existsSync(buildIdPath) && existsSync(serverDirPath)) {
+            if (existsSync(buildIdPath) && existsSync(serverDirPath)) {
         logger.success("Production build created successfully");
         return true;
       } else {
@@ -271,12 +237,8 @@ function ensureProductionBuild() {
   return true;
 }
 
-// ============================================
-// START SERVER
-// ============================================
 function startServer() {
-  // Ensure production build exists (builds automatically if missing)
-  if (!ensureProductionBuild()) {
+    if (!ensureProductionBuild()) {
     logger.error("Cannot start production server without a valid build");
     logger.error(
       "Exiting to prevent crash loop. Please build the application first.",
@@ -297,8 +259,7 @@ function startServer() {
     hostname,
   ];
 
-  // Add turbo flag only in development
-  if (isDev) {
+    if (isDev) {
     args.push("--turbo");
   }
 
@@ -314,8 +275,7 @@ function startServer() {
       NODE_ENV: nodeEnv,
       PORT: port.toString(),
       HOSTNAME: hostname,
-      NEXT_TELEMETRY_DISABLED: "1", // Disable telemetry for cleaner logs
-    },
+      NEXT_TELEMETRY_DISABLED: "1",     },
     stdio: "inherit",
   });
 
@@ -336,8 +296,7 @@ function startServer() {
     }
   });
 
-  // Handle graceful shutdown
-  /** @type {NodeJS.Signals[]} */
+    /** @type {NodeJS.Signals[]} */
   const signals = ["SIGTERM", "SIGINT", "SIGUSR2"];
   signals.forEach((signal) => {
     process.on(signal, () => {
@@ -346,8 +305,7 @@ function startServer() {
     });
   });
 
-  // Log when server is ready
-  setTimeout(() => {
+    setTimeout(() => {
     logger.section("Server Ready", "🚀");
 
     const localUrl = `http://${hostname}:${port}`;
@@ -356,8 +314,7 @@ function startServer() {
     );
 
     if (hostname === "localhost" || hostname === "127.0.0.1") {
-      // Try to get network interfaces
-      const interfaces = os.networkInterfaces();
+            const interfaces = os.networkInterfaces();
       const networkAddresses = [];
 
       for (const name of Object.keys(interfaces)) {
@@ -390,24 +347,17 @@ function startServer() {
       logger.info(chalk.green("Production server is running"));
     }
 
-    // Notify PM2 that the app is ready when using wait_ready: true
-    if (typeof process.send === "function") {
+        if (typeof process.send === "function") {
       try {
-        // PM2 convention: send 'ready' to signal successful startup
-        process.send("ready");
+                process.send("ready");
       } catch {
-        // Ignore if not running under PM2 or IPC channel is unavailable
-      }
+              }
     }
 
     console.log("");
   }, 2000);
 }
 
-// ============================================
-// ERROR HANDLING
-// ============================================
-// Handle unhandled promise rejections
 process.on("unhandledRejection", (reason, promise) => {
   logger.error(`Unhandled Rejection at: ${promise}`);
   if (reason instanceof Error) {
@@ -418,33 +368,23 @@ process.on("unhandledRejection", (reason, promise) => {
   } else {
     logger.error(`Reason: ${String(reason)}`);
   }
-  // Don't exit - let PM2 handle restarts based on error patterns
-});
+  });
 
-// Handle uncaught exceptions
 process.on("uncaughtException", (error) => {
   logger.error(`Uncaught Exception: ${error.message}`);
   if (error.stack) {
     logger.error(error.stack);
   }
-  // Exit gracefully - PM2 will restart
-  process.exit(1);
+    process.exit(1);
 });
 
-// ============================================
-// PERFORMANCE MONITORING
-// ============================================
-// Monitor memory usage in both dev and production
-// More frequent in dev, less frequent in production
-const memoryCheckInterval = isDev ? 60000 : 300000; // 1 min dev, 5 min prod
-setInterval(() => {
+const memoryCheckInterval = isDev ? 60000 : 300000; setInterval(() => {
   const memUsage = process.memoryUsage();
   const heapUsed = (memUsage.heapUsed / 1024 / 1024).toFixed(2);
   const heapTotal = (memUsage.heapTotal / 1024 / 1024).toFixed(2);
   const rss = (memUsage.rss / 1024 / 1024).toFixed(2);
 
-  // Log in dev always, or in prod if memory is high (>1GB heap or >1.5GB RSS)
-  if (
+    if (
     isDev ||
     memUsage.heapUsed > 1024 * 1024 * 1024 ||
     memUsage.rss > 1536 * 1024 * 1024
@@ -455,9 +395,6 @@ setInterval(() => {
   }
 }, memoryCheckInterval);
 
-// ============================================
-// RUN
-// ============================================
 try {
   startServer();
 } catch (error) {

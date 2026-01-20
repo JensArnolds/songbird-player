@@ -1,8 +1,8 @@
 -- File: drizzle/0016_add_deezer_id_columns.sql
 -- Migration: Add deezer_id columns to all tables that store song/track data
 -- This ensures deezer_id is available as a dedicated column for querying and indexing
-
 -- Add deezerId to favorites table
+
 ALTER TABLE "hexmusic-stream_favorite" ADD COLUMN "deezerId" bigint;
 CREATE INDEX "favorite_deezer_id_idx" ON "hexmusic-stream_favorite" USING btree ("deezerId");
 

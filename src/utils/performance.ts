@@ -1,3 +1,5 @@
+// File: src/utils/performance.ts
+
 export function measurePerformance(name: string, fn: () => void) {
   if (typeof window === "undefined" || !window.performance) return fn();
 

@@ -30,6 +30,36 @@ export async function GET(request: NextRequest) {
     return Response.redirect(`${origin}/og-image.png`, 302);
   }
 
+  try {
+    return await generateTrackImage({
+      title,
+      artist,
+      album,
+      cover,
+      duration,
+      origin,
+    });
+  } catch (error) {
+    console.error("[OG Route] Error generating image, falling back to static:", error);
+    return Response.redirect(`${origin}/og-image.png`, 302);
+  }
+}
+
+async function generateTrackImage({
+  title,
+  artist,
+  album,
+  cover,
+  duration,
+  origin,
+}: {
+  title: string;
+  artist: string;
+  album: string | null;
+  cover: string | null;
+  duration: string | null;
+  origin: string;
+}) {
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -39,6 +69,7 @@ export async function GET(request: NextRequest) {
   const durationSeconds = duration ? parseInt(duration, 10) : 0;
   const formattedDuration = durationSeconds > 0 ? formatDuration(durationSeconds) : "0:00";
   const progressPercent = 42;
+
   const coverDataUrl = await getCoverDataUrl(cover);
 
   console.log("[OG Route] Rendering track card:", {
@@ -384,7 +415,7 @@ async function getCoverDataUrl(coverUrl: string | null) {
 
   try {
     console.log("[OG Route] Fetching cover image:", coverUrl.substring(0, 80));
-    const response = await fetchWithTimeout(coverUrl, 3000);
+    const response = await fetchWithTimeout(coverUrl, 1500);
 
     if (!response.ok) {
       console.error("[OG Route] Cover fetch failed:", response.status, response.statusText);
@@ -392,15 +423,21 @@ async function getCoverDataUrl(coverUrl: string | null) {
     }
 
     const contentLength = response.headers.get("content-length");
-    if (contentLength && Number(contentLength) > 2_000_000) {
-      console.warn("[OG Route] Cover image too large:", contentLength);
+    if (contentLength && Number(contentLength) > 1_000_000) {
+      console.warn("[OG Route] Cover image too large, skipping:", contentLength);
       return null;
     }
 
     const buffer = await response.arrayBuffer();
+
+    if (buffer.byteLength > 1_000_000) {
+      console.warn("[OG Route] Cover image buffer too large, skipping:", buffer.byteLength);
+      return null;
+    }
+
     const contentType = response.headers.get("content-type") || "image/jpeg";
     const base64 = arrayBufferToBase64(buffer);
-    console.log("[OG Route] Cover image fetched successfully, size:", buffer.byteLength);
+    console.log("[OG Route] Cover image processed successfully, size:", buffer.byteLength);
     return `data:${contentType};base64,${base64}`;
   } catch (error) {
     console.error("[OG Route] Error fetching cover image:", error);
