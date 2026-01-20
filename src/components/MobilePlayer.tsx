@@ -5,7 +5,9 @@
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
-import type { Track } from "@/types";
+import type { QueuedTrack, SimilarityPreference, Track } from "@/types";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { QueueSettingsModal } from "@/components/QueueSettingsModal";
 import {
   extractColorsFromImage,
   type ColorPalette,
@@ -33,6 +35,7 @@ import {
 } from "framer-motion";
 import {
   ChevronDown,
+  GripVertical,
   Heart,
   ListMusic,
   ListPlus,
@@ -41,17 +44,224 @@ import {
   Play,
   Repeat,
   Repeat1,
+  Save,
+  Search,
+  Settings,
   Sparkles,
   Shuffle,
   SkipBack,
   SkipForward,
   Sliders,
+  Trash2,
   Volume2,
   VolumeX,
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { formatDuration } from "@/utils/time";
+
+interface QueueItemProps {
+  track: Track;
+  index: number;
+  isActive: boolean;
+  isSelected: boolean;
+  isSmartTrack?: boolean;
+  onPlay: () => void;
+  onRemove: () => void;
+  onToggleSelect: (e: React.MouseEvent | React.TouchEvent) => void;
+  onTouchEnd: () => void;
+  canRemove: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
+  onReorder: (newIndex: number) => void;
+}
+
+function QueueItem({
+  track,
+  index,
+  isActive,
+  isSelected,
+  isSmartTrack,
+  onPlay,
+  onRemove,
+  onToggleSelect,
+  onTouchEnd,
+  canRemove,
+  onDragStart,
+  onDragEnd,
+  isDragging,
+  onReorder,
+}: QueueItemProps) {
+  const [dragY, setDragY] = useState(0);
+  const itemRef = useRef<HTMLDivElement>(null);
+  const startYRef = useRef<number>(0);
+  const currentIndexRef = useRef<number>(index);
+
+  useEffect(() => {
+    currentIndexRef.current = index;
+  }, [index]);
+
+  const coverImage = getCoverImage(track, "small");
+  const altText = track.album?.title?.trim()?.length
+    ? `${track.album.title} cover art`
+    : `${track.title} cover art`;
+
+  const artistName = track.artist?.name?.trim()?.length
+    ? track.artist.name
+    : "Unknown Artist";
+  const albumTitle = track.album?.title?.trim()?.length
+    ? track.album.title
+    : null;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      startYRef.current = e.touches[0].clientY;
+      onDragStart();
+    }
+    onToggleSelect(e);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && startYRef.current !== 0) {
+      const currentY = e.touches[0].clientY;
+      const deltaY = currentY - startYRef.current;
+      
+      if (Math.abs(deltaY) > 10) {
+        setDragY(deltaY);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (Math.abs(dragY) > 30) {
+      const itemsMoved = dragY > 0 ? 1 : -1;
+      const newIndex = index + itemsMoved;
+      if (newIndex >= 0) {
+        onReorder(newIndex);
+      }
+    }
+    setDragY(0);
+    startYRef.current = 0;
+    onDragEnd();
+    onTouchEnd();
+  };
+
+  return (
+    <motion.div
+      ref={itemRef}
+      initial={false}
+      animate={{
+        y: isDragging ? dragY : 0,
+        opacity: isDragging ? 0.7 : 1,
+      }}
+      className={`group relative flex items-center gap-3 p-3 transition-colors touch-none ${
+        isSelected
+          ? "bg-[rgba(88,198,177,0.18)] ring-2 ring-[rgba(88,198,177,0.4)]"
+          : isActive
+            ? "bg-[rgba(244,178,102,0.16)] ring-1 ring-[rgba(244,178,102,0.3)]"
+            : isSmartTrack
+              ? "bg-[rgba(88,198,177,0.04)] active:bg-[rgba(88,198,177,0.08)]"
+              : "active:bg-[rgba(244,178,102,0.08)]"
+      }`}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('button')) {
+          return;
+        }
+        onPlay();
+      }}
+    >
+      {/* Smart track indicator */}
+      {isSmartTrack && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--color-accent-strong)] rounded-r" />
+      )}
+
+      {/* Drag handle */}
+      <button
+        className="flex-shrink-0 text-[var(--color-muted)] transition-colors active:text-[var(--color-text)]"
+        onTouchStart={(e) => {
+          e.stopPropagation();
+          handleTouchStart(e);
+        }}
+      >
+        <GripVertical className="h-5 w-5" />
+      </button>
+
+      {/* Index */}
+      <div className="w-6 flex-shrink-0 text-center text-sm text-[var(--color-muted)]">
+        {index + 1}
+      </div>
+
+      {/* Cover image with play button */}
+      <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-[rgba(255,255,255,0.05)]">
+        {coverImage ? (
+          <Image
+            src={coverImage}
+            alt={altText}
+            fill
+            sizes="48px"
+            className="object-cover"
+            quality={75}
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[var(--color-muted)]">
+            🎵
+          </div>
+        )}
+        {/* Play button overlay */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlay();
+          }}
+          className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
+        >
+          <Play className="h-5 w-5 fill-white text-white" />
+        </button>
+      </div>
+
+      {/* Track info */}
+      <div className="min-w-0 flex-1">
+        <h4 className="truncate text-sm font-medium text-[var(--color-text)]">
+          {track.title}
+        </h4>
+        <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--color-subtext)]">
+          <span className="truncate">{artistName}</span>
+          {albumTitle && (
+            <>
+              <span className="text-[var(--color-muted)]">•</span>
+              <span className="truncate">{albumTitle}</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Duration */}
+      <span className="flex-shrink-0 text-xs text-[var(--color-muted)] tabular-nums">
+        {formatDuration(track.duration)}
+      </span>
+
+      {/* Remove button */}
+      {canRemove && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="flex-shrink-0 rounded p-1.5 opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 active:bg-[rgba(244,178,102,0.12)]"
+          aria-label="Remove from queue"
+        >
+          <X className="h-4 w-4 text-[var(--color-subtext)] transition-colors active:text-[var(--color-text)]" />
+        </button>
+      )}
+    </motion.div>
+  );
+}
 
 interface MobilePlayerProps {
   currentTrack: Track | null;
@@ -112,6 +322,13 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     addSmartTracks,
     refreshSmartTracks,
     smartQueueState,
+    queuedTracks,
+    playFromQueue,
+    removeFromQueue,
+    reorderQueue,
+    saveQueueAsPlaylist,
+    clearQueue,
+    clearSmartTracks,
   } = useGlobalPlayer();
   const { showToast } = useToast();
 
@@ -124,6 +341,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     {
       enabled: isAuthenticated,
     },
+  );
+
+  // Load smart queue settings
+  const { data: smartQueueSettings } = api.music.getSmartQueueSettings.useQuery(
+    undefined,
+    { enabled: isAuthenticated },
   );
 
   const { data: favoriteData } = api.music.isFavorite.useQuery(
@@ -145,8 +368,18 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [seekDirection, setSeekDirection] = useState<
     "forward" | "backward" | null
   >(null);
+  const [isAdjustingVolume, setIsAdjustingVolume] = useState(false);
+  const [localVolume, setLocalVolume] = useState(volume);
   const [showQueuePanel, setShowQueuePanel] = useState(false);
   const [showEqualizerPanel, setShowEqualizerPanel] = useState(false);
+  const [queueSearchQuery, setQueueSearchQuery] = useState("");
+  const [selectedQueueIndices, setSelectedQueueIndices] = useState<Set<number>>(new Set());
+  const [lastSelectedQueueIndex, setLastSelectedQueueIndex] = useState<number | null>(null);
+  const [showQueueSettingsModal, setShowQueueSettingsModal] = useState(false);
+  const [smartTracksCount, setSmartTracksCount] = useState(5);
+  const [similarityLevel, setSimilarityLevel] = useState<SimilarityPreference>("balanced");
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const artworkRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
@@ -227,6 +460,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onCycleRepeat();
   };
 
+  // Load smart queue settings
+  useEffect(() => {
+    if (smartQueueSettings) {
+      setSmartTracksCount(smartQueueSettings.autoQueueCount);
+      setSimilarityLevel(smartQueueSettings.similarityPreference);
+    }
+  }, [smartQueueSettings]);
+
   const handleSmartQueueAction = useCallback(
     async (action: "add" | "refresh") => {
       try {
@@ -252,6 +493,125 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     },
     [addSmartTracks, refreshSmartTracks, showToast],
   );
+
+  const handleApplyQueueSettings = useCallback(
+    async (settings: { count: number; similarityLevel: SimilarityPreference }) => {
+      try {
+        setSmartTracksCount(settings.count);
+        setSimilarityLevel(settings.similarityLevel);
+        const added = await addSmartTracks({
+          count: settings.count,
+          similarityLevel: settings.similarityLevel,
+        });
+        if (added.length === 0) {
+          showToast("No smart tracks found for this song", "info");
+        } else {
+          showToast(`Added ${added.length} smart track${added.length === 1 ? "" : "s"}`, "success");
+        }
+      } catch (error) {
+        console.error("[MobilePlayer] Failed to add smart tracks with custom settings:", error);
+        showToast("Failed to add smart tracks", "error");
+      }
+    },
+    [addSmartTracks, showToast],
+  );
+
+  // Queue data processing
+  const queueEntries = useMemo(
+    () =>
+      queuedTracks.map((qt, index) => ({
+        track: qt.track,
+        index,
+        queueId: qt.queueId,
+        isSmartTrack: qt.queueSource === 'smart',
+      })),
+    [queuedTracks],
+  );
+
+  const filteredQueue = useMemo(() => {
+    if (!queueSearchQuery.trim()) {
+      return queueEntries;
+    }
+
+    const normalizedQuery = queueSearchQuery.toLowerCase();
+    return queueEntries.filter(
+      ({ track }) =>
+        track.title.toLowerCase().includes(normalizedQuery) ||
+        track.artist.name.toLowerCase().includes(normalizedQuery),
+    );
+  }, [queueEntries, queueSearchQuery]);
+
+  const filteredNowPlaying = filteredQueue.length > 0 ? filteredQueue[0] : null;
+  const filteredUserTracks = useMemo(() => {
+    return filteredQueue.slice(1).filter(entry => !entry.isSmartTrack);
+  }, [filteredQueue]);
+
+  const filteredSmartTracks = useMemo(() => {
+    return filteredQueue.slice(1).filter(entry => entry.isSmartTrack);
+  }, [filteredQueue]);
+
+  const totalDuration = useMemo(() => {
+    return queue.reduce((acc, track) => acc + track.duration, 0);
+  }, [queue]);
+
+  const handleToggleQueueSelect = useCallback((index: number, shiftKey: boolean = false) => {
+    setSelectedQueueIndices((prev) => {
+      const newSet = new Set(prev);
+
+      if (shiftKey && lastSelectedQueueIndex !== null) {
+        const start = Math.min(lastSelectedQueueIndex, index);
+        const end = Math.max(lastSelectedQueueIndex, index);
+        for (let i = start; i <= end; i++) {
+          if (i !== 0) {
+            newSet.add(i);
+          }
+        }
+      } else {
+        if (index !== 0) {
+          if (newSet.has(index)) {
+            newSet.delete(index);
+          } else {
+            newSet.add(index);
+          }
+        }
+      }
+
+      return newSet;
+    });
+
+    if (!shiftKey || lastSelectedQueueIndex === null) {
+      setLastSelectedQueueIndex(index);
+    }
+  }, [lastSelectedQueueIndex]);
+
+  const handleRemoveSelectedQueueItems = useCallback(() => {
+    if (selectedQueueIndices.size === 0) return;
+
+    const sortedIndices = Array.from(selectedQueueIndices).sort((a, b) => b - a);
+
+    sortedIndices.forEach(index => {
+      removeFromQueue(index);
+    });
+
+    setSelectedQueueIndices(new Set());
+    setLastSelectedQueueIndex(null);
+    hapticSuccess();
+    showToast(`Removed ${sortedIndices.length} track${sortedIndices.length === 1 ? '' : 's'} from queue`, 'success');
+  }, [selectedQueueIndices, removeFromQueue, showToast]);
+
+  const handleClearQueueSelection = useCallback(() => {
+    setSelectedQueueIndices(new Set());
+    setLastSelectedQueueIndex(null);
+  }, []);
+
+  // Cleanup long press timer
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+    };
+  }, [longPressTimer]);
 
   const toggleFavorite = () => {
     if (!currentTrack || !isAuthenticated) return;
@@ -330,6 +690,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const displayTime = isSeeking ? seekTime : currentTime;
+  const displayVolume = isAdjustingVolume ? localVolume : volume;
+
+  // Sync local volume when prop changes (but not during adjustment)
+  useEffect(() => {
+    if (!isAdjustingVolume) {
+      setLocalVolume(volume);
+    }
+  }, [volume, isAdjustingVolume]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressRef.current || !duration) return;
@@ -356,6 +724,45 @@ export default function MobilePlayer(props: MobilePlayerProps) {
       hapticLight();
       onSeek(seekTime);
       setIsSeeking(false);
+    }
+  };
+
+  const handleVolumeClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!volumeRef.current) return;
+    const rect = volumeRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+    props.onVolumeChange(percentage);
+    haptic("selection");
+  };
+
+  const handleVolumeTouch = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!volumeRef.current) return;
+    const rect = volumeRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    if (!touch) return;
+    const x = touch.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+    setIsAdjustingVolume(true);
+    setLocalVolume(percentage);
+    // Apply volume immediately to audio element for responsive feedback
+    // Try multiple sources to find the active audio element
+    const targetAudio =
+      contextAudioElement ||
+      audioElement ||
+      (typeof document !== "undefined"
+        ? (document.querySelector('audio[data-audio-element="global-player"]') as HTMLAudioElement)
+        : null);
+    if (targetAudio) {
+      targetAudio.volume = isMuted ? 0 : percentage;
+    }
+  };
+
+  const handleVolumeTouchEnd = () => {
+    if (isAdjustingVolume) {
+      props.onVolumeChange(localVolume);
+      setIsAdjustingVolume(false);
+      hapticSliderEnd();
     }
   };
 
@@ -876,64 +1283,70 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     <div
                       ref={volumeRef}
                       className="relative h-1.5 flex-1 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
-                      onClick={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const percentage = Math.max(0, Math.min(1, x / rect.width));
-                        props.onVolumeChange(percentage);
-                        haptic("selection");
-                      }}
+                      onClick={handleVolumeClick}
                       onTouchStart={(e) => {
                         e.preventDefault();
                         haptic("selection");
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const touch = e.touches[0];
-                        if (!touch) return;
-                        const x = touch.clientX - rect.left;
-                        const percentage = Math.max(0, Math.min(1, x / rect.width));
-                        props.onVolumeChange(percentage);
+                        handleVolumeTouch(e);
                       }}
                       onTouchMove={(e) => {
                         e.preventDefault();
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const touch = e.touches[0];
-                        if (!touch) return;
-                        const x = touch.clientX - rect.left;
-                        const percentage = Math.max(0, Math.min(1, x / rect.width));
-                        props.onVolumeChange(percentage);
-                        hapticSliderContinuous(percentage * 100, 0, 100, {
-                          intervalMs: 40,
-                          tickThreshold: 3,
+                        handleVolumeTouch(e);
+                        hapticSliderContinuous(localVolume * 100, 0, 100, {
+                          intervalMs: 50,
+                          tickThreshold: 5,
                           boundaryFeedback: true,
                         });
                       }}
                       onTouchEnd={(e) => {
                         e.preventDefault();
-                        hapticSliderEnd();
+                        handleVolumeTouchEnd();
                       }}
                       role="slider"
                       aria-label="Volume"
                       aria-valuemin={0}
                       aria-valuemax={100}
-                      aria-valuenow={Math.round((isMuted ? 0 : volume) * 100)}
+                      aria-valuenow={Math.round((isMuted ? 0 : displayVolume) * 100)}
                     >
+                      {isAdjustingVolume && (
+                        <motion.div
+                          className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent-strong)]/20 blur-md"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1.05 }}
+                          exit={{ opacity: 0 }}
+                          transition={springPresets.slider}
+                        />
+                      )}
                       <motion.div
                         className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
-                        animate={{ width: `${isMuted ? 0 : volume * 100}%` }}
-                        transition={springPresets.slider}
+                        style={{
+                          width: `${isMuted ? 0 : displayVolume * 100}%`,
+                        }}
+                        transition={isAdjustingVolume ? { duration: 0 } : springPresets.slider}
                       />
                       <motion.div
                         className="absolute top-1/2 rounded-full bg-white shadow-lg"
-                        animate={{
-                          left: `${isMuted ? 0 : volume * 100}%`,
-                          width: 14,
-                          height: 14,
+                        style={{
+                          left: `${isMuted ? 0 : displayVolume * 100}%`,
                         }}
-                        style={{ transform: 'translate(-50%, -50%)' }}
+                        initial={{ scale: 1, x: "-50%", y: "-50%" }}
+                        animate={{
+                          scale: isAdjustingVolume ? 1.3 : 1,
+                          width: isAdjustingVolume ? 18 : 14,
+                          height: isAdjustingVolume ? 18 : 14,
+                        }}
                         whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 1.3 }}
                         transition={springPresets.sliderThumb}
-                      />
+                      >
+                        {isAdjustingVolume && (
+                          <motion.div
+                            className="absolute inset-0 rounded-full bg-[var(--color-accent)]"
+                            initial={{ scale: 1, opacity: 0.5 }}
+                            animate={{ scale: 2, opacity: 0 }}
+                            transition={{ duration: 0.5, repeat: Infinity }}
+                          />
+                        )}
+                      </motion.div>
                     </div>
                   </div>
 
@@ -1129,49 +1542,156 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     transition={springPresets.gentle}
                     className="safe-bottom fixed right-0 top-0 z-[101] flex h-full w-full max-w-md flex-col border-l border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.95)] shadow-[-8px_0_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
                   >
-                    <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] p-4">
-                      <h2 className="text-xl font-bold text-[var(--color-text)]">
-                        Queue ({queue.length})
-                      </h2>
-                      <div className="flex items-center gap-2">
-                        {queue.length > 0 && (
+                    <div className="flex flex-col gap-3 border-b border-[rgba(255,255,255,0.08)] p-4">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold text-[var(--color-text)]">
+                          Queue ({queue.length})
+                        </h2>
+                        <div className="flex items-center gap-2">
+                          {queue.length > 0 && (
+                            <>
+                              <motion.button
+                                onClick={() => {
+                                  hapticLight();
+                                  handleSmartQueueAction(
+                                    smartQueueState.isActive ? "refresh" : "add",
+                                  );
+                                }}
+                                disabled={smartQueueState.isLoading}
+                                whileTap={{ scale: 0.9 }}
+                                className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(88,198,177,0.16)] hover:text-[var(--color-text)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label={
+                                  smartQueueState.isActive
+                                    ? "Refresh smart tracks"
+                                    : "Add smart tracks"
+                                }
+                              >
+                                {smartQueueState.isLoading ? (
+                                  <LoadingSpinner size="sm" label="Loading smart tracks" />
+                                ) : (
+                                  <Sparkles className="h-5 w-5" />
+                                )}
+                              </motion.button>
+                              <motion.button
+                                onClick={() => {
+                                  hapticLight();
+                                  setShowQueueSettingsModal(true);
+                                }}
+                                whileTap={{ scale: 0.9 }}
+                                className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
+                                aria-label="Smart tracks settings"
+                              >
+                                <Settings className="h-5 w-5" />
+                              </motion.button>
+                            </>
+                          )}
+                          {isAuthenticated && (queue.length > 0 || currentTrack) && (
+                            <motion.button
+                              onClick={async () => {
+                                hapticLight();
+                                try {
+                                  await saveQueueAsPlaylist();
+                                  showToast("Queue saved as playlist", "success");
+                                } catch (error) {
+                                  showToast("Failed to save playlist", "error");
+                                }
+                              }}
+                              whileTap={{ scale: 0.9 }}
+                              className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
+                              aria-label="Save as playlist"
+                            >
+                              <Save className="h-5 w-5" />
+                            </motion.button>
+                          )}
+                          {queue.length > 0 && (
+                            <motion.button
+                              onClick={() => {
+                                hapticMedium();
+                                clearQueue();
+                                handleClearQueueSelection();
+                                showToast("Queue cleared", "success");
+                              }}
+                              whileTap={{ scale: 0.9 }}
+                              className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(242,139,130,0.12)] hover:text-[var(--color-text)]"
+                              aria-label="Clear queue"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </motion.button>
+                          )}
                           <motion.button
                             onClick={() => {
                               hapticLight();
-                              handleSmartQueueAction(
-                                smartQueueState.isActive ? "refresh" : "add",
-                              );
+                              setShowQueuePanel(false);
+                              handleClearQueueSelection();
+                              setQueueSearchQuery("");
                             }}
                             whileTap={{ scale: 0.9 }}
-                            className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(88,198,177,0.16)] hover:text-[var(--color-text)]"
-                            aria-label={
-                              smartQueueState.isActive
-                                ? "Refresh smart tracks"
-                                : "Add smart tracks"
-                            }
-                            title={
-                              smartQueueState.isActive
-                                ? "Refresh smart tracks"
-                                : "Add smart tracks"
-                            }
+                            className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)]"
+                            aria-label="Close queue"
                           >
-                            <Sparkles className="h-5 w-5" />
+                            <X className="h-6 w-6" />
                           </motion.button>
-                        )}
-                        <motion.button
-                          onClick={() => {
-                            hapticLight();
-                            setShowQueuePanel(false);
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                          className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)]"
-                          aria-label="Close queue"
-                        >
-                          <X className="h-6 w-6" />
-                        </motion.button>
+                        </div>
                       </div>
+
+                      {/* Selection bar */}
+                      {selectedQueueIndices.size > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="flex items-center gap-2 rounded-lg border border-[rgba(88,198,177,0.25)] bg-[rgba(88,198,177,0.12)] p-3"
+                        >
+                          <span className="text-sm font-medium text-[var(--color-text)]">
+                            {selectedQueueIndices.size} selected
+                          </span>
+                          <div className="flex-1" />
+                          <motion.button
+                            onClick={handleRemoveSelectedQueueItems}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center gap-2 rounded-lg bg-[rgba(248,139,130,0.2)] px-3 py-1.5 text-sm font-medium transition-colors active:bg-[rgba(248,139,130,0.3)]"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Remove
+                          </motion.button>
+                          <motion.button
+                            onClick={() => {
+                              hapticLight();
+                              handleClearQueueSelection();
+                            }}
+                            whileTap={{ scale: 0.95 }}
+                            className="rounded-lg bg-[rgba(255,255,255,0.1)] px-3 py-1.5 text-sm font-medium transition-colors active:bg-[rgba(255,255,255,0.15)]"
+                          >
+                            Clear
+                          </motion.button>
+                        </motion.div>
+                      )}
+
+                      {/* Search */}
+                      {queue.length > 0 && (
+                        <div className="relative">
+                          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[var(--color-muted)]" />
+                          <input
+                            type="text"
+                            placeholder="Search queue..."
+                            value={queueSearchQuery}
+                            onChange={(e) => setQueueSearchQuery(e.target.value)}
+                            className="w-full rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(18,26,38,0.92)] py-2 pr-4 pl-10 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] focus:border-[rgba(244,178,102,0.35)] focus:ring-2 focus:ring-[rgba(244,178,102,0.28)] focus:outline-none"
+                          />
+                          {queueSearchQuery && (
+                            <motion.button
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              onClick={() => setQueueSearchQuery("")}
+                              className="absolute top-1/2 right-3 -translate-y-1/2 text-[var(--color-subtext)] transition-colors active:text-[var(--color-text)]"
+                            >
+                              <X className="h-4 w-4" />
+                            </motion.button>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto overscroll-contain scroll-smooth">
                       {queue.length === 0 ? (
                         <div className="flex h-full flex-col items-center justify-center p-8 text-center">
                           <div className="mb-4 text-6xl">🎵</div>
@@ -1182,39 +1702,229 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             Add tracks to start building your queue
                           </p>
                         </div>
+                      ) : filteredQueue.length === 0 ? (
+                        <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+                          <Search className="mb-4 h-12 w-12 text-[var(--color-muted)]" />
+                          <p className="mb-2 text-lg font-medium text-[var(--color-text)]">
+                            No results found
+                          </p>
+                          <p className="text-sm text-[var(--color-subtext)]">
+                            Try a different search term
+                          </p>
+                        </div>
                       ) : (
-                        <div className="divide-y divide-[rgba(255,255,255,0.05)]">
-                          {queue.map((track, index) => (
-                            <div
-                              key={`${track.id}-${index}`}
-                              className="flex items-center gap-3 p-3 transition-colors hover:bg-[rgba(244,178,102,0.08)]"
-                            >
-                              <div className="w-6 flex-shrink-0 text-center text-sm text-[var(--color-muted)]">
-                                {index + 1}
+                        <div>
+                          {/* Now Playing */}
+                          {filteredNowPlaying && (
+                            <div className="border-b border-[rgba(255,255,255,0.05)]">
+                              <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider bg-[rgba(245,241,232,0.02)]">
+                                Now Playing
                               </div>
-                              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded">
-                                <Image
-                                  src={getCoverImage(track, "small")}
-                                  alt={track.title}
-                                  fill
-                                  sizes="48px"
-                                  className="object-cover"
-                                  quality={75}
-                                />
+                              <QueueItem
+                                track={filteredNowPlaying.track}
+                                index={filteredNowPlaying.index}
+                                isActive={currentTrack?.id === filteredNowPlaying.track.id}
+                                isSelected={selectedQueueIndices.has(filteredNowPlaying.index)}
+                                isSmartTrack={filteredNowPlaying.isSmartTrack}
+                                onPlay={() => {
+                                  hapticLight();
+                                  playFromQueue(filteredNowPlaying.index);
+                                }}
+                                onRemove={() => {
+                                  hapticMedium();
+                                  removeFromQueue(filteredNowPlaying.index);
+                                }}
+                                onToggleSelect={(e) => {
+                                  if (e.type === 'touchstart' && e.touches.length === 1) {
+                                    const timer = setTimeout(() => {
+                                      hapticMedium();
+                                      handleToggleQueueSelect(filteredNowPlaying.index);
+                                    }, 500);
+                                    setLongPressTimer(timer);
+                                  } else {
+                                    if (longPressTimer) {
+                                      clearTimeout(longPressTimer);
+                                      setLongPressTimer(null);
+                                    }
+                                    handleToggleQueueSelect(filteredNowPlaying.index, e.shiftKey);
+                                  }
+                                }}
+                                onTouchEnd={() => {
+                                  if (longPressTimer) {
+                                    clearTimeout(longPressTimer);
+                                    setLongPressTimer(null);
+                                  }
+                                }}
+                                canRemove={filteredNowPlaying.index !== 0}
+                                onDragStart={() => setDraggedIndex(filteredNowPlaying.index)}
+                                onDragEnd={() => setDraggedIndex(null)}
+                                isDragging={draggedIndex === filteredNowPlaying.index}
+                                onReorder={(newIndex) => {
+                                  if (newIndex !== filteredNowPlaying.index) {
+                                    reorderQueue(filteredNowPlaying.index, newIndex);
+                                    hapticSuccess();
+                                  }
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          {/* User Tracks */}
+                          {filteredUserTracks.length > 0 && (
+                            <div className="border-b border-[rgba(255,255,255,0.05)]">
+                              <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)]">
+                                Next in queue
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <h4 className="truncate text-sm font-medium text-[var(--color-text)]">
-                                  {track.title}
-                                </h4>
-                                <p className="truncate text-xs text-[var(--color-subtext)]">
-                                  {track.artist.name}
-                                </p>
+                              <div className="divide-y divide-[rgba(255,255,255,0.05)]">
+                                {filteredUserTracks.map((entry) => (
+                                  <QueueItem
+                                    key={entry.queueId}
+                                    track={entry.track}
+                                    index={entry.index}
+                                    isActive={currentTrack?.id === entry.track.id}
+                                    isSelected={selectedQueueIndices.has(entry.index)}
+                                    isSmartTrack={entry.isSmartTrack}
+                                    onPlay={() => {
+                                      hapticLight();
+                                      playFromQueue(entry.index);
+                                    }}
+                                    onRemove={() => {
+                                      hapticMedium();
+                                      removeFromQueue(entry.index);
+                                    }}
+                                    onToggleSelect={(e) => {
+                                      if (e.type === 'touchstart' && e.touches.length === 1) {
+                                        const timer = setTimeout(() => {
+                                          hapticMedium();
+                                          handleToggleQueueSelect(entry.index);
+                                        }, 500);
+                                        setLongPressTimer(timer);
+                                      } else {
+                                        if (longPressTimer) {
+                                          clearTimeout(longPressTimer);
+                                          setLongPressTimer(null);
+                                        }
+                                        handleToggleQueueSelect(entry.index, e.shiftKey);
+                                      }
+                                    }}
+                                    onTouchEnd={() => {
+                                      if (longPressTimer) {
+                                        clearTimeout(longPressTimer);
+                                        setLongPressTimer(null);
+                                      }
+                                    }}
+                                    canRemove={entry.index !== 0}
+                                    onDragStart={() => setDraggedIndex(entry.index)}
+                                    onDragEnd={() => setDraggedIndex(null)}
+                                    isDragging={draggedIndex === entry.index}
+                                    onReorder={(newIndex) => {
+                                      if (newIndex !== entry.index) {
+                                        reorderQueue(entry.index, newIndex);
+                                        hapticSuccess();
+                                      }
+                                    }}
+                                  />
+                                ))}
                               </div>
                             </div>
-                          ))}
+                          )}
+
+                          {/* Smart Tracks */}
+                          {(filteredSmartTracks.length > 0 || smartQueueState.isLoading) && (
+                            <div className="border-b border-[rgba(255,255,255,0.05)]">
+                              <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)] flex items-center gap-2">
+                                <span>Smart tracks</span>
+                                {smartQueueState.isLoading && (
+                                  <LoadingSpinner size="sm" label="Loading smart tracks" />
+                                )}
+                              </div>
+                              {smartQueueState.isLoading && filteredSmartTracks.length === 0 ? (
+                                <div className="px-3 py-4 flex items-center justify-center">
+                                  <div className="flex flex-col items-center gap-2">
+                                    <LoadingSpinner size="md" label="Loading smart tracks" />
+                                    <p className="text-xs text-[var(--color-subtext)]">
+                                      Finding similar tracks...
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="divide-y divide-[rgba(255,255,255,0.05)]">
+                                  {filteredSmartTracks.map((entry) => (
+                                    <QueueItem
+                                      key={entry.queueId}
+                                      track={entry.track}
+                                      index={entry.index}
+                                      isActive={currentTrack?.id === entry.track.id}
+                                      isSelected={selectedQueueIndices.has(entry.index)}
+                                      isSmartTrack={entry.isSmartTrack}
+                                      onPlay={() => {
+                                        hapticLight();
+                                        playFromQueue(entry.index);
+                                      }}
+                                      onRemove={() => {
+                                        hapticMedium();
+                                        removeFromQueue(entry.index);
+                                      }}
+                                      onToggleSelect={(e) => {
+                                        if (e.type === 'touchstart' && e.touches.length === 1) {
+                                          const timer = setTimeout(() => {
+                                            hapticMedium();
+                                            handleToggleQueueSelect(entry.index);
+                                          }, 500);
+                                          setLongPressTimer(timer);
+                                        } else {
+                                          if (longPressTimer) {
+                                            clearTimeout(longPressTimer);
+                                            setLongPressTimer(null);
+                                          }
+                                          handleToggleQueueSelect(entry.index, e.shiftKey);
+                                        }
+                                      }}
+                                      onTouchEnd={() => {
+                                        if (longPressTimer) {
+                                          clearTimeout(longPressTimer);
+                                          setLongPressTimer(null);
+                                        }
+                                      }}
+                                      canRemove={entry.index !== 0}
+                                      onDragStart={() => setDraggedIndex(entry.index)}
+                                      onDragEnd={() => setDraggedIndex(null)}
+                                      isDragging={draggedIndex === entry.index}
+                                      onReorder={(newIndex) => {
+                                        if (newIndex !== entry.index) {
+                                          reorderQueue(entry.index, newIndex);
+                                          hapticSuccess();
+                                        }
+                                      }}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
+
+                    {/* Footer */}
+                    {queue.length > 0 && (
+                      <div className="border-t border-[rgba(244,178,102,0.12)] p-4 text-sm text-[var(--color-subtext)]">
+                        <div className="flex items-center justify-between">
+                          <span>Total duration:</span>
+                          <span className="font-medium">{formatDuration(totalDuration)}</span>
+                        </div>
+                        {queueSearchQuery && filteredQueue.length !== queue.length && (
+                          <div className="mt-2 text-xs text-[var(--color-muted)]">
+                            Showing {filteredQueue.length} of {queue.length} tracks
+                          </div>
+                        )}
+                        {!queueSearchQuery && selectedQueueIndices.size === 0 && (
+                          <div className="mt-2 text-xs text-[var(--color-muted)]">
+                            Tip: Tap to play • Long-press to select • Swipe to reorder
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </motion.div>
                 </>
               )}
@@ -1274,6 +1984,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                 </>
               )}
             </AnimatePresence>
+
+            {/* Queue Settings Modal */}
+            <QueueSettingsModal
+              isOpen={showQueueSettingsModal}
+              onClose={() => setShowQueueSettingsModal(false)}
+              onApply={handleApplyQueueSettings}
+              initialCount={smartTracksCount}
+              initialSimilarityLevel={similarityLevel}
+            />
           </>
         )}
       </AnimatePresence>
