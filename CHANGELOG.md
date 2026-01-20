@@ -5,6 +5,36 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.20] - 2026-01-20
+
+### Added
+
+- **Static OG Image**: New pre-generated Open Graph social preview image for faster loading
+  - **Design**: Dark background (#0b1118), Emily the Strange logo, gradient title, minimal aesthetic
+  - **Dimensions**: 1200×630px optimized for social media platforms
+  - **Generator Script**: `scripts/generate-og-image.js` for regenerating the image
+  - Location: `public/og-image.png`
+
+### Changed
+
+- **OG Image Route Optimization**: Default social previews now use static image with redirect
+  - **Before**: Dynamically generated JSX image on every request (slower, no caching)
+  - **After**: 302 redirect to `/og-image.png` (instant, CDN-cacheable)
+  - **Track Shares**: Still generate dynamic mini-player cards with album art
+  - **Impact**: Faster social preview loading for homepage/general links
+  - Location: `src/app/api/og/route.tsx`
+
+### Fixed
+
+- **SmoothSlider Import Bug**: Fixed non-existent `hapticSlider` function import
+  - Changed to `haptic("sliderTick")` for proper haptic feedback during slider drag
+  - Location: `src/components/SmoothSlider.tsx`
+
+- **Unused Variables Cleanup**: Removed dead code from slider components
+  - Removed unused `activeDragBand` state from Equalizer
+  - Removed unused `useTransform` import and `thumbScale` variable from SmoothSlider
+  - Locations: `src/components/Equalizer.tsx`, `src/components/SmoothSlider.tsx`
+
 ## [0.9.19] - 2026-01-20
 
 ### Added
