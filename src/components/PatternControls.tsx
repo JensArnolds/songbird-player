@@ -226,7 +226,7 @@ export default function PatternControls({
     };
 
     updateState();
-    const interval = setInterval(updateState, 100);
+    const interval = setInterval(updateState, 500);
 
     return () => clearInterval(interval);
   }, [renderer]);

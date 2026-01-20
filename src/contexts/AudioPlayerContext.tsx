@@ -323,7 +323,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     player.queuedTracks,
     player.smartQueueState,
     player.history,
-    player.currentTime,
     player.isShuffled,
     player.repeatMode,
   ]);

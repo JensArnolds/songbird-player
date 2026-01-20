@@ -700,11 +700,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         navigator.serviceWorker.ready
           .then((registration) => {
             if (registration.active) {
-              const messageChannel = new MessageChannel();
-              registration.active.postMessage(
-                { type: "KEEP_ALIVE" },
-                [messageChannel.port2],
-              );
+              registration.active.postMessage({ type: "KEEP_ALIVE" });
             }
           })
           .catch(() => {});
