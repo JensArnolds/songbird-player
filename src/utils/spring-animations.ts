@@ -43,6 +43,34 @@ export const springPresets = {
     damping: 20,
     mass: 0.7,
   },
+
+  slider: {
+    type: "spring" as const,
+    stiffness: 600,
+    damping: 35,
+    mass: 0.3,
+  },
+
+  sliderThumb: {
+    type: "spring" as const,
+    stiffness: 800,
+    damping: 40,
+    mass: 0.2,
+  },
+
+  scrub: {
+    type: "spring" as const,
+    stiffness: 1000,
+    damping: 50,
+    mass: 0.1,
+  },
+
+  gestureRelease: {
+    type: "spring" as const,
+    stiffness: 400,
+    damping: 28,
+    mass: 0.8,
+  },
 };
 
 export const easePresets = {

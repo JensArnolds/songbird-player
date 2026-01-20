@@ -5,6 +5,68 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.19] - 2026-01-20
+
+### Added
+
+- **SmoothSlider Component**: New reusable slider component for consistent slider UX across the app
+  - **Dual Orientation**: Supports both horizontal and vertical slider layouts
+  - **Size Variants**: Small, medium, and large presets with configurable track and thumb sizes
+  - **Haptic Feedback**: Built-in intelligent haptic feedback with configurable intervals
+  - **Spring Animations**: Smooth Framer Motion spring-based animations
+  - **Glow Effects**: Optional visual glow during interaction
+  - **Accessibility**: Full ARIA support with customizable labels and value text
+  - **Touch Optimized**: Native touch event handling for mobile devices
+  - Location: `src/components/SmoothSlider.tsx`
+
+- **New Haptic Patterns**: Extended haptic feedback system with slider-specific patterns
+  - `sliderTick` - Subtle tick feedback during slider movement
+  - `sliderEnd` - Confirmation feedback when releasing slider
+  - `scrub` - Ultra-light feedback for scrubbing interactions
+  - `boundary` - Double-tap feedback when hitting min/max boundaries
+  - Location: `src/utils/haptics.ts`
+
+- **New Spring Animation Presets**: Added slider-optimized spring configurations
+  - `slider` - High stiffness (600) for responsive slider fill animations
+  - `sliderThumb` - Extra responsive (800) thumb animations
+  - `scrub` - Ultra-responsive (1000) scrubbing animations
+  - `gestureRelease` - Natural gesture release with moderate stiffness (400)
+  - Location: `src/utils/spring-animations.ts`
+
+### Changed
+
+- **Equalizer Sliders**: Completely redesigned vertical EQ sliders with custom implementation
+  - **Custom VerticalEqSlider**: Replaced native HTML range inputs with Framer Motion-based draggable component
+  - **Enhanced Visual Feedback**: Added glow effects, scale animations on hover/drag, and gradient fills
+  - **Improved Haptics**: Integrated new `hapticSliderContinuous()` for smooth feedback during adjustment
+  - **Spring Animations**: All slider movements now use spring physics for natural feel
+  - **Pulse Animation**: Active drag state shows pulsing ring effect on thumb
+  - Location: `src/components/Equalizer.tsx`
+
+- **Mobile Player Progress Bar**: Enhanced seek slider with improved touch experience
+  - **Larger Touch Targets**: Progress bar height increased from 2px to 2.5px
+  - **Dynamic Thumb Scaling**: Thumb grows from 18px to 24px during active seek
+  - **Glow Effect**: Added blur glow effect behind progress bar during seeking
+  - **Pulse Animation**: Thumb shows pulsing ring animation while dragging
+  - **Animated Time Display**: Current/remaining time scales up slightly during seek
+  - **Continuous Haptics**: Integrated `hapticSliderContinuous()` for tactile feedback
+  - Location: `src/components/MobilePlayer.tsx`
+
+- **Mobile Player Volume Slider**: Improved volume control UX
+  - **Thicker Track**: Track height increased to 1.5px for better visibility
+  - **Spring Animations**: Fill and thumb now animate with spring physics
+  - **Hover/Tap Effects**: Added scale animations on thumb interaction
+  - **Continuous Haptics**: Volume changes trigger continuous haptic feedback with boundary detection
+  - **Selection Haptic**: Initial touch triggers selection haptic pattern
+  - Location: `src/components/MobilePlayer.tsx`
+
+- **Haptic Feedback Utilities**: Enhanced haptic API with new functions
+  - `hapticThrottled()` - Throttled haptic calls to prevent vibration spam
+  - `hapticSliderContinuous()` - Intelligent continuous feedback with tick threshold and boundary detection
+  - `hapticSliderEnd()` - Cleanup function to reset slider state and provide end feedback
+  - `hapticScrub()` - Ultra-throttled (30ms) scrub feedback for rapid interactions
+  - Location: `src/utils/haptics.ts`
+
 ## [0.9.18] - 2026-01-19
 
 ### Changed

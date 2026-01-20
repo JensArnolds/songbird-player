@@ -10,7 +10,14 @@ import {
   extractColorsFromImage,
   type ColorPalette,
 } from "@/utils/colorExtractor";
-import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
+import {
+  hapticLight,
+  hapticMedium,
+  hapticSuccess,
+  hapticSliderContinuous,
+  hapticSliderEnd,
+  haptic,
+} from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
 import { STORAGE_KEYS } from "@/config/storage";
 import { useSession } from "next-auth/react";
@@ -600,37 +607,84 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                 <div className="px-8 pb-4">
                   <div
                     ref={progressRef}
-                    className="group relative h-2 cursor-pointer rounded-full bg-[rgba(255,255,255,0.14)]"
+                    className="group relative h-2.5 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
                     onClick={handleProgressClick}
-                    onTouchMove={handleProgressTouch}
-                    onTouchEnd={handleProgressTouchEnd}
+                    onTouchStart={(e) => {
+                      setIsSeeking(true);
+                      haptic("selection");
+                      handleProgressTouch(e);
+                    }}
+                    onTouchMove={(e) => {
+                      handleProgressTouch(e);
+                      hapticSliderContinuous(seekTime, 0, duration, {
+                        intervalMs: 35,
+                        tickThreshold: 1.5,
+                      });
+                    }}
+                    onTouchEnd={() => {
+                      handleProgressTouchEnd();
+                      hapticSliderEnd();
+                    }}
                     role="slider"
                     aria-label="Seek"
                     aria-valuemin={0}
                     aria-valuemax={duration}
                     aria-valuenow={displayTime}
                   >
+                    {}
+                    {isSeeking && (
+                      <motion.div
+                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent-strong)]/20 blur-md"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1.05 }}
+                        exit={{ opacity: 0 }}
+                        transition={springPresets.slider}
+                      />
+                    )}
                     <motion.div
                       className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
                       style={{
                         width: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
                       }}
+                      transition={isSeeking ? { duration: 0 } : springPresets.slider}
                     />
                     <motion.div
-                      className="absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow-lg"
+                      className="absolute top-1/2 rounded-full bg-white shadow-xl"
                       style={{
                         left: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
-                        x: "-50%",
+                      }}
+                      initial={{ scale: 1, x: "-50%", y: "-50%" }}
+                      animate={{
+                        scale: isSeeking ? 1.4 : 1,
+                        width: isSeeking ? 24 : 18,
+                        height: isSeeking ? 24 : 18,
                       }}
                       whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.9 }}
-                    />
+                      transition={springPresets.sliderThumb}
+                    >
+                      {isSeeking && (
+                        <motion.div
+                          className="absolute inset-0 rounded-full bg-[var(--color-accent)]"
+                          initial={{ scale: 1, opacity: 0.5 }}
+                          animate={{ scale: 2, opacity: 0 }}
+                          transition={{ duration: 0.5, repeat: Infinity }}
+                        />
+                      )}
+                    </motion.div>
                   </div>
-                  <div className="mt-2 flex justify-between text-sm text-[var(--color-subtext)] tabular-nums">
-                    <span>{formatTime(displayTime)}</span>
-                    <span>
+                  <div className="mt-2.5 flex justify-between text-sm text-[var(--color-subtext)] tabular-nums">
+                    <motion.span
+                      animate={{ scale: isSeeking ? 1.05 : 1 }}
+                      transition={springPresets.snappy}
+                    >
+                      {formatTime(displayTime)}
+                    </motion.span>
+                    <motion.span
+                      animate={{ scale: isSeeking ? 1.05 : 1 }}
+                      transition={springPresets.snappy}
+                    >
                       -{formatTime(Math.max(0, duration - displayTime))}
-                    </span>
+                    </motion.span>
                   </div>
                 </div>
 
@@ -800,37 +854,44 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        hapticMedium();
                         onToggleMute();
                       }}
-                      whileTap={{ scale: 0.9 }}
+                      whileTap={{ scale: 0.85 }}
+                      transition={springPresets.snappy}
                       className="touch-target text-[var(--color-subtext)]"
                       aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
                     >
-                      {isMuted || volume === 0 ? (
-                        <VolumeX className="h-5 w-5" />
-                      ) : (
-                        <Volume2 className="h-5 w-5" />
-                      )}
+                      <motion.div
+                        animate={{ scale: isMuted ? 0.9 : 1 }}
+                        transition={springPresets.snappy}
+                      >
+                        {isMuted || volume === 0 ? (
+                          <VolumeX className="h-5 w-5" />
+                        ) : (
+                          <Volume2 className="h-5 w-5" />
+                        )}
+                      </motion.div>
                     </motion.button>
                     <div
                       ref={volumeRef}
-                      className="relative h-1 flex-1 cursor-pointer rounded-full bg-[rgba(255,255,255,0.14)]"
+                      className="relative h-1.5 flex-1 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
                       onClick={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const x = e.clientX - rect.left;
                         const percentage = Math.max(0, Math.min(1, x / rect.width));
                         props.onVolumeChange(percentage);
-                        hapticLight();
+                        haptic("selection");
                       }}
                       onTouchStart={(e) => {
                         e.preventDefault();
+                        haptic("selection");
                         const rect = e.currentTarget.getBoundingClientRect();
                         const touch = e.touches[0];
                         if (!touch) return;
                         const x = touch.clientX - rect.left;
                         const percentage = Math.max(0, Math.min(1, x / rect.width));
                         props.onVolumeChange(percentage);
-                        hapticLight();
                       }}
                       onTouchMove={(e) => {
                         e.preventDefault();
@@ -840,10 +901,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         const x = touch.clientX - rect.left;
                         const percentage = Math.max(0, Math.min(1, x / rect.width));
                         props.onVolumeChange(percentage);
+                        hapticSliderContinuous(percentage * 100, 0, 100, {
+                          intervalMs: 40,
+                          tickThreshold: 3,
+                          boundaryFeedback: true,
+                        });
                       }}
                       onTouchEnd={(e) => {
                         e.preventDefault();
-                        hapticLight();
+                        hapticSliderEnd();
                       }}
                       role="slider"
                       aria-label="Volume"
@@ -851,13 +917,22 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       aria-valuemax={100}
                       aria-valuenow={Math.round((isMuted ? 0 : volume) * 100)}
                     >
-                      <div
+                      <motion.div
                         className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
-                        style={{ width: `${isMuted ? 0 : volume * 100}%` }}
+                        animate={{ width: `${isMuted ? 0 : volume * 100}%` }}
+                        transition={springPresets.slider}
                       />
-                      <div
-                        className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-lg"
-                        style={{ left: `${isMuted ? 0 : volume * 100}%`, transform: 'translate(-50%, -50%)' }}
+                      <motion.div
+                        className="absolute top-1/2 rounded-full bg-white shadow-lg"
+                        animate={{
+                          left: `${isMuted ? 0 : volume * 100}%`,
+                          width: 14,
+                          height: 14,
+                        }}
+                        style={{ transform: 'translate(-50%, -50%)' }}
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 1.3 }}
+                        transition={springPresets.sliderThumb}
                       />
                     </div>
                   </div>

@@ -12,38 +12,123 @@ export type HapticPattern =
   | "notification"
   | "swipe"
   | "toggle"
-  | "slider";
+  | "slider"
+  | "sliderTick"
+  | "sliderEnd"
+  | "scrub"
+  | "boundary";
+
+const patterns: Record<HapticPattern, number | number[]> = {
+  light: 4,
+  medium: 10,
+  heavy: 20,
+
+  success: [6, 60, 6],
+  error: [12, 40, 12, 40, 20],
+  warning: [8, 35, 8],
+
+  selection: 2,
+  impact: 15,
+  notification: [4, 80, 4, 80, 12],
+
+  swipe: [4, 25, 4],
+  toggle: 6,
+  slider: 1,
+  sliderTick: 2,
+  sliderEnd: 5,
+  scrub: 1,
+  boundary: [8, 30, 8],
+};
 
 export function haptic(pattern: HapticPattern = "light"): void {
-
   if (!("vibrate" in navigator)) {
     return;
   }
-
-  const patterns: Record<HapticPattern, number | number[]> = {
-
-    light: 5,
-    medium: 12,
-    heavy: 25,
-
-    success: [8, 80, 8],
-    error: [15, 50, 15, 50, 25],
-    warning: [10, 40, 10],
-
-    selection: 3,
-    impact: 18,
-    notification: [5, 100, 5, 100, 15],
-
-    swipe: [5, 30, 5],
-    toggle: 8,
-    slider: 2,
-  };
 
   try {
     const vibrationPattern = patterns[pattern];
     navigator.vibrate(vibrationPattern);
   } catch {
+  }
+}
 
+const throttleTimers = new Map<string, number>();
+
+export function hapticThrottled(
+  pattern: HapticPattern,
+  key: string,
+  intervalMs: number = 50,
+): void {
+  const now = Date.now();
+  const lastTime = throttleTimers.get(key) ?? 0;
+
+  if (now - lastTime >= intervalMs) {
+    haptic(pattern);
+    throttleTimers.set(key, now);
+  }
+}
+
+let lastSliderValue = 0;
+let lastSliderTime = 0;
+
+export function hapticSliderContinuous(
+  value: number,
+  min: number = 0,
+  max: number = 100,
+  options: {
+    intervalMs?: number;
+    tickThreshold?: number;
+    boundaryFeedback?: boolean;
+  } = {},
+): void {
+  const {
+    intervalMs = 40,
+    tickThreshold = 2,
+    boundaryFeedback = true,
+  } = options;
+
+  const now = Date.now();
+  if (now - lastSliderTime < intervalMs) {
+    return;
+  }
+
+  const normalizedValue = ((value - min) / (max - min)) * 100;
+  const lastNormalized = ((lastSliderValue - min) / (max - min)) * 100;
+  const delta = Math.abs(normalizedValue - lastNormalized);
+
+  if (boundaryFeedback) {
+    const atBoundary =
+      (value <= min && lastSliderValue > min) ||
+      (value >= max && lastSliderValue < max);
+    if (atBoundary) {
+      haptic("boundary");
+      lastSliderTime = now;
+      lastSliderValue = value;
+      return;
+    }
+  }
+
+  if (delta >= tickThreshold) {
+    haptic("sliderTick");
+    lastSliderTime = now;
+    lastSliderValue = value;
+  }
+}
+
+export function hapticSliderEnd(): void {
+  haptic("sliderEnd");
+  lastSliderValue = 0;
+  lastSliderTime = 0;
+}
+
+let lastScrubTime = 0;
+const SCRUB_INTERVAL = 30;
+
+export function hapticScrub(): void {
+  const now = Date.now();
+  if (now - lastScrubTime >= SCRUB_INTERVAL) {
+    haptic("scrub");
+    lastScrubTime = now;
   }
 }
 
