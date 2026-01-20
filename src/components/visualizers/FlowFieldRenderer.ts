@@ -152,8 +152,7 @@ export class FlowFieldRenderer {
     "dragonCurve",
     "langtonsAnt",
     "celticKnot",
-    "germanicKnot",
-    "nebulaDrift"
+    "germanicKnot"
   ];
 
   private currentPattern: Pattern = "kaleidoscope";
@@ -3185,14 +3184,6 @@ export class FlowFieldRenderer {
           bassIntensity,
           trebleIntensity,
         );
-      case "nebulaDrift":
-        this.renderNebulaDrift(
-          audioIntensity,
-          bassIntensity,
-          midIntensity,
-          trebleIntensity
-        );
-        break;
         break;
     }
   }
@@ -12834,146 +12825,6 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  // Add these to your private properties section
-  private nebulaDriftDensity = 1.0;  // controls cloud particle count scaling
-  private nebulaDriftSpeed = 0.4;
-  private nebulaDriftTurbulence = 1.2;
-  private nebulaStarCount = 180;
-  private nebulaStarTwinkleSpeed = 0.7;
-  private nebulaPalette = [200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300, 320, 340, 0, 10];
-
-
-  private renderNebulaDrift(
-    audioIntensity: number,
-    bassIntensity: number,
-    midIntensity: number,
-    trebleIntensity: number,
-  ): void {
-    const ctx = this.ctx;
-
-    // Gentle dark-space fade
-    ctx.fillStyle = `rgba(3, 2, 8, ${0.07 + audioIntensity * 0.04})`;
-    ctx.fillRect(0, 0, this.width, this.height);
-
-    // Time constants
-    const time = this.time * 0.0007 * this.nebulaDriftSpeed;
-    const timeTwinkle = this.time * 0.00095 * this.nebulaStarTwinkleSpeed;
-    const turb = this.nebulaDriftTurbulence;
-    const cx = this.centerX;
-    const cy = this.centerY;
-    const maxR = Math.min(this.width, this.height) * 0.58;
-    const TWO_PI = FlowFieldRenderer.TWO_PI;
-
-    // ─── Layered nebula clouds ───
-    const layers = 5;
-    const particleBaseCount = Math.round(140 * this.nebulaDriftDensity); // better than | 0
-
-    for (let l = 0; l < layers; l++) {
-      const scale = 0.4 + l * 0.22;
-      const speed = 0.18 + l * 0.07;
-      const opacity = 0.06 + l * 0.04 + audioIntensity * 0.08;
-
-      // Palette cycling (safe access)
-      const paletteIdx = Math.floor((l + (this.time * 0.001)) % this.nebulaPalette.length);
-      const baseHue = this.nebulaPalette[paletteIdx] ?? 240; // fallback to deep blue-purple
-
-      ctx.globalCompositeOperation = "screen";
-      ctx.globalAlpha = opacity;
-
-      const particleCount = Math.round(particleBaseCount * (1 + l * 0.3));
-
-      for (let i = 0; i < particleCount; i++) {
-        const a = (i / particleCount) * TWO_PI + time * (0.3 + l * 0.15);
-        const dist = (i * 0.007 + time * speed + l) % 1;
-        const r = maxR * (0.15 + dist * 0.85 * scale);
-
-        const noise =
-          this.fastSin(a * 3.7 + time * 1.4) * turb +
-          this.fastSin(a * 5.1 + time * 2.1) * turb * 0.6 +
-          this.fastSin(a * 8.3 + time * 3.8) * turb * 0.35;
-
-        const px = cx + this.fastCos(a + noise * 0.9) * r;
-        const py = cy + this.fastSin(a + noise * 1.1) * r;
-
-        const hue = this.fastMod360(baseHue + noise * 40 + l * 12);
-        const sat = 60 + noise * 30 + trebleIntensity * 25;
-        const lum = 45 + midIntensity * 18 + bassIntensity * 12;
-
-        ctx.fillStyle = this.hsla(hue, sat, lum, 0.8 + noise * 0.4);
-        const sz = 18 + noise * 22 + bassIntensity * 12;
-
-        ctx.beginPath();
-        ctx.arc(px, py, sz, 0, TWO_PI);
-        ctx.fill();
-      }
-    }
-
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = "lighter";
-    ctx.lineCap = "round";
-
-    // ─── Filaments ─── (unchanged – already good)
-    const filamentCount = 9 + ((trebleIntensity * 8) | 0);
-    for (let f = 0; f < filamentCount; f++) {
-      const baseAngle = (f / filamentCount) * TWO_PI + time * 0.11;
-      const len = 0.35 + Math.sin(time * 0.4 + f) * 0.15;
-
-      ctx.beginPath();
-      const steps = 60;
-      for (let i = 0; i <= steps; i++) {
-        const t = i / steps;
-        const a = baseAngle + Math.sin(t * Math.PI * 5 + time * 1.8 + f) * 0.7;
-        const r = maxR * (0.1 + t * len + Math.sin(t * 12 + time * 2.3) * 0.08);
-        const x = cx + this.fastCos(a) * r;
-        const y = cy + this.fastSin(a) * r;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-
-      const filamentHue = this.fastMod360(this.hueBase + 220 + f * 22);
-      ctx.strokeStyle = this.hsla(filamentHue, 80, 70, 0.15 + trebleIntensity * 0.25);
-      ctx.lineWidth = 1.5 + trebleIntensity * 2.5;
-      ctx.stroke();
-    }
-
-    // ─── Stars ───
-    const starAlpha = 0.4 + trebleIntensity * 0.35;
-    for (let i = 0; i < this.nebulaStarCount; i++) {
-      const angle = (i * 0.6180339887 * TWO_PI) % TWO_PI + time * 0.03;
-      const dist = (i * 0.024 + time * 0.008) % 1;
-      const r = maxR * (0.08 + dist * 0.92);
-
-      const twinkle = 0.5 + 0.5 * this.fastSin(timeTwinkle + i * 17);
-
-      const x = cx + this.fastCos(angle) * r;
-      const y = cy + this.fastSin(angle) * r;
-
-      const paletteStarIdx = (i * 3 % this.nebulaPalette.length) | 0;
-      const paletteValue = this.nebulaPalette[paletteStarIdx];
-      const hue = this.fastMod360(paletteValue ?? 240); // safe fallback
-
-      const size = 1.1 + twinkle * 1.8 + trebleIntensity * 1.2;
-
-      ctx.fillStyle = this.hsla(hue, 60, 92, starAlpha * twinkle);
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, TWO_PI);
-      ctx.fill();
-    }
-
-    // ─── Core glow ───
-    const coreR = maxR * 0.22 + bassIntensity * 35;
-    const corePulse = 1 + Math.sin(time * 0.8 + bassIntensity * 1.5) * 0.08;
-
-    const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR * corePulse);
-    coreGradient.addColorStop(0.0, `hsla(${this.hueBase + 220}, 85%, 78%, ${0.55 + audioIntensity * 0.25})`);
-    coreGradient.addColorStop(0.4, `hsla(${this.hueBase + 250}, 75%, 55%, ${0.35 + midIntensity * 0.2})`);
-    coreGradient.addColorStop(1.0, `hsla(${this.hueBase + 280}, 65%, 35%, 0)`);
-
-    ctx.fillStyle = coreGradient;
-    ctx.beginPath();
-    ctx.arc(0, 0, coreR * corePulse * 1.4, 0, TWO_PI);
-    ctx.fill();
-  }
 
   public getFractalZoom(): number {
     return this.fractalZoom;

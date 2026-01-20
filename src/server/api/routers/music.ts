@@ -836,15 +836,51 @@ export const musicRouter = createTRPCRouter({
         where: eq(userPreferences.userId, ctx.session.user.id),
       });
 
+      // Normalize queueState to match schema: ensure track is always present in queuedTracks
+      // Schema requires: { track: unknown; queueSource: ...; addedAt: ...; queueId: ... }
+      const normalizedQueueState = input.queueState
+        ? ({
+            version: input.queueState.version,
+            queuedTracks: input.queueState.queuedTracks.map((item) => ({
+              track: item.track ?? null,
+              queueSource: item.queueSource,
+              addedAt: item.addedAt,
+              queueId: item.queueId,
+            })),
+            smartQueueState: input.queueState.smartQueueState,
+            history: input.queueState.history,
+            currentTime: input.queueState.currentTime,
+            isShuffled: input.queueState.isShuffled,
+            repeatMode: input.queueState.repeatMode,
+          } as {
+            version: 2;
+            queuedTracks: Array<{
+              track: unknown;
+              queueSource: "user" | "smart";
+              addedAt: string;
+              queueId: string;
+            }>;
+            smartQueueState: {
+              isActive: boolean;
+              lastRefreshedAt: string | null;
+              seedTrackId: number | null;
+            };
+            history: unknown[];
+            currentTime: number;
+            isShuffled: boolean;
+            repeatMode: "none" | "one" | "all";
+          })
+        : null;
+
       if (!existing) {
         await ctx.db.insert(userPreferences).values({
           userId: ctx.session.user.id,
-          queueState: input.queueState,
+          queueState: normalizedQueueState,
         });
       } else {
         await ctx.db
           .update(userPreferences)
-          .set({ queueState: input.queueState })
+          .set({ queueState: normalizedQueueState })
           .where(eq(userPreferences.userId, ctx.session.user.id));
       }
 
@@ -1688,8 +1724,8 @@ export const musicRouter = createTRPCRouter({
                 if (!name) return null;
                 return { name, artist };
               })
-              .filter((track): track is { name: string; artist?: string } =>
-                Boolean(track?.name),
+              .filter((track): track is { name: string; artist: string | undefined } =>
+                track !== null && Boolean(track.name),
               );
           })();
 
@@ -1720,8 +1756,8 @@ export const musicRouter = createTRPCRouter({
               const artist = track.artists?.[0]?.name;
               return { name: track.name, artist };
             })
-            .filter((track): track is { name: string; artist?: string } =>
-              Boolean(track?.name),
+            .filter((track): track is { name: string; artist: string | undefined } =>
+              track !== null && Boolean(track.name),
             );
 
           const spotifyDeezerIds = await convertToDeezerIds(spotifyCandidates);
