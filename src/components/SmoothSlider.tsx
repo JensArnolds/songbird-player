@@ -1,6 +1,6 @@
 "use client";
 
-import { haptic, hapticSlider } from "@/utils/haptics";
+import { haptic } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import {
   motion,
@@ -103,7 +103,7 @@ export function SmoothSlider({
         now - lastHapticTime.current >= hapticInterval &&
         valueDiff >= stepThreshold
       ) {
-        hapticSlider();
+        haptic("sliderTick");
         lastHapticTime.current = now;
         lastHapticValue.current = newValue;
       }
