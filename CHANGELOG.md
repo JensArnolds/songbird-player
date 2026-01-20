@@ -5,6 +5,35 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.21] - 2026-01-20
+
+### Added
+
+- **Enhanced Mobile Queue**: Complete feature parity with desktop queue
+  - **Search Functionality**: Search queue by track title or artist name with real-time filtering
+  - **Multi-Select**: Long-press to select tracks, tap to toggle selection, bulk remove selected items
+  - **Drag-to-Reorder**: Swipe up/down on drag handle to reorder tracks in queue
+  - **Play from Here**: Tap any track or play button overlay to start playback from that position
+  - **Remove Individual Tracks**: Remove button on each track (except currently playing)
+  - **Smart Tracks Sections**: Visual organization with sections for "Now Playing", "Next in queue", and "Smart tracks"
+  - **Save as Playlist**: Save entire queue as a playlist (authenticated users only)
+  - **Settings Modal**: Configure smart tracks count and similarity level preferences
+  - **Total Duration Display**: Shows total queue duration and search result counts
+  - **Visual Feedback**: Selected tracks highlighted, active track indicator, smart track accent bar
+  - **Loading States**: Loading indicators for smart tracks operations
+  - **Haptic Feedback**: Tactile feedback for all interactions (selection, removal, reordering)
+  - Location: `src/components/MobilePlayer.tsx`
+
+### Fixed
+
+- **Mobile Volume Controls**: Fixed janky haptics and volume not working
+  - **Volume Not Working**: Volume changes now immediately apply to audio element during dragging for responsive feedback
+  - **Janky Haptics**: Reduced haptic frequency (50ms interval, threshold 5) and optimized haptic triggers
+  - **Local State Management**: Uses local state during dragging (like progress bar) to reduce re-renders
+  - **Visual Feedback**: Added glow effect and thumb scaling during volume adjustment
+  - **Fallback Audio Element**: Added fallback to find audio element from DOM if context reference unavailable
+  - Location: `src/components/MobilePlayer.tsx`
+
 ## [0.9.20] - 2026-01-20
 
 ### Added
