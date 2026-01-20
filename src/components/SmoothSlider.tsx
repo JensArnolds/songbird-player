@@ -5,7 +5,6 @@ import { springPresets } from "@/utils/spring-animations";
 import {
   motion,
   useMotionValue,
-  useTransform,
   animate,
   type PanInfo,
 } from "framer-motion";
@@ -73,12 +72,6 @@ export function SmoothSlider({
 
   const normalizedValue = ((value - min) / (max - min)) * 100;
   const motionProgress = useMotionValue(normalizedValue);
-
-  const thumbScale = useTransform(
-    motionProgress,
-    [0, 100],
-    [1, 1],
-  );
 
   useEffect(() => {
     if (!isDragging) {

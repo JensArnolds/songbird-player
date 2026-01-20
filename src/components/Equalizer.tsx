@@ -221,7 +221,6 @@ function VerticalEqSlider({
 export function Equalizer({ equalizer, onClose }: EqualizerProps) {
   const [hoveredBand, setHoveredBand] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [activeDragBand, setActiveDragBand] = useState<number | null>(null);
 
   useEffect(() => {
     if (!equalizer.isInitialized) {
