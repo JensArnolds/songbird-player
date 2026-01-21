@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **OG Image Route - Track ID & Query Support**: Social media preview images now support track IDs and search queries
+  - **Track ID Support**: Accepts `trackId` parameter to fetch and display specific track information
+  - **Query String Support**: Accepts `q` parameter to search for tracks and display the first result
+  - **API Integration**: Fetches track data via `/api/track/[id]` or `/api/music/search` before generating image
+  - **Fallback Support**: Falls back to direct URL parameters (title, artist, etc.) if trackId/query not provided or fetch fails
+  - Location: `src/app/api/og/route.tsx`
+
 - **Enhanced Mobile Queue**: Complete feature parity with desktop queue
   - **Search Functionality**: Search queue by track title or artist name with real-time filtering
   - **Multi-Select**: Long-press to select tracks, tap to toggle selection, bulk remove selected items
@@ -23,6 +30,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Loading States**: Loading indicators for smart tracks operations
   - **Haptic Feedback**: Tactile feedback for all interactions (selection, removal, reordering)
   - Location: `src/components/MobilePlayer.tsx`
+
+### Changed
+
+- **OG Image Route Optimization**: Improved performance and timeout handling for social media previews
+  - **Aggressive Timeouts**: Reduced API fetch timeout to 2s, cover image timeout to 1s
+  - **Total Time Check**: Redirects to static image if data fetch takes >2.5s (leaving ~2.5s for image generation)
+  - **Cover Image Limits**: Reduced max cover image size from 1MB to 500KB for faster processing
+  - **Early Exit**: Skips cover image if fetch takes >1s or image is too large
+  - **Performance Logging**: Added detailed timing logs for debugging timeout issues
+  - **Error Handling**: Graceful fallbacks at each step to prevent edge runtime timeouts
+  - Location: `src/app/api/og/route.tsx`
 
 ### Fixed
 
