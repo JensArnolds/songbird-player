@@ -9,34 +9,157 @@ export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
+  const startTime = Date.now();
 
-  const title = searchParams.get("title");
-  const artist = searchParams.get("artist");
-  const album = searchParams.get("album");
-  const cover = searchParams.get("cover");
-  const duration = searchParams.get("duration");
+  // Check for trackId or query string first
+  const trackId = searchParams.get("trackId");
+  const query = searchParams.get("q");
 
-  console.log("[OG Route] Generating preview:", {
-    title,
-    artist,
-    album,
-    hasCover: !!cover,
-    coverUrl: cover?.substring(0, 50),
-    duration,
+  let trackData: {
+    title: string;
+    artist: string;
+    album: string | null;
+    cover: string | null;
+    duration: string | null;
+  } | null = null;
+
+  // Fetch track data if trackId or query is provided
+  if (trackId) {
+    try {
+      console.log("[OG Route] Fetching track by ID:", trackId);
+      const trackUrl = new URL(`/api/track/${trackId}`, origin);
+      const trackResponse = await fetchWithTimeout(trackUrl.toString(), 2000);
+      
+      if (trackResponse.ok) {
+        const track = (await trackResponse.json()) as {
+          title?: string;
+          name?: string;
+          artist?: { name?: string } | string;
+          album?: { 
+            title?: string; 
+            name?: string; 
+            cover_medium?: string; 
+            cover_big?: string;
+            cover_xl?: string;
+          } | null;
+          duration?: number;
+          cover_medium?: string;
+          cover_big?: string;
+        };
+
+        const title = track.title || track.name || "";
+        const artistName = typeof track.artist === "string" 
+          ? track.artist 
+          : track.artist?.name || "";
+        const album = track.album;
+        const albumTitle = album && typeof album === "object"
+          ? (album.title || album.name || null)
+          : null;
+        const coverUrl = album && typeof album === "object"
+          ? (album.cover_big || album.cover_xl || album.cover_medium || null)
+          : (track.cover_big || track.cover_medium || null);
+        const duration = track.duration ? Math.floor(track.duration).toString() : null;
+
+        if (title && artistName) {
+          trackData = { title, artist: artistName, album: albumTitle, cover: coverUrl, duration };
+        }
+      }
+    } catch (error) {
+      console.error("[OG Route] Error fetching track by ID:", error);
+    }
+  } else if (query) {
+    try {
+      console.log("[OG Route] Searching tracks by query:", query);
+      const searchUrl = new URL("/api/music/search", origin);
+      searchUrl.searchParams.set("q", query);
+      const searchResponse = await fetchWithTimeout(searchUrl.toString(), 2000);
+      
+      if (searchResponse.ok) {
+        const searchData = (await searchResponse.json()) as {
+          data?: Array<{
+            title?: string;
+            name?: string;
+            artist?: { name?: string } | string;
+            album?: { 
+              title?: string; 
+              name?: string; 
+              cover_medium?: string; 
+              cover_big?: string;
+              cover_xl?: string;
+            } | null;
+            duration?: number;
+            cover_medium?: string;
+            cover_big?: string;
+          }>;
+        };
+
+        const firstTrack = searchData.data?.[0];
+        if (firstTrack) {
+          const title = firstTrack.title || firstTrack.name || "";
+          const artistName = typeof firstTrack.artist === "string"
+            ? firstTrack.artist
+            : firstTrack.artist?.name || "";
+          const album = firstTrack.album;
+          const albumTitle = album && typeof album === "object"
+            ? (album.title || album.name || null)
+            : null;
+          const albumWithCovers = album && typeof album === "object" 
+            ? album as { cover_big?: string; cover_xl?: string; cover_medium?: string }
+            : null;
+          const coverUrl = albumWithCovers
+            ? (albumWithCovers.cover_big || albumWithCovers.cover_xl || albumWithCovers.cover_medium || null)
+            : (firstTrack.cover_big || firstTrack.cover_medium || null);
+          const duration = firstTrack.duration ? Math.floor(firstTrack.duration).toString() : null;
+
+          if (title && artistName) {
+            trackData = { title, artist: artistName, album: albumTitle, cover: coverUrl, duration };
+          }
+        }
+      }
+    } catch (error) {
+      console.error("[OG Route] Error searching tracks:", error);
+    }
+  }
+
+  // Fall back to direct parameters if no trackId/query or fetch failed
+  if (!trackData) {
+    const title = searchParams.get("title");
+    const artist = searchParams.get("artist");
+    const album = searchParams.get("album");
+    const cover = searchParams.get("cover");
+    const duration = searchParams.get("duration");
+
+    if (title && artist) {
+      trackData = { title, artist, album, cover, duration };
+    }
+  }
+
+  const fetchTime = Date.now() - startTime;
+  console.log("[OG Route] Track data fetch completed:", {
+    hasTrackData: !!trackData,
+    fetchTime: `${fetchTime}ms`,
+    trackId,
+    query,
   });
 
-  if (!title || !artist) {
-    console.log("[OG Route] Missing required params, redirecting to static image");
+  if (!trackData || !trackData.title || !trackData.artist) {
+    console.log("[OG Route] Missing required track data, redirecting to static image");
+    return Response.redirect(`${origin}/og-image.png`, 302);
+  }
+
+  // Check if we're running out of time (edge runtime has ~5s limit, leave 2.5s for image generation)
+  if (fetchTime > 2500) {
+    console.warn("[OG Route] Fetch took too long, redirecting to static image");
     return Response.redirect(`${origin}/og-image.png`, 302);
   }
 
   try {
     return await generateTrackImage({
-      title,
-      artist,
-      album,
-      cover,
-      duration,
+      title: trackData.title,
+      artist: trackData.artist,
+      album: trackData.album,
+      cover: trackData.cover,
+      duration: trackData.duration,
       origin,
     });
   } catch (error) {
@@ -415,7 +538,10 @@ async function getCoverDataUrl(coverUrl: string | null) {
 
   try {
     console.log("[OG Route] Fetching cover image:", coverUrl.substring(0, 80));
-    const response = await fetchWithTimeout(coverUrl, 1500);
+    const startTime = Date.now();
+    
+    // Very aggressive timeout - we need to leave time for image generation
+    const response = await fetchWithTimeout(coverUrl, 1000);
 
     if (!response.ok) {
       console.error("[OG Route] Cover fetch failed:", response.status, response.statusText);
@@ -423,21 +549,37 @@ async function getCoverDataUrl(coverUrl: string | null) {
     }
 
     const contentLength = response.headers.get("content-length");
-    if (contentLength && Number(contentLength) > 1_000_000) {
+    // Reduce max size to 500KB for faster processing
+    if (contentLength && Number(contentLength) > 500_000) {
       console.warn("[OG Route] Cover image too large, skipping:", contentLength);
       return null;
     }
 
     const buffer = await response.arrayBuffer();
+    const fetchTime = Date.now() - startTime;
 
-    if (buffer.byteLength > 1_000_000) {
+    // Skip if buffer too large or fetch took too long
+    if (buffer.byteLength > 500_000) {
       console.warn("[OG Route] Cover image buffer too large, skipping:", buffer.byteLength);
       return null;
     }
 
+    if (fetchTime > 1000) {
+      console.warn("[OG Route] Cover fetch took too long, skipping:", fetchTime);
+      return null;
+    }
+
     const contentType = response.headers.get("content-type") || "image/jpeg";
+    const base64Start = Date.now();
     const base64 = arrayBufferToBase64(buffer);
-    console.log("[OG Route] Cover image processed successfully, size:", buffer.byteLength);
+    const base64Time = Date.now() - base64Start;
+    
+    console.log("[OG Route] Cover image processed:", {
+      size: buffer.byteLength,
+      fetchTime: `${fetchTime}ms`,
+      base64Time: `${base64Time}ms`,
+    });
+    
     return `data:${contentType};base64,${base64}`;
   } catch (error) {
     console.error("[OG Route] Error fetching cover image:", error);
