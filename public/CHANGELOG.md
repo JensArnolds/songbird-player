@@ -9,11 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Show GUI Button Playback Restart**: Fixed audio playback restarting when clicking "Show UI Again" button
+  - **Root Cause 1**: UIWrapper returned `null` when `hideUI` was true, causing complete unmount of page components
+  - **Root Cause 2**: When components remounted, HomePageClient's useEffect re-ran and re-processed URL parameters (trackId, albumId, query)
+  - **Impact**: Showing UI again after hiding it called `player.clearQueue()` and `player.playTrack()`, restarting playback
+  - **Previous Behavior**:
+    - Hide UI → page components unmount → refs reset to null
+    - Show UI → page components remount → useEffect re-runs → playback restarts from beginning
+  - **Fix**: Changed UIWrapper to use CSS `hidden` class instead of returning `null`, preserving component state and refs
+  - Location: `src/components/UIWrapper.tsx`
+
 - **Show GUI Button Context Recreation**: Fixed audio player context recreating unnecessarily when toggling UI visibility
   - **Root Cause**: `hideUI` and `showMobilePlayer` were incorrectly included in the AudioPlayerContext useMemo dependency array
   - **Impact**: Clicking "Show GUI / Hide UI" button no longer triggers full context recreation and component re-renders
   - **Performance**: Reduced unnecessary re-renders across all components consuming the audio player context
-  - **Previous Behavior**: Every UI visibility toggle caused all player state consumers to re-render, potentially affecting audio playback
   - **Fix**: Removed `hideUI` and `showMobilePlayer` from dependency array as they are UI-only state
   - Location: `src/contexts/AudioPlayerContext.tsx:567-613`
 
