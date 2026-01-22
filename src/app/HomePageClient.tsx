@@ -578,7 +578,7 @@ export default function HomePageClient() {
                   Still we take it seriously enough to keep it running and updated.
                   But expect bugs to disappear and features to be added as we feel like it,
                   at the same time, new bugs to appear and features to be removed as we feel like it.
-                  Deal with it.
+                  It's free lossless music, so enjoy it while it lasts.
                 </p>
 
                 {}
