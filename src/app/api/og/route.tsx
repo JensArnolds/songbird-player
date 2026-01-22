@@ -153,14 +153,9 @@ export async function GET(request: NextRequest) {
     return Response.redirect(`${origin}/og-image.png`, 302);
   }
 
-  // Check if we're running out of time (edge runtime has ~5s limit, leave time for image generation)
-  // Increased from 2.5s to 7s to account for longer fetch times
-  if (fetchTime > 7000) {
-    console.warn("[OG Route] Fetch took too long, redirecting to static image:", {
-      fetchTime: `${fetchTime}ms`,
-    });
-    return Response.redirect(`${origin}/og-image.png`, 302);
-  }
+  // Note: Edge runtime timeout varies by platform (typically 25-30s on Vercel)
+  // We set individual fetch timeouts above, so if we got here, the fetches succeeded
+  // No need for additional total time check - let the edge runtime handle overall timeout
 
   try {
     return await generateTrackImage({
