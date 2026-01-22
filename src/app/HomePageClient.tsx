@@ -574,11 +574,7 @@ export default function HomePageClient() {
                     : "Search for songs, artists, albums - anything you want to listen to."}
                 </p>
                 <p className="mt-3 max-w-md px-4 text-xs text-[var(--color-muted)] md:text-sm">
-                  We kinda fuck around with this project for fun so don't take it too seriously.
-                  Still we take it seriously enough to keep it running and updated.
-                  But expect bugs to disappear and features to be added as we feel like it,
-                  at the same time, new bugs to appear and features to be removed as we feel like it.
-                  It's free lossless music, so enjoy it while it lasts.
+                  This project is a pasttime one. Lossless audio for free. Enjoy it while it lasts. Bugs may appear or disappear as we iterate and feel. 
                 </p>
 
                 {}
