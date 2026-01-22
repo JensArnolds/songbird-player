@@ -192,12 +192,12 @@ export async function GET(request: NextRequest) {
   });
 
   if (!trackData || !trackData.title || !trackData.artist) {
-    console.log("[OG Route] Missing required track data, redirecting to static image", {
+    console.log("[OG Route] Missing required track data, redirecting to default image", {
       hasTrackData: !!trackData,
       hasTitle: !!trackData?.title,
       hasArtist: !!trackData?.artist,
     });
-    return Response.redirect(`${origin}/og-image.png`, 302);
+    return Response.redirect("https://darkfloor.one/api/preview/default", 302);
   }
 
   // Note: Edge runtime timeout varies by platform (typically 25-30s on Vercel)
@@ -214,8 +214,8 @@ export async function GET(request: NextRequest) {
       origin,
     });
   } catch (error) {
-    console.error("[OG Route] Error generating image, falling back to static:", error);
-    return Response.redirect(`${origin}/og-image.png`, 302);
+    console.error("[OG Route] Error generating image, falling back to default:", error);
+    return Response.redirect("https://darkfloor.one/api/preview/default", 302);
   }
 }
 
