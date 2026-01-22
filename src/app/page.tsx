@@ -49,16 +49,14 @@ function getAlbumCoverImage(track: Track | null): string {
 
 function buildOgImageUrl(track: Track | null, baseUrl: string, query?: string | null): string {
   if (!track) {
-    // If we have a query but no track, pass the query to OG route to fetch it there
     if (query) {
       const params = new URLSearchParams();
       params.set("q", query);
       return `${baseUrl}/api/og?${params.toString()}`;
     }
-    return `${baseUrl}/api/og`;
+    return "https://darkfloor.one/api/preview/default";
   }
 
-  // If we have a track, use trackId for direct backend redirect (simpler & faster)
   const params = new URLSearchParams();
   params.set("trackId", track.id.toString());
 
