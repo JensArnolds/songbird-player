@@ -96,6 +96,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const isPlayingRef = useRef(isPlaying);
   const shouldResumeOnFocusRef = useRef(false);
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastLoadedTrackIdRef = useRef<number | null>(null);
+  const shouldAutoPlayNextRef = useRef(false);
 
   const queue = useMemo(
     () => queuedTracks.map((qt) => qt.track),
@@ -266,17 +268,45 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, [volume]);
 
   useEffect(() => {
-    if (audioRef.current && currentTrack && !audioRef.current.src) {
+    if (!audioRef.current || !currentTrack) return;
 
-      logger.debug(
-        "[useAudioPlayer] 🔄 Restoring audio source from localStorage (no autoplay)",
-      );
+    // Check if this is a different track than what's currently loaded
+    const isNewTrack = lastLoadedTrackIdRef.current !== currentTrack.id;
+
+    if (isNewTrack) {
       const streamUrl = getStreamUrlById(currentTrack.id.toString());
-      audioRef.current.src = streamUrl;
-      audioRef.current.load();
+      const currentSrc = audioRef.current.src;
 
+      // Only load if the source is different or missing
+      if (!currentSrc || currentSrc !== streamUrl) {
+        logger.debug(
+          "[useAudioPlayer] 🔄 Auto-loading new track (track changed in queue):",
+          currentTrack.title,
+        );
+
+        const wasPlaying = !audioRef.current.paused;
+        const shouldAutoPlay = wasPlaying || shouldAutoPlayNextRef.current;
+
+        audioRef.current.src = streamUrl;
+        audioRef.current.load();
+
+        // Auto-play if we were playing before OR if smart queue generated this track
+        if (shouldAutoPlay) {
+          audioRef.current.play().catch((err) => {
+            logger.debug(
+              "[useAudioPlayer] Auto-play failed after track change:",
+              err,
+            );
+          });
+        }
+
+        // Reset the auto-play flag
+        shouldAutoPlayNextRef.current = false;
+        lastLoadedTrackIdRef.current = currentTrack.id;
+        onTrackChange?.(currentTrack);
+      }
     }
-  }, [currentTrack]);
+  }, [currentTrack, onTrackChange]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -319,21 +349,27 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       // Last track in queue - keep it in the queue so the player UI remains visible
       // Add to history but don't remove from queue
       setHistory((prev) => [...prev, currentTrack]);
-      
+
       // Queue is running out - check if we should generate smart tracks
-      const shouldAutoQueue = 
+      // Require at least 2 tracks in history to make decent recommendations
+      const minHistoryForAutoQueue = 2;
+      const hasEnoughHistory = history.length >= minHistoryForAutoQueue;
+
+      const shouldAutoQueue =
         options.smartQueueSettings?.autoQueueEnabled &&
         options.onAutoQueueTrigger &&
-        currentTrack;
+        currentTrack &&
+        hasEnoughHistory;
 
       if (shouldAutoQueue) {
         logger.debug(
-          "[useAudioPlayer] 🎵 Queue running low, generating smart tracks...",
+          "[useAudioPlayer] 🎵 Queue running low, generating smart tracks based on listening history...",
+          { historySize: history.length },
         );
-        
+
         try {
-          
-          // Generate smart tracks based on current track
+
+          // Generate smart tracks based on current track and listening history
           const recommendedTracks = await options.onAutoQueueTrigger!(
             currentTrack,
             queuedTracks.length,
@@ -357,10 +393,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             });
 
             logger.debug(
-              `[useAudioPlayer] ✅ Generated ${smartQueuedTracks.length} smart tracks, continuing playback`,
+              `[useAudioPlayer] ✅ Generated ${smartQueuedTracks.length} smart tracks, auto-transition will happen`,
             );
-            
-            // Continue playing - the next track will start automatically
+
+            // Flag that we should auto-play the next track
+            shouldAutoPlayNextRef.current = true;
+
             return;
           } else {
             logger.warn(
@@ -373,6 +411,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             error,
           );
         }
+      } else if (options.smartQueueSettings?.autoQueueEnabled && !hasEnoughHistory) {
+        logger.debug(
+          "[useAudioPlayer] ⏸️ Auto-queue skipped: need at least 2 tracks in history for good recommendations",
+          { historySize: history.length },
+        );
       }
 
       // If auto-queue failed or is disabled, end playback

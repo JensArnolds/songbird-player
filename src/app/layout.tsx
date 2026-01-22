@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     siteName: "Starchild Music",
     images: [
       {
-        url: `${baseUrl}/api/og`,
+        url: "https://darkfloor.one/api/preview/default",
         width: 1200,
         height: 630,
         alt: "Starchild Music - Modern music streaming platform",
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     title: "Starchild Music",
     description:
       "Modern music streaming and discovery platform with advanced audio features and visual patterns",
-    images: [`${baseUrl}/api/og`],
+    images: ["https://darkfloor.one/api/preview/default"],
   },
   other: {
     "format-detection": "telephone=no",
