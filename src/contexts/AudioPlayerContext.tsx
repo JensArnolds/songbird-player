@@ -578,10 +578,9 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       player.repeatMode,
       player.isLoading,
       player.lastAutoQueueCount,
-      showMobilePlayer,
-      hideUI,
+      // showMobilePlayer and hideUI are excluded from dependencies because they're UI-only state
       // audioElement is excluded from dependencies because it's maintained via a stable ref
-      // and we don't want context value recreation when hideUI changes to trigger audio effects
+      // We don't want context value recreation when hideUI or showMobilePlayer changes to trigger audio effects
       play,
       playTrack,
       player.togglePlay,
