@@ -95,6 +95,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   );
   const isPlayingRef = useRef(isPlaying);
   const shouldResumeOnFocusRef = useRef(false);
+  const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const queue = useMemo(
     () => queuedTracks.map((qt) => qt.track),
@@ -289,8 +290,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     if (repeatMode === "one") {
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {
-
+        audioRef.current.play().catch((err) => {
+          logger.error("[useAudioPlayer] Failed to restart track in repeat-one mode:", err);
+          setIsPlaying(false);
+          if (showToast) {
+            showToast("Failed to replay track. Please try again.", "error");
+          }
         });
       }
       return;
@@ -689,17 +694,22 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       return;
     if (!("serviceWorker" in navigator)) return;
 
-    let keepAliveInterval: NodeJS.Timeout | null = null;
+    if (keepAliveIntervalRef.current) {
+      clearInterval(keepAliveIntervalRef.current);
+      keepAliveIntervalRef.current = null;
+    }
 
     if (isPlaying && currentTrack) {
-      keepAliveInterval = setInterval(() => {
+      keepAliveIntervalRef.current = setInterval(() => {
         navigator.serviceWorker.ready
           .then((registration) => {
             if (registration.active) {
               registration.active.postMessage({ type: "KEEP_ALIVE" });
             }
           })
-          .catch(() => {});
+          .catch((err) => {
+            logger.warn("[useAudioPlayer] Service worker keep-alive failed:", err);
+          });
       }, 25000);
 
       logger.debug(
@@ -708,8 +718,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     }
 
     return () => {
-      if (keepAliveInterval) {
-        clearInterval(keepAliveInterval);
+      if (keepAliveIntervalRef.current) {
+        clearInterval(keepAliveIntervalRef.current);
+        keepAliveIntervalRef.current = null;
         logger.debug(
           "[useAudioPlayer] 🛑 Stopped service worker keep-alive pings",
         );
@@ -843,6 +854,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       logger.warn(
         "[useAudioPlayer] play() called but audioRef.current is null",
       );
+      setIsPlaying(false);
       return;
     }
 
@@ -979,10 +991,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       });
       setIsPlaying(false);
     } finally {
-
-      setTimeout(() => {
-        isPlayPauseOperationRef.current = false;
-      }, 100);
+      isPlayPauseOperationRef.current = false;
     }
   }, []);
 
@@ -1012,10 +1021,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       logger.error("[useAudioPlayer] Error pausing audio:", error);
       setIsPlaying(false);
     } finally {
-
-      setTimeout(() => {
-        isPlayPauseOperationRef.current = false;
-      }, 100);
+      isPlayPauseOperationRef.current = false;
     }
   }, []);
 
@@ -1743,7 +1749,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       if (audioRef.current && !isPlayPauseOperationRef.current) {
         const actuallyPlaying = !audioRef.current.paused;
 
-        if (actuallyPlaying !== isPlaying) {
+        if (actuallyPlaying !== isPlayingRef.current) {
           const now = Date.now();
           const lastSync = lastStateSyncRef.current;
 
@@ -1757,7 +1763,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
               "[useAudioPlayer] 🔄 Syncing state: audio is",
               actuallyPlaying ? "playing" : "paused",
               "but state says",
-              isPlaying,
+              isPlayingRef.current,
             );
             setIsPlaying(actuallyPlaying);
             lastStateSyncRef.current = {
@@ -1770,7 +1776,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     }, 500);
 
     return () => clearInterval(syncInterval);
-  }, [isPlaying]);
+  }, []);
 
   useEffect(() => {
     return () => {

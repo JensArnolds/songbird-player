@@ -42,6 +42,13 @@ export class ErrorBoundary extends Component<
     this.props.onError?.(error, errorInfo);
   }
 
+  resetError = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+    });
+  };
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
@@ -56,13 +63,13 @@ export class ErrorBoundary extends Component<
             </h1>
             <p className="mb-6 text-[var(--color-subtext)]">
               We&apos;re sorry, but something unexpected happened. Please try
-              refreshing the page.
+              again.
             </p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={this.resetError}
               className="rounded-lg bg-[var(--color-accent)] px-6 py-3 text-white transition-colors hover:opacity-90"
             >
-              Refresh Page
+              Try Again
             </button>
             {process.env.NODE_ENV === "development" && this.state.error && (
               <details className="mt-6 text-left">
