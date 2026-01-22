@@ -90,17 +90,9 @@ export async function generateMetadata({
 
   const description = `Listen to "${track.title}" by ${track.artist.name}${track.album.title ? ` from ${track.album.title}` : ""} on Starchild Music`;
 
+  // Use trackId for direct backend redirect (simpler & faster)
   const ogImageUrl = new URL(`${baseUrl}/api/og`);
-  ogImageUrl.searchParams.set("title", track.title);
-  ogImageUrl.searchParams.set("artist", track.artist.name);
-  if (track.album.title) {
-    ogImageUrl.searchParams.set("album", track.album.title);
-  }
-  if (coverImage) {
-    ogImageUrl.searchParams.set("cover", coverImage);
-  }
-  ogImageUrl.searchParams.set("duration", track.duration.toString());
-  ogImageUrl.searchParams.set("v", id);
+  ogImageUrl.searchParams.set("trackId", id);
 
   return {
     title: `${track.title} - ${track.artist.name} | Starchild Music`,

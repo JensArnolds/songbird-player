@@ -15,6 +15,53 @@ export async function GET(request: NextRequest) {
   const trackId = searchParams.get("trackId");
   const query = searchParams.get("q");
 
+  // If we have a trackId, redirect directly to the backend preview API (fastest path)
+  if (trackId) {
+    const backendApiUrl = process.env.SONGBIRD_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SONGBIRD_API_URL;
+    if (backendApiUrl) {
+      const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
+      const previewUrl = `${normalizedUrl}/api/deezer/track/${trackId}/preview`;
+      console.log("[OG Route] Redirecting to backend preview API:", previewUrl);
+      return Response.redirect(previewUrl, 302);
+    }
+  }
+
+  // If we have a query, use the backend POST endpoint via proxy
+  if (query) {
+    const backendApiUrl = process.env.SONGBIRD_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SONGBIRD_API_URL;
+    if (backendApiUrl) {
+      try {
+        const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
+        const previewEndpoint = `${normalizedUrl}/api/deezer/track/preview`;
+
+        console.log("[OG Route] Fetching preview from backend POST:", previewEndpoint, "query:", query);
+        const response = await fetch(previewEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query }),
+          signal: AbortSignal.timeout(10000),
+        });
+
+        if (response.ok) {
+          // Return the image directly
+          const imageBuffer = await response.arrayBuffer();
+          return new Response(imageBuffer, {
+            headers: {
+              "Content-Type": "image/png",
+              "Cache-Control": "public, max-age=3600",
+            },
+          });
+        } else {
+          console.error("[OG Route] Backend preview API returned error:", response.status);
+        }
+      } catch (error) {
+        console.error("[OG Route] Error fetching from backend preview API:", error);
+      }
+    }
+  }
+
   let trackData: {
     title: string;
     artist: string;
