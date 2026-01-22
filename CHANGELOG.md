@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Null Checks**: Added state updates when audio element is null to prevent UI/audio desync
   - Locations: `src/components/ErrorBoundary.tsx`, `src/hooks/useAudioPlayer.ts`
 
+- **Playback Rate Stability**: Fixed audio speeding up sporadically during playback on mobile
+  - **Faster Detection**: Reduced playback rate enforcement interval from 10s to 1s (users hear drift for max 1s instead of 10s)
+  - **Resume Enforcement**: Added playback rate enforcement after all resume operations (visibility change, pageshow, resume events)
+  - **Better Logging**: Added detailed logging when playback rate changes to identify root causes
+  - **Proactive Enforcement**: Enforces playback rate immediately after play() operation, not just reactively
+  - Location: `src/hooks/useAudioPlayer.ts`
+
 ### Added
 
 - **Stability Tests**: Comprehensive test suite to prevent regressions

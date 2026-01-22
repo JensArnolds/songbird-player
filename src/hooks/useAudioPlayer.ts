@@ -518,6 +518,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     };
 
     const handleRateChange = () => {
+      if (audioRef.current) {
+        logger.warn("[useAudioPlayer] ⚠️ Playback rate change detected", {
+          playbackRate: audioRef.current.playbackRate,
+          defaultPlaybackRate: audioRef.current.defaultPlaybackRate,
+        });
+      }
       enforcePlaybackRate();
     };
 
@@ -533,7 +539,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
     const playbackRateInterval = setInterval(() => {
       enforcePlaybackRate();
-    }, 10000);
+    }, 1000);
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
@@ -583,6 +589,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         );
         onBackgroundResumeError?.(reason, err);
       }
+
+      enforcePlaybackRate();
 
       if (audio.paused) {
         audio
@@ -972,6 +980,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         } else {
           logger.debug("[useAudioPlayer] Connection chain verified");
         }
+      }
+
+      if (audioRef.current) {
+        audioRef.current.playbackRate = 1;
+        audioRef.current.defaultPlaybackRate = 1;
       }
 
       setIsPlaying(true);
