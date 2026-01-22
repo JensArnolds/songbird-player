@@ -44,12 +44,17 @@ export default function Header() {
   const [apiHealthUrl, setApiHealthUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const apiUrl = env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) return;
+    // Use NEXT_PUBLIC_API_HEALTH_URL if provided, otherwise fall back to constructing from NEXT_PUBLIC_API_URL
+    const healthUrl = env.NEXT_PUBLIC_API_HEALTH_URL || (() => {
+      const apiUrl = env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) return null;
+      const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
+      return `${normalizedApiUrl}/health`;
+    })();
+
+    if (!healthUrl) return;
 
     let isMounted = true;
-    const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
-    const healthUrl = `${normalizedApiUrl}/health`;
     setApiHealthUrl(healthUrl);
 
     const checkHealth = async () => {

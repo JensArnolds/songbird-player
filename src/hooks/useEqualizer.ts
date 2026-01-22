@@ -342,17 +342,16 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
 
   useEffect(() => {
     return () => {
-
-      if (audioElement) {
-        releaseAudioConnection(audioElement);
-      }
-
+      // Don't release the audio connection on cleanup - it's managed by the audioContextManager
+      // and should persist across component unmounts to avoid interrupting playback.
+      // The connection will be cleaned up when the audio element itself is removed.
+      // We only need to clear our local references.
       filtersRef.current = [];
       audioContextRef.current = null;
       sourceRef.current = null;
       setIsInitialized(false);
     };
-  }, [audioElement]);
+  }, []);
 
   return {
     isInitialized,
