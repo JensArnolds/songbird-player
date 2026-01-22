@@ -47,9 +47,14 @@ function getAlbumCoverImage(track: Track | null): string {
   return "";
 }
 
-function buildOgImageUrl(track: Track | null, baseUrl: string): string {
+function buildOgImageUrl(track: Track | null, baseUrl: string, query?: string | null): string {
   if (!track) {
-
+    // If we have a query but no track, pass the query to OG route to fetch it there
+    if (query) {
+      const params = new URLSearchParams();
+      params.set("q", query);
+      return `${baseUrl}/api/og?${params.toString()}`;
+    }
     return `${baseUrl}/api/og`;
   }
 
@@ -128,7 +133,7 @@ export async function generateMetadata({
   }
 
   const firstTrack = await getFirstTrackFromSearch(query, requestBaseUrl);
-  const ogImage = buildOgImageUrl(firstTrack, requestBaseUrl);
+  const ogImage = buildOgImageUrl(firstTrack, requestBaseUrl, query);
 
   const trackTitle = firstTrack
     ? `${firstTrack.title} by ${firstTrack.artist.name}`
