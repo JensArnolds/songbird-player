@@ -14,9 +14,13 @@ export function UIWrapper({ children }: UIWrapperProps) {
   const { hideUI } = useGlobalPlayer();
   const isMobile = useIsMobile();
 
-  if (!isMobile && hideUI) {
-    return null;
+  if (isMobile) {
+    return <>{children}</>;
   }
 
-  return <>{children}</>;
+  return (
+    <div className={hideUI ? "hidden" : undefined}>
+      {children}
+    </div>
+  );
 }
