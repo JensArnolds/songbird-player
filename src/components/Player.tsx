@@ -238,6 +238,7 @@ export default function MaturePlayer({
 
           {}
           <button
+            type="button"
             onClick={() => {
               hapticLight();
               setShowAddToPlaylistModal(true);
@@ -250,6 +251,7 @@ export default function MaturePlayer({
 
           {}
           <button
+            type="button"
             onClick={toggleFavorite}
             disabled={addFavorite.isPending || removeFavorite.isPending}
             className={`rounded-full p-2 transition-all ${
@@ -272,6 +274,7 @@ export default function MaturePlayer({
           <div className="flex items-center gap-2">
             {}
             <button
+              type="button"
               onClick={handleToggleShuffle}
               className={`rounded p-2 transition ${
                 isShuffled
@@ -291,6 +294,7 @@ export default function MaturePlayer({
 
             {}
             <button
+              type="button"
               onClick={handlePrevious}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
               title="Previous (Shift + ←)"
@@ -302,6 +306,7 @@ export default function MaturePlayer({
 
             {}
             <button
+              type="button"
               onClick={onSkipBackward}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
               title="Skip backward 10s (←)"
@@ -323,6 +328,7 @@ export default function MaturePlayer({
 
             {}
             <button
+              type="button"
               onClick={handlePlayPause}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-text)] text-[#0f141d] shadow-[0_10px_28px_rgba(244,178,102,0.35)] transition hover:scale-105 active:scale-95"
               title="Play/Pause (Space)"
@@ -356,6 +362,7 @@ export default function MaturePlayer({
 
             {}
             <button
+              type="button"
               onClick={onSkipForward}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
               title="Skip forward 10s (→)"
@@ -377,6 +384,7 @@ export default function MaturePlayer({
 
             {}
             <button
+              type="button"
               onClick={handleNext}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
               disabled={queue.length === 0}
@@ -389,6 +397,7 @@ export default function MaturePlayer({
 
             {}
             <button
+              type="button"
               onClick={handleCycleRepeat}
               className={`rounded p-2 transition ${
                 repeatMode !== "none"
@@ -459,6 +468,7 @@ export default function MaturePlayer({
           {}
           <div className="relative hidden items-center gap-2 md:flex">
             <button
+              type="button"
               onClick={onToggleMute}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
               title="Mute/Unmute (M)"
@@ -518,6 +528,7 @@ export default function MaturePlayer({
           {}
           {onToggleQueue && (
             <button
+              type="button"
               onClick={onToggleQueue}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
               title="Queue (Q)"
@@ -541,6 +552,7 @@ export default function MaturePlayer({
           {}
           {onToggleEqualizer && (
             <button
+              type="button"
               onClick={onToggleEqualizer}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
               title="Equalizer (E)"
@@ -564,6 +576,7 @@ export default function MaturePlayer({
           {}
           {onToggleVisualizer && (
             <button
+              type="button"
               onClick={onToggleVisualizer}
               className={`rounded p-2 transition ${
                 visualizerEnabled
@@ -601,6 +614,7 @@ export default function MaturePlayer({
           {}
           {onTogglePatternControls && visualizerEnabled && (
             <button
+              type="button"
               onClick={onTogglePatternControls}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
               title="Pattern Controls"
@@ -611,6 +625,7 @@ export default function MaturePlayer({
 
           {}
           <button
+            type="button"
             onClick={() => {
               hapticLight();
               setHideUI(!hideUI);
