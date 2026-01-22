@@ -299,11 +299,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     }
 
     if (queuedTracks.length > 1) {
-
+      // Move to next track in queue
       setHistory((prev) => [...prev, currentTrack]);
       setQueuedTracks((prev) => prev.slice(1));
     } else if (repeatMode === "all") {
-
+      // Repeat all tracks from history
       if (history.length > 0) {
         const allTracks = [...history, currentTrack];
         const newQueuedTracks = allTracks.map((track, idx) => ({
@@ -316,6 +316,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         setHistory([]);
       }
     } else {
+      // Last track in queue - keep it in the queue so the player UI remains visible
+      // Add to history but don't remove from queue
+      setHistory((prev) => [...prev, currentTrack]);
+      
       // Queue is running out - check if we should generate smart tracks
       const shouldAutoQueue = 
         options.smartQueueSettings?.autoQueueEnabled &&
@@ -328,7 +332,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         );
         
         try {
-          setHistory((prev) => [...prev, currentTrack]);
           
           // Generate smart tracks based on current track
           const recommendedTracks = await options.onAutoQueueTrigger!(
@@ -375,9 +378,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       // If auto-queue failed or is disabled, end playback
       onTrackEnd?.(currentTrack);
 
-      setQueuedTracks([]);
+      // Don't clear the queue - keep the last track so the player UI remains visible
+      // This prevents the player from disappearing when the queue finishes
+      // The user can still see the last played track and interact with the player
       setIsPlaying(false);
-      logger.debug("[useAudioPlayer] 🏁 Playback ended, queue cleared");
+      logger.debug("[useAudioPlayer] 🏁 Playback ended, keeping last track in queue for UI");
     }
   }, [currentTrack, queuedTracks, repeatMode, history, onTrackEnd, options.smartQueueSettings, options.onAutoQueueTrigger, createQueuedTrack]);
 

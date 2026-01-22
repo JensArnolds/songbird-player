@@ -218,7 +218,7 @@ export async function getDeezerRecommendations(
   trackNames: string[],
   count = 10,
 ): Promise<Track[]> {
-  console.log("[SmartQueue] 🎯 getDeezerRecommendations called", {
+  console.log("[SmartQueue] 🎯 getStarchildRecommendations called", {
     trackNames,
     count,
     apiUrl: API_BASE_URL,
@@ -241,7 +241,7 @@ export async function getDeezerRecommendations(
       },
     );
 
-    console.log("[SmartQueue] 📡 Deezer recommendations API response:", {
+    console.log("[SmartQueue] 📡 Starchild recommendations API response:", {
       status: response.status,
       statusText: response.statusText,
       ok: response.ok,
@@ -253,7 +253,7 @@ export async function getDeezerRecommendations(
         .catch(() => ({ message: response.statusText }))) as {
         message?: string;
       };
-      console.error("[SmartQueue] ❌ Deezer recommendations API error:", error);
+      console.error("[SmartQueue] ❌ Starchild recommendations API error:", error);
       throw new Error(error.message ?? `API Error: ${response.status}`);
     }
 
@@ -262,7 +262,7 @@ export async function getDeezerRecommendations(
       ? payload.filter((item): item is Track => isTrack(item))
       : [];
 
-    console.log("[SmartQueue] ✅ Deezer recommendations received:", {
+    console.log("[SmartQueue] ✅ Starchild recommendations received:", {
       count: tracks.length,
       sample: tracks.slice(0, 3).map((t) => `${t.title} - ${t.artist.name}`),
     });
@@ -274,7 +274,7 @@ export async function getDeezerRecommendations(
     return tracks.slice(0, count);
   } catch (error) {
     console.error(
-      "[SmartQueue] ❌ Failed to get Deezer recommendations:",
+      "[SmartQueue] ❌ Failed to get Starchild recommendations:",
       error,
     );
     return [];
@@ -319,7 +319,7 @@ async function fetchDeezerTrack(trackId: string): Promise<Track | null> {
     const track = (await response.json()) as Track;
     return track;
   } catch (error) {
-    console.error("Failed to fetch Deezer track:", error);
+    console.error("Failed to fetch Starchild track:", error);
     return null;
   }
 }
@@ -335,7 +335,7 @@ async function searchDeezerTrack(query: string): Promise<Track[]> {
     const data = (await response.json()) as { data: Track[] };
     return data.data ?? [];
   } catch (error) {
-    console.error("Failed to search Deezer:", error);
+    console.error("Failed to search Starchild:", error);
     return [];
   }
 }
@@ -424,7 +424,7 @@ export async function getSmartQueueRecommendations(
       };
     }
 
-    console.log("[SmartQueue] 🔄 Falling back to direct Deezer API...");
+    console.log("[SmartQueue] 🔄 Falling back to direct Starchild API...");
     const tracks = await fetchDeezerRadio(currentTrack.id, count * 2);
 
     if (tracks.length > 0) {
@@ -496,7 +496,7 @@ async function fetchDeezerRadio(
   trackId: number,
   limit: number,
 ): Promise<Track[]> {
-  console.log("[SmartQueue] 📻 Fetching Deezer recommendations:", {
+  console.log("[SmartQueue] 📻 Fetching Starchild recommendations:", {
     trackId,
     limit,
   });
@@ -534,7 +534,7 @@ async function fetchDeezerRadio(
 
     tracks = tracks.filter((t) => t.id !== trackId);
 
-    console.log("[SmartQueue] ✅ Deezer recommendations received:", {
+    console.log("[SmartQueue] ✅ Starchild recommendations received:", {
       count: tracks.length,
       tracks: tracks.slice(0, 3).map((t) => `${t.title} - ${t.artist.name}`),
     });
