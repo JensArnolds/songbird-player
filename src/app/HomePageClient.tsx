@@ -9,24 +9,24 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import {
-    getAlbumTracks,
-    getTrackById,
-    searchTracks,
-    searchTracksByArtist,
+  getAlbumTracks,
+  getTrackById,
+  searchTracks,
+  searchTracksByArtist,
 } from "@/utils/api";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import {
-    springPresets,
-    staggerContainer,
-    staggerItem,
+  springPresets,
+  staggerContainer,
+  staggerItem,
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-    BookOpen,
-    Music2,
-    Search,
-    Shuffle,
-    Sparkles,
+  BookOpen,
+  Music2,
+  Search,
+  Shuffle,
+  Sparkles,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -574,9 +574,11 @@ export default function HomePageClient() {
                     : "Search for songs, artists, albums - anything you want to listen to."}
                 </p>
                 <p className="mt-3 max-w-md px-4 text-xs text-[var(--color-muted)] md:text-sm">
-                  We run two synced frontends (darkfloor + Starchild). Both connect to the
-                  same Neon database, so your library, playlists, and history stay in sync
-                  no matter which site you use.
+                  We kinda fuck around with this project for fun so don't take it too seriously.
+                  Still we take it seriously enough to keep it running and updated.
+                  But expect bugs to disappear and features to be added as we feel like it,
+                  at the same time, new bugs to appear and features to be removed as we feel like it.
+                  Deal with it.
                 </p>
 
                 {}
