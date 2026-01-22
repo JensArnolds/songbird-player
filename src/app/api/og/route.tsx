@@ -16,20 +16,28 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get("q");
 
   // If we have a trackId, redirect directly to the backend preview API (fastest path)
+  // Skip if backend is localhost (won't work in production)
   if (trackId) {
     const backendApiUrl = process.env.SONGBIRD_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SONGBIRD_API_URL;
-    if (backendApiUrl) {
+    const isLocalhost = backendApiUrl?.includes("localhost") || backendApiUrl?.includes("127.0.0.1");
+
+    if (backendApiUrl && !isLocalhost) {
       const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
       const previewUrl = `${normalizedUrl}/api/track/${trackId}/preview`;
       console.log("[OG Route] Redirecting to backend preview API:", previewUrl);
       return Response.redirect(previewUrl, 302);
+    } else if (isLocalhost) {
+      console.log("[OG Route] Skipping localhost backend API, generating image locally");
     }
   }
 
   // If we have a query, use the backend POST endpoint via proxy
+  // Skip if backend is localhost (won't work in production)
   if (query) {
     const backendApiUrl = process.env.SONGBIRD_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SONGBIRD_API_URL;
-    if (backendApiUrl) {
+    const isLocalhost = backendApiUrl?.includes("localhost") || backendApiUrl?.includes("127.0.0.1");
+
+    if (backendApiUrl && !isLocalhost) {
       try {
         const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
         const previewEndpoint = `${normalizedUrl}/api/track/preview`;
@@ -59,6 +67,8 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         console.error("[OG Route] Error fetching from backend preview API:", error);
       }
+    } else if (isLocalhost) {
+      console.log("[OG Route] Skipping localhost backend API for query search");
     }
   }
 
