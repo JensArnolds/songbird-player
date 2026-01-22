@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const backendApiUrl = process.env.SONGBIRD_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SONGBIRD_API_URL;
     if (backendApiUrl) {
       const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
-      const previewUrl = `${normalizedUrl}/api/deezer/track/${trackId}/preview`;
+      const previewUrl = `${normalizedUrl}/api/track/${trackId}/preview`;
       console.log("[OG Route] Redirecting to backend preview API:", previewUrl);
       return Response.redirect(previewUrl, 302);
     }
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     if (backendApiUrl) {
       try {
         const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
-        const previewEndpoint = `${normalizedUrl}/api/deezer/track/preview`;
+        const previewEndpoint = `${normalizedUrl}/api/track/preview`;
 
         console.log("[OG Route] Fetching preview from backend POST:", previewEndpoint, "query:", query);
         const response = await fetch(previewEndpoint, {
