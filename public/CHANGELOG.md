@@ -5,6 +5,32 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.23] - 2026-01-22
+
+### Fixed
+
+- **Player Button Refresh Bug**: Fixed page refresh when clicking "Hide UI to enjoy visuals" button
+  - **Root Cause**: All buttons in Player component were missing `type="button"` attribute, defaulting to `type="submit"` which triggers form submission/navigation
+  - **Impact**: All 15 player buttons now explicitly set `type="button"` to prevent unintended page refreshes
+  - **Buttons Fixed**: Hide UI, Add to playlist, Favorite, Shuffle, Previous, Skip backward, Play/Pause, Skip forward, Next, Repeat, Mute, Queue, Equalizer, Visualizer, Pattern controls
+  - Location: `src/components/Player.tsx`
+
+### Improved
+
+- **Test Infrastructure**: Comprehensive testing environment setup
+  - **localStorage Mock**: Full implementation with getItem, setItem, removeItem, clear, length, key methods
+  - **AbortSignal.timeout**: Polyfill for Node.js compatibility (Node doesn't support AbortSignal.timeout natively)
+  - **Global Fetch Mock**: Handles API calls, CDN resources (emojis, fonts), external services
+  - **AudioContext Mock**: Web Audio API mock for equalizer and visualizer tests
+  - **Audio Element Mock**: DOM-based mock with proper HTMLAudioElement property definitions
+  - **Service Worker Mock**: Background playback keep-alive testing support
+  - Location: `src/test/setup.ts`
+
+- **Test Stability**: Updated audio player tests to use DOM-based mocks
+  - Fixed test failures caused by trying to append non-DOM objects to document.body
+  - Tests now use proper HTMLAudioElement mocks that can be appended to DOM
+  - Locations: `src/__tests__/useAudioPlayer.stability.test.ts`, `src/__tests__/player.integration.stability.test.ts`, `src/__tests__/playback-rate.stability.test.ts`
+
 ## [0.9.22] - 2026-01-22
 
 ### Fixed

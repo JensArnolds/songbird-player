@@ -764,6 +764,11 @@ export const musicRouter = createTRPCRouter({
         visualizerEnabled: z.boolean().optional(),
         compactMode: z.boolean().optional(),
         theme: z.enum(["dark", "light"]).optional(),
+        autoQueueEnabled: z.boolean().optional(),
+        autoQueueThreshold: z.number().min(1).max(10).optional(),
+        autoQueueCount: z.number().min(1).max(20).optional(),
+        smartMixEnabled: z.boolean().optional(),
+        similarityPreference: z.enum(["strict", "balanced", "diverse"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

@@ -256,6 +256,18 @@ export default function SettingsPage() {
     icon: <Eye className="h-5 w-5" />,
     items: [
       {
+        id: "theme",
+        label: "Theme",
+        description: preferences?.theme === "light" ? "Light" : "Dark",
+        type: "select",
+        value: preferences?.theme ?? "dark",
+        options: [
+          { label: "Dark", value: "dark" },
+          { label: "Light", value: "light" },
+        ],
+        onChange: (value) => handleSelect("theme", value as string),
+      },
+      {
         id: "visualizerEnabled",
         label: "Visualizer",
         description: "Show audio visualizations",
@@ -299,6 +311,28 @@ export default function SettingsPage() {
         type: "toggle",
         value: preferences?.autoQueueEnabled ?? false,
         onChange: (value) => handleToggle("autoQueueEnabled", value as boolean),
+      },
+      {
+        id: "autoQueueThreshold",
+        label: "Queue Threshold",
+        description: `${preferences?.autoQueueThreshold ?? 3} tracks`,
+        type: "slider",
+        value: preferences?.autoQueueThreshold ?? 3,
+        min: 1,
+        max: 10,
+        step: 1,
+        onChange: (value) => handleSlider("autoQueueThreshold", value as number),
+      },
+      {
+        id: "autoQueueCount",
+        label: "Tracks to Add",
+        description: `${preferences?.autoQueueCount ?? 5} tracks`,
+        type: "slider",
+        value: preferences?.autoQueueCount ?? 5,
+        min: 1,
+        max: 20,
+        step: 1,
+        onChange: (value) => handleSlider("autoQueueCount", value as number),
       },
       {
         id: "smartMixEnabled",
