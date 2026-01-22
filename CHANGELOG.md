@@ -5,6 +5,29 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.24] - 2026-01-22
+
+### Fixed
+
+- **Show GUI Button Context Recreation**: Fixed audio player context recreating unnecessarily when toggling UI visibility
+  - **Root Cause**: `hideUI` and `showMobilePlayer` were incorrectly included in the AudioPlayerContext useMemo dependency array
+  - **Impact**: Clicking "Show GUI / Hide UI" button no longer triggers full context recreation and component re-renders
+  - **Performance**: Reduced unnecessary re-renders across all components consuming the audio player context
+  - **Previous Behavior**: Every UI visibility toggle caused all player state consumers to re-render, potentially affecting audio playback
+  - **Fix**: Removed `hideUI` and `showMobilePlayer` from dependency array as they are UI-only state
+  - Location: `src/contexts/AudioPlayerContext.tsx:567-613`
+
+### Improved
+
+- **Settings Page Functionality**: Implemented full backend integration for settings controls
+  - **Auto Queue Settings**: Added slider controls for queue threshold (1-10 tracks) and tracks to add (1-20 tracks)
+  - **Theme Switcher**: Added dark/light theme selector in Visual section
+  - **Backend Mutations**: Added missing fields to `updatePreferences` mutation (autoQueueThreshold, autoQueueCount, smartMixEnabled, similarityPreference)
+  - **Field Validation**: All settings now properly validated with Zod schemas (number ranges, enum values)
+  - **Settings Persistence**: All UI controls now correctly save to database for authenticated users
+  - **UI Polish**: Updated descriptions to be more concise and user-friendly
+  - Locations: `src/app/settings/page.tsx`, `src/server/api/routers/music.ts`
+
 ## [0.9.23] - 2026-01-22
 
 ### Fixed
