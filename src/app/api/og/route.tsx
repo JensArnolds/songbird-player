@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     try {
       console.log("[OG Route] Fetching track by ID:", trackId);
       const trackUrl = new URL(`/api/track/${trackId}`, origin);
-      const trackResponse = await fetchWithTimeout(trackUrl.toString(), 2000);
+      const trackResponse = await fetchWithTimeout(trackUrl.toString(), 5000);
       
       if (trackResponse.ok) {
         const track = (await trackResponse.json()) as {
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       console.log("[OG Route] Searching tracks by query:", query);
       const searchUrl = new URL("/api/music/search", origin);
       searchUrl.searchParams.set("q", query);
-      const searchResponse = await fetchWithTimeout(searchUrl.toString(), 2000);
+      const searchResponse = await fetchWithTimeout(searchUrl.toString(), 5000);
       
       if (searchResponse.ok) {
         const searchData = (await searchResponse.json()) as {
@@ -140,16 +140,25 @@ export async function GET(request: NextRequest) {
     fetchTime: `${fetchTime}ms`,
     trackId,
     query,
+    title: trackData?.title,
+    artist: trackData?.artist,
   });
 
   if (!trackData || !trackData.title || !trackData.artist) {
-    console.log("[OG Route] Missing required track data, redirecting to static image");
+    console.log("[OG Route] Missing required track data, redirecting to static image", {
+      hasTrackData: !!trackData,
+      hasTitle: !!trackData?.title,
+      hasArtist: !!trackData?.artist,
+    });
     return Response.redirect(`${origin}/og-image.png`, 302);
   }
 
-  // Check if we're running out of time (edge runtime has ~5s limit, leave 2.5s for image generation)
-  if (fetchTime > 2500) {
-    console.warn("[OG Route] Fetch took too long, redirecting to static image");
+  // Check if we're running out of time (edge runtime has ~5s limit, leave time for image generation)
+  // Increased from 2.5s to 7s to account for longer fetch times
+  if (fetchTime > 7000) {
+    console.warn("[OG Route] Fetch took too long, redirecting to static image:", {
+      fetchTime: `${fetchTime}ms`,
+    });
     return Response.redirect(`${origin}/og-image.png`, 302);
   }
 
@@ -539,9 +548,9 @@ async function getCoverDataUrl(coverUrl: string | null) {
   try {
     console.log("[OG Route] Fetching cover image:", coverUrl.substring(0, 80));
     const startTime = Date.now();
-    
-    // Very aggressive timeout - we need to leave time for image generation
-    const response = await fetchWithTimeout(coverUrl, 1000);
+
+    // Increased timeout from 1s to 2s for cover image fetch
+    const response = await fetchWithTimeout(coverUrl, 2000);
 
     if (!response.ok) {
       console.error("[OG Route] Cover fetch failed:", response.status, response.statusText);
@@ -549,8 +558,8 @@ async function getCoverDataUrl(coverUrl: string | null) {
     }
 
     const contentLength = response.headers.get("content-length");
-    // Reduce max size to 500KB for faster processing
-    if (contentLength && Number(contentLength) > 500_000) {
+    // Increased max size to 1MB for better quality images
+    if (contentLength && Number(contentLength) > 1_000_000) {
       console.warn("[OG Route] Cover image too large, skipping:", contentLength);
       return null;
     }
@@ -559,12 +568,12 @@ async function getCoverDataUrl(coverUrl: string | null) {
     const fetchTime = Date.now() - startTime;
 
     // Skip if buffer too large or fetch took too long
-    if (buffer.byteLength > 500_000) {
+    if (buffer.byteLength > 1_000_000) {
       console.warn("[OG Route] Cover image buffer too large, skipping:", buffer.byteLength);
       return null;
     }
 
-    if (fetchTime > 1000) {
+    if (fetchTime > 2000) {
       console.warn("[OG Route] Cover fetch took too long, skipping:", fetchTime);
       return null;
     }
