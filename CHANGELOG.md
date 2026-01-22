@@ -5,6 +5,66 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.25] - 2026-01-22
+
+### Fixed
+
+- **Player Disappearing When Queue Ends**: Fixed critical bug where player would disappear when queue finished
+  - **Root Cause**: When queue ran out, `handleTrackEnd` would clear the queue and stop playback, causing player UI to disappear
+  - **Previous Behavior**: Queue finishes → player clears → playback stops → player disappears
+  - **New Behavior**: Queue finishes → auto-generates smart tracks → playback continues seamlessly → player remains visible
+  - **Implementation**:
+    - Modified `handleTrackEnd` to check for auto-queue settings before clearing queue
+    - When queue is about to end, automatically generates smart tracks based on current track
+    - Only clears queue and stops if auto-queue is disabled or fails to generate tracks
+  - **Location**: `src/hooks/useAudioPlayer.ts:287-385`
+
+- **Audio Connection Release on Visualizer Toggle**: Fixed playback refresh when toggling visualizer UI
+  - **Root Cause**: Components were releasing audio connections in cleanup effects when unmounting
+  - **Impact**: Toggling visualizer on/off or hiding/showing UI would interrupt playback
+  - **Fix**: Removed `releaseAudioConnection` calls from cleanup effects in:
+    - `useAudioVisualizer` hook cleanup
+    - `FlowFieldBackground` component cleanup
+    - `useEqualizer` hook cleanup
+  - **Rationale**: Audio connections are managed by `audioContextManager` with ref counting and should persist across component lifecycle
+  - **Location**: `src/hooks/useAudioVisualizer.ts:175-188`, `src/components/FlowFieldBackground.tsx:100-109`, `src/hooks/useEqualizer.ts:343-355`
+
+- **Audio Element Reference Stability**: Fixed audio refresh when toggling hideUI button
+  - **Root Cause**: AudioPlayerContext value was being recreated on every render, causing audio element reference to change
+  - **Impact**: Toggling "Hide UI" button would cause audio-related effects to re-run, potentially interrupting playback
+  - **Fix**: 
+    - Added stable ref (`stableAudioElementRef`) to maintain consistent audio element reference
+    - Memoized entire context value object to prevent unnecessary recreations
+    - Excluded `audioElement` from dependency array since it's maintained via stable ref
+  - **Location**: `src/contexts/AudioPlayerContext.tsx:501-511, 513-613`
+
+### Added
+
+- **Automatic Smart Queue Generation**: Implemented proactive smart track generation when queue is running low
+  - **Feature**: Automatically generates smart tracks when queue drops to or below `autoQueueThreshold` (default: 3 tracks)
+  - **Behavior**:
+    - Monitors queue length during playback via `useEffect`
+    - When remaining tracks ≤ threshold, triggers smart track generation
+    - Adds generated tracks to end of queue to keep playback continuous
+    - Prevents duplicate generation within 60 seconds for same seed track
+  - **Settings**: Respects `autoQueueEnabled`, `autoQueueThreshold`, and `autoQueueCount` from user preferences
+  - **Fallback**: If proactive generation doesn't happen, `handleTrackEnd` generates tracks when last track finishes
+  - **Location**: `src/hooks/useAudioPlayer.ts:387-466`
+
+### Changed
+
+- **Repository Link**: Updated homepage link from GitLab to GitHub
+  - Changed "View on GitLab" button to "View on GitHub"
+  - Updated URL from `https://gitlab.com/soulwax/songbird-player` to `https://github.com/soulwax/songbird-player`
+  - Replaced GitLab logo SVG with GitHub octocat logo SVG
+  - **Location**: `src/app/HomePageClient.tsx:635-668`
+
+- **API Health Check URL**: Updated health check to use dedicated `API_HEALTH_URL` environment variable
+  - **Previous**: Constructed health URL from `NEXT_PUBLIC_API_URL + "/health"`
+  - **New**: Uses `API_HEALTH_URL` environment variable directly (falls back to constructed URL if not set)
+  - **Configuration**: Added `NEXT_PUBLIC_API_HEALTH_URL` to client env schema, mapped from `API_HEALTH_URL`
+  - **Location**: `src/env.js:37, 57`, `src/components/Header.tsx:47-53`
+
 ## [0.9.24] - 2026-01-22
 
 ### Fixed
