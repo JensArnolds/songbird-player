@@ -284,7 +284,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     }
   }, [volume, isMuted]);
 
-  const handleTrackEnd = useCallback(() => {
+  const handleTrackEnd = useCallback(async () => {
     if (!currentTrack) return;
 
     if (repeatMode === "one") {
@@ -293,9 +293,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         audioRef.current.play().catch((err) => {
           logger.error("[useAudioPlayer] Failed to restart track in repeat-one mode:", err);
           setIsPlaying(false);
-          if (showToast) {
-            showToast("Failed to replay track. Please try again.", "error");
-          }
         });
       }
       return;
@@ -319,14 +316,157 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         setHistory([]);
       }
     } else {
+      // Queue is running out - check if we should generate smart tracks
+      const shouldAutoQueue = 
+        options.smartQueueSettings?.autoQueueEnabled &&
+        options.onAutoQueueTrigger &&
+        currentTrack;
 
+      if (shouldAutoQueue) {
+        logger.debug(
+          "[useAudioPlayer] 🎵 Queue running low, generating smart tracks...",
+        );
+        
+        try {
+          setHistory((prev) => [...prev, currentTrack]);
+          
+          // Generate smart tracks based on current track
+          const recommendedTracks = await options.onAutoQueueTrigger!(
+            currentTrack,
+            queuedTracks.length,
+          );
+
+          if (recommendedTracks.length > 0) {
+            const count = options.smartQueueSettings!.autoQueueCount ?? 5;
+            const tracksToAdd = recommendedTracks.slice(0, count);
+            const smartQueuedTracks = tracksToAdd.map((t) =>
+              createQueuedTrack(t, "smart"),
+            );
+
+            // Clear current queue (which only has the ending track) and add smart tracks
+            setQueuedTracks(smartQueuedTracks);
+            setSmartQueueState({
+              isActive: true,
+              lastRefreshedAt: new Date(),
+              seedTrackId: currentTrack.id,
+              trackCount: smartQueuedTracks.length,
+              isLoading: false,
+            });
+
+            logger.debug(
+              `[useAudioPlayer] ✅ Generated ${smartQueuedTracks.length} smart tracks, continuing playback`,
+            );
+            
+            // Continue playing - the next track will start automatically
+            return;
+          } else {
+            logger.warn(
+              "[useAudioPlayer] ⚠️ No smart tracks generated, queue will end",
+            );
+          }
+        } catch (error) {
+          logger.error(
+            "[useAudioPlayer] ❌ Failed to generate smart tracks:",
+            error,
+          );
+        }
+      }
+
+      // If auto-queue failed or is disabled, end playback
       onTrackEnd?.(currentTrack);
 
       setQueuedTracks([]);
       setIsPlaying(false);
       logger.debug("[useAudioPlayer] 🏁 Playback ended, queue cleared");
     }
-  }, [currentTrack, queuedTracks, repeatMode, history, onTrackEnd]);
+  }, [currentTrack, queuedTracks, repeatMode, history, onTrackEnd, options.smartQueueSettings, options.onAutoQueueTrigger, createQueuedTrack]);
+
+  // Monitor queue length and trigger auto-queue when running low
+  useEffect(() => {
+    const smartQueueSettings = options.smartQueueSettings;
+    const onAutoQueueTrigger = options.onAutoQueueTrigger;
+    
+    const shouldAutoQueue =
+      smartQueueSettings?.autoQueueEnabled &&
+      onAutoQueueTrigger &&
+      currentTrack &&
+      isPlaying &&
+      !smartQueueState.isLoading;
+
+    if (!shouldAutoQueue || !smartQueueSettings || !onAutoQueueTrigger) return;
+
+    const threshold = smartQueueSettings.autoQueueThreshold ?? 3;
+    const remainingTracks = queuedTracks.length - 1; // Exclude current track
+
+    // Trigger auto-queue when queue drops to or below threshold
+    if (remainingTracks <= threshold && remainingTracks >= 0) {
+      // Check if we already have smart tracks for this seed track
+      const hasRecentSmartTracks =
+        smartQueueState.isActive &&
+        smartQueueState.seedTrackId === currentTrack.id &&
+        smartQueueState.lastRefreshedAt &&
+        Date.now() - new Date(smartQueueState.lastRefreshedAt).getTime() <
+          60000; // Within last minute
+
+      if (!hasRecentSmartTracks) {
+        logger.debug(
+          `[useAudioPlayer] 🎵 Queue running low (${remainingTracks} tracks remaining), generating smart tracks...`,
+        );
+
+        void (async () => {
+          try {
+            setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
+
+            const recommendedTracks = await onAutoQueueTrigger(
+              currentTrack,
+              queuedTracks.length,
+            );
+
+            if (recommendedTracks.length > 0) {
+              const count = smartQueueSettings.autoQueueCount ?? 5;
+              const tracksToAdd = recommendedTracks.slice(0, count);
+              const smartQueuedTracks = tracksToAdd.map((t) =>
+                createQueuedTrack(t, "smart"),
+              );
+
+              // Add smart tracks to the end of the queue
+              setQueuedTracks((prev) => [...prev, ...smartQueuedTracks]);
+              setSmartQueueState({
+                isActive: true,
+                lastRefreshedAt: new Date(),
+                seedTrackId: currentTrack.id,
+                trackCount: smartQueuedTracks.length,
+                isLoading: false,
+              });
+
+              logger.debug(
+                `[useAudioPlayer] ✅ Generated ${smartQueuedTracks.length} smart tracks, queue now has ${queuedTracks.length + smartQueuedTracks.length} tracks`,
+              );
+            } else {
+              logger.warn(
+                "[useAudioPlayer] ⚠️ No smart tracks generated",
+              );
+              setSmartQueueState((prev) => ({ ...prev, isLoading: false }));
+            }
+          } catch (error) {
+            logger.error(
+              "[useAudioPlayer] ❌ Failed to generate smart tracks:",
+              error,
+            );
+            setSmartQueueState((prev) => ({ ...prev, isLoading: false }));
+          }
+        })();
+      }
+    }
+  }, [
+    queuedTracks.length,
+    currentTrack,
+    isPlaying,
+    smartQueueState,
+    createQueuedTrack,
+    options.smartQueueSettings,
+    options.onAutoQueueTrigger,
+  ]);
 
   useEffect(() => {
     if (
@@ -570,6 +710,36 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const markShouldResume = () => {
       shouldResumeOnFocusRef.current =
         isPlayingRef.current || (!audio.paused && !audio.ended);
+    };
+
+    const enforcePlaybackRate = () => {
+      if (!audioRef.current) return;
+      const currentAudio = audioRef.current;
+      if (
+        currentAudio.playbackRate !== 1 ||
+        currentAudio.defaultPlaybackRate !== 1
+      ) {
+        logger.warn(
+          "[useAudioPlayer] ⚠️ Playback rate drift detected, resetting to 1.0",
+          {
+            playbackRate: currentAudio.playbackRate,
+            defaultPlaybackRate: currentAudio.defaultPlaybackRate,
+          },
+        );
+        currentAudio.playbackRate = 1;
+        currentAudio.defaultPlaybackRate = 1;
+      }
+
+      const preserve = currentAudio as HTMLAudioElement & {
+        preservesPitch?: boolean;
+        webkitPreservesPitch?: boolean;
+      };
+      if (preserve.preservesPitch === false) {
+        preserve.preservesPitch = true;
+      }
+      if (preserve.webkitPreservesPitch === false) {
+        preserve.webkitPreservesPitch = true;
+      }
     };
 
     const resumePlayback = async (reason: string) => {
