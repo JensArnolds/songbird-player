@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Social Media OG Image Generation**: Fixed rich preview images not loading for shared URLs (search queries, track links)
+  - **Root Cause 1**: OG route had overly aggressive timeouts (2s for API fetch, 1s for cover image)
+  - **Root Cause 2**: Internal API endpoints (search, track) could timeout on cold starts in edge runtime
+  - **Impact**: Social media platforms (Twitter, Facebook, Discord) were getting fallback static image instead of track previews with album art
+  - **Fixes**:
+    - Increased API fetch timeout from 2s to 5s
+    - Increased cover image fetch timeout from 1s to 2s
+    - Increased max cover image size from 500KB to 1MB for better quality
+    - Removed arbitrary 2.5s total time check (edge runtime has 25-30s on Vercel)
+    - Added fallback to pass query parameter directly to OG route if track fetch fails during metadata generation
+    - Enhanced logging to debug timeout and fallback scenarios
+  - Locations: `src/app/api/og/route.tsx`, `src/app/page.tsx`
+
 - **Show GUI Button Playback Restart**: Fixed audio playback restarting when clicking "Show UI Again" button
   - **Root Cause 1**: UIWrapper returned `null` when `hideUI` was true, causing complete unmount of page components
   - **Root Cause 2**: When components remounted, HomePageClient's useEffect re-ran and re-processed URL parameters (trackId, albumId, query)
