@@ -58,20 +58,9 @@ function buildOgImageUrl(track: Track | null, baseUrl: string, query?: string | 
     return `${baseUrl}/api/og`;
   }
 
+  // If we have a track, use trackId for direct backend redirect (simpler & faster)
   const params = new URLSearchParams();
-  params.set("title", track.title);
-  params.set("artist", track.artist.name);
-  if (track.album?.title) {
-    params.set("album", track.album.title);
-  }
-  const coverImage = getAlbumCoverImage(track);
-  if (coverImage) {
-    params.set("cover", coverImage);
-  }
-  if (typeof track.duration === "number") {
-    params.set("duration", track.duration.toString());
-  }
-  params.set("v", track.id.toString());
+  params.set("trackId", track.id.toString());
 
   return `${baseUrl}/api/og?${params.toString()}`;
 }
