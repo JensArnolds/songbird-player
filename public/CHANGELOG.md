@@ -5,6 +5,27 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.22] - 2026-01-22
+
+### Fixed
+
+- **Player Stability**: Fixed critical issues causing player to disappear and page reloads after 2-3 songs
+  - **Error Boundary**: Now recovers gracefully with "Try Again" instead of forcing page reload (`window.location.reload()` removed)
+  - **Error Handling**: Fixed empty catch blocks that silently masked failures in repeat-one mode and service worker keep-alive
+  - **State Sync**: Fixed infinite interval recreation loop by removing `isPlaying` from sync effect dependencies (now uses ref)
+  - **Memory Leaks**: Fixed service worker keep-alive interval orphaning with proper ref-based cleanup
+  - **Race Conditions**: Removed arbitrary 100ms timeout in play/pause operations, now uses immediate flag reset
+  - **Null Checks**: Added state updates when audio element is null to prevent UI/audio desync
+  - Locations: `src/components/ErrorBoundary.tsx`, `src/hooks/useAudioPlayer.ts`
+
+### Added
+
+- **Stability Tests**: Comprehensive test suite to prevent regressions
+  - ErrorBoundary tests (7 tests, all passing)
+  - useAudioPlayer stability tests (race conditions, state sync, memory leaks)
+  - Player integration tests (multi-track playback, repeat modes, background playback)
+  - Location: `src/__tests__/*stability.test.{ts,tsx}`
+
 ## [0.9.21] - 2026-01-20
 
 ### Added
