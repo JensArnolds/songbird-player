@@ -61,6 +61,9 @@ describe("Playback Rate Stability Tests", () => {
       src: "",
       playbackRate: 1,
       defaultPlaybackRate: 1,
+      style: {} as CSSStyleDeclaration,
+      isConnected: false,
+      preservesPitch: true,
     };
 
     global.Audio = vi.fn().mockImplementation(() => mockAudioElement);

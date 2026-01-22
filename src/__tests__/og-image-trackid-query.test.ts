@@ -63,7 +63,27 @@ describe("OG Image Generation - Track ID & Query Support", () => {
         global.fetch = vi.fn().mockImplementation((url: string | URL) => {
           const urlStr = typeof url === "string" ? url : url.toString();
           const urlObj = typeof url === "string" ? new URL(url) : url;
-          
+
+          // Handle emoji/icon CDN
+          if (urlStr.includes("cdn.jsdelivr.net") || urlStr.includes("twemoji")) {
+            return Promise.resolve(
+              new Response("<svg></svg>", {
+                status: 200,
+                headers: { "Content-Type": "image/svg+xml" },
+              })
+            );
+          }
+
+          // Handle fonts
+          if (urlStr.includes(".woff") || urlStr.includes(".woff2") || urlStr.includes(".ttf") || urlStr.includes("fonts")) {
+            return Promise.resolve(
+              new Response(new ArrayBuffer(0), {
+                status: 200,
+                headers: { "Content-Type": "font/woff2" },
+              })
+            );
+          }
+
           // Handle track API calls - match by pathname
           if (urlObj.pathname === `/api/track/${testTrack.id}` || urlStr.includes(`/api/track/${testTrack.id}`)) {
             return Promise.resolve(
