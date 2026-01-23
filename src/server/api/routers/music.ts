@@ -1561,8 +1561,10 @@ export const musicRouter = createTRPCRouter({
         try {
           const fetchTracksByDeezerIds = async (ids: number[]): Promise<Track[]> => {
             if (ids.length === 0) return [];
+            const params = new URLSearchParams();
+            params.set("ids", ids.join(","));
             const tracksResponse = await songbird.request<unknown>(
-              `/music/tracks/batch?ids=${ids.join(",")}`,
+              `/music/tracks/batch?${params.toString()}`,
             );
             const tracks = Array.isArray(tracksResponse)
               ? tracksResponse.filter((item): item is Track => isTrack(item))
@@ -1676,13 +1678,12 @@ export const musicRouter = createTRPCRouter({
             }
           }
 
+          const similarParams = new URLSearchParams();
+          similarParams.set("artist", seedTrack.artist.name);
+          similarParams.set("track", seedTrack.title);
+          similarParams.set("limit", Math.min(input.limit + 10, 100).toString());
           const similarResponse = await songbird.request<unknown>(
-            `/api/lastfm/track/similar?artist=${encodeURIComponent(
-              seedTrack.artist.name,
-            )}&track=${encodeURIComponent(seedTrack.title)}&limit=${Math.min(
-              input.limit + 10,
-              100,
-            )}`,
+            `/api/lastfm/track/similar?${similarParams.toString()}`,
           );
 
           const similarCandidates = (() => {

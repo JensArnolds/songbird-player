@@ -100,7 +100,9 @@ export default function MobileHeader() {
         searchTimeoutRef.current = setTimeout(() => {
       setIsSearching(true);
       setCountdown(0);
-      router.push(`/?q=${encodeURIComponent(trimmedQuery)}`);
+      const params = new URLSearchParams();
+      params.set("q", trimmedQuery);
+      router.push(`/?${params.toString()}`);
 
             searchingTimeoutRef.current = setTimeout(() => {
         setIsSearching(false);
@@ -139,7 +141,9 @@ export default function MobileHeader() {
 
     if (query.trim()) {
       setIsSearching(true);
-      router.push(`/?q=${encodeURIComponent(query.trim())}`);
+      const params = new URLSearchParams();
+      params.set("q", query.trim());
+      router.push(`/?${params.toString()}`);
 
             searchingTimeoutRef.current = setTimeout(() => {
         setIsSearching(false);

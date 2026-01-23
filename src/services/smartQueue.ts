@@ -167,8 +167,11 @@ export async function searchHexMusicTracks(
   });
 
   try {
+    const params = new URLSearchParams();
+    params.set("query", query);
+    params.set("limit", limit.toString());
     const response = await apiRequest<{ tracks: HexMusicTrack[] }>(
-      `/hexmusic/songs?query=${encodeURIComponent(query)}&limit=${limit}`,
+      `/hexmusic/songs?${params.toString()}`,
     );
 
     const tracks = response.tracks || [];
@@ -203,8 +206,10 @@ export async function getPlaylistRecommendations(
   query: string,
 ): Promise<HexMusicTrack[]> {
   try {
+    const params = new URLSearchParams();
+    params.set("query", query);
     const response = await apiRequest<{ playlists: HexMusicTrack[] }>(
-      `/hexmusic/playlist-recommendations?query=${encodeURIComponent(query)}`,
+      `/hexmusic/playlist-recommendations?${params.toString()}`,
     );
 
     return response.playlists ?? [];
@@ -326,8 +331,11 @@ async function fetchDeezerTrack(trackId: string): Promise<Track | null> {
 
 async function searchDeezerTrack(query: string): Promise<Track[]> {
   try {
+    const params = new URLSearchParams();
+    params.set("q", query);
+    params.set("limit", "1");
     const response = await fetch(
-      `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=1`,
+      `https://api.deezer.com/search?${params.toString()}`,
     );
 
     if (!response.ok) return [];
@@ -520,8 +528,10 @@ async function fetchDeezerRadio(
       artistName: trackData.artist.name,
     });
 
+    const topTracksParams = new URLSearchParams();
+    topTracksParams.set("limit", Math.min(limit, 50).toString());
     const topTracksResponse = await fetch(
-      `https://api.deezer.com/artist/${artistId}/top?limit=${Math.min(limit, 50)}`,
+      `https://api.deezer.com/artist/${artistId}/top?${topTracksParams.toString()}`,
     );
 
     if (!topTracksResponse.ok) {
@@ -555,8 +565,10 @@ async function fetchDeezerRadio(
         const relatedArtists = relatedData.data ?? [];
 
         if (relatedArtists[0]) {
+          const relatedTracksParams = new URLSearchParams();
+          relatedTracksParams.set("limit", (limit - tracks.length).toString());
           const relatedTracksResponse = await fetch(
-            `https://api.deezer.com/artist/${relatedArtists[0].id}/top?limit=${limit - tracks.length}`,
+            `https://api.deezer.com/artist/${relatedArtists[0].id}/top?${relatedTracksParams.toString()}`,
           );
 
           if (relatedTracksResponse.ok) {

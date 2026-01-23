@@ -12,7 +12,9 @@ type TrackRedirectProps = {
 
 export function TrackRedirect({ id }: TrackRedirectProps) {
   const router = useRouter();
-  const destination = `/?track=${id}`;
+  const params = new URLSearchParams();
+  params.set("track", id);
+  const destination = `/?${params.toString()}`;
 
   useEffect(() => {
     router.replace(destination);

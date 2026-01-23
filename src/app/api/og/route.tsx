@@ -50,12 +50,48 @@ export async function GET(request: NextRequest) {
       console.error("[OG Route] Error fetching track:", error);
     }
   } else if (query) {
+    // For queries, try backend preview API first (fastest path)
+    const backendApiUrl = process.env.SONGBIRD_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SONGBIRD_API_URL;
+    if (backendApiUrl) {
+      try {
+        const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
+        const previewEndpoint = `${normalizedUrl}/api/track/preview`;
+        
+        console.log("[OG Route] Using backend preview API with query:", previewEndpoint, "query:", query);
+        const response = await fetch(previewEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query }),
+          signal: AbortSignal.timeout(10000),
+        });
+
+        if (response.ok) {
+          // Return the image directly from backend
+          const imageBuffer = await response.arrayBuffer();
+          return new Response(imageBuffer, {
+            headers: {
+              "Content-Type": "image/png",
+              "Cache-Control": "public, max-age=3600",
+            },
+          });
+        } else {
+          console.warn("[OG Route] Backend preview API returned error:", response.status);
+        }
+      } catch (error) {
+        console.error("[OG Route] Backend preview API error:", error);
+      }
+    }
+
+    // Fallback: Try frontend search API
     try {
-      console.log("[OG Route] Searching tracks by query:", query);
+      console.log("[OG Route] Fallback: Searching tracks by query via frontend API:", query);
       const searchUrl = new URL("/api/music/search", origin);
       searchUrl.searchParams.set("q", query);
+      
       const searchResponse = await fetch(searchUrl.toString(), {
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(10000),
       });
 
       if (searchResponse.ok) {
@@ -92,7 +128,7 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (error) {
-      console.error("[OG Route] Error searching tracks:", error);
+      console.error("[OG Route] Error in fallback search:", error);
     }
   }
 

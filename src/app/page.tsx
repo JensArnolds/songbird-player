@@ -136,7 +136,11 @@ export async function generateMetadata({
       title: trackTitle,
       description,
       type: "music.song",
-      url: `${requestBaseUrl}/?q=${encodeURIComponent(query)}`,
+      url: (() => {
+        const params = new URLSearchParams();
+        params.set("q", query);
+        return `${requestBaseUrl}/?${params.toString()}`;
+      })(),
       siteName: "Starchild Music",
       images: [
         {

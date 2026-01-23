@@ -54,8 +54,10 @@ export async function fetchDeezerRecommendations(
 ): Promise<Track[]> {
   try {
 
+    const params = new URLSearchParams();
+    params.set("limit", Math.min(limit, 40).toString());
     const response = await fetch(
-      `https://api.deezer.com/track/${seedTrackId}/radio?limit=${Math.min(limit, 40)}`,
+      `https://api.deezer.com/track/${seedTrackId}/radio?${params.toString()}`,
     );
 
     if (!response.ok) {
@@ -80,8 +82,10 @@ export async function fetchArtistRecommendations(
   limit = 20,
 ): Promise<Track[]> {
   try {
+    const params = new URLSearchParams();
+    params.set("limit", Math.min(limit, 40).toString());
     const response = await fetch(
-      `https://api.deezer.com/artist/${artistId}/radio?limit=${Math.min(limit, 40)}`,
+      `https://api.deezer.com/artist/${artistId}/radio?${params.toString()}`,
     );
 
     if (!response.ok) {
@@ -106,8 +110,10 @@ export async function fetchRelatedArtists(
   limit = 10,
 ): Promise<DeezerArtist[]> {
   try {
+    const params = new URLSearchParams();
+    params.set("limit", limit.toString());
     const response = await fetch(
-      `https://api.deezer.com/artist/${artistId}/related?limit=${limit}`,
+      `https://api.deezer.com/artist/${artistId}/related?${params.toString()}`,
     );
 
     if (!response.ok) {
@@ -132,8 +138,10 @@ export async function fetchArtistTopTracks(
   limit = 10,
 ): Promise<Track[]> {
   try {
+    const params = new URLSearchParams();
+    params.set("limit", limit.toString());
     const response = await fetch(
-      `https://api.deezer.com/artist/${artistId}/top?limit=${limit}`,
+      `https://api.deezer.com/artist/${artistId}/top?${params.toString()}`,
     );
 
     if (!response.ok) {
@@ -175,14 +183,17 @@ export async function fetchGenreChart(
   limit = 20,
 ): Promise<Track[]> {
   try {
+    const params = new URLSearchParams();
+    params.set("limit", limit.toString());
     const response = await fetch(
-      `https://api.deezer.com/chart/${genreId}/tracks?limit=${limit}`,
+      `https://api.deezer.com/chart/${genreId}/tracks?${params.toString()}`,
     );
 
     if (!response.ok) {
-
+      const editorialParams = new URLSearchParams();
+      editorialParams.set("limit", limit.toString());
       const editorialResponse = await fetch(
-        `https://api.deezer.com/editorial/${genreId}/charts?limit=${limit}`,
+        `https://api.deezer.com/editorial/${genreId}/charts?${editorialParams.toString()}`,
       );
 
       if (!editorialResponse.ok) {
