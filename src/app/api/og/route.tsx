@@ -51,74 +51,12 @@ export async function GET(request: NextRequest) {
       console.error("[OG Route] Error fetching track:", error);
     }
   } else if (query) {
-    // Use GET /api/preview?q={encodedQuery} as per backend documentation
-    // This is the recommended endpoint for OG image generation with search queries
-    const backendApiUrl = env.NEXT_PUBLIC_API_URL;
-    if (backendApiUrl) {
-      try {
-        const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
-        
-        // CRITICAL: Always encode the query parameter using encodeURIComponent()
-        // Next.js searchParams.get() automatically decodes the query, so we need to re-encode it
-        // This is required for proper URL encoding of special characters (spaces, accents, etc.)
-        const trimmedQuery = query.trim();
-        const encodedQuery = encodeURIComponent(trimmedQuery);
-        const previewUrl = `${normalizedUrl}/api/preview?q=${encodedQuery}`;
-        
-        console.log("[OG Route] Query details:", {
-          original: query,
-          trimmed: trimmedQuery,
-          encoded: encodedQuery,
-          previewUrl,
-        });
-        
-        const response = await fetch(previewUrl, {
-          signal: AbortSignal.timeout(10000),
-        });
-
-        console.log("[OG Route] Backend response:", {
-          status: response.status,
-          statusText: response.statusText,
-          contentType: response.headers.get("content-type"),
-          contentLength: response.headers.get("content-length"),
-        });
-
-        if (response.ok) {
-          const imageBuffer = await response.arrayBuffer();
-          
-          // Check if we got actual image data (not empty/default)
-          if (imageBuffer.byteLength > 0) {
-            console.log("[OG Route] Successfully fetched OG image:", {
-              size: imageBuffer.byteLength,
-              bytes: "bytes",
-            });
-            
-            return new Response(imageBuffer, {
-              headers: {
-                "Content-Type": "image/png",
-                "Cache-Control": "public, max-age=3600",
-              },
-            });
-          } else {
-            console.warn("[OG Route] Backend returned empty image buffer (0 bytes)");
-          }
-        } else {
-          console.warn("[OG Route] Backend preview API returned error:", {
-            status: response.status,
-            statusText: response.statusText,
-          });
-        }
-      } catch (error) {
-        console.error("[OG Route] Backend preview API error:", {
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-        });
-      }
-    } else {
-      console.warn("[OG Route] NEXT_PUBLIC_API_URL not configured");
-    }
-
-    // Fallback: Try frontend search API and redirect to darkfloor.one
+    // Strategy: First try to find the track via search API, then use track-specific preview
+    // This is more reliable than relying on the backend's query-based preview endpoint
+    // which may return default images when tracks aren't found
+    const trimmedQuery = query.trim();
+    
+    // Step 1: Try frontend search API to get track details
     try {
       console.log("[OG Route] Fallback: Searching tracks by query via frontend API:", query);
       const searchUrl = new URL("/api/music/search", origin);
