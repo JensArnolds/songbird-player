@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { env } from "@/env";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,20 +51,20 @@ export async function GET(request: NextRequest) {
       console.error("[OG Route] Error fetching track:", error);
     }
   } else if (query) {
-    // For queries, try backend preview API first (fastest path)
-    const backendApiUrl = process.env.SONGBIRD_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SONGBIRD_API_URL;
+    // Use GET /api/preview?q={encodedQuery} as per backend documentation
+    // This is the recommended endpoint for OG image generation with search queries
+    const backendApiUrl = env.NEXT_PUBLIC_API_URL;
     if (backendApiUrl) {
       try {
         const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
-        const previewEndpoint = `${normalizedUrl}/api/track/preview`;
         
-        console.log("[OG Route] Using backend preview API with query:", previewEndpoint, "query:", query);
-        const response = await fetch(previewEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ query }),
+        // CRITICAL: Always encode the query parameter using encodeURIComponent()
+        // This is required for proper URL encoding of special characters (spaces, accents, etc.)
+        const encodedQuery = encodeURIComponent(query.trim());
+        const previewUrl = `${normalizedUrl}/api/preview?q=${encodedQuery}`;
+        
+        console.log("[OG Route] Fetching OG image from backend preview API:", previewUrl);
+        const response = await fetch(previewUrl, {
           signal: AbortSignal.timeout(10000),
         });
 
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fallback: Try frontend search API
+    // Fallback: Try frontend search API and redirect to darkfloor.one
     try {
       console.log("[OG Route] Fallback: Searching tracks by query via frontend API:", query);
       const searchUrl = new URL("/api/music/search", origin);
