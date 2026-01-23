@@ -44,15 +44,13 @@ export default function Header() {
   const [apiHealthUrl, setApiHealthUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    // Use NEXT_PUBLIC_API_HEALTH_URL if provided, otherwise fall back to constructing from NEXT_PUBLIC_API_URL
-    const healthUrl = env.NEXT_PUBLIC_API_HEALTH_URL || (() => {
-      const apiUrl = env.NEXT_PUBLIC_API_URL;
-      if (!apiUrl) return null;
-      const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
-      return `${normalizedApiUrl}/health`;
-    })();
+    // Use the dedicated API_HEALTH_URL environment variable
+    const healthUrl = env.NEXT_PUBLIC_API_HEALTH_URL;
 
-    if (!healthUrl) return;
+    if (!healthUrl) {
+      console.warn("[Header] API_HEALTH_URL not configured, skipping health check");
+      return;
+    }
 
     let isMounted = true;
     setApiHealthUrl(healthUrl);
