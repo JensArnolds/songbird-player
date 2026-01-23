@@ -20,7 +20,7 @@ export default function Header() {
   const [isElectron, setIsElectron] = useState(false);
   const [isVercelDeployment, setIsVercelDeployment] = useState(false);
   const [isDarkfloorHost, setIsDarkfloorHost] = useState(false);
-  const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
+  const [apiHealthy, setApiHealthy] = useState<"healthy" | "degraded" | "down" | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { data: userProfile } = api.music.getCurrentUserProfile.useQuery(
@@ -41,53 +41,75 @@ export default function Header() {
     }
   }, []);
 
-  const [apiHealthUrl, setApiHealthUrl] = useState<string | null>(null);
-
   useEffect(() => {
-    // Use the dedicated API_HEALTH_URL environment variable
-    const healthUrl = env.NEXT_PUBLIC_API_HEALTH_URL;
+    // Check both API health endpoints
+    const apiHealthUrl = env.NEXT_PUBLIC_API_HEALTH_URL;
+    const apiV2HealthUrl = env.NEXT_PUBLIC_API_V2_HEALTH_URL;
 
-    if (!healthUrl) {
-      console.warn("[Header] API_HEALTH_URL not configured, skipping health check");
+    if (!apiHealthUrl || !apiV2HealthUrl) {
+      console.warn("[Header] API health URLs not configured, skipping health check");
       return;
     }
 
     let isMounted = true;
-    setApiHealthUrl(healthUrl);
 
     const checkHealth = async () => {
       try {
-        const response = await fetch(healthUrl, {
-          cache: "no-store",
-          mode: "cors",
-        });
+        // Check both APIs in parallel
+        const [apiResponse, apiV2Response] = await Promise.all([
+          fetch(apiHealthUrl, { cache: "no-store", mode: "cors" }),
+          fetch(apiV2HealthUrl, { cache: "no-store", mode: "cors" })
+        ]);
+
         if (!isMounted) return;
-        
-        if (!response.ok) {
-          console.warn(
-            "[Header] API health check failed:",
-            response.status,
-            response.statusText,
-          );
-          setApiHealthy(false);
+
+        // Check HTTP status codes first
+        const apiHttpError = apiResponse.status >= 400 && apiResponse.status < 600;
+        const apiV2HttpError = apiV2Response.status >= 400 && apiV2Response.status < 600;
+
+        // If either API has HTTP errors, show red (API down)
+        if (apiHttpError || apiV2HttpError) {
+          console.warn("[Header] API HTTP error:", {
+            api: { url: apiHealthUrl, status: apiResponse.status },
+            apiV2: { url: apiV2HealthUrl, status: apiV2Response.status }
+          });
+          setApiHealthy("down"); // Red
           return;
         }
-        
-        const payload = (await response.json()) as { status?: string };
-        const isOk = payload.status === "ok";
-        
-        if (!isOk) {
-          console.warn(
-            "[Header] API health check: status is not 'ok'",
-            payload,
-          );
+
+        // Parse JSON responses
+        const apiPayload = apiResponse.ok ? ((await apiResponse.json()) as { status?: string }) : null;
+        const apiV2Payload = apiV2Response.ok ? ((await apiV2Response.json()) as { status?: string }) : null;
+
+        const apiStatus = apiPayload?.status;
+        const apiV2Status = apiV2Payload?.status;
+
+        // Determine overall health status
+        let overallStatus: "healthy" | "degraded" | "down";
+
+        if (apiStatus === "ok" && apiV2Status === "ok") {
+          overallStatus = "healthy"; // Green
+        } else if (apiStatus === "degraded" || apiV2Status === "degraded" ||
+                   apiStatus === "unhealthy" || apiV2Status === "unhealthy") {
+          overallStatus = "degraded"; // Yellow
+        } else {
+          // Unexpected status or missing status field
+          overallStatus = "down"; // Red
         }
-        
-        setApiHealthy(isOk);
+
+        if (overallStatus !== "healthy") {
+          console.warn("[Header] API health degraded:", {
+            api: { url: apiHealthUrl, status: apiResponse.status, apiStatus },
+            apiV2: { url: apiV2HealthUrl, status: apiV2Response.status, apiV2Status },
+            overallStatus
+          });
+        }
+
+        setApiHealthy(overallStatus);
       } catch (error) {
         if (isMounted) {
-          console.error("[Header] API health check error:", error);
-          setApiHealthy(false);
+          console.error("[Header] API health check network error:", error);
+          setApiHealthy("down");
         }
       }
     };
@@ -169,22 +191,29 @@ export default function Header() {
                 </span>
               </div>
             </Link>
-            {apiHealthy !== null && apiHealthUrl && (
-              <Link
-                href={apiHealthUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)] md:flex"
+            {apiHealthy !== null && (
+              <div
+                className="hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] md:flex"
                 aria-label="API health status"
-                title={`API health: ${apiHealthUrl}`}
+                title="Combined API health status"
               >
                 <span
                   className={`inline-block h-2 w-2 rounded-full ${
-                    apiHealthy ? "bg-emerald-400" : "bg-rose-400"
+                    apiHealthy === "healthy"
+                      ? "bg-emerald-400"
+                      : apiHealthy === "degraded"
+                      ? "bg-yellow-400"
+                      : "bg-rose-400"
                   }`}
                 />
-                <span>{apiHealthy ? "Api Healthy" : "API Down"}</span>
-              </Link>
+                <span>
+                  {apiHealthy === "healthy"
+                    ? "Api Healthy"
+                    : apiHealthy === "degraded"
+                    ? "Api Degraded"
+                    : "API Down"}
+                </span>
+              </div>
             )}
           </div>
 

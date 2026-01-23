@@ -65,6 +65,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Configuration**: Added `NEXT_PUBLIC_API_HEALTH_URL` to client env schema, mapped from `API_HEALTH_URL`
   - **Location**: `src/env.js:37, 57`, `src/components/Header.tsx:47-53`
 
+- **Dual API Health Monitoring**: Added monitoring for both API v1 and v2 health endpoints
+  - **New Environment Variable**: `API_V2_HEALTH_URL` for secondary API health check
+  - **Three-State Status**: Health indicator now shows three states:
+    - 🟢 **Green "Api Healthy"**: Both APIs return `status: "ok"`
+    - 🟡 **Yellow "Api Degraded"**: APIs respond but one returns `status: "degraded"` or `"unhealthy"`
+    - 🔴 **Red "API Down"**: HTTP 400-500 errors or network failures
+  - **Non-Clickable Indicator**: Removed link functionality, now shows status-only indicator
+  - **Parallel Checks**: Both endpoints checked simultaneously every 30 seconds
+  - **Configuration**: Added `NEXT_PUBLIC_API_V2_HEALTH_URL` to client env schema
+  - **Location**: `src/env.js:37-38, 57-58`, `src/components/Header.tsx:44-108`
+
 ## [0.9.24] - 2026-01-22
 
 ### Fixed

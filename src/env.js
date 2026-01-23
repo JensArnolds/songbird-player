@@ -35,6 +35,7 @@ export const env = createEnv({
     NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: z.string().url().optional(),
     NEXT_PUBLIC_API_HEALTH_URL: z.string().url().optional(),
+    NEXT_PUBLIC_API_V2_HEALTH_URL: z.string().url().optional(),
   },
   runtimeEnv: {
     AUTH_SECRET: process.env.AUTH_SECRET,
@@ -55,6 +56,7 @@ export const env = createEnv({
     NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: process.env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL,
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: process.env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER,
     NEXT_PUBLIC_API_HEALTH_URL: process.env.API_HEALTH_URL || process.env.NEXT_PUBLIC_API_HEALTH_URL,
+    NEXT_PUBLIC_API_V2_HEALTH_URL: process.env.API_V2_HEALTH_URL || process.env.NEXT_PUBLIC_API_V2_HEALTH_URL,
     STREAMING_KEY: process.env.STREAMING_KEY,
     SONGBIRD_API_KEY: process.env.SONGBIRD_API_KEY,
     ELECTRON_BUILD: process.env.ELECTRON_BUILD,
