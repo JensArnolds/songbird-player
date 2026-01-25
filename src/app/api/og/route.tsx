@@ -42,9 +42,13 @@ export async function GET(request: NextRequest) {
             params.set("album", albumTitle);
           }
 
-          const darkfloorUrl = `https://darkfloor.one/api/preview?${params.toString()}`;
-          console.log("[OG Route] Redirecting to darkfloor preview:", darkfloorUrl);
-          return Response.redirect(darkfloorUrl, 302);
+          const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+          if (songbirdApiUrl) {
+            const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
+            const darkfloorUrl = `${normalizedSongbirdUrl}/api/preview?${params.toString()}`;
+            console.log("[OG Route] Redirecting to darkfloor preview:", darkfloorUrl);
+            return Response.redirect(darkfloorUrl, 302);
+          }
         }
       }
     } catch (error) {
@@ -109,9 +113,13 @@ export async function GET(request: NextRequest) {
                 params.set("album", albumTitle);
               }
 
-              const darkfloorUrl = `https://darkfloor.one/api/preview?${params.toString()}`;
-              console.log("[OG Route] Redirecting to track-specific preview:", darkfloorUrl);
-              return Response.redirect(darkfloorUrl, 302);
+              const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+              if (songbirdApiUrl) {
+                const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
+                const darkfloorUrl = `${normalizedSongbirdUrl}/api/preview?${params.toString()}`;
+                console.log("[OG Route] Redirecting to track-specific preview:", darkfloorUrl);
+                return Response.redirect(darkfloorUrl, 302);
+              }
             }
           }
         }
@@ -124,15 +132,15 @@ export async function GET(request: NextRequest) {
     // This is less reliable but works when frontend search doesn't find a match
     const backendApiUrl = env.NEXT_PUBLIC_API_URL;
     if (backendApiUrl) {
+      const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
+      const encodedQuery = encodeURIComponent(trimmedQuery);
+      const previewUrl = `${normalizedUrl}/api/preview?q=${encodedQuery}`;
+      
       try {
-        const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
-        
         // CRITICAL: Always encode the query parameter using encodeURIComponent()
         // This converts spaces to %20, special characters like ö to %C3%B6, etc.
         // Example: "isobel björk" -> "isobel%20bj%C3%B6rk"
         // Using + signs or unencoded special characters will result in 0-byte responses
-        const encodedQuery = encodeURIComponent(trimmedQuery);
-        const previewUrl = `${normalizedUrl}/api/preview?q=${encodedQuery}`;
         
         console.log("[OG Route] Fallback: Using backend query-based preview:", {
           query: trimmedQuery,
@@ -165,7 +173,7 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         console.error("[OG Route] Backend preview API error:", {
           error: error instanceof Error ? error.message : String(error),
-          previewUrl: `${normalizedUrl}/api/preview?q=${encodeURIComponent(trimmedQuery)}`,
+          previewUrl,
         });
       }
     } else {
@@ -174,5 +182,11 @@ export async function GET(request: NextRequest) {
   }
 
   console.log("[OG Route] No track data found, using default image");
+  const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+  if (songbirdApiUrl) {
+    const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
+    return Response.redirect(`${normalizedSongbirdUrl}/api/preview/default`, 302);
+  }
+  // Fallback to hardcoded URL if env not configured
   return Response.redirect("https://darkfloor.one/api/preview/default", 302);
 }

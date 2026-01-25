@@ -26,6 +26,7 @@ import { PlaylistContextMenuProvider } from "@/contexts/PlaylistContextMenuConte
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TrackContextMenuProvider } from "@/contexts/TrackContextMenuContext";
 import { TRPCReactProvider } from "@/trpc/react";
+import { env } from "@/env";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { RegisterServiceWorker } from "./register-sw";
 
@@ -35,6 +36,19 @@ const geist = Geist({
 });
 
 const baseUrl = getBaseUrl();
+
+// Get default OG image URL from environment
+const getDefaultOgImageUrl = (): string => {
+  const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+  if (songbirdApiUrl) {
+    const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
+    return `${normalizedSongbirdUrl}/api/preview/default`;
+  }
+  // Fallback to hardcoded URL if env not configured
+  return "https://darkfloor.one/api/preview/default";
+};
+
+const defaultOgImageUrl = getDefaultOgImageUrl();
 
 export const metadata: Metadata = {
   title: "Starchild Music",
@@ -52,7 +66,7 @@ export const metadata: Metadata = {
     siteName: "Starchild Music",
     images: [
       {
-        url: "https://darkfloor.one/api/preview/default",
+        url: defaultOgImageUrl,
         width: 1200,
         height: 630,
         alt: "Starchild Music - Modern music streaming platform",
@@ -64,7 +78,7 @@ export const metadata: Metadata = {
     title: "Starchild Music",
     description:
       "Modern music streaming and discovery platform with advanced audio features and visual patterns",
-    images: ["https://darkfloor.one/api/preview/default"],
+    images: [defaultOgImageUrl],
   },
   other: {
     "format-detection": "telephone=no",

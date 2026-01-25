@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { env } from "@/env";
 
 const rateLimit = new Map<string, { count: number; resetTime: number }>();
 
@@ -70,14 +71,24 @@ export function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/api/") &&
     !request.nextUrl.pathname.startsWith("/_next/")
   ) {
+    // Get API URLs from environment variables
+    const apiUrl = env.NEXT_PUBLIC_API_URL;
+    const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+    
+    // Extract domains from URLs for CSP
+    const apiDomain = apiUrl ? new URL(apiUrl).origin : "https://api.darkfloor.art";
+    const songbirdDomain = songbirdApiUrl ? new URL(songbirdApiUrl).origin : "https://songbird.darkfloor.art";
+    // Generate wildcard WebSocket domain for songbird (e.g., wss://*.darkfloor.one)
+    const songbirdWsDomain = songbirdDomain.replace(/^https?:\/\//, "wss://*.");
+    
     const cspHeader = `
       default-src 'self';
       script-src 'self' 'unsafe-eval' 'unsafe-inline';
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https://cdn-images.dzcdn.net https://api.deezer.com https://cdn.discordapp.com https://media.discordapp.net https://discord.com https://discordapp.com;
       font-src 'self' data:;
-      connect-src 'self' https://api.darkfloor.art https://songbird.darkfloor.art https://api.starchildmusic.com wss://*.darkfloor.art;
-      media-src 'self' https://api.darkfloor.art blob:;
+      connect-src 'self' ${apiDomain} ${songbirdDomain} https://api.starchildmusic.com ${songbirdWsDomain};
+      media-src 'self' ${apiDomain} blob:;
       worker-src 'self' blob:;
       frame-ancestors 'self';
       base-uri 'self';

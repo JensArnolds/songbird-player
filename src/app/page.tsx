@@ -1,6 +1,7 @@
 // File: src/app/page.tsx
 
 import type { SearchResponse, Track } from "@/types";
+import { env } from "@/env";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { type Metadata } from "next";
 import { headers } from "next/headers";
@@ -54,6 +55,12 @@ function buildOgImageUrl(track: Track | null, baseUrl: string, query?: string | 
       params.set("q", query);
       return `${baseUrl}/api/og?${params.toString()}`;
     }
+    const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+    if (songbirdApiUrl) {
+      const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
+      return `${normalizedSongbirdUrl}/api/preview/default`;
+    }
+    // Fallback to hardcoded URL if env not configured
     return "https://darkfloor.one/api/preview/default";
   }
 
