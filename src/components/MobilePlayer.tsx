@@ -1105,7 +1105,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                   </div>
 
                   <div className="mt-0.5 w-full max-w-[420px] pb-[calc(env(safe-area-inset-bottom)+4px)]">
-                    <div className="rounded-[20px] border border-[rgba(255,107,107,0.4)] bg-[linear-gradient(145deg,rgba(255,107,107,0.15),rgba(78,205,196,0.12),rgba(107,207,127,0.1))] px-3 py-1.5 shadow-[0_12px_32px_rgba(255,107,107,0.25)] backdrop-blur-xl">
+                    <div className="rounded-[20px] border border-[rgba(59,130,246,0.4)] bg-[linear-gradient(145deg,rgba(59,130,246,0.15),rgba(96,165,250,0.12),rgba(37,99,235,0.1))] px-3 py-1.5 shadow-[0_12px_32px_rgba(59,130,246,0.25)] backdrop-blur-xl">
                       <div className="px-1 pb-1.5">
                         <div
                           ref={progressRef}
@@ -1135,7 +1135,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         >
                           {isSeeking && (
                             <motion.div
-                              className="absolute inset-0 rounded-full bg-gradient-to-r from-[#ff6b6b]/30 to-[#4ecdc4]/30 blur-md"
+                              className="absolute inset-0 rounded-full bg-gradient-to-r from-[#3b82f6]/30 to-[#60a5fa]/30 blur-md"
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1.05 }}
                               exit={{ opacity: 0 }}
@@ -1143,7 +1143,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             />
                           )}
                           <motion.div
-                            className="h-full rounded-full bg-gradient-to-r from-[#ff6b6b] via-[#ffd93d] to-[#4ecdc4]"
+                            className="h-full rounded-full bg-gradient-to-r from-[#3b82f6] via-[#60a5fa] to-[#2563eb]"
                             style={{
                               width: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
                             }}
@@ -1167,7 +1167,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           >
                             {isSeeking && (
                               <motion.div
-                                className="absolute inset-0 rounded-full bg-[#4ecdc4]"
+                                className="absolute inset-0 rounded-full bg-[#60a5fa]"
                                 initial={{ scale: 1, opacity: 0.5 }}
                                 animate={{ scale: 2, opacity: 0 }}
                                 transition={{ duration: 0.5, repeat: Infinity }}
@@ -1191,7 +1191,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </div>
                       </div>
 
-                      <div className="h-px w-full bg-gradient-to-r from-transparent via-[rgba(255,107,107,0.3)] to-transparent" />
+                      <div className="h-px w-full bg-gradient-to-r from-transparent via-[rgba(59,130,246,0.3)] to-transparent" />
 
                       <div className="flex items-center justify-between px-1 pt-1">
                         <motion.button
@@ -1203,7 +1203,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           whileTap={{ scale: 0.9 }}
                           className={`touch-target rounded-full p-1 transition-colors ${
                             isShuffled
-                              ? "text-[#ffd93d]"
+                              ? "text-[#60a5fa]"
                               : "text-[var(--color-subtext)]"
                           }`}
                           aria-label={
@@ -1221,7 +1221,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             onSkipBackward();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors hover:text-[#4ecdc4]"
+                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors hover:text-[#60a5fa]"
                           title="Skip backward 10s"
                           aria-label="Skip backward 10 seconds"
                         >
@@ -1248,7 +1248,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             onSkipForward();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors hover:text-[#4ecdc4]"
+                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors hover:text-[#60a5fa]"
                           title="Skip forward 10s"
                           aria-label="Skip forward 10 seconds"
                         >
@@ -1276,7 +1276,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           whileTap={{ scale: 0.9 }}
                           className={`touch-target rounded-full p-1 transition-colors ${
                             repeatMode !== "none"
-                              ? "text-[#ffd93d]"
+                              ? "text-[#60a5fa]"
                               : "text-[var(--color-subtext)]"
                           }`}
                           aria-label={
@@ -1303,7 +1303,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             handlePrevious();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target-lg text-[#6bcf7f]"
+                          className="touch-target-lg text-[#3b82f6]"
                           aria-label="Previous track"
                         >
                           <SkipBack className="h-8 w-8 fill-current" />
@@ -1317,12 +1317,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                           whileTap={{ scale: 0.92 }}
                           whileHover={{ scale: 1.05 }}
-                          className="relative flex items-center justify-center rounded-full bg-gradient-to-br from-[#ff6b6b] via-[#ffd93d] to-[#4ecdc4] text-[#0f141d] shadow-[0_8px_24px_rgba(255,107,107,0.4)] ring-2 ring-[rgba(78,205,196,0.5)] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="relative flex items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] via-[#60a5fa] to-[#2563eb] text-white shadow-[0_8px_24px_rgba(59,130,246,0.4)] ring-2 ring-[rgba(96,165,250,0.5)] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
                           style={{ width: 72, height: 72 }}
                           aria-label={isPlaying ? "Pause track" : "Play track"}
                           disabled={isLoading}
                         >
-                          <div className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(255,217,61,0.6)_0%,transparent_70%)] opacity-80 blur-xl" />
+                          <div className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.6)_0%,transparent_70%)] opacity-80 blur-xl" />
                           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/15 to-transparent" />
                           {isPlaying ? (
                             <Pause className="relative h-8 w-8 fill-current" />
@@ -1341,7 +1341,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                           disabled={queue.length === 0}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target-lg text-[#6bcf7f] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="touch-target-lg text-[#3b82f6] disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label="Next track"
                         >
                           <SkipForward className="h-8 w-8 fill-current" />
