@@ -19,35 +19,84 @@ export type HapticPattern =
   | "boundary";
 
 const patterns: Record<HapticPattern, number | number[]> = {
-  light: 4,
+  light: 6,
   medium: 10,
-  heavy: 20,
+  heavy: 16,
 
-  success: [6, 60, 6],
-  error: [12, 40, 12, 40, 20],
-  warning: [8, 35, 8],
+  success: [8, 45, 10],
+  error: [10, 35, 10, 35, 14],
+  warning: [8, 30, 8],
 
-  selection: 2,
-  impact: 15,
-  notification: [4, 80, 4, 80, 12],
+  selection: 4,
+  impact: 12,
+  notification: [6, 60, 6, 60, 12],
 
-  swipe: [4, 25, 4],
-  toggle: 6,
-  slider: 1,
-  sliderTick: 2,
-  sliderEnd: 5,
-  scrub: 1,
-  boundary: [8, 30, 8],
+  swipe: [5, 20, 5],
+  toggle: 7,
+  slider: 3,
+  sliderTick: 4,
+  sliderEnd: 8,
+  scrub: 3,
+  boundary: [6, 24, 6],
 };
 
+const HAPTIC_GLOBAL_MIN_INTERVAL_MS = 16;
+const HAPTIC_DEFAULT_MIN_INTERVAL_MS = 50;
+const HAPTIC_PRIORITY_PATTERNS = new Set<HapticPattern>([
+  "success",
+  "error",
+  "warning",
+  "notification",
+]);
+const HAPTIC_MIN_INTERVAL_MS: Partial<Record<HapticPattern, number>> = {
+  light: 45,
+  selection: 45,
+  slider: 35,
+  sliderTick: 40,
+  scrub: 35,
+  toggle: 60,
+  swipe: 55,
+  boundary: 90,
+  sliderEnd: 90,
+  medium: 70,
+  impact: 70,
+  heavy: 90,
+  success: 120,
+  warning: 120,
+  error: 160,
+  notification: 180,
+};
+
+let lastHapticAt = 0;
+const lastPatternAt = new Map<HapticPattern, number>();
+
+const nowMs = (): number =>
+  typeof performance !== "undefined" ? performance.now() : Date.now();
+
 export function haptic(pattern: HapticPattern = "light"): void {
-  if (!("vibrate" in navigator)) {
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") {
     return;
   }
 
   try {
+    const now = nowMs();
+    const minInterval =
+      HAPTIC_MIN_INTERVAL_MS[pattern] ?? HAPTIC_DEFAULT_MIN_INTERVAL_MS;
+    const lastPatternTime = lastPatternAt.get(pattern) ?? 0;
+    const isPriority = HAPTIC_PRIORITY_PATTERNS.has(pattern);
+
+    if (!isPriority && now - lastHapticAt < HAPTIC_GLOBAL_MIN_INTERVAL_MS) {
+      return;
+    }
+
+    if (now - lastPatternTime < minInterval) {
+      return;
+    }
+
     const vibrationPattern = patterns[pattern];
     navigator.vibrate(vibrationPattern);
+    lastHapticAt = now;
+    lastPatternAt.set(pattern, now);
   } catch {
   }
 }
@@ -59,7 +108,7 @@ export function hapticThrottled(
   key: string,
   intervalMs: number = 50,
 ): void {
-  const now = Date.now();
+  const now = nowMs();
   const lastTime = throttleTimers.get(key) ?? 0;
 
   if (now - lastTime >= intervalMs) {
@@ -87,7 +136,7 @@ export function hapticSliderContinuous(
     boundaryFeedback = true,
   } = options;
 
-  const now = Date.now();
+  const now = nowMs();
   if (now - lastSliderTime < intervalMs) {
     return;
   }
@@ -125,7 +174,7 @@ let lastScrubTime = 0;
 const SCRUB_INTERVAL = 30;
 
 export function hapticScrub(): void {
-  const now = Date.now();
+  const now = nowMs();
   if (now - lastScrubTime >= SCRUB_INTERVAL) {
     haptic("scrub");
     lastScrubTime = now;
@@ -181,11 +230,11 @@ export function hapticSlider(): void {
 }
 
 export function isHapticSupported(): boolean {
-  return "vibrate" in navigator;
+  return typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
 }
 
 export function hapticCustom(pattern: number[]): void {
-  if (!("vibrate" in navigator)) return;
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
   try {
     navigator.vibrate(pattern);
   } catch {
@@ -194,7 +243,7 @@ export function hapticCustom(pattern: number[]): void {
 }
 
 export function hapticStop(): void {
-  if (!("vibrate" in navigator)) return;
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
   try {
     navigator.vibrate(0);
   } catch {
