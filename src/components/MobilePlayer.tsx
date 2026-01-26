@@ -901,6 +901,44 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     ? albumColorPalette.accent.replace("0.8)", "0.35)")
     : "rgba(244,178,102,0.35)";
 
+  const extractRgbFromRgba = (rgba: string): [number, number, number] => {
+    const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+      return [parseInt(match[1] ?? "0"), parseInt(match[2] ?? "0"), parseInt(match[3] ?? "0")];
+    }
+    return [59, 130, 246];
+  };
+
+  const rgbToHex = (r: number, g: number, b: number): string => {
+    return `#${[r, g, b].map(x => {
+      const hex = x.toString(16);
+      return hex.length === 1 ? `0${hex}` : hex;
+    }).join("")}`;
+  };
+
+  const getPaletteColor = (color: string, opacity: number = 1): string => {
+    const [r, g, b] = extractRgbFromRgba(color);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  const getPaletteHex = (color: string): string => {
+    const [r, g, b] = extractRgbFromRgba(color);
+    return rgbToHex(r, g, b);
+  };
+
+  const primaryColor = albumColorPalette ? getPaletteHex(albumColorPalette.primary) : "#3b82f6";
+  const secondaryColor = albumColorPalette ? getPaletteHex(albumColorPalette.secondary) : "#60a5fa";
+  const accentColor = albumColorPalette ? getPaletteHex(albumColorPalette.accent) : "#2563eb";
+  const primaryRgba = albumColorPalette ? getPaletteColor(albumColorPalette.primary, 0.4) : "rgba(59,130,246,0.4)";
+  const secondaryRgba = albumColorPalette ? getPaletteColor(albumColorPalette.secondary, 0.3) : "rgba(96,165,250,0.3)";
+  const primaryRgbaLight = albumColorPalette ? getPaletteColor(albumColorPalette.primary, 0.15) : "rgba(59,130,246,0.15)";
+  const secondaryRgbaLight = albumColorPalette ? getPaletteColor(albumColorPalette.secondary, 0.12) : "rgba(96,165,250,0.12)";
+  const accentRgbaLight = albumColorPalette ? getPaletteColor(albumColorPalette.accent, 0.1) : "rgba(37,99,235,0.1)";
+  const primaryRgbaShadow = albumColorPalette ? getPaletteColor(albumColorPalette.primary, 0.25) : "rgba(59,130,246,0.25)";
+  const primaryRgbaRing = albumColorPalette ? getPaletteColor(albumColorPalette.secondary, 0.5) : "rgba(96,165,250,0.5)";
+  const primaryRgbaGlow = albumColorPalette ? getPaletteColor(albumColorPalette.secondary, 0.6) : "rgba(96,165,250,0.6)";
+  const primaryRgbaShadowButton = albumColorPalette ? getPaletteColor(albumColorPalette.primary, 0.4) : "rgba(59,130,246,0.4)";
+
   return (
     <>
       <AnimatePresence>
@@ -1105,7 +1143,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                   </div>
 
                   <div className="mt-0.5 w-full max-w-[420px] pb-[calc(env(safe-area-inset-bottom)+4px)]">
-                    <div className="rounded-[20px] border border-[rgba(59,130,246,0.4)] bg-[linear-gradient(145deg,rgba(59,130,246,0.15),rgba(96,165,250,0.12),rgba(37,99,235,0.1))] px-3 py-1.5 shadow-[0_12px_32px_rgba(59,130,246,0.25)] backdrop-blur-xl">
+                    <div 
+                      className="rounded-[20px] px-3 py-1.5 backdrop-blur-xl"
+                      style={{
+                        border: `1px solid ${primaryRgba}`,
+                        background: `linear-gradient(145deg, ${primaryRgbaLight}, ${secondaryRgbaLight}, ${accentRgbaLight})`,
+                        boxShadow: `0 12px 32px ${primaryRgbaShadow}`,
+                      }}
+                    >
                       <div className="px-1 pb-1.5">
                         <div
                           ref={progressRef}
@@ -1135,7 +1180,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         >
                           {isSeeking && (
                             <motion.div
-                              className="absolute inset-0 rounded-full bg-gradient-to-r from-[#3b82f6]/30 to-[#60a5fa]/30 blur-md"
+                              className="absolute inset-0 rounded-full blur-md"
+                              style={{
+                                background: `linear-gradient(to right, ${getPaletteColor(albumColorPalette?.primary ?? "rgba(59,130,246,0.8)", 0.3)}, ${getPaletteColor(albumColorPalette?.secondary ?? "rgba(96,165,250,0.8)", 0.3)})`,
+                              }}
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1.05 }}
                               exit={{ opacity: 0 }}
@@ -1143,8 +1191,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             />
                           )}
                           <motion.div
-                            className="h-full rounded-full bg-gradient-to-r from-[#3b82f6] via-[#60a5fa] to-[#2563eb]"
+                            className="h-full rounded-full"
                             style={{
+                              background: `linear-gradient(to right, ${primaryColor}, ${secondaryColor}, ${accentColor})`,
                               width: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
                             }}
                             transition={
@@ -1167,7 +1216,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           >
                             {isSeeking && (
                               <motion.div
-                                className="absolute inset-0 rounded-full bg-[#60a5fa]"
+                                className="absolute inset-0 rounded-full"
+                                style={{ backgroundColor: secondaryColor }}
                                 initial={{ scale: 1, opacity: 0.5 }}
                                 animate={{ scale: 2, opacity: 0 }}
                                 transition={{ duration: 0.5, repeat: Infinity }}
@@ -1191,7 +1241,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </div>
                       </div>
 
-                      <div className="h-px w-full bg-gradient-to-r from-transparent via-[rgba(59,130,246,0.3)] to-transparent" />
+                      <div 
+                        className="h-px w-full bg-gradient-to-r from-transparent to-transparent"
+                        style={{
+                          background: `linear-gradient(to right, transparent, ${secondaryRgba}, transparent)`,
+                        }}
+                      />
 
                       <div className="flex items-center justify-between px-1 pt-1">
                         <motion.button
@@ -1203,9 +1258,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           whileTap={{ scale: 0.9 }}
                           className={`touch-target rounded-full p-1 transition-colors ${
                             isShuffled
-                              ? "text-[#60a5fa]"
+                              ? ""
                               : "text-[var(--color-subtext)]"
                           }`}
+                          style={isShuffled ? { color: secondaryColor } : undefined}
                           aria-label={
                             isShuffled ? "Disable shuffle" : "Enable shuffle"
                           }
@@ -1221,7 +1277,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             onSkipBackward();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors hover:text-[#60a5fa]"
+                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors"
+                          style={{ "--hover-color": secondaryColor } as React.CSSProperties}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = secondaryColor;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                          }}
                           title="Skip backward 10s"
                           aria-label="Skip backward 10 seconds"
                         >
@@ -1248,7 +1311,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             onSkipForward();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors hover:text-[#60a5fa]"
+                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors"
+                          style={{ "--hover-color": secondaryColor } as React.CSSProperties}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = secondaryColor;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "";
+                          }}
                           title="Skip forward 10s"
                           aria-label="Skip forward 10 seconds"
                         >
@@ -1276,9 +1346,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           whileTap={{ scale: 0.9 }}
                           className={`touch-target rounded-full p-1 transition-colors ${
                             repeatMode !== "none"
-                              ? "text-[#60a5fa]"
+                              ? ""
                               : "text-[var(--color-subtext)]"
                           }`}
+                          style={repeatMode !== "none" ? { color: secondaryColor } : undefined}
                           aria-label={
                             repeatMode === "none"
                               ? "Enable repeat"
@@ -1303,7 +1374,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             handlePrevious();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target-lg text-[#3b82f6]"
+                          className="touch-target-lg"
+                          style={{ color: primaryColor }}
                           aria-label="Previous track"
                         >
                           <SkipBack className="h-9 w-9 fill-current" />
@@ -1317,12 +1389,23 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                           whileTap={{ scale: 0.92 }}
                           whileHover={{ scale: 1.05 }}
-                          className="relative flex items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] via-[#60a5fa] to-[#2563eb] text-white shadow-[0_8px_24px_rgba(59,130,246,0.4)] ring-2 ring-[rgba(96,165,250,0.5)] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
-                          style={{ width: 68, height: 68 }}
+                          className="relative flex items-center justify-center rounded-full text-white transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          style={{ 
+                            width: 68, 
+                            height: 68,
+                            background: `linear-gradient(to bottom right, ${primaryColor}, ${secondaryColor}, ${accentColor})`,
+                            boxShadow: `0 8px 24px ${primaryRgbaShadowButton}`,
+                            border: `2px solid ${primaryRgbaRing}`,
+                          }}
                           aria-label={isPlaying ? "Pause track" : "Play track"}
                           disabled={isLoading}
                         >
-                          <div className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.6)_0%,transparent_70%)] opacity-80 blur-xl" />
+                          <div 
+                            className="absolute -inset-2 rounded-full opacity-80 blur-xl"
+                            style={{
+                              background: `radial-gradient(circle, ${primaryRgbaGlow} 0%, transparent 70%)`,
+                            }}
+                          />
                           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/15 to-transparent" />
                           {isPlaying ? (
                             <Pause className="relative h-7 w-7 fill-current" />
