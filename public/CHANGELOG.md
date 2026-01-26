@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.10] - 2026-01-26
+
+### Changed
+
+- **Full-Width Album Cover Gradient**: Mobile player background gradient now uses all three key colors (primary, secondary, accent) across the entire section
+  - Gradient spans 0% to 100% with smooth color transitions
+  - Replaced hardcoded blue fallback with dynamic color stops using all extracted colors
+  - Enhanced color processing for better visual appeal
+  - Location: `src/components/MobilePlayer.tsx`
+
+- **Dark Album Cover Support**: Improved color extraction for dark album covers
+  - Automatic detection of dark images (average lightness < 30%)
+  - Prioritizes brighter pixels from dark covers for better visibility
+  - Boosts brightness of extracted colors while preserving hue and saturation
+  - Ensures minimum lightness thresholds (40-45%) for all colors in dark images
+  - Enhanced vibrancy scoring to favor brighter colors in dark images
+  - Location: `src/utils/colorExtractor.ts`
+
 ## [0.10.9] - 2026-01-26
 
 ### Added
