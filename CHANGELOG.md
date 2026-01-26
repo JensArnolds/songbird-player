@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.11] - 2026-01-26
+
+### Added
+
+- **Eight New Visual Patterns**: Added diverse new audio-reactive visualizations to FlowFieldRenderer
+  - **solarFlare**: Dynamic solar flares radiating from center with pulsing core, secondary flares, and glowing corona
+  - **transcendence**: Ethereal flowing streams representing spiritual elevation with layered consciousness and floating particles
+  - **treeOfLife**: Sacred geometry visualization with Kabbalistic Tree of Life, 10 Sephiroth spheres, recursive branching, and connection lines
+  - **divineLight**: Heavenly light pattern with radiating rays, orbiting particles, cascading lights, and multiple halo effects
+  - **gothicThorns**: Dark, spiky gothic pattern with angular spikes, thorn clusters, inner spike rings, and dark aura
+  - **sacredTriangle**: Glowing triangle with halo ring, inner triangle, corner orbs, center orb, and outer aura
+  - **emField**: Electromagnetic field visualization with field lines, charged particles, orbiting particles, and wave rings
+  - **quantumFoam**: Quantum foam visualization with foam cells, virtual particles, energy fluctuations, and quantum connections
+  - All patterns are fully audio-reactive and automatically cycle with existing patterns
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`, `src/components/visualizers/flowfieldPatterns/patternIds.ts`
+
 ## [0.10.10] - 2026-01-26
 
 ### Changed
