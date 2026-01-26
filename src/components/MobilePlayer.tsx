@@ -655,13 +655,16 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     if (currentTrack) {
       const coverUrl = getCoverImage(currentTrack, "big");
       extractColorsFromImage(coverUrl)
-        .then(setAlbumColorPalette)
+        .then((palette) => {
+          setAlbumColorPalette(palette);
+        })
         .catch((error) => {
-          console.error("Failed to extract colors:", error);
-          setAlbumColorPalette(null);
+          console.error("Failed to extract colors, using fallback:", error);
+          extractColorsFromImage(coverUrl).then(setAlbumColorPalette);
         });
     } else {
-      setAlbumColorPalette(null);
+      extractColorsFromImage("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect fill='%236495ed' width='1' height='1'/%3E%3C/svg%3E")
+        .then(setAlbumColorPalette);
     }
   }, [currentTrack]);
 
@@ -894,12 +897,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     currentTrack.album.cover_medium ??
     currentTrack.album.cover;
 
-  const dynamicGradient = albumColorPalette
-    ? `linear-gradient(165deg, ${albumColorPalette.primary.replace("0.8)", "0.22)")}, rgba(8,13,20,0.95) 50%)`
-    : "linear-gradient(165deg, rgba(13,20,29,0.98), rgba(8,13,20,0.92))";
-  const accentGlow = albumColorPalette
-    ? albumColorPalette.accent.replace("0.8)", "0.35)")
-    : "rgba(244,178,102,0.35)";
+  const dynamicGradient = `linear-gradient(165deg, ${palette.primary.replace("0.8)", "0.22)")}, rgba(8,13,20,0.95) 50%)`;
+  const accentGlow = palette.accent.replace("0.8)", "0.35)");
 
   const extractRgbFromRgba = (rgba: string): [number, number, number] => {
     const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -916,28 +915,68 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }).join("")}`;
   };
 
-  const getPaletteColor = (color: string, opacity: number = 1): string => {
-    const [r, g, b] = extractRgbFromRgba(color);
+  const enhanceColor = (r: number, g: number, b: number, saturationBoost: number = 1.4, brightnessBoost: number = 1.15): [number, number, number] => {
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    
+    if (delta === 0) {
+      const enhanced = Math.min(255, Math.max(0, r * brightnessBoost));
+      return [enhanced, enhanced, enhanced];
+    }
+    
+    const avg = (r + g + b) / 3;
+    const saturation = delta / (255 - Math.abs(2 * avg - 255));
+    const enhancedSaturation = Math.min(1, saturation * saturationBoost);
+    
+    const factor = enhancedSaturation / saturation;
+    const newR = Math.min(255, Math.max(0, avg + (r - avg) * factor * brightnessBoost));
+    const newG = Math.min(255, Math.max(0, avg + (g - avg) * factor * brightnessBoost));
+    const newB = Math.min(255, Math.max(0, avg + (b - avg) * factor * brightnessBoost));
+    
+    return [Math.round(newR), Math.round(newG), Math.round(newB)];
+  };
+
+  const getPaletteColor = (color: string, opacity: number = 1, enhance: boolean = false): string => {
+    let [r, g, b] = extractRgbFromRgba(color);
+    if (enhance && albumColorPalette) {
+      [r, g, b] = enhanceColor(r, g, b);
+    }
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  const getPaletteHex = (color: string): string => {
-    const [r, g, b] = extractRgbFromRgba(color);
+  const getPaletteHex = (color: string, enhance: boolean = false): string => {
+    let [r, g, b] = extractRgbFromRgba(color);
+    if (enhance && albumColorPalette) {
+      [r, g, b] = enhanceColor(r, g, b);
+    }
     return rgbToHex(r, g, b);
   };
 
-  const primaryColor = albumColorPalette ? getPaletteHex(albumColorPalette.primary) : "#3b82f6";
-  const secondaryColor = albumColorPalette ? getPaletteHex(albumColorPalette.secondary) : "#60a5fa";
-  const accentColor = albumColorPalette ? getPaletteHex(albumColorPalette.accent) : "#2563eb";
-  const primaryRgba = albumColorPalette ? getPaletteColor(albumColorPalette.primary, 0.4) : "rgba(59,130,246,0.4)";
-  const secondaryRgba = albumColorPalette ? getPaletteColor(albumColorPalette.secondary, 0.3) : "rgba(96,165,250,0.3)";
-  const primaryRgbaLight = albumColorPalette ? getPaletteColor(albumColorPalette.primary, 0.15) : "rgba(59,130,246,0.15)";
-  const secondaryRgbaLight = albumColorPalette ? getPaletteColor(albumColorPalette.secondary, 0.12) : "rgba(96,165,250,0.12)";
-  const accentRgbaLight = albumColorPalette ? getPaletteColor(albumColorPalette.accent, 0.1) : "rgba(37,99,235,0.1)";
-  const primaryRgbaShadow = albumColorPalette ? getPaletteColor(albumColorPalette.primary, 0.25) : "rgba(59,130,246,0.25)";
-  const primaryRgbaRing = albumColorPalette ? getPaletteColor(albumColorPalette.secondary, 0.5) : "rgba(96,165,250,0.5)";
-  const primaryRgbaGlow = albumColorPalette ? getPaletteColor(albumColorPalette.secondary, 0.6) : "rgba(96,165,250,0.6)";
-  const primaryRgbaShadowButton = albumColorPalette ? getPaletteColor(albumColorPalette.primary, 0.4) : "rgba(59,130,246,0.4)";
+  const defaultPalette: ColorPalette = {
+    primary: "rgba(100, 149, 237, 0.8)",
+    secondary: "rgba(135, 206, 250, 0.8)",
+    accent: "rgba(70, 130, 180, 0.8)",
+    hue: 210,
+    saturation: 60,
+    lightness: 65,
+  };
+  
+  const palette = albumColorPalette ?? defaultPalette;
+  
+  const primaryColor = getPaletteHex(palette.primary, true);
+  const secondaryColor = getPaletteHex(palette.secondary, true);
+  const accentColor = getPaletteHex(palette.accent, true);
+  const primaryRgba = getPaletteColor(palette.primary, 0.6, true);
+  const secondaryRgba = getPaletteColor(palette.secondary, 0.5, true);
+  const primaryRgbaLight = getPaletteColor(palette.primary, 0.25, true);
+  const secondaryRgbaLight = getPaletteColor(palette.secondary, 0.2, true);
+  const accentRgbaLight = getPaletteColor(palette.accent, 0.18, true);
+  const primaryRgbaShadow = getPaletteColor(palette.primary, 0.4, true);
+  const primaryRgbaRing = getPaletteColor(palette.secondary, 0.7, true);
+  const primaryRgbaGlow = getPaletteColor(palette.secondary, 0.8, true);
+  const primaryRgbaShadowButton = getPaletteColor(palette.primary, 0.5, true);
+  const primaryRgbaBorder = getPaletteColor(palette.primary, 0.7, true);
 
   return (
     <>
@@ -1032,13 +1071,23 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       {coverArt ? (
                         <div className="relative">
                           <div
-                            className="absolute -inset-6 rounded-[40px] blur-2xl opacity-80"
+                            className="absolute -inset-6 rounded-[40px] blur-2xl opacity-90"
                             style={{
-                              background: `radial-gradient(circle, ${accentGlow} 0%, rgba(0,0,0,0) 70%)`,
+                              background: `radial-gradient(circle, ${getPaletteColor(palette.accent, 0.6, true)} 0%, rgba(0,0,0,0) 70%)`,
                             }}
                           />
-                          <div className="absolute -inset-2 rounded-[34px] border border-white/15" />
-                          <div className="absolute -inset-1 rounded-[32px] border border-white/5" />
+                          <div 
+                            className="absolute -inset-2 rounded-[34px] border"
+                            style={{
+                              borderColor: getPaletteColor(palette.primary, 0.4, true),
+                            }}
+                          />
+                          <div 
+                            className="absolute -inset-1 rounded-[32px] border"
+                            style={{
+                              borderColor: getPaletteColor(palette.secondary, 0.3, true),
+                            }}
+                          />
                           <div className="relative overflow-hidden rounded-[30px]">
                             <Image
                               src={coverArt}
@@ -1097,7 +1146,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     </motion.div>
 
                     <div className="w-full max-w-[420px]">
-                      <div className="rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[rgba(10,16,24,0.6)] px-4 py-2 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                      <div 
+                        className="rounded-2xl px-4 py-2 backdrop-blur-xl"
+                        style={{
+                          border: `2px solid ${getPaletteColor(palette.primary, 0.5, true)}`,
+                          background: `linear-gradient(145deg, ${getPaletteColor(palette.primary, 0.15, true)}, ${getPaletteColor(palette.secondary, 0.1, true)}, rgba(10,16,24,0.6))`,
+                          boxShadow: `0 16px 40px rgba(0,0,0,0.45), 0 0 20px ${getPaletteColor(palette.primary, 0.3, true)}`,
+                        }}
+                      >
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0 text-left">
                             <motion.h2
@@ -1146,9 +1202,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     <div 
                       className="rounded-[20px] px-3 py-1.5 backdrop-blur-xl"
                       style={{
-                        border: `1px solid ${primaryRgba}`,
+                        border: `2px solid ${primaryRgbaBorder}`,
                         background: `linear-gradient(145deg, ${primaryRgbaLight}, ${secondaryRgbaLight}, ${accentRgbaLight})`,
-                        boxShadow: `0 12px 32px ${primaryRgbaShadow}`,
+                        boxShadow: `0 12px 32px ${primaryRgbaShadow}, 0 0 20px ${primaryRgba}40`,
                       }}
                     >
                       <div className="px-1 pb-1.5">
@@ -1182,7 +1238,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             <motion.div
                               className="absolute inset-0 rounded-full blur-md"
                               style={{
-                                background: `linear-gradient(to right, ${getPaletteColor(albumColorPalette?.primary ?? "rgba(59,130,246,0.8)", 0.3)}, ${getPaletteColor(albumColorPalette?.secondary ?? "rgba(96,165,250,0.8)", 0.3)})`,
+                                background: `linear-gradient(to right, ${getPaletteColor(palette.primary, 0.5, true)}, ${getPaletteColor(palette.secondary, 0.5, true)})`,
+                                boxShadow: `0 0 20px ${getPaletteColor(palette.primary, 0.4, true)}`,
                               }}
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1.05 }}
@@ -1242,9 +1299,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       </div>
 
                       <div 
-                        className="h-px w-full bg-gradient-to-r from-transparent to-transparent"
+                        className="h-[2px] w-full bg-gradient-to-r from-transparent to-transparent"
                         style={{
                           background: `linear-gradient(to right, transparent, ${secondaryRgba}, transparent)`,
+                          boxShadow: `0 0 8px ${secondaryRgba}`,
                         }}
                       />
 
@@ -1393,17 +1451,18 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           style={{ 
                             width: 68, 
                             height: 68,
-                            background: `linear-gradient(to bottom right, ${primaryColor}, ${secondaryColor}, ${accentColor})`,
-                            boxShadow: `0 8px 24px ${primaryRgbaShadowButton}`,
-                            border: `2px solid ${primaryRgbaRing}`,
+                            background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor}, ${accentColor})`,
+                            boxShadow: `0 8px 24px ${primaryRgbaShadowButton}, 0 0 30px ${primaryRgbaGlow}60`,
+                            border: `3px solid ${primaryRgbaRing}`,
                           }}
                           aria-label={isPlaying ? "Pause track" : "Play track"}
                           disabled={isLoading}
                         >
                           <div 
-                            className="absolute -inset-2 rounded-full opacity-80 blur-xl"
+                            className="absolute -inset-3 rounded-full opacity-90 blur-2xl"
                             style={{
                               background: `radial-gradient(circle, ${primaryRgbaGlow} 0%, transparent 70%)`,
+                              boxShadow: `0 0 40px ${primaryRgbaGlow}`,
                             }}
                           />
                           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/15 to-transparent" />

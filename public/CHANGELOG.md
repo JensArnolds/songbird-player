@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.9] - 2026-01-26
+
+### Added
+
+- **Dynamic Color Adaptation from Album Art**: Mobile player color scheme now adapts to each track's album artwork
+  - Real-time color extraction from album cover images
+  - Automatic color palette generation (primary, secondary, accent colors)
+  - All UI elements dynamically colored: control deck, progress bar, buttons, borders, glows, shadows
+  - Enhanced color saturation and brightness for more vibrant results
+  - Location: `src/components/MobilePlayer.tsx`, `src/utils/colorExtractor.ts`
+
+### Changed
+
+- **Robust Color Extraction Algorithm**: Completely rewritten color extraction system for maximum reliability
+  - Color bucketing and vibrancy scoring for better color selection
+  - Multiple extraction strategies with automatic fallback
+  - Handles edge cases: grayscale, very dark/light images, empty images
+  - Always extracts colors - no rejections, always resolves with valid palette
+  - Increased sample size from 50x50 to 100x100 pixels for better accuracy
+  - Smart color relationships ensure proper hue separation between primary, secondary, and accent
+  - Automatic saturation enhancement for low-saturation images
+  - Location: `src/utils/colorExtractor.ts`
+
+- **Enhanced Color Visibility**: Made color adaptation effects more noticeable throughout the UI
+  - Increased border thickness (1px→2px) with higher opacity
+  - Stronger gradients and glow effects on all elements
+  - Enhanced play button with thicker border (3px), stronger glow, and shadow
+  - Progress bar seeking glow with shadow effects
+  - Colored borders around artwork with enhanced radial glow
+  - Track info card with colored border and gradient background
+  - All hover and active states use extracted colors
+  - Location: `src/components/MobilePlayer.tsx`
+
+- **Removed Fallback Colors**: Component now always uses extracted colors
+  - No null checks or conditional fallbacks
+  - Default palette used only during initial load
+  - All UI elements consistently use palette colors
+  - Location: `src/components/MobilePlayer.tsx`
+
 ## [0.10.8] - 2026-01-26
 
 ### Changed
