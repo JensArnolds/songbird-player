@@ -12,6 +12,7 @@ import type {
   Track,
 } from "@/types";
 import { getStreamUrlById } from "@/utils/api";
+import { getAudioConnection } from "@/utils/audioContextManager";
 import { logger } from "@/utils/logger";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -310,7 +311,17 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
+      const targetVolume = isMuted ? 0 : volume;
+      const connection = getAudioConnection(audioRef.current);
+
+      if (connection?.gainNode) {
+        connection.gainNode.gain.value = targetVolume;
+        if (audioRef.current.volume !== 1) {
+          audioRef.current.volume = 1;
+        }
+      } else {
+        audioRef.current.volume = targetVolume;
+      }
     }
   }, [volume, isMuted]);
 

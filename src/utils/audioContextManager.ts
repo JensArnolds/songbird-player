@@ -5,6 +5,7 @@ interface AudioConnection {
   audioContext: AudioContext;
   analyser?: AnalyserNode;
   filters?: BiquadFilterNode[];
+  gainNode?: GainNode;
   refCount: number;
 }
 
@@ -39,10 +40,13 @@ export function getOrCreateAudioConnection(
   try {
     const audioContext = new AudioContextClass();
     const sourceNode = audioContext.createMediaElementSource(audioElement);
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 1;
 
     const connection: AudioConnection = {
       sourceNode,
       audioContext,
+      gainNode,
       refCount: 1,
     };
 
@@ -52,7 +56,8 @@ export function getOrCreateAudioConnection(
       void audioContext.resume();
     }
 
-    sourceNode.connect(audioContext.destination);
+    sourceNode.connect(gainNode);
+    gainNode.connect(audioContext.destination);
 
     return connection;
   } catch (error) {
@@ -85,6 +90,9 @@ export function releaseAudioConnection(audioElement: HTMLAudioElement): void {
 
       if (connection.analyser) {
         connection.analyser.disconnect();
+      }
+      if (connection.gainNode) {
+        connection.gainNode.disconnect();
       }
       if (connection.filters && connection.filters.length > 0) {
         connection.filters.forEach((filter) => filter.disconnect());
@@ -171,6 +179,18 @@ export function ensureConnectionChain(connection: AudioConnection): void {
       }
     }
 
+    if (connection.gainNode) {
+      try {
+        connection.gainNode.disconnect();
+      } catch (e) {
+
+        console.debug(
+          "[audioContextManager] GainNode disconnect (expected):",
+          e,
+        );
+      }
+    }
+
     if (connection.filters && connection.filters.length > 0) {
       connection.filters.forEach((filter) => {
         try {
@@ -185,56 +205,38 @@ export function ensureConnectionChain(connection: AudioConnection): void {
       });
     }
 
-    if (connection.filters && connection.filters.length > 0) {
+    const filters =
+      connection.filters && connection.filters.length > 0
+        ? connection.filters
+        : null;
+    let lastNode: AudioNode = connection.sourceNode;
 
-      for (let i = 0; i < connection.filters.length - 1; i++) {
-        connection.filters[i]!.connect(connection.filters[i + 1]!);
+    if (filters) {
+      for (let i = 0; i < filters.length; i++) {
+        const nextFilter = filters[i]!;
+        lastNode.connect(nextFilter);
+        lastNode = nextFilter;
       }
-
-      connection.sourceNode.connect(connection.filters[0]!);
-      const lastFilter = connection.filters[connection.filters.length - 1]!;
-
-      if (connection.analyser) {
-
-        lastFilter.connect(connection.analyser);
-        connection.analyser.connect(connection.audioContext.destination);
-        console.log(
-          "[audioContextManager] ✅ Chain: source -> filters -> analyser -> destination",
-          {
-            filterCount: connection.filters.length,
-            analyserExists: !!connection.analyser,
-            destinationExists: !!connection.audioContext.destination,
-          },
-        );
-      } else {
-
-        lastFilter.connect(connection.audioContext.destination);
-        console.log(
-          "[audioContextManager] ✅ Chain: source -> filters -> destination",
-          {
-            filterCount: connection.filters.length,
-          },
-        );
-      }
-    } else if (connection.analyser) {
-
-      connection.sourceNode.connect(connection.analyser);
-      connection.analyser.connect(connection.audioContext.destination);
-      console.log(
-        "[audioContextManager] ✅ Chain: source -> analyser -> destination",
-        {
-          analyserExists: !!connection.analyser,
-          destinationExists: !!connection.audioContext.destination,
-          sourceNodeExists: !!connection.sourceNode,
-        },
-      );
-    } else {
-
-      connection.sourceNode.connect(connection.audioContext.destination);
-      console.log(
-        "[audioContextManager] ✅ Chain: source -> destination (fallback)",
-      );
     }
+
+    if (connection.gainNode) {
+      lastNode.connect(connection.gainNode);
+      lastNode = connection.gainNode;
+    }
+
+    if (connection.analyser) {
+      lastNode.connect(connection.analyser);
+      connection.analyser.connect(connection.audioContext.destination);
+    } else {
+      lastNode.connect(connection.audioContext.destination);
+    }
+
+    console.log("[audioContextManager] ✅ Chain ready", {
+      filterCount: filters ? filters.length : 0,
+      hasGain: !!connection.gainNode,
+      analyserExists: !!connection.analyser,
+      destinationExists: !!connection.audioContext.destination,
+    });
 
     if (connection.audioContext.state === "suspended") {
       console.log(

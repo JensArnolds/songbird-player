@@ -13,6 +13,11 @@ import {
   type ColorPalette,
 } from "@/utils/colorExtractor";
 import {
+  getAudioConnection,
+  getOrCreateAudioConnection,
+  releaseAudioConnection,
+} from "@/utils/audioContextManager";
+import {
   hapticLight,
   hapticMedium,
   hapticSuccess,
@@ -306,6 +311,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onNext,
     onPrevious,
     onSeek,
+    onVolumeChange,
     onToggleMute,
     onToggleShuffle,
     onCycleRepeat,
@@ -383,6 +389,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const progressRef = useRef<HTMLDivElement>(null);
   const artworkRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
+  const volumeDragValueRef = useRef(volume);
+  const isAdjustingVolumeRef = useRef(false);
+  const volumeConnectionElementRef = useRef<HTMLAudioElement | null>(null);
 
   const { data: playlists, refetch: refetchPlaylists } =
     api.music.getPlaylists.useQuery(undefined, {
@@ -664,6 +673,62 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }
   }, [contextAudioElement]);
 
+  const getVolumeTargetAudio = useCallback(() => {
+    return (
+      contextAudioElement ||
+      audioElement ||
+      (typeof document !== "undefined"
+        ? (document.querySelector(
+            'audio[data-audio-element="global-player"]',
+          ) as HTMLAudioElement | null)
+        : null)
+    );
+  }, [contextAudioElement, audioElement]);
+
+  const ensureVolumeConnection = useCallback(() => {
+    if (volumeConnectionElementRef.current) {
+      return volumeConnectionElementRef.current;
+    }
+
+    const targetAudio = getVolumeTargetAudio();
+    if (!targetAudio) return null;
+
+    const connection = getOrCreateAudioConnection(targetAudio);
+    if (!connection) return null;
+
+    volumeConnectionElementRef.current = targetAudio;
+    return targetAudio;
+  }, [getVolumeTargetAudio]);
+
+  const applyVolumeToAudio = useCallback(
+    (nextVolume: number) => {
+      const targetAudio = ensureVolumeConnection() ?? getVolumeTargetAudio();
+      if (!targetAudio) return;
+
+      const effectiveVolume = isMuted ? 0 : nextVolume;
+      const connection = getAudioConnection(targetAudio);
+
+      if (connection?.gainNode) {
+        connection.gainNode.gain.value = effectiveVolume;
+        if (targetAudio.volume !== 1) {
+          targetAudio.volume = 1;
+        }
+      } else {
+        targetAudio.volume = effectiveVolume;
+      }
+    },
+    [ensureVolumeConnection, getVolumeTargetAudio, isMuted],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (volumeConnectionElementRef.current) {
+        releaseAudioConnection(volumeConnectionElementRef.current);
+        volumeConnectionElementRef.current = null;
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (preferences) {
       setVisualizerEnabled(preferences.visualizerEnabled ?? true);
@@ -696,6 +761,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   useEffect(() => {
     if (!isAdjustingVolume) {
       setLocalVolume(volume);
+      volumeDragValueRef.current = volume;
+      isAdjustingVolumeRef.current = false;
     }
   }, [volume, isAdjustingVolume]);
 
@@ -732,7 +799,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     const rect = volumeRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, x / rect.width));
-    props.onVolumeChange(percentage);
+    volumeDragValueRef.current = percentage;
+    setLocalVolume(percentage);
+    applyVolumeToAudio(percentage);
+    onVolumeChange(percentage);
     haptic("selection");
   };
 
@@ -743,27 +813,20 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     if (!touch) return;
     const x = touch.clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, x / rect.width));
+    isAdjustingVolumeRef.current = true;
     setIsAdjustingVolume(true);
+    volumeDragValueRef.current = percentage;
     setLocalVolume(percentage);
-    // Apply volume immediately to audio element for responsive feedback
-    // Try multiple sources to find the active audio element
-    const targetAudio =
-      contextAudioElement ||
-      audioElement ||
-      (typeof document !== "undefined"
-        ? (document.querySelector('audio[data-audio-element="global-player"]') as HTMLAudioElement)
-        : null);
-    if (targetAudio) {
-      targetAudio.volume = isMuted ? 0 : percentage;
-    }
+    applyVolumeToAudio(percentage);
   };
 
   const handleVolumeTouchEnd = () => {
-    if (isAdjustingVolume) {
-      props.onVolumeChange(localVolume);
-      setIsAdjustingVolume(false);
-      hapticSliderEnd();
-    }
+    if (!isAdjustingVolumeRef.current) return;
+    const nextVolume = volumeDragValueRef.current;
+    onVolumeChange(nextVolume);
+    setIsAdjustingVolume(false);
+    isAdjustingVolumeRef.current = false;
+    hapticSliderEnd();
   };
 
   const handleArtworkDrag = useCallback(
@@ -1292,13 +1355,17 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       onTouchMove={(e) => {
                         e.preventDefault();
                         handleVolumeTouch(e);
-                        hapticSliderContinuous(localVolume * 100, 0, 100, {
+                        hapticSliderContinuous(volumeDragValueRef.current * 100, 0, 100, {
                           intervalMs: 50,
                           tickThreshold: 5,
                           boundaryFeedback: true,
                         });
                       }}
                       onTouchEnd={(e) => {
+                        e.preventDefault();
+                        handleVolumeTouchEnd();
+                      }}
+                      onTouchCancel={(e) => {
                         e.preventDefault();
                         handleVolumeTouchEnd();
                       }}

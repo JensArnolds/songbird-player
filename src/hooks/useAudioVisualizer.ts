@@ -64,15 +64,13 @@ export function useAudioVisualizer(
       analyserRef.current = customAnalyser;
 
       try {
-        if (connection.filters && connection.filters.length > 0) {
-          const lastFilter = connection.filters[connection.filters.length - 1]!;
+        const analyserSource =
+          connection.gainNode ??
+          (connection.filters && connection.filters.length > 0
+            ? connection.filters[connection.filters.length - 1]!
+            : connection.sourceNode);
 
-          lastFilter.connect(customAnalyser);
-        } else {
-
-          connection.sourceNode.connect(customAnalyser);
-        }
-
+        analyserSource.connect(customAnalyser);
       } catch (error) {
         console.error("[useAudioVisualizer] Error connecting custom analyser:", error);
       }
