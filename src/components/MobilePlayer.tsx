@@ -934,7 +934,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
               onDragEnd={handleExpandedDragEnd}
               style={{ y: dragY, opacity }}
               transition={springPresets.gentle}
-              className="fixed inset-0 z-[99] flex flex-col overflow-hidden pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+36px)]"
+              className="fixed inset-0 z-[99] flex flex-col overflow-hidden pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+20px)]"
             >
               {}
               <div
@@ -945,11 +945,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
               {}
               <div className="relative z-10 flex flex-1 flex-col">
-                <div className="flex justify-center pt-2 pb-1">
+                <div className="flex justify-center pt-1 pb-0.5">
                   <div className="h-1 w-12 rounded-full bg-[rgba(255,255,255,0.3)]" />
                 </div>
 
-                <div className="flex items-center justify-between px-6 pt-2">
+                <div className="flex items-center justify-between px-6 pt-1">
                   <motion.button
                     onClick={() => {
                       hapticLight();
@@ -976,8 +976,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                   <div className="w-12" />
                 </div>
 
-                <div className="flex flex-1 flex-col px-6 pb-6 pt-3">
-                  <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-6">
+                <div className="flex flex-1 flex-col px-6 pb-3 pt-2">
+                  <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-4">
                     <motion.div
                       ref={artworkRef}
                       initial={{ scale: 0.9, opacity: 0 }}
@@ -989,7 +989,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       onDrag={handleArtworkDrag}
                       onDragEnd={handleArtworkDragEnd}
                       transition={springPresets.smooth}
-                      className="relative w-full max-w-[330px] cursor-grab active:cursor-grabbing"
+                      className="relative w-full max-w-[300px] cursor-grab active:cursor-grabbing"
                     >
                       {coverArt ? (
                         <div className="relative">
@@ -1059,14 +1059,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     </motion.div>
 
                     <div className="w-full max-w-[420px]">
-                      <div className="rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[rgba(10,16,24,0.6)] px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                      <div className="rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[rgba(10,16,24,0.6)] px-4 py-2 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0 text-left">
                             <motion.h2
                               key={currentTrack.id}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="text-2xl font-bold text-[var(--color-text)] leading-tight"
+                              className="text-xl font-bold text-[var(--color-text)] leading-tight"
                             >
                               {currentTrack.title}
                             </motion.h2>
@@ -1074,12 +1074,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ delay: 0.1 }}
-                              className="mt-1 text-sm font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)]"
+                              className="mt-0.5 text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)]"
                             >
                               {currentTrack.artist.name}
                             </motion.p>
                             {currentTrack.album?.title && (
-                              <p className="mt-1 truncate text-xs text-[var(--color-subtext)]">
+                              <p className="mt-0.5 truncate text-[10px] text-[var(--color-subtext)]">
                                 {currentTrack.album.title}
                               </p>
                             )}
@@ -1104,9 +1104,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                   </div>
 
-                  <div className="mt-2 w-full max-w-[420px] pb-[calc(env(safe-area-inset-bottom)+8px)]">
-                    <div className="rounded-[20px] border border-[rgba(255,107,107,0.4)] bg-[linear-gradient(145deg,rgba(255,107,107,0.15),rgba(78,205,196,0.12),rgba(107,207,127,0.1))] px-3 py-2 shadow-[0_12px_32px_rgba(255,107,107,0.25)] backdrop-blur-xl">
-                      <div className="px-1 pb-2">
+                  <div className="mt-0.5 w-full max-w-[420px] pb-[calc(env(safe-area-inset-bottom)+4px)]">
+                    <div className="rounded-[20px] border border-[rgba(255,107,107,0.4)] bg-[linear-gradient(145deg,rgba(255,107,107,0.15),rgba(78,205,196,0.12),rgba(107,207,127,0.1))] px-3 py-1.5 shadow-[0_12px_32px_rgba(255,107,107,0.25)] backdrop-blur-xl">
+                      <div className="px-1 pb-1.5">
                         <div
                           ref={progressRef}
                           className="group relative h-1.5 cursor-pointer rounded-full bg-[rgba(255,255,255,0.15)]"
@@ -1175,7 +1175,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             )}
                           </motion.div>
                         </div>
-                        <div className="mt-1.5 flex justify-between text-[10px] text-[var(--color-subtext)] tabular-nums">
+                        <div className="mt-1 flex justify-between text-[10px] text-[var(--color-subtext)] tabular-nums">
                           <motion.span
                             animate={{ scale: isSeeking ? 1.05 : 1 }}
                             transition={springPresets.snappy}
@@ -1193,7 +1193,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                       <div className="h-px w-full bg-gradient-to-r from-transparent via-[rgba(255,107,107,0.3)] to-transparent" />
 
-                      <div className="flex items-center justify-between px-1 pt-1.5">
+                      <div className="flex items-center justify-between px-1 pt-1">
                         <motion.button
                           onClick={(e) => {
                             e.preventDefault();
@@ -1295,7 +1295,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </motion.button>
                       </div>
 
-                      <div className="mt-2 flex items-center justify-center gap-6">
+                      <div className="mt-1.5 flex items-center justify-center gap-6">
                         <motion.button
                           onClick={(e) => {
                             e.preventDefault();
