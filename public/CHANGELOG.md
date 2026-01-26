@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.7] - 2026-01-26
+
+### Changed
+
+- **Mobile Player UI Refinement**: Enhanced mobile player controls with refined color palette and compact design
+  - Updated color scheme: vibrant gradient colors (#ff6b6b, #4ecdc4, #ffd93d, #6bcf7f) replacing CSS variables
+  - Reduced spacing and padding throughout controls for more compact layout
+  - Smaller icon sizes (h-4 w-4 for controls, h-6 w-6 for skip buttons, h-7 w-7 for play/pause)
+  - Play button reduced from 80px to 64px with new gradient (red → yellow → teal)
+  - Progress bar height reduced from 2.5 to 1.5 with refined gradient and smaller thumb (14-18px)
+  - Updated control deck styling with gradient borders and refined backdrop blur
+  - Improved safe area handling with adjusted padding calculations
+  - Location: `src/components/MobilePlayer.tsx`
+
 ## [0.10.6] - 2026-01-26
 
 ### Added
