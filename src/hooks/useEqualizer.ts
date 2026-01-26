@@ -11,6 +11,7 @@ import {
   getOrCreateAudioConnection,
   releaseAudioConnection,
   ensureConnectionChain,
+  shouldBypassWebAudio,
 } from "@/utils/audioContextManager";
 
 export interface EqualizerBand {
@@ -50,6 +51,7 @@ const PRESETS: EqualizerPreset[] = [
 ];
 
 export function useEqualizer(audioElement: HTMLAudioElement | null) {
+  const isSupported = !shouldBypassWebAudio();
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const filtersRef = useRef<BiquadFilterNode[]>([]);
@@ -166,7 +168,9 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
   }, [isAuthenticated, status, loadLocalPreferences]);
 
   const initialize = useCallback(() => {
-    if (!audioElement || isInitialized || audioContextRef.current) return;
+    if (!audioElement || isInitialized || audioContextRef.current || !isSupported) {
+      return;
+    }
 
     try {
 
@@ -288,20 +292,25 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
   }, [applyPreset]);
 
   const toggle = useCallback(() => {
+    if (!isSupported) {
+      return;
+    }
     setIsEnabled((prev) => {
       const newState = !prev;
 
-      if (sourceRef.current && filtersRef.current.length > 0) {
-        if (newState) {
-
-          sourceRef.current.disconnect();
-          sourceRef.current.connect(filtersRef.current[0]!);
-        } else {
-
-          sourceRef.current.disconnect();
-          if (audioContextRef.current) {
-            sourceRef.current.connect(audioContextRef.current.destination);
+      if (audioElement) {
+        const connection = getOrCreateAudioConnection(audioElement);
+        if (connection) {
+          if (!newState) {
+            filtersRef.current.forEach((filter) => {
+              try {
+                filter.disconnect();
+              } catch {
+              }
+            });
           }
+          connection.filters = newState ? filtersRef.current : [];
+          ensureConnectionChain(connection);
         }
       }
 
@@ -323,10 +332,12 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
     currentPreset,
     persistLocalPreferences,
     isAuthenticated,
+    audioElement,
+    isSupported,
   ]);
 
   useEffect(() => {
-    if (audioElement && !isInitialized) {
+    if (audioElement && !isInitialized && isSupported) {
       const handleInteraction = () => {
         initialize();
         document.removeEventListener("click", handleInteraction);
@@ -338,7 +349,7 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
         document.removeEventListener("click", handleInteraction);
       };
     }
-  }, [audioElement, isInitialized, initialize]);
+  }, [audioElement, isInitialized, initialize, isSupported]);
 
   useEffect(() => {
     return () => {
@@ -354,6 +365,7 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
   }, []);
 
   return {
+    isSupported,
     isInitialized,
     isEnabled,
     bands,

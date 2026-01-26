@@ -223,7 +223,7 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (!equalizer.isInitialized) {
+    if (!equalizer.isInitialized && equalizer.isSupported) {
       const handleInteraction = () => {
         equalizer.initialize();
       };
@@ -244,6 +244,7 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
   };
 
   const handlePresetChange = (preset: string) => {
+    if (!equalizer.isSupported) return;
     hapticMedium();
     setIsAnimating(true);
     equalizer.applyPreset(preset);
@@ -251,6 +252,7 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
   };
 
   const handleToggle = () => {
+    if (!equalizer.isSupported) return;
     hapticMedium();
     equalizer.toggle();
   };
@@ -306,15 +308,22 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
                 </button>
                 <button
                   onClick={handleToggle}
+                  disabled={!equalizer.isSupported}
                   className={`group relative rounded-lg p-2 transition-all active:scale-95 ${
-                    equalizer.isEnabled
+                    equalizer.isEnabled && equalizer.isSupported
                       ? "bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-[var(--color-text)] shadow-lg shadow-[rgba(244,178,102,0.3)]"
                       : "text-[var(--color-subtext)] hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
-                  }`}
-                  title={equalizer.isEnabled ? "Disable EQ" : "Enable EQ"}
+                  } ${!equalizer.isSupported ? "cursor-not-allowed opacity-50" : ""}`}
+                  title={
+                    !equalizer.isSupported
+                      ? "Equalizer unavailable on iOS Safari"
+                      : equalizer.isEnabled
+                        ? "Disable EQ"
+                        : "Enable EQ"
+                  }
                 >
                   <Power className="h-4 w-4" />
-                  {equalizer.isEnabled && (
+                  {equalizer.isEnabled && equalizer.isSupported && (
                     <span className="absolute inset-0 animate-ping rounded-lg bg-[rgba(244,178,102,0.4)] opacity-30" />
                   )}
                 </button>
@@ -328,7 +337,21 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              {!equalizer.isInitialized ? (
+              {!equalizer.isSupported ? (
+                <div className="flex items-center justify-center p-12 text-center">
+                  <div className="space-y-3">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(255,255,255,0.08)]">
+                      <Power className="h-8 w-8 text-[var(--color-subtext)]" />
+                    </div>
+                    <p className="text-sm text-[var(--color-text)]">
+                      Equalizer unavailable on iOS Safari
+                    </p>
+                    <p className="text-xs text-[var(--color-subtext)]">
+                      Disabled to keep background playback running.
+                    </p>
+                  </div>
+                </div>
+              ) : !equalizer.isInitialized ? (
                 <div className="flex items-center justify-center p-12 text-center">
                   <div className="space-y-3">
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] shadow-xl shadow-[rgba(244,178,102,0.35)]">
