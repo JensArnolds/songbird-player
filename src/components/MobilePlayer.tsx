@@ -897,7 +897,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     currentTrack.album.cover_medium ??
     currentTrack.album.cover;
 
-  const dynamicGradient = `linear-gradient(165deg, ${palette.primary.replace("0.8)", "0.22)")}, rgba(8,13,20,0.95) 50%)`;
   const accentGlow = palette.accent.replace("0.8)", "0.35)");
 
   const extractRgbFromRgba = (rgba: string): [number, number, number] => {
@@ -963,6 +962,22 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   };
   
   const palette = albumColorPalette ?? defaultPalette;
+  
+  // Create a full-width gradient using all three key colors from the album cover
+  // Extract RGB values and apply appropriate opacity for background
+  const primaryRgb = extractRgbFromRgba(palette.primary);
+  const secondaryRgb = extractRgbFromRgba(palette.secondary);
+  const accentRgb = extractRgbFromRgba(palette.accent);
+  
+  // Enhanced colors for better visual appeal
+  const [enhancedPrimaryR, enhancedPrimaryG, enhancedPrimaryB] = enhanceColor(primaryRgb[0], primaryRgb[1], primaryRgb[2]);
+  const [enhancedSecondaryR, enhancedSecondaryG, enhancedSecondaryB] = enhanceColor(secondaryRgb[0], secondaryRgb[1], secondaryRgb[2]);
+  const [enhancedAccentR, enhancedAccentG, enhancedAccentB] = enhanceColor(accentRgb[0], accentRgb[1], accentRgb[2]);
+  
+  // Create gradient with multiple color stops covering the full section
+  // Using 165deg angle for diagonal gradient, with colors distributed across 0% to 100%
+  // Uses all three key colors (primary, secondary, accent) from the album cover
+  const dynamicGradient = `linear-gradient(165deg, rgba(${enhancedPrimaryR}, ${enhancedPrimaryG}, ${enhancedPrimaryB}, 0.25) 0%, rgba(${enhancedPrimaryR}, ${enhancedPrimaryG}, ${enhancedPrimaryB}, 0.18) 25%, rgba(${enhancedSecondaryR}, ${enhancedSecondaryG}, ${enhancedSecondaryB}, 0.2) 50%, rgba(${enhancedSecondaryR}, ${enhancedSecondaryG}, ${enhancedSecondaryB}, 0.15) 70%, rgba(${enhancedAccentR}, ${enhancedAccentG}, ${enhancedAccentB}, 0.18) 85%, rgba(${enhancedAccentR}, ${enhancedAccentG}, ${enhancedAccentB}, 0.12) 100%)`;
   
   const primaryColor = getPaletteHex(palette.primary, true);
   const secondaryColor = getPaletteHex(palette.secondary, true);
