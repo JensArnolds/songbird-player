@@ -99,4 +99,12 @@ export type Pattern =
   | "dragonCurve"
   | "langtonsAnt"
   | "celticKnot"
-  | "germanicKnot";
+  | "germanicKnot"
+  | "solarFlare"
+  | "transcendence"
+  | "treeOfLife"
+  | "divineLight"
+  | "gothicThorns"
+  | "sacredTriangle"
+  | "emField"
+  | "quantumFoam";
