@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Admin Role Support**: Added `admin` boolean column with default false and wired it into session payloads for authorization
   - Location: `src/server/db/schema.ts`, `src/server/auth/config.ts`, `drizzle/0017_admin_flag.sql`, `drizzle/meta/0017_snapshot.json`
 
+- **First User Auto-Admin**: The first registered user is automatically promoted to admin
+  - Location: `src/server/auth/config.ts`
+
 - **Admin APIs**: New TRPC router for listing users and toggling admin access with a self-demotion guard
   - Location: `src/server/api/routers/admin.ts`, `src/server/api/root.ts`
 

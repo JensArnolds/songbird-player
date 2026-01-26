@@ -3,7 +3,7 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import { env } from "@/env";
 import { db } from "@/server/db";
@@ -135,6 +135,20 @@ export const authConfig = {
               .set(updates)
               .where(eq(users.id, user.id));
             console.log("[NextAuth signIn] Profile updated successfully");
+          }
+        }
+
+        if (user.id && !user.admin) {
+          const [{ count: userCount } = { count: 0 }] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(users);
+
+          if (userCount === 1) {
+            await db
+              .update(users)
+              .set({ admin: true })
+              .where(eq(users.id, user.id));
+            user.admin = true;
           }
         }
 
