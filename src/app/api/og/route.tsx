@@ -1,3 +1,5 @@
+// File: src/app/api/og/route.tsx
+
 import type { NextRequest } from "next/server";
 import { env } from "@/env";
 

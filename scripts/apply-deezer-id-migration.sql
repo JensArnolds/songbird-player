@@ -1,10 +1,9 @@
 -- File: scripts/apply-deezer-id-migration.sql
-
 -- Apply deezer_id migration manually
 -- Run with: psql $DATABASE_URL -f scripts/apply-deezer-id-migration.sql
 -- Or copy-paste into your database client
-
 -- Add deezerId columns
+
 ALTER TABLE "hexmusic-stream_audio_features" ADD COLUMN IF NOT EXISTS "deezerId" bigint;
 ALTER TABLE "hexmusic-stream_favorite" ADD COLUMN IF NOT EXISTS "deezerId" bigint;
 ALTER TABLE "hexmusic-stream_listening_analytics" ADD COLUMN IF NOT EXISTS "deezerId" bigint;

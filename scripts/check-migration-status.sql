@@ -1,9 +1,8 @@
 -- File: scripts/check-migration-status.sql
-
 -- Check if migration is running and see table sizes
 -- Run this in a separate psql session to monitor progress
-
 -- Check for active locks (migration operations)
+
 SELECT 
   pid,
   usename,

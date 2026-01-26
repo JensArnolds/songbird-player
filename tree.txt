@@ -1,15 +1,14 @@
 songbird-frontend
-├───.env.development
+├───.annot8_backup.json
 ├───.env.example
 ├───.env.local
-├───.env.production
-├───.env.vercel.example
 ├───.gitignore
 ├───.markdownlint-cli2.jsonc
 ├───.pm2ignore
 ├───.vercelignore
 ├───CHANGELOG.md
 ├───CLAUDE.md
+├───CODEBASE_ANALYSIS.md
 ├───config1.1
 ├───drizzle.config.ts
 ├───drizzle.env.ts
@@ -24,8 +23,6 @@ songbird-frontend
 ├───postcss.config.js
 ├───prettier.config.js
 ├───README.md
-├───REPOSITORY_ANALYSIS.md
-├───ROADMAP.md
 ├───rollup.config.mjs
 ├───setup-database.sh
 ├───start-database.sh
@@ -34,6 +31,7 @@ songbird-frontend
 ├───tsconfig.json
 ├───tsconfig.tsbuildinfo
 ├───vercel.json
+├───vitest.config.ts
 ├───.claude/
 │   ├───settings.local.json
 │   └───plans/
@@ -53,14 +51,20 @@ songbird-frontend
 │       ├───security-scan.md
 │       └───test-setup.md
 ├───.github/
-│   └───assets/
-│       ├───AppIcons.zip
-│       ├───emily-the-strange-icon.png
-│       └───emily-the-strange_vivid.png
-├───certs/
-│   └───ca.pem
+│   ├───appmod/
+│   │   └───appcat/
+│   ├───assets/
+│   │   ├───emily-the-strange-icon.png
+│   │   ├───emily-the-strange.png
+│   │   └───emily-the-strange_vivid.png
+│   └───docs/
+│       ├───BUGFIX-QUEUE-PERSISTENCE-OVERRIDE.md
+│       ├───REPOSITORY_ANALYSIS.md
+│       └───REPOSITORY_OVERVIEW.md
 ├───docs/
-│   └───BUGFIX-QUEUE-PERSISTENCE-OVERRIDE.md
+│   ├───API_ROUTE_USE.md
+│   ├───ROADMAP.md
+│   └───STABILITY_TESTS.md
 ├───drizzle/
 │   ├───0000_eager_gideon.sql
 │   ├───0001_strange_warlock.sql
@@ -78,6 +82,10 @@ songbird-frontend
 │   ├───0012_remarkable_ronan.sql
 │   ├───0013_outgoing_sumo.sql
 │   ├───0014_petite_lady_ursula.sql
+│   ├───0015_material_skullbuster.sql
+│   ├───0016_add_deezer_id_columns.sql
+│   ├───0016_daffy_shriek.sql
+│   ├───0017_admin_flag.sql
 │   └───meta/
 │       ├───0000_snapshot.json
 │       ├───0001_snapshot.json
@@ -94,6 +102,9 @@ songbird-frontend
 │       ├───0012_snapshot.json
 │       ├───0013_snapshot.json
 │       ├───0014_snapshot.json
+│       ├───0015_snapshot.json
+│       ├───0016_snapshot.json
+│       ├───0017_snapshot.json
 │       └───_journal.json
 ├───electron/
 │   ├───AZURE_SIGNING_SETUP.md
@@ -112,38 +123,57 @@ songbird-frontend
 │   └───pm2/
 │       ├───.gitkeep
 │       ├───combined.log
-│       ├───combined__2025-12-30_00-00-00.log
-│       ├───combined__2025-12-31_00-00-00.log
-│       ├───combined__2026-01-01_00-00-01.log
-│       ├───combined__2026-01-02_00-00-00.log
-│       ├───combined__2026-01-03_00-00-00.log
-│       ├───combined__2026-01-04_00-00-00.log
-│       ├───combined__2026-01-05_00-00-00.log
+│       ├───combined__2026-01-17_00-00-00.log
+│       ├───combined__2026-01-18_00-00-01.log
+│       ├───combined__2026-01-19_00-00-00.log
+│       ├───combined__2026-01-20_00-00-00.log
+│       ├───combined__2026-01-21_00-00-00.log
+│       ├───combined__2026-01-22_00-00-00.log
+│       ├───combined__2026-01-23_00-00-00.log
+│       ├───combined__2026-01-24_00-00-00.log
+│       ├───combined__2026-01-25_00-00-00.log
+│       ├───combined__2026-01-26_00-00-00.log
 │       ├───dev-combined.log
 │       ├───dev-error.log
 │       ├───dev-out.log
 │       ├───error.log
-│       ├───error__2025-12-30_00-00-00.log
-│       ├───error__2025-12-31_00-00-00.log
-│       ├───error__2026-01-01_00-00-01.log
-│       ├───error__2026-01-02_00-00-00.log
-│       ├───error__2026-01-03_00-00-00.log
-│       ├───error__2026-01-04_00-00-00.log
-│       ├───error__2026-01-05_00-00-00.log
+│       ├───error__2026-01-17_00-00-00.log
+│       ├───error__2026-01-18_00-00-01.log
+│       ├───error__2026-01-19_00-00-00.log
+│       ├───error__2026-01-20_00-00-00.log
+│       ├───error__2026-01-21_00-00-00.log
+│       ├───error__2026-01-22_00-00-00.log
+│       ├───error__2026-01-23_00-00-00.log
+│       ├───error__2026-01-24_00-00-00.log
+│       ├───error__2026-01-25_00-00-00.log
+│       ├───error__2026-01-26_00-00-00.log
 │       ├───out.log
-│       ├───out__2025-12-30_00-00-00.log
-│       ├───out__2025-12-31_00-00-00.log
-│       ├───out__2026-01-01_00-00-01.log
-│       ├───out__2026-01-02_00-00-00.log
-│       ├───out__2026-01-03_00-00-00.log
-│       └───out__2026-01-04_00-00-00.log
+│       ├───out__2026-01-14_00-00-00.log
+│       ├───out__2026-01-16_00-00-00.log
+│       ├───out__2026-01-18_00-00-01.log
+│       ├───out__2026-01-19_00-00-00.log
+│       ├───out__2026-01-20_00-00-00.log
+│       ├───out__2026-01-21_00-00-00.log
+│       ├───out__2026-01-22_00-00-00.log
+│       ├───out__2026-01-23_00-00-00.log
+│       ├───out__2026-01-24_00-00-00.log
+│       └───out__2026-01-26_00-00-00.log
 ├───public/
 │   ├───CHANGELOG.md
+│   ├───emily-the-strange-icon.png
+│   ├───emily-the-strange-raw-pink.png
+│   ├───emily-the-strange-raw.png
 │   ├───emily-the-strange.png
 │   ├───favicon.ico
+│   ├───icon-192.png
+│   ├───icon-192.png.txt
+│   ├───icon-512.png
 │   ├───icon.icns
 │   ├───icon.ico
 │   ├───icon.png
+│   ├───manifest.json
+│   ├───og-image.png
+│   ├───sw.js
 │   ├───AppIcons/
 │   │   ├───appstore.png
 │   │   ├───playstore.png
@@ -205,6 +235,10 @@ songbird-frontend
 │       └───icon.png
 ├───scripts/
 │   ├───addRelativePath.py
+│   ├───apply-deezer-id-migration-drizzle-studio.sql
+│   ├───apply-deezer-id-migration.sql
+│   ├───check-migration-progress.sh
+│   ├───check-migration-status.sql
 │   ├───check-users.ts
 │   ├───create-signing-cert.ps1
 │   ├───create-test-cert.ps1
@@ -212,7 +246,10 @@ songbird-frontend
 │   ├───db-sync.sh
 │   ├───download-node.js
 │   ├───ensure-build.js
+│   ├───fetch_og_images.sh
 │   ├───gen-version.js
+│   ├───generate-og-image.js
+│   ├───generate-pwa-icons.cjs
 │   ├───generate-ssl-cert.js
 │   ├───load-env-build.js
 │   ├───mark-migrations-applied.sql
@@ -227,186 +264,226 @@ songbird-frontend
 │   ├───server.js
 │   ├───set-profile-public.ts
 │   ├───set-version.js
+│   ├───sync-migration-journal.sql
+│   ├───test-og-images.sh
 │   └───copydb/
 │       └───package-lock.json
-└───src/
-    ├───env.js
-    ├───global.d.ts
-    ├───app/
-    │   ├───HomePageClient.tsx
-    │   ├───layout.tsx
-    │   ├───not-found.tsx
-    │   ├───page.tsx
-    │   ├───[userhash]/
-    │   │   └───page.tsx
-    │   ├───_components/
-    │   │   └───post.tsx
-    │   ├───album/
-    │   │   └───[id]/
-    │   │       └───page.tsx
-    │   ├───api/
-    │   │   ├───album/
-    │   │   │   └───[id]/
-    │   │   │       ├───route.ts
-    │   │   │       └───tracks/
-    │   │   │           └───route.ts
-    │   │   ├───artist/
-    │   │   │   └───[id]/
-    │   │   │       ├───route.ts
-    │   │   │       └───tracks/
-    │   │   │           └───route.ts
-    │   │   ├───auth/
-    │   │   │   └───[...nextauth]/
-    │   │   │       └───route.ts
-    │   │   ├───health/
-    │   │   │   └───route.ts
-    │   │   ├───music/
-    │   │   │   └───search/
-    │   │   │       └───route.ts
-    │   │   ├───og/
-    │   │   │   └───route.tsx
-    │   │   ├───stream/
-    │   │   │   └───route.ts
-    │   │   └───trpc/
-    │   │       └───[trpc]/
-    │   │           └───route.ts
-    │   ├───artist/
-    │   │   └───[id]/
-    │   │       └───page.tsx
-    │   ├───library/
-    │   │   └───page.tsx
-    │   ├───license/
-    │   │   └───page.tsx
-    │   └───playlists/
-    │       ├───page.tsx
-    │       └───[id]/
-    │           └───page.tsx
-    ├───components/
-    │   ├───AddToPlaylistModal.tsx
-    │   ├───AnimatedList.tsx
-    │   ├───AutoQueueBadge.tsx
-    │   ├───BottomSheet.tsx
-    │   ├───Button.tsx
-    │   ├───ChangelogModal.tsx
-    │   ├───DynamicTitle.tsx
-    │   ├───ElectronStorageInit.tsx
-    │   ├───EmptyState.tsx
-    │   ├───EnhancedPlayer.tsx
-    │   ├───EnhancedQueue.tsx
-    │   ├───EnhancedTrackCard.tsx
-    │   ├───Equalizer.tsx
-    │   ├───ErrorBoundary.tsx
-    │   ├───FloatingActionButton.tsx
-    │   ├───FlowFieldBackground.tsx
-    │   ├───HamburgerMenu.tsx
-    │   ├───Header.tsx
-    │   ├───LightweightParticleBackground.tsx
-    │   ├───LoadingSpinner.tsx
-    │   ├───MicroInteractions.tsx
-    │   ├───MiniPlayer.tsx
-    │   ├───MobileContentWrapper.tsx
-    │   ├───MobileHeader.tsx
-    │   ├───MobileNavigation.tsx
-    │   ├───MobilePlayer.tsx
-    │   ├───MobileSearchBar.tsx
-    │   ├───OptimizedTrackList.tsx
-    │   ├───PatternControls.tsx
-    │   ├───PersistentPlayer.tsx
-    │   ├───Player.tsx
-    │   ├───PlaylistContextMenu.tsx
-    │   ├───ProfileHeader.tsx
-    │   ├───PullToRefreshWrapper.tsx
-    │   ├───Queue.tsx
-    │   ├───Section.tsx
-    │   ├───SessionProvider.tsx
-    │   ├───SkeletonGrid.tsx
-    │   ├───SnappyButton.tsx
-    │   ├───SuppressExtensionErrors.tsx
-    │   ├───SwipeableTrackCard.tsx
-    │   ├───SwipeableTrackItem.tsx
-    │   ├───Toast.tsx
-    │   ├───TrackCard.tsx
-    │   ├───TrackContextMenu.tsx
-    │   ├───UIWrapper.tsx
-    │   ├───WelcomeHero.tsx
-    │   └───visualizers/
-    │       ├───FlowFieldRenderer.ts
-    │       ├───flowfieldPatterns/
-    │       │   ├───patternIds.ts
-    │       │   ├───renderHexGrid.ts
-    │       │   ├───renderKaleidoscope.ts
-    │       │   ├───renderRays.ts
-    │       │   └───types.ts
-    │       └───visuals/
-    ├───config/
-    │   ├───audioDefaults.ts
-    │   ├───constants.ts
-    │   ├───features.ts
-    │   ├───player.ts
-    │   └───storage.ts
-    ├───constants/
-    │   └───visualizer.ts
-    ├───contexts/
-    │   ├───AudioPlayerContext.tsx
-    │   ├───MenuContext.tsx
-    │   ├───PlaylistContextMenuContext.tsx
-    │   ├───ToastContext.tsx
-    │   └───TrackContextMenuContext.tsx
-    ├───hooks/
-    │   ├───useAudioPlayer.ts
-    │   ├───useAudioReactiveBackground.ts
-    │   ├───useAudioVisualizer.ts
-    │   ├───useEqualizer.ts
-    │   ├───useHapticCallbacks.ts
-    │   ├───useKeyboardShortcuts.ts
-    │   ├───useMediaQuery.ts
-    │   ├───usePullToRefresh.ts
-    │   ├───useQueuePersistence.ts
-    │   ├───useSwipeGesture.ts
-    │   └───useWebShare.ts
-    ├───lib/
-    │   └───utils.ts
-    ├───server/
-    │   ├───api/
-    │   │   ├───root.ts
-    │   │   ├───trpc.ts
-    │   │   └───routers/
-    │   │       ├───equalizer.ts
-    │   │       ├───music.ts
-    │   │       ├───post.ts
-    │   │       └───preferences.ts
-    │   ├───auth/
-    │   │   ├───config.ts
-    │   │   └───index.ts
-    │   ├───db/
-    │   │   ├───index.ts
-    │   │   └───schema.ts
-    │   └───services/
-    │       └───recommendations.ts
-    ├───services/
-    │   ├───smartQueue.ts
-    │   ├───songbird.ts
-    │   └───storage.ts
-    ├───styles/
-    │   └───globals.css
-    ├───trpc/
-    │   ├───query-client.ts
-    │   ├───react.tsx
-    │   └───server.ts
-    ├───types/
-    │   ├───index.ts
-    │   └───player.ts
-    └───utils/
-        ├───api.ts
-        ├───audioAnalysis.ts
-        ├───audioContextManager.ts
-        ├───colorExtractor.ts
-        ├───electronStorage.ts
-        ├───errorHandling.ts
-        ├───getBaseUrl.ts
-        ├───haptics.ts
-        ├───images.ts
-        ├───logger.ts
-        ├───spring-animations.ts
-        ├───time.ts
-        └───visualizerState.ts
+├───src/
+│   ├───env.js
+│   ├───global.d.ts
+│   ├───middleware.ts
+│   ├───__tests__/
+│   │   ├───ErrorBoundary.stability.test.tsx
+│   │   ├───MobileFooter.test.tsx
+│   │   ├───MobileHeader.test.tsx
+│   │   ├───og-image-darkfloor-links.test.ts
+│   │   ├───og-image-generation.test.ts
+│   │   ├───og-image-real-urls.test.ts
+│   │   ├───og-image-trackid-query.test.ts
+│   │   ├───playback-rate.stability.test.ts
+│   │   ├───player.integration.stability.test.ts
+│   │   ├───Toast.test.tsx
+│   │   ├───track-seo.test.ts
+│   │   ├───trpc.music.test.ts
+│   │   ├───useAudioPlayer.stability.test.ts
+│   │   └───useAudioPlayer.test.ts
+│   ├───app/
+│   │   ├───HomePageClient.tsx
+│   │   ├───layout.tsx
+│   │   ├───not-found.tsx
+│   │   ├───page.tsx
+│   │   ├───register-sw.tsx
+│   │   ├───[userhash]/
+│   │   │   └───page.tsx
+│   │   ├───_components/
+│   │   │   └───post.tsx
+│   │   ├───admin/
+│   │   │   └───page.tsx
+│   │   ├───album/
+│   │   │   └───[id]/
+│   │   │       └───page.tsx
+│   │   ├───api/
+│   │   │   ├───album/
+│   │   │   │   └───[id]/
+│   │   │   │       ├───route.ts
+│   │   │   │       └───tracks/
+│   │   │   │           └───route.ts
+│   │   │   ├───artist/
+│   │   │   │   └───[id]/
+│   │   │   │       ├───route.ts
+│   │   │   │       └───tracks/
+│   │   │   │           └───route.ts
+│   │   │   ├───auth/
+│   │   │   │   └───[...nextauth]/
+│   │   │   │       └───route.ts
+│   │   │   ├───health/
+│   │   │   │   └───route.ts
+│   │   │   ├───music/
+│   │   │   │   └───search/
+│   │   │   │       └───route.ts
+│   │   │   ├───og/
+│   │   │   │   └───route.tsx
+│   │   │   ├───stream/
+│   │   │   │   └───route.ts
+│   │   │   ├───track/
+│   │   │   │   └───[id]/
+│   │   │   │       └───route.ts
+│   │   │   └───trpc/
+│   │   │       └───[trpc]/
+│   │   │           └───route.ts
+│   │   ├───artist/
+│   │   │   └───[id]/
+│   │   │       └───page.tsx
+│   │   ├───library/
+│   │   │   └───page.tsx
+│   │   ├───license/
+│   │   │   └───page.tsx
+│   │   ├───playlists/
+│   │   │   ├───page.tsx
+│   │   │   └───[id]/
+│   │   │       └───page.tsx
+│   │   ├───settings/
+│   │   │   └───page.tsx
+│   │   └───track/
+│   │       └───[id]/
+│   │           ├───page.tsx
+│   │           └───TrackRedirect.tsx
+│   ├───components/
+│   │   ├───AddToPlaylistModal.tsx
+│   │   ├───AnimatedList.tsx
+│   │   ├───AutoQueueBadge.tsx
+│   │   ├───BottomSheet.tsx
+│   │   ├───Button.tsx
+│   │   ├───ChangelogModal.tsx
+│   │   ├───CreatePlaylistModal.tsx
+│   │   ├───DynamicTitle.tsx
+│   │   ├───ElectronStorageInit.tsx
+│   │   ├───EmptyState.tsx
+│   │   ├───EnhancedQueue.tsx
+│   │   ├───EnhancedTrackCard.tsx
+│   │   ├───Equalizer.tsx
+│   │   ├───ErrorBoundary.tsx
+│   │   ├───FloatingActionButton.tsx
+│   │   ├───FlowFieldBackground.tsx
+│   │   ├───HamburgerMenu.tsx
+│   │   ├───Header.tsx
+│   │   ├───LightweightParticleBackground.tsx
+│   │   ├───LoadingSpinner.tsx
+│   │   ├───MicroInteractions.tsx
+│   │   ├───MiniPlayer.tsx
+│   │   ├───MobileContentWrapper.tsx
+│   │   ├───MobileFooter.tsx
+│   │   ├───MobileFooterWrapper.tsx
+│   │   ├───MobileHeader.tsx
+│   │   ├───MobileNavigation.tsx
+│   │   ├───MobilePlayer.tsx
+│   │   ├───MobileSearchBar.tsx
+│   │   ├───OptimizedTrackList.tsx
+│   │   ├───PatternControls.tsx
+│   │   ├───PersistentPlayer.tsx
+│   │   ├───Player.tsx
+│   │   ├───PlaylistContextMenu.tsx
+│   │   ├───ProfileHeader.tsx
+│   │   ├───PullToRefreshWrapper.tsx
+│   │   ├───Queue.tsx
+│   │   ├───QueueSettingsModal.tsx
+│   │   ├───Section.tsx
+│   │   ├───SessionProvider.tsx
+│   │   ├───SkeletonGrid.tsx
+│   │   ├───SmoothSlider.tsx
+│   │   ├───SnappyButton.tsx
+│   │   ├───SuppressExtensionErrors.tsx
+│   │   ├───SwipeableTrackCard.tsx
+│   │   ├───SwipeableTrackItem.tsx
+│   │   ├───Toast.tsx
+│   │   ├───TrackCard.tsx
+│   │   ├───TrackContextMenu.tsx
+│   │   ├───UIWrapper.tsx
+│   │   ├───WelcomeHero.tsx
+│   │   └───visualizers/
+│   │       ├───FlowFieldRenderer.ts
+│   │       ├───flowfieldPatterns/
+│   │       │   ├───patternIds.ts
+│   │       │   ├───renderHexGrid.ts
+│   │       │   ├───renderKaleidoscope.ts
+│   │       │   ├───renderRays.ts
+│   │       │   └───types.ts
+│   │       └───visuals/
+│   ├───config/
+│   │   ├───audioDefaults.ts
+│   │   ├───constants.ts
+│   │   ├───features.ts
+│   │   ├───player.ts
+│   │   └───storage.ts
+│   ├───constants/
+│   │   └───visualizer.ts
+│   ├───contexts/
+│   │   ├───AudioPlayerContext.tsx
+│   │   ├───MenuContext.tsx
+│   │   ├───PlaylistContextMenuContext.tsx
+│   │   ├───ToastContext.tsx
+│   │   └───TrackContextMenuContext.tsx
+│   ├───hooks/
+│   │   ├───useAudioPlayer.ts
+│   │   ├───useAudioReactiveBackground.ts
+│   │   ├───useAudioVisualizer.ts
+│   │   ├───useEqualizer.ts
+│   │   ├───useHapticCallbacks.ts
+│   │   ├───useKeyboardShortcuts.ts
+│   │   ├───useMediaQuery.ts
+│   │   ├───usePullToRefresh.ts
+│   │   ├───useQueuePersistence.ts
+│   │   ├───useSwipeGesture.ts
+│   │   └───useWebShare.ts
+│   ├───lib/
+│   │   └───utils.ts
+│   ├───server/
+│   │   ├───api/
+│   │   │   ├───root.ts
+│   │   │   ├───trpc.ts
+│   │   │   └───routers/
+│   │   │       ├───admin.ts
+│   │   │       ├───equalizer.ts
+│   │   │       ├───music.ts
+│   │   │       ├───post.ts
+│   │   │       └───preferences.ts
+│   │   ├───auth/
+│   │   │   ├───config.ts
+│   │   │   └───index.ts
+│   │   ├───db/
+│   │   │   ├───index.ts
+│   │   │   └───schema.ts
+│   │   └───services/
+│   │       └───recommendations.ts
+│   ├───services/
+│   │   ├───smartQueue.ts
+│   │   ├───songbird.ts
+│   │   └───storage.ts
+│   ├───styles/
+│   │   └───globals.css
+│   ├───test/
+│   │   └───setup.ts
+│   ├───trpc/
+│   │   ├───query-client.ts
+│   │   ├───react.tsx
+│   │   └───server.ts
+│   ├───types/
+│   │   ├───index.ts
+│   │   └───player.ts
+│   └───utils/
+│       ├───api.ts
+│       ├───audioAnalysis.ts
+│       ├───audioContextManager.ts
+│       ├───colorExtractor.ts
+│       ├───electronStorage.ts
+│       ├───errorHandling.ts
+│       ├───getBaseUrl.ts
+│       ├───haptics.ts
+│       ├───images.ts
+│       ├───logger.ts
+│       ├───performance.ts
+│       ├───spring-animations.ts
+│       ├───time.ts
+│       └───visualizerState.ts
+└───test-output/
+    └───real-urls/

@@ -1,11 +1,10 @@
 -- File: scripts/apply-deezer-id-migration-drizzle-studio.sql
-
 -- ============================================
 -- Deezer ID Migration Script
 -- Run this in Drizzle Studio SQL Console
 -- ============================================
-
 -- Step 1: Add deezerId columns to all track-related tables
+
 ALTER TABLE "hexmusic-stream_audio_features" 
 ADD COLUMN IF NOT EXISTS "deezerId" bigint;
 

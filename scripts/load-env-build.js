@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// File: scripts/load-env-build.js
 
 import { execSync } from "child_process";
 import dotenv from "dotenv";

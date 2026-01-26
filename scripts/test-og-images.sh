@@ -1,4 +1,5 @@
 #!/bin/bash
+# File: scripts/test-og-images.sh
 
 # Test OG Image Generation
 # Run with: bash scripts/test-og-images.sh

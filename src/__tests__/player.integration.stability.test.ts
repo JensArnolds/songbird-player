@@ -1,3 +1,5 @@
+// File: src/__tests__/player.integration.stability.test.ts
+
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";

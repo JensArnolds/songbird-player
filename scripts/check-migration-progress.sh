@@ -1,9 +1,6 @@
 #!/bin/bash
 # File: scripts/check-migration-progress.sh
 
-# Check migration progress in a separate terminal
-# Run: bash scripts/check-migration-progress.sh
-
 echo "Checking if migration is still running..."
 psql $DATABASE_URL_UNPOOLED <<EOF
 -- Check for active ALTER TABLE or CREATE INDEX operations

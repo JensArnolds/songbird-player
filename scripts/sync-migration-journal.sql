@@ -1,12 +1,11 @@
 -- File: scripts/sync-migration-journal.sql
-
 -- ============================================
 -- Sync Drizzle Migration Journal
 -- Run this in Drizzle Studio SQL Console
 -- This marks all migrations as applied so drizzle-kit knows the current state
 -- ============================================
-
 -- Ensure the migrations tracking table exists
+
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
   id SERIAL PRIMARY KEY,
   hash text NOT NULL UNIQUE,
