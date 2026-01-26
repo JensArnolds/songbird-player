@@ -99,6 +99,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastLoadedTrackIdRef = useRef<number | null>(null);
   const shouldAutoPlayNextRef = useRef(false);
+  const requestAutoPlayNext = useCallback((force = false) => {
+    if (force || isPlayingRef.current) {
+      shouldAutoPlayNextRef.current = true;
+    }
+  }, []);
 
   const queue = useMemo(
     () => queuedTracks.map((qt) => qt.track),
@@ -269,47 +274,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, [volume]);
 
   useEffect(() => {
-    if (!audioRef.current || !currentTrack) return;
-
-    // Check if this is a different track than what's currently loaded
-    const isNewTrack = lastLoadedTrackIdRef.current !== currentTrack.id;
-
-    if (isNewTrack) {
-      const streamUrl = getStreamUrlById(currentTrack.id.toString());
-      const currentSrc = audioRef.current.src;
-
-      // Only load if the source is different or missing
-      if (!currentSrc || currentSrc !== streamUrl) {
-        logger.debug(
-          "[useAudioPlayer] 🔄 Auto-loading new track (track changed in queue):",
-          currentTrack.title,
-        );
-
-        const wasPlaying = !audioRef.current.paused;
-        const shouldAutoPlay = wasPlaying || shouldAutoPlayNextRef.current;
-
-        audioRef.current.src = streamUrl;
-        audioRef.current.load();
-
-        // Auto-play if we were playing before OR if smart queue generated this track
-        if (shouldAutoPlay) {
-          audioRef.current.play().catch((err) => {
-            logger.debug(
-              "[useAudioPlayer] Auto-play failed after track change:",
-              err,
-            );
-          });
-        }
-
-        // Reset the auto-play flag
-        shouldAutoPlayNextRef.current = false;
-        lastLoadedTrackIdRef.current = currentTrack.id;
-        onTrackChange?.(currentTrack);
-      }
-    }
-  }, [currentTrack, onTrackChange]);
-
-  useEffect(() => {
     if (audioRef.current) {
       const targetVolume = isMuted ? 0 : volume;
       const connection = getAudioConnection(audioRef.current);
@@ -341,11 +305,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
     if (queuedTracks.length > 1) {
       // Move to next track in queue
+      requestAutoPlayNext(true);
       setHistory((prev) => [...prev, currentTrack]);
       setQueuedTracks((prev) => prev.slice(1));
     } else if (repeatMode === "all") {
       // Repeat all tracks from history
       if (history.length > 0) {
+        requestAutoPlayNext(true);
         const allTracks = [...history, currentTrack];
         const newQueuedTracks = allTracks.map((track, idx) => ({
           track,
@@ -408,7 +374,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             );
 
             // Flag that we should auto-play the next track
-            shouldAutoPlayNextRef.current = true;
+            requestAutoPlayNext(true);
 
             return;
           } else {
@@ -438,7 +404,17 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       setIsPlaying(false);
       logger.debug("[useAudioPlayer] 🏁 Playback ended, keeping last track in queue for UI");
     }
-  }, [currentTrack, queuedTracks, repeatMode, history, onTrackEnd, options.smartQueueSettings, options.onAutoQueueTrigger, createQueuedTrack]);
+  }, [
+    currentTrack,
+    queuedTracks,
+    repeatMode,
+    history,
+    onTrackEnd,
+    options.smartQueueSettings,
+    options.onAutoQueueTrigger,
+    createQueuedTrack,
+    requestAutoPlayNext,
+  ]);
 
   // Monitor queue length and trigger auto-queue when running low
   useEffect(() => {
@@ -1286,8 +1262,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     };
 
     const handleNextTrack = () => {
-
       if (queue.length > 1) {
+        requestAutoPlayNext(true);
         setHistory((prev) => [...prev, currentTrack!]);
         setQueuedTracks((prev) => prev.slice(1));
       }
@@ -1301,6 +1277,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
         const prevTrack = history[history.length - 1];
         if (prevTrack && currentTrack) {
+          requestAutoPlayNext(true);
           setQueuedTracks((prev) => [
             createQueuedTrack(prevTrack, "user"),
             ...prev,
@@ -1367,7 +1344,16 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       }
     };
-  }, [currentTrack, queue, history, isPlaying, play, pause, createQueuedTrack]);
+  }, [
+    currentTrack,
+    queue,
+    history,
+    isPlaying,
+    play,
+    pause,
+    createQueuedTrack,
+    requestAutoPlayNext,
+  ]);
 
   const togglePlay = useCallback(async () => {
 
@@ -1402,6 +1388,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const playPrevious = useCallback(() => {
     if (history.length === 0) return null;
 
+    requestAutoPlayNext(true);
     const previousTracks = [...history];
     const prevTrack = previousTracks.pop()!;
     setHistory(previousTracks);
@@ -1409,7 +1396,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     setQueuedTracks((prev) => [createQueuedTrack(prevTrack, "user"), ...prev]);
 
     return prevTrack;
-  }, [history, createQueuedTrack]);
+  }, [history, createQueuedTrack, requestAutoPlayNext]);
 
   const isValidTrack = useCallback(
     (track: Track | null | undefined): track is Track => {
@@ -1619,6 +1606,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const selectedTrack = queue[index];
       if (!selectedTrack) return null;
 
+      if (index !== 0) {
+        requestAutoPlayNext(true);
+      }
+
       const tracksToHistory = queue.slice(0, index);
       const tracksAfter = queue.slice(index + 1);
 
@@ -1630,7 +1621,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       return selectedTrack;
     },
-    [queue, createQueuedTrack],
+    [queue, createQueuedTrack, requestAutoPlayNext],
   );
 
   const smartShuffle = useCallback(() => {
@@ -1942,47 +1933,55 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   );
 
   useEffect(() => {
+    if (!currentTrack || !audioRef.current) return;
 
+    const streamUrl = getStreamUrlById(currentTrack.id.toString());
+    const currentSrc = audioRef.current.src;
+    const isNewTrack = lastLoadedTrackIdRef.current !== currentTrack.id;
+    const needsLoad = isNewTrack || !currentSrc || currentSrc !== streamUrl;
+
+    if (!needsLoad) return;
+
+    const isInitialMount = isInitialMountRef.current;
+    const forceAutoPlay = shouldAutoPlayNextRef.current;
     if (isInitialMountRef.current) {
-      logger.debug(
-        "[useAudioPlayer] 🚫 Skipping auto-play on initial mount (browser autoplay policy)",
-      );
+      if (!forceAutoPlay) {
+        logger.debug(
+          "[useAudioPlayer] 🚫 Skipping auto-play on initial mount (browser autoplay policy)",
+        );
+      }
       isInitialMountRef.current = false;
-      return;
     }
 
-    if (currentTrack && audioRef.current) {
-      const streamUrl = getStreamUrlById(currentTrack.id.toString());
+    logger.debug(`[useAudioPlayer] 🎶 Loading new track: ${currentTrack.title}`, {
+      streamUrl,
+      currentSrc,
+    });
+    loadTrack(currentTrack, streamUrl);
+    lastLoadedTrackIdRef.current = currentTrack.id;
 
-      if (audioRef.current.src !== streamUrl || !audioRef.current.src) {
-        logger.debug(
-          `[useAudioPlayer] 🎶 Loading new track: ${currentTrack.title}`,
-          {
-            streamUrl,
-            currentSrc: audioRef.current.src,
-          },
-        );
-        loadTrack(currentTrack, streamUrl);
+    const shouldAutoPlay = forceAutoPlay || isPlayingRef.current;
+    const allowAutoPlay = shouldAutoPlay && (!isInitialMount || forceAutoPlay);
 
-        setTimeout(() => {
-          play().catch((error) => {
+    shouldAutoPlayNextRef.current = false;
 
-            if (
-              error instanceof DOMException &&
-              (error.name === "AbortError" ||
-                error.message?.includes("aborted") ||
-                error.message?.includes("fetching process"))
-            ) {
-              logger.debug(
-                "[useAudioPlayer] Playback aborted (normal during rapid track changes)",
-              );
-              return;
-            }
-            logger.error("Playback failed:", error);
-          });
-        }, 150);
-      }
-
+    if (allowAutoPlay) {
+      setTimeout(() => {
+        play().catch((error) => {
+          if (
+            error instanceof DOMException &&
+            (error.name === "AbortError" ||
+              error.message?.includes("aborted") ||
+              error.message?.includes("fetching process"))
+          ) {
+            logger.debug(
+              "[useAudioPlayer] Playback aborted (normal during rapid track changes)",
+            );
+            return;
+          }
+          logger.error("Playback failed:", error);
+        });
+      }, 150);
     }
   }, [currentTrack, loadTrack, play]);
 
@@ -2152,6 +2151,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             currentQueueSize: queue.length,
           },
         );
+        requestAutoPlayNext(true);
         if (queue.length > 0 && currentTrack) {
 
           setHistory((prev) => [...prev, currentTrack]);
@@ -2206,12 +2206,21 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           trackIndex,
           ", playing from queue",
         );
+        requestAutoPlayNext(true);
         playFromQueue(trackIndex);
       }
 
       return track;
     },
-    [queue, currentTrack, playFromQueue, isValidTrack, loadTrack, createQueuedTrack],
+    [
+      queue,
+      currentTrack,
+      playFromQueue,
+      isValidTrack,
+      loadTrack,
+      createQueuedTrack,
+      requestAutoPlayNext,
+    ],
   );
 
   return {
@@ -2243,11 +2252,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       const [currentTrack, nextTrack, ...remainingQueue] = queue;
 
+      requestAutoPlayNext(true);
       setHistory((prev) => [...prev, currentTrack!]);
 
       setQueuedTracks((prev) => prev.slice(1));
       return nextTrack!;
-    }, [queue]),
+    }, [queue, requestAutoPlayNext]),
     playPrevious,
     addToQueue,
     addToPlayNext,
