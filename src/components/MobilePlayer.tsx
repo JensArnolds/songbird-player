@@ -893,6 +893,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const dynamicGradient = albumColorPalette
     ? `linear-gradient(165deg, ${albumColorPalette.primary.replace("0.8)", "0.22)")}, rgba(8,13,20,0.95) 50%)`
     : "linear-gradient(165deg, rgba(13,20,29,0.98), rgba(8,13,20,0.92))";
+  const accentGlow = albumColorPalette
+    ? albumColorPalette.accent.replace("0.8)", "0.35)")
+    : "rgba(244,178,102,0.35)";
 
   return (
     <>
@@ -938,12 +941,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
               {}
               <div className="relative z-10 flex flex-1 flex-col">
-                {}
                 <div className="flex justify-center pt-3 pb-1">
                   <div className="h-1 w-12 rounded-full bg-[rgba(255,255,255,0.3)]" />
                 </div>
 
-                {}
                 <div className="flex items-center justify-between px-6 pt-2">
                   <motion.button
                     onClick={() => {
@@ -960,622 +961,683 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                   >
                     <ChevronDown className="h-6 w-6" />
                   </motion.button>
-                  <span className="text-xs font-semibold tracking-widest text-[var(--color-muted)] uppercase">
-                    Now Playing
-                  </span>
-                  <div className="w-10" />
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(12,18,27,0.7)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.35em] text-[var(--color-subtext)]">
+                      Now Playing
+                    </span>
+                    <span className="text-[9px] uppercase tracking-[0.5em] text-[var(--color-muted)]">
+                      Starchild
+                    </span>
+                  </div>
+                  <div className="flex w-12 justify-end">
+                    <div className="rounded-full border border-[rgba(244,178,102,0.2)] bg-[rgba(244,178,102,0.08)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)]">
+                      Q {queue.length}
+                    </div>
+                  </div>
                 </div>
 
-                {}
-                <div className="flex flex-1 items-center justify-center px-8 py-6">
-                  <motion.div
-                    ref={artworkRef}
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    style={{ scale: artworkScale }}
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.1}
-                    onDrag={handleArtworkDrag}
-                    onDragEnd={handleArtworkDragEnd}
-                    transition={springPresets.smooth}
-                    className="relative w-full max-w-[360px] cursor-grab active:cursor-grabbing"
-                  >
-                    {}
-                    {coverArt ? (
-                      <div className="relative">
-                        <Image
-                          src={coverArt}
-                          alt={currentTrack.title}
-                          width={450}
-                          height={450}
-                          className="aspect-square w-full rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10"
-                          priority
-                          quality={90}
-                        />
-                        {}
-                        <div
-                          className="absolute inset-0 -z-10 blur-3xl opacity-30 rounded-3xl"
-                          style={{
-                            background: "radial-gradient(circle, rgba(244,178,102,0.6) 0%, transparent 70%)",
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex aspect-square w-full items-center justify-center rounded-3xl bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
-                        🎵
-                      </div>
-                    )}
-
-                    {}
-                    {
-
-}
-
-                    {}
-                    <AnimatePresence>
-                      {isSeeking && seekDirection && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/75"
-                        >
-                          <div className="flex flex-col items-center gap-2">
-                            <span className="text-4xl font-bold text-[var(--color-text)] tabular-nums">
-                              {formatTime(seekTime)}
-                            </span>
-                            <span
-                              className={`text-sm ${seekDirection === "forward" ? "text-[var(--color-accent-strong)]" : "text-[var(--color-accent)]"}`}
-                            >
-                              {seekDirection === "forward" ? "+" : "-"}
-                              {Math.abs(Math.round(seekTime - currentTime))}s
-                            </span>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {}
-                    {isLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/60">
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                            ease: "linear",
-                          }}
-                          className="h-12 w-12 rounded-full border-4 border-[var(--color-accent)] border-t-transparent"
-                        />
-                      </div>
-                    )}
-                  </motion.div>
-                </div>
-
-                {}
-                <div className="px-8 pb-4 text-center">
-                  <motion.h2
-                    key={currentTrack.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-1 text-2xl font-bold text-[var(--color-text)]"
-                  >
-                    {currentTrack.title}
-                  </motion.h2>
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="text-lg text-[var(--color-accent)]"
-                  >
-                    {currentTrack.artist.name}
-                  </motion.p>
-                </div>
-
-                {}
-                <div className="px-8 pb-4">
-                  <div
-                    ref={progressRef}
-                    className="group relative h-2.5 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
-                    onClick={handleProgressClick}
-                    onTouchStart={(e) => {
-                      setIsSeeking(true);
-                      haptic("selection");
-                      handleProgressTouch(e);
-                    }}
-                    onTouchMove={(e) => {
-                      handleProgressTouch(e);
-                      hapticSliderContinuous(seekTime, 0, duration, {
-                        intervalMs: 35,
-                        tickThreshold: 1.5,
-                      });
-                    }}
-                    onTouchEnd={() => {
-                      handleProgressTouchEnd();
-                      hapticSliderEnd();
-                    }}
-                    role="slider"
-                    aria-label="Seek"
-                    aria-valuemin={0}
-                    aria-valuemax={duration}
-                    aria-valuenow={displayTime}
-                  >
-                    {}
-                    {isSeeking && (
-                      <motion.div
-                        className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent-strong)]/20 blur-md"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1.05 }}
-                        exit={{ opacity: 0 }}
-                        transition={springPresets.slider}
-                      />
-                    )}
+                <div className="flex flex-1 flex-col px-6 pb-6 pt-4">
+                  <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-6">
                     <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
-                      style={{
-                        width: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
-                      }}
-                      transition={isSeeking ? { duration: 0 } : springPresets.slider}
-                    />
-                    <motion.div
-                      className="absolute top-1/2 rounded-full bg-white shadow-xl"
-                      style={{
-                        left: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
-                      }}
-                      initial={{ scale: 1, x: "-50%", y: "-50%" }}
-                      animate={{
-                        scale: isSeeking ? 1.4 : 1,
-                        width: isSeeking ? 24 : 18,
-                        height: isSeeking ? 24 : 18,
-                      }}
-                      whileHover={{ scale: 1.2 }}
-                      transition={springPresets.sliderThumb}
+                      ref={artworkRef}
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      style={{ scale: artworkScale }}
+                      drag="x"
+                      dragConstraints={{ left: 0, right: 0 }}
+                      dragElastic={0.1}
+                      onDrag={handleArtworkDrag}
+                      onDragEnd={handleArtworkDragEnd}
+                      transition={springPresets.smooth}
+                      className="relative w-full max-w-[330px] cursor-grab active:cursor-grabbing"
                     >
-                      {isSeeking && (
-                        <motion.div
-                          className="absolute inset-0 rounded-full bg-[var(--color-accent)]"
-                          initial={{ scale: 1, opacity: 0.5 }}
-                          animate={{ scale: 2, opacity: 0 }}
-                          transition={{ duration: 0.5, repeat: Infinity }}
-                        />
+                      {coverArt ? (
+                        <div className="relative">
+                          <div
+                            className="absolute -inset-6 rounded-[40px] blur-2xl opacity-80"
+                            style={{
+                              background: `radial-gradient(circle, ${accentGlow} 0%, rgba(0,0,0,0) 70%)`,
+                            }}
+                          />
+                          <div className="absolute -inset-2 rounded-[34px] border border-white/15" />
+                          <div className="absolute -inset-1 rounded-[32px] border border-white/5" />
+                          <div className="relative overflow-hidden rounded-[30px]">
+                            <Image
+                              src={coverArt}
+                              alt={currentTrack.title}
+                              width={450}
+                              height={450}
+                              className="relative z-10 aspect-square w-full rounded-[30px] object-cover shadow-[0_24px_64px_rgba(0,0,0,0.75)]"
+                              priority
+                              quality={90}
+                            />
+                            <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[linear-gradient(145deg,rgba(255,255,255,0.18),transparent_45%,rgba(0,0,0,0.35))]" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex aspect-square w-full items-center justify-center rounded-[30px] bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
+                          🎵
+                        </div>
+                      )}
+
+                      <AnimatePresence>
+                        {isSeeking && seekDirection && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 flex items-center justify-center rounded-[30px] bg-black/70"
+                          >
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-4xl font-bold text-[var(--color-text)] tabular-nums">
+                                {formatTime(seekTime)}
+                              </span>
+                              <span
+                                className={`text-sm ${seekDirection === "forward" ? "text-[var(--color-accent-strong)]" : "text-[var(--color-accent)]"}`}
+                              >
+                                {seekDirection === "forward" ? "+" : "-"}
+                                {Math.abs(Math.round(seekTime - currentTime))}s
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {isLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center rounded-[30px] bg-black/60">
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              ease: "linear",
+                            }}
+                            className="h-12 w-12 rounded-full border-4 border-[var(--color-accent)] border-t-transparent"
+                          />
+                        </div>
                       )}
                     </motion.div>
-                  </div>
-                  <div className="mt-2.5 flex justify-between text-sm text-[var(--color-subtext)] tabular-nums">
-                    <motion.span
-                      animate={{ scale: isSeeking ? 1.05 : 1 }}
-                      transition={springPresets.snappy}
-                    >
-                      {formatTime(displayTime)}
-                    </motion.span>
-                    <motion.span
-                      animate={{ scale: isSeeking ? 1.05 : 1 }}
-                      transition={springPresets.snappy}
-                    >
-                      -{formatTime(Math.max(0, duration - displayTime))}
-                    </motion.span>
-                  </div>
-                </div>
 
-                {}
-                <div className="flex items-center justify-center gap-6 px-8 pb-6">
-                  {}
-                  <motion.button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleToggleShuffle();
-                    }}
-                    whileTap={{ scale: 0.9 }}
-                    className={`touch-target rounded-full p-3 transition-colors ${
-                      isShuffled
-                        ? "text-[var(--color-accent)]"
-                        : "text-[var(--color-subtext)]"
-                    }`}
-                    aria-label={isShuffled ? "Disable shuffle" : "Enable shuffle"}
-                  >
-                    <Shuffle className="h-5 w-5" />
-                  </motion.button>
+                    <div className="w-full max-w-[420px]">
+                      <div className="rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[rgba(10,16,24,0.6)] px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0 text-left">
+                            <motion.h2
+                              key={currentTrack.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="text-2xl font-bold text-[var(--color-text)] leading-tight"
+                            >
+                              {currentTrack.title}
+                            </motion.h2>
+                            <motion.p
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.1 }}
+                              className="mt-1 text-sm font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)]"
+                            >
+                              {currentTrack.artist.name}
+                            </motion.p>
+                            {currentTrack.album?.title && (
+                              <p className="mt-1 truncate text-xs text-[var(--color-subtext)]">
+                                {currentTrack.album.title}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end text-[11px] text-[var(--color-subtext)]">
+                            <span className="text-[9px] uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                              Queue
+                            </span>
+                            <span className="text-lg font-semibold text-[var(--color-text)] tabular-nums">
+                              {queue.length}
+                            </span>
+                            <span className="mt-1 text-[9px] uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                              Total
+                            </span>
+                            <span className="text-sm font-semibold text-[var(--color-text)] tabular-nums">
+                              {formatDuration(totalDuration)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                  {}
-                  <motion.button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handlePrevious();
-                    }}
-                    whileTap={{ scale: 0.9 }}
-                    className="touch-target-lg text-[var(--color-text)]"
-                    aria-label="Previous track"
-                  >
-                    <SkipBack className="h-8 w-8 fill-current" />
-                  </motion.button>
-
-                  {}
-                  <motion.button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      hapticLight();
-                      onSkipBackward();
-                    }}
-                    whileTap={{ scale: 0.9 }}
-                    className="touch-target text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
-                    title="Skip backward 10s"
-                    aria-label="Skip backward 10 seconds"
-                  >
-                    <svg
-                      className="h-6 w-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"
-                      />
-                    </svg>
-                  </motion.button>
-
-                  {}
-                  <motion.button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handlePlayPause();
-                    }}
-                    whileTap={{ scale: 0.92 }}
-                    whileHover={{ scale: 1.05 }}
-                    className="relative flex h-18 w-18 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-text)] to-[var(--color-accent)] text-[#0f141d] shadow-[0_8px_32px_rgba(244,178,102,0.5)] ring-2 ring-[var(--color-accent)]/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ width: 72, height: 72 }}
-                    aria-label={isPlaying ? "Pause track" : "Play track"}
-                    disabled={isLoading}
-                  >
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
-                    {isPlaying ? (
-                      <Pause className="relative h-8 w-8 fill-current" />
-                    ) : (
-                      <Play className="relative ml-0.5 h-8 w-8 fill-current" />
-                    )}
-                  </motion.button>
-
-                  {}
-                  <motion.button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      hapticLight();
-                      onSkipForward();
-                    }}
-                    whileTap={{ scale: 0.9 }}
-                    className="touch-target text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
-                    title="Skip forward 10s"
-                    aria-label="Skip forward 10 seconds"
-                  >
-                    <svg
-                      className="h-6 w-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"
-                      />
-                    </svg>
-                  </motion.button>
-
-                  {}
-                  <motion.button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (queue.length > 0) {
-                        handleNext();
-                      }
-                    }}
-                    disabled={queue.length === 0}
-                    whileTap={{ scale: 0.9 }}
-                    className="touch-target-lg text-[var(--color-text)] disabled:opacity-40 disabled:cursor-not-allowed"
-                    aria-label="Next track"
-                  >
-                    <SkipForward className="h-8 w-8 fill-current" />
-                  </motion.button>
-
-                  {}
-                  <motion.button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleCycleRepeat();
-                    }}
-                    whileTap={{ scale: 0.9 }}
-                    className={`touch-target rounded-full p-3 transition-colors ${
-                      repeatMode !== "none"
-                        ? "text-[var(--color-accent)]"
-                        : "text-[var(--color-subtext)]"
-                    }`}
-                    aria-label={
-                      repeatMode === "none"
-                        ? "Enable repeat"
-                        : repeatMode === "one"
-                          ? "Repeat one (click to repeat all)"
-                          : "Repeat all (click to disable)"
-                    }
-                  >
-                    {repeatMode === "one" ? (
-                      <Repeat1 className="h-5 w-5" />
-                    ) : (
-                      <Repeat className="h-5 w-5" />
-                    )}
-                  </motion.button>
-                </div>
-
-                {}
-                <div className="flex items-center justify-around border-t border-[rgba(255,255,255,0.08)] px-8 py-4">
-                  {}
-                  <div className="flex flex-1 max-w-[180px] items-center gap-2">
-                    <motion.button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        hapticMedium();
-                        onToggleMute();
-                      }}
-                      whileTap={{ scale: 0.85 }}
-                      transition={springPresets.snappy}
-                      className="touch-target text-[var(--color-subtext)]"
-                      aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
-                    >
-                      <motion.div
-                        animate={{ scale: isMuted ? 0.9 : 1 }}
-                        transition={springPresets.snappy}
-                      >
-                        {isMuted || volume === 0 ? (
-                          <VolumeX className="h-5 w-5" />
-                        ) : (
-                          <Volume2 className="h-5 w-5" />
-                        )}
-                      </motion.div>
-                    </motion.button>
-                    <div
-                      ref={volumeRef}
-                      className="relative h-1.5 flex-1 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
-                      onClick={handleVolumeClick}
-                      onTouchStart={(e) => {
-                        e.preventDefault();
-                        haptic("selection");
-                        handleVolumeTouch(e);
-                      }}
-                      onTouchMove={(e) => {
-                        e.preventDefault();
-                        handleVolumeTouch(e);
-                        hapticSliderContinuous(volumeDragValueRef.current * 100, 0, 100, {
-                          intervalMs: 50,
-                          tickThreshold: 5,
-                          boundaryFeedback: true,
-                        });
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        handleVolumeTouchEnd();
-                      }}
-                      onTouchCancel={(e) => {
-                        e.preventDefault();
-                        handleVolumeTouchEnd();
-                      }}
-                      role="slider"
-                      aria-label="Volume"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={Math.round((isMuted ? 0 : displayVolume) * 100)}
-                    >
-                      {isAdjustingVolume && (
-                        <motion.div
-                          className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent-strong)]/20 blur-md"
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1.05 }}
-                          exit={{ opacity: 0 }}
-                          transition={springPresets.slider}
-                        />
-                      )}
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
-                        style={{
-                          width: `${isMuted ? 0 : displayVolume * 100}%`,
-                        }}
-                        transition={isAdjustingVolume ? { duration: 0 } : springPresets.slider}
-                      />
-                      <motion.div
-                        className="absolute top-1/2 rounded-full bg-white shadow-lg"
-                        style={{
-                          left: `${isMuted ? 0 : displayVolume * 100}%`,
-                        }}
-                        initial={{ scale: 1, x: "-50%", y: "-50%" }}
-                        animate={{
-                          scale: isAdjustingVolume ? 1.3 : 1,
-                          width: isAdjustingVolume ? 18 : 14,
-                          height: isAdjustingVolume ? 18 : 14,
-                        }}
-                        whileHover={{ scale: 1.2 }}
-                        transition={springPresets.sliderThumb}
-                      >
-                        {isAdjustingVolume && (
+                    <div className="w-full max-w-[420px]">
+                      <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(8,13,20,0.6)] px-4 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+                        <div
+                          ref={progressRef}
+                          className="group relative h-2.5 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
+                          onClick={handleProgressClick}
+                          onTouchStart={(e) => {
+                            setIsSeeking(true);
+                            haptic("selection");
+                            handleProgressTouch(e);
+                          }}
+                          onTouchMove={(e) => {
+                            handleProgressTouch(e);
+                            hapticSliderContinuous(seekTime, 0, duration, {
+                              intervalMs: 35,
+                              tickThreshold: 1.5,
+                            });
+                          }}
+                          onTouchEnd={() => {
+                            handleProgressTouchEnd();
+                            hapticSliderEnd();
+                          }}
+                          role="slider"
+                          aria-label="Seek"
+                          aria-valuemin={0}
+                          aria-valuemax={duration}
+                          aria-valuenow={displayTime}
+                        >
+                          {isSeeking && (
+                            <motion.div
+                              className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent-strong)]/20 blur-md"
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1.05 }}
+                              exit={{ opacity: 0 }}
+                              transition={springPresets.slider}
+                            />
+                          )}
                           <motion.div
-                            className="absolute inset-0 rounded-full bg-[var(--color-accent)]"
-                            initial={{ scale: 1, opacity: 0.5 }}
-                            animate={{ scale: 2, opacity: 0 }}
-                            transition={{ duration: 0.5, repeat: Infinity }}
+                            className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
+                            style={{
+                              width: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
+                            }}
+                            transition={
+                              isSeeking ? { duration: 0 } : springPresets.slider
+                            }
                           />
-                        )}
-                      </motion.div>
+                          <motion.div
+                            className="absolute top-1/2 rounded-full bg-white shadow-xl"
+                            style={{
+                              left: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
+                            }}
+                            initial={{ scale: 1, x: "-50%", y: "-50%" }}
+                            animate={{
+                              scale: isSeeking ? 1.4 : 1,
+                              width: isSeeking ? 24 : 18,
+                              height: isSeeking ? 24 : 18,
+                            }}
+                            whileHover={{ scale: 1.2 }}
+                            transition={springPresets.sliderThumb}
+                          >
+                            {isSeeking && (
+                              <motion.div
+                                className="absolute inset-0 rounded-full bg-[var(--color-accent)]"
+                                initial={{ scale: 1, opacity: 0.5 }}
+                                animate={{ scale: 2, opacity: 0 }}
+                                transition={{ duration: 0.5, repeat: Infinity }}
+                              />
+                            )}
+                          </motion.div>
+                        </div>
+                        <div className="mt-3 flex justify-between text-[11px] text-[var(--color-subtext)] tabular-nums">
+                          <motion.span
+                            animate={{ scale: isSeeking ? 1.05 : 1 }}
+                            transition={springPresets.snappy}
+                          >
+                            {formatTime(displayTime)}
+                          </motion.span>
+                          <motion.span
+                            animate={{ scale: isSeeking ? 1.05 : 1 }}
+                            transition={springPresets.snappy}
+                          >
+                            -{formatTime(Math.max(0, duration - displayTime))}
+                          </motion.span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {}
-                  <motion.button
-                    onClick={() => {
-                      hapticMedium();
-                      setShowQueuePanel(!showQueuePanel);
-                      setShowEqualizerPanel(false);
-                    }}
-                    whileTap={{ scale: 0.9 }}
-                    className={`touch-target relative ${showQueuePanel ? "text-[var(--color-accent)]" : "text-[var(--color-subtext)]"}`}
-                  >
-                    <ListMusic className="h-5 w-5" />
-                    {queue.length > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-[#0f141d]">
-                        {queue.length > 9 ? "9+" : queue.length}
-                      </span>
-                    )}
-                  </motion.button>
+                  <div className="mt-6 w-full max-w-[420px]">
+                    <div className="rounded-[28px] border border-[rgba(255,255,255,0.12)] bg-[rgba(12,18,27,0.7)] px-4 py-4 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                      <div className="flex items-center justify-between px-1">
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleToggleShuffle();
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className={`touch-target rounded-full p-2 transition-colors ${
+                            isShuffled
+                              ? "text-[var(--color-accent)]"
+                              : "text-[var(--color-subtext)]"
+                          }`}
+                          aria-label={
+                            isShuffled ? "Disable shuffle" : "Enable shuffle"
+                          }
+                        >
+                          <Shuffle className="h-5 w-5" />
+                        </motion.button>
 
-                  {}
-                  <motion.button
-                    onClick={() => {
-                      hapticMedium();
-                      setShowEqualizerPanel(!showEqualizerPanel);
-                      setShowQueuePanel(false);
-                    }}
-                    whileTap={{ scale: 0.9 }}
-                    className={`touch-target ${showEqualizerPanel ? "text-[var(--color-accent)]" : "text-[var(--color-subtext)]"}`}
-                  >
-                    <Sliders className="h-5 w-5" />
-                  </motion.button>
-
-                  {}
-                  <div className="relative">
-                    <motion.button
-                      onClick={() => {
-                        if (!isAuthenticated) {
-                          hapticMedium();
-                          return;
-                        }
-                        hapticLight();
-                        setShowPlaylistSelector(!showPlaylistSelector);
-                      }}
-                      whileTap={{ scale: 0.9 }}
-                      className={`touch-target ${!isAuthenticated ? "opacity-50" : ""} ${showPlaylistSelector ? "text-[var(--color-accent)]" : "text-[var(--color-subtext)]"}`}
-                      title={
-                        isAuthenticated
-                          ? "Add to playlist"
-                          : "Sign in to add to playlists"
-                      }
-                    >
-                      <ListPlus className="h-5 w-5" />
-                    </motion.button>
-
-                    {}
-                    <AnimatePresence>
-                      {showPlaylistSelector && isAuthenticated && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setShowPlaylistSelector(false)}
-                          />
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            transition={springPresets.snappy}
-                            className="absolute bottom-full right-0 z-20 mb-2 w-64 max-h-72 overflow-y-auto rounded-xl border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,0.98)] shadow-xl backdrop-blur-xl"
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            hapticLight();
+                            onSkipBackward();
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
+                          title="Skip backward 10s"
+                          aria-label="Skip backward 10 seconds"
+                        >
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            <div className="p-3 border-b border-[rgba(255,255,255,0.08)]">
-                              <h3 className="text-sm font-semibold text-[var(--color-text)]">
-                                Add to Playlist
-                              </h3>
-                            </div>
-                            <div className="py-2">
-                              {playlists && playlists.length > 0 ? (
-                                playlists.map((playlist) => (
-                                  <button
-                                    key={playlist.id}
-                                    onClick={() => {
-                                      if (currentTrack) {
-                                        addToPlaylist.mutate({
-                                          playlistId: playlist.id,
-                                          track: currentTrack,
-                                        });
-                                      }
-                                    }}
-                                    disabled={addToPlaylist.isPending}
-                                    className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-[rgba(244,178,102,0.1)] disabled:opacity-50"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div className="min-w-0 flex-1">
-                                        <p className="truncate font-medium text-[var(--color-text)]">
-                                          {playlist.name}
-                                        </p>
-                                        <p className="text-xs text-[var(--color-subtext)]">
-                                          {playlist.trackCount ?? 0}{" "}
-                                          {playlist.trackCount === 1
-                                            ? "track"
-                                            : "tracks"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </button>
-                                ))
-                              ) : (
-                                <div className="px-4 py-6 text-center">
-                                  <p className="text-sm text-[var(--color-subtext)]">
-                                    No playlists yet
-                                  </p>
-                                  <p className="mt-1 text-xs text-[var(--color-muted)]">
-                                    Create one from the Playlists page
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"
+                            />
+                          </svg>
+                        </motion.button>
+
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            hapticLight();
+                            onSkipForward();
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
+                          title="Skip forward 10s"
+                          aria-label="Skip forward 10 seconds"
+                        >
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"
+                            />
+                          </svg>
+                        </motion.button>
+
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCycleRepeat();
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className={`touch-target rounded-full p-2 transition-colors ${
+                            repeatMode !== "none"
+                              ? "text-[var(--color-accent)]"
+                              : "text-[var(--color-subtext)]"
+                          }`}
+                          aria-label={
+                            repeatMode === "none"
+                              ? "Enable repeat"
+                              : repeatMode === "one"
+                                ? "Repeat one (click to repeat all)"
+                                : "Repeat all (click to disable)"
+                          }
+                        >
+                          {repeatMode === "one" ? (
+                            <Repeat1 className="h-5 w-5" />
+                          ) : (
+                            <Repeat className="h-5 w-5" />
+                          )}
+                        </motion.button>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-center gap-10">
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePrevious();
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className="touch-target-lg text-[var(--color-text)]"
+                          aria-label="Previous track"
+                        >
+                          <SkipBack className="h-8 w-8 fill-current" />
+                        </motion.button>
+
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePlayPause();
+                          }}
+                          whileTap={{ scale: 0.92 }}
+                          whileHover={{ scale: 1.05 }}
+                          className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-text)] to-[var(--color-accent)] text-[#0f141d] shadow-[0_10px_36px_rgba(244,178,102,0.45)] ring-2 ring-[var(--color-accent)]/20 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          style={{ width: 80, height: 80 }}
+                          aria-label={isPlaying ? "Pause track" : "Play track"}
+                          disabled={isLoading}
+                        >
+                          <div className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(244,178,102,0.5)_0%,transparent_70%)] opacity-80 blur-xl" />
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
+                          {isPlaying ? (
+                            <Pause className="relative h-9 w-9 fill-current" />
+                          ) : (
+                            <Play className="relative ml-0.5 h-9 w-9 fill-current" />
+                          )}
+                        </motion.button>
+
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (queue.length > 0) {
+                              handleNext();
+                            }
+                          }}
+                          disabled={queue.length === 0}
+                          whileTap={{ scale: 0.9 }}
+                          className="touch-target-lg text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-40"
+                          aria-label="Next track"
+                        >
+                          <SkipForward className="h-8 w-8 fill-current" />
+                        </motion.button>
+                      </div>
+                    </div>
                   </div>
 
-                  {}
-                  <motion.button
-                    onClick={toggleFavorite}
-                    disabled={!isAuthenticated || addFavorite.isPending || removeFavorite.isPending}
-                    whileTap={{ scale: 0.9 }}
-                    className={`touch-target transition-all ${
-                      favoriteData?.isFavorite
-                        ? "text-red-500"
-                        : "text-[var(--color-subtext)]"
-                    } ${!isAuthenticated || addFavorite.isPending || removeFavorite.isPending ? "opacity-50" : ""}`}
-                    title={
-                      !isAuthenticated
-                        ? "Sign in to favorite tracks"
-                        : favoriteData?.isFavorite
-                          ? "Remove from favorites"
-                          : "Add to favorites"
-                    }
-                    aria-label={
-                      !isAuthenticated
-                        ? "Sign in to favorite tracks"
-                        : favoriteData?.isFavorite
-                          ? "Remove from favorites"
-                          : "Add to favorites"
-                    }
-                  >
-                    <Heart
-                      className={`h-5 w-5 transition-transform ${
-                        favoriteData?.isFavorite ? "fill-current" : ""
-                      } ${isHeartAnimating ? "scale-125" : ""}`}
-                    />
-                  </motion.button>
+                  <div className="mt-5 w-full max-w-[420px]">
+                    <div className="flex items-center gap-3 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(12,18,27,0.7)] px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+                      <div className="flex min-w-[140px] flex-1 items-center gap-2">
+                        <motion.button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            hapticMedium();
+                            onToggleMute();
+                          }}
+                          whileTap={{ scale: 0.85 }}
+                          transition={springPresets.snappy}
+                          className="touch-target text-[var(--color-subtext)]"
+                          aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
+                        >
+                          <motion.div
+                            animate={{ scale: isMuted ? 0.9 : 1 }}
+                            transition={springPresets.snappy}
+                          >
+                            {isMuted || volume === 0 ? (
+                              <VolumeX className="h-5 w-5" />
+                            ) : (
+                              <Volume2 className="h-5 w-5" />
+                            )}
+                          </motion.div>
+                        </motion.button>
+                        <div
+                          ref={volumeRef}
+                          className="relative h-1.5 flex-1 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
+                          onClick={handleVolumeClick}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            haptic("selection");
+                            handleVolumeTouch(e);
+                          }}
+                          onTouchMove={(e) => {
+                            e.preventDefault();
+                            handleVolumeTouch(e);
+                            hapticSliderContinuous(
+                              volumeDragValueRef.current * 100,
+                              0,
+                              100,
+                              {
+                                intervalMs: 50,
+                                tickThreshold: 5,
+                                boundaryFeedback: true,
+                              },
+                            );
+                          }}
+                          onTouchEnd={(e) => {
+                            e.preventDefault();
+                            handleVolumeTouchEnd();
+                          }}
+                          onTouchCancel={(e) => {
+                            e.preventDefault();
+                            handleVolumeTouchEnd();
+                          }}
+                          role="slider"
+                          aria-label="Volume"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={Math.round(
+                            (isMuted ? 0 : displayVolume) * 100,
+                          )}
+                        >
+                          {isAdjustingVolume && (
+                            <motion.div
+                              className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent-strong)]/20 blur-md"
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1.05 }}
+                              exit={{ opacity: 0 }}
+                              transition={springPresets.slider}
+                            />
+                          )}
+                          <motion.div
+                            className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
+                            style={{
+                              width: `${isMuted ? 0 : displayVolume * 100}%`,
+                            }}
+                            transition={
+                              isAdjustingVolume
+                                ? { duration: 0 }
+                                : springPresets.slider
+                            }
+                          />
+                          <motion.div
+                            className="absolute top-1/2 rounded-full bg-white shadow-lg"
+                            style={{
+                              left: `${isMuted ? 0 : displayVolume * 100}%`,
+                            }}
+                            initial={{ scale: 1, x: "-50%", y: "-50%" }}
+                            animate={{
+                              scale: isAdjustingVolume ? 1.3 : 1,
+                              width: isAdjustingVolume ? 18 : 14,
+                              height: isAdjustingVolume ? 18 : 14,
+                            }}
+                            whileHover={{ scale: 1.2 }}
+                            transition={springPresets.sliderThumb}
+                          >
+                            {isAdjustingVolume && (
+                              <motion.div
+                                className="absolute inset-0 rounded-full bg-[var(--color-accent)]"
+                                initial={{ scale: 1, opacity: 0.5 }}
+                                animate={{ scale: 2, opacity: 0 }}
+                                transition={{ duration: 0.5, repeat: Infinity }}
+                              />
+                            )}
+                          </motion.div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <motion.button
+                          onClick={() => {
+                            hapticMedium();
+                            setShowQueuePanel(!showQueuePanel);
+                            setShowEqualizerPanel(false);
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className={`touch-target relative ${
+                            showQueuePanel
+                              ? "text-[var(--color-accent)]"
+                              : "text-[var(--color-subtext)]"
+                          }`}
+                        >
+                          <ListMusic className="h-5 w-5" />
+                          {queue.length > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-[#0f141d]">
+                              {queue.length > 9 ? "9+" : queue.length}
+                            </span>
+                          )}
+                        </motion.button>
+
+                        <motion.button
+                          onClick={() => {
+                            hapticMedium();
+                            setShowEqualizerPanel(!showEqualizerPanel);
+                            setShowQueuePanel(false);
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className={`touch-target ${
+                            showEqualizerPanel
+                              ? "text-[var(--color-accent)]"
+                              : "text-[var(--color-subtext)]"
+                          }`}
+                        >
+                          <Sliders className="h-5 w-5" />
+                        </motion.button>
+
+                        <div className="relative">
+                          <motion.button
+                            onClick={() => {
+                              if (!isAuthenticated) {
+                                hapticMedium();
+                                return;
+                              }
+                              hapticLight();
+                              setShowPlaylistSelector(!showPlaylistSelector);
+                            }}
+                            whileTap={{ scale: 0.9 }}
+                            className={`touch-target ${
+                              !isAuthenticated ? "opacity-50" : ""
+                            } ${
+                              showPlaylistSelector
+                                ? "text-[var(--color-accent)]"
+                                : "text-[var(--color-subtext)]"
+                            }`}
+                            title={
+                              isAuthenticated
+                                ? "Add to playlist"
+                                : "Sign in to add to playlists"
+                            }
+                          >
+                            <ListPlus className="h-5 w-5" />
+                          </motion.button>
+
+                          <AnimatePresence>
+                            {showPlaylistSelector && isAuthenticated && (
+                              <>
+                                <div
+                                  className="fixed inset-0 z-10"
+                                  onClick={() =>
+                                    setShowPlaylistSelector(false)
+                                  }
+                                />
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                  transition={springPresets.snappy}
+                                  className="absolute bottom-full right-0 z-20 mb-2 w-64 max-h-72 overflow-y-auto rounded-xl border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,0.98)] shadow-xl backdrop-blur-xl"
+                                >
+                                  <div className="border-b border-[rgba(255,255,255,0.08)] p-3">
+                                    <h3 className="text-sm font-semibold text-[var(--color-text)]">
+                                      Add to Playlist
+                                    </h3>
+                                  </div>
+                                  <div className="py-2">
+                                    {playlists && playlists.length > 0 ? (
+                                      playlists.map((playlist) => (
+                                        <button
+                                          key={playlist.id}
+                                          onClick={() => {
+                                            if (currentTrack) {
+                                              addToPlaylist.mutate({
+                                                playlistId: playlist.id,
+                                                track: currentTrack,
+                                              });
+                                            }
+                                          }}
+                                          disabled={addToPlaylist.isPending}
+                                          className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-[rgba(244,178,102,0.1)] disabled:opacity-50"
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <div className="min-w-0 flex-1">
+                                              <p className="truncate font-medium text-[var(--color-text)]">
+                                                {playlist.name}
+                                              </p>
+                                              <p className="text-xs text-[var(--color-subtext)]">
+                                                {playlist.trackCount ?? 0}{" "}
+                                                {playlist.trackCount === 1
+                                                  ? "track"
+                                                  : "tracks"}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </button>
+                                      ))
+                                    ) : (
+                                      <div className="px-4 py-6 text-center">
+                                        <p className="text-sm text-[var(--color-subtext)]">
+                                          No playlists yet
+                                        </p>
+                                        <p className="mt-1 text-xs text-[var(--color-muted)]">
+                                          Create one from the Playlists page
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <motion.button
+                          onClick={toggleFavorite}
+                          disabled={
+                            !isAuthenticated ||
+                            addFavorite.isPending ||
+                            removeFavorite.isPending
+                          }
+                          whileTap={{ scale: 0.9 }}
+                          className={`touch-target transition-all ${
+                            favoriteData?.isFavorite
+                              ? "text-red-500"
+                              : "text-[var(--color-subtext)]"
+                          } ${
+                            !isAuthenticated ||
+                            addFavorite.isPending ||
+                            removeFavorite.isPending
+                              ? "opacity-50"
+                              : ""
+                          }`}
+                          title={
+                            !isAuthenticated
+                              ? "Sign in to favorite tracks"
+                              : favoriteData?.isFavorite
+                                ? "Remove from favorites"
+                                : "Add to favorites"
+                          }
+                          aria-label={
+                            !isAuthenticated
+                              ? "Sign in to favorite tracks"
+                              : favoriteData?.isFavorite
+                                ? "Remove from favorites"
+                                : "Add to favorites"
+                          }
+                        >
+                          <Heart
+                            className={`h-5 w-5 transition-transform ${
+                              favoriteData?.isFavorite ? "fill-current" : ""
+                            } ${isHeartAnimating ? "scale-125" : ""}`}
+                          />
+                        </motion.button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                {}
-                {}
-                {
-
-}
               </div>
             </motion.div>
 

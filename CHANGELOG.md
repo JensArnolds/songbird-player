@@ -5,6 +5,28 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.10.6] - 2026-01-26
+
+### Added
+
+- **Queue Transition Regression Tests**: Added coverage for auto-advance on track end and manual next to prevent playback regressions
+  - Location: `src/__tests__/useAudioPlayer.test.ts`
+
+## [0.10.5] - 2026-01-26
+
+### Changed
+
+- **Mobile Fullscreen Player Redesign**: Reimagined the fullscreen mobile player with framed artwork, an editorial track card, and a structured control deck while keeping all features accessible
+  - Location: `src/components/MobilePlayer.tsx`
+
+## [0.10.4] - 2026-01-26
+
+### Fixed
+
+- **Queue Auto-Advance**: Unified auto-play signaling on track transitions to ensure the next track starts after end/skip and reduce repeated play taps
+  - Location: `src/hooks/useAudioPlayer.ts`
+
 ## [0.10.3] - 2026-01-26
 
 ### Fixed
