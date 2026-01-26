@@ -2,35 +2,34 @@
 
 "use client";
 
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { QueueSettingsModal } from "@/components/QueueSettingsModal";
+import { STORAGE_KEYS } from "@/config/storage";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
-import type { QueuedTrack, SimilarityPreference, Track } from "@/types";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { QueueSettingsModal } from "@/components/QueueSettingsModal";
-import {
-  extractColorsFromImage,
-  type ColorPalette,
-} from "@/utils/colorExtractor";
+import { api } from "@/trpc/react";
+import type { SimilarityPreference, Track } from "@/types";
 import {
   getAudioConnection,
   getOrCreateAudioConnection,
   releaseAudioConnection,
 } from "@/utils/audioContextManager";
 import {
+  extractColorsFromImage,
+  type ColorPalette,
+} from "@/utils/colorExtractor";
+import {
+  haptic,
   hapticLight,
   hapticMedium,
-  hapticSuccess,
   hapticSliderContinuous,
   hapticSliderEnd,
-  haptic,
+  hapticSuccess,
 } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
-import { STORAGE_KEYS } from "@/config/storage";
-import { useSession } from "next-auth/react";
-import { api } from "@/trpc/react";
 import { springPresets } from "@/utils/spring-animations";
-import { formatTime } from "@/utils/time";
+import { formatDuration, formatTime } from "@/utils/time";
 import {
   AnimatePresence,
   motion,
@@ -44,7 +43,6 @@ import {
   Heart,
   ListMusic,
   ListPlus,
-  MoreHorizontal,
   Pause,
   Play,
   Repeat,
@@ -52,19 +50,19 @@ import {
   Save,
   Search,
   Settings,
-  Sparkles,
   Shuffle,
   SkipBack,
   SkipForward,
   Sliders,
+  Sparkles,
   Trash2,
   Volume2,
   VolumeX,
-  X,
+  X
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { formatDuration } from "@/utils/time";
 
 interface QueueItemProps {
   track: Track;
@@ -122,19 +120,25 @@ function QueueItem({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
-      startYRef.current = e.touches[0].clientY;
-      onDragStart();
+      const touch = e.touches[0];
+      if (touch) {
+        startYRef.current = touch.clientY;
+        onDragStart();
+      }
     }
     onToggleSelect(e);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 1 && startYRef.current !== 0) {
-      const currentY = e.touches[0].clientY;
-      const deltaY = currentY - startYRef.current;
-      
-      if (Math.abs(deltaY) > 10) {
-        setDragY(deltaY);
+      const touch = e.touches[0];
+      if (touch) {
+        const currentY = touch.clientY;
+        const deltaY = currentY - startYRef.current;
+        
+        if (Math.abs(deltaY) > 10) {
+          setDragY(deltaY);
+        }
       }
     }
   };
@@ -930,7 +934,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
               onDragEnd={handleExpandedDragEnd}
               style={{ y: dragY, opacity }}
               transition={springPresets.gentle}
-              className="fixed inset-0 z-[99] flex flex-col overflow-hidden pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+24px)]"
+              className="fixed inset-0 z-[99] flex flex-col overflow-hidden pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+36px)]"
             >
               {}
               <div
@@ -1100,12 +1104,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                   </div>
 
-                  <div className="mt-4 w-full max-w-[420px]">
-                    <div className="rounded-[28px] border border-[rgba(255,255,255,0.12)] bg-[rgba(12,18,27,0.7)] px-4 py-4 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-                      <div className="px-1 pb-4">
+                  <div className="mt-2 w-full max-w-[420px] pb-[calc(env(safe-area-inset-bottom)+8px)]">
+                    <div className="rounded-[20px] border border-[rgba(255,107,107,0.4)] bg-[linear-gradient(145deg,rgba(255,107,107,0.15),rgba(78,205,196,0.12),rgba(107,207,127,0.1))] px-3 py-2 shadow-[0_12px_32px_rgba(255,107,107,0.25)] backdrop-blur-xl">
+                      <div className="px-1 pb-2">
                         <div
                           ref={progressRef}
-                          className="group relative h-2.5 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
+                          className="group relative h-1.5 cursor-pointer rounded-full bg-[rgba(255,255,255,0.15)]"
                           onClick={handleProgressClick}
                           onTouchStart={(e) => {
                             setIsSeeking(true);
@@ -1131,7 +1135,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         >
                           {isSeeking && (
                             <motion.div
-                              className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent-strong)]/20 blur-md"
+                              className="absolute inset-0 rounded-full bg-gradient-to-r from-[#ff6b6b]/30 to-[#4ecdc4]/30 blur-md"
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1.05 }}
                               exit={{ opacity: 0 }}
@@ -1139,7 +1143,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             />
                           )}
                           <motion.div
-                            className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
+                            className="h-full rounded-full bg-gradient-to-r from-[#ff6b6b] via-[#ffd93d] to-[#4ecdc4]"
                             style={{
                               width: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
                             }}
@@ -1148,22 +1152,22 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             }
                           />
                           <motion.div
-                            className="absolute top-1/2 rounded-full bg-white shadow-xl"
+                            className="absolute top-1/2 rounded-full bg-white shadow-lg"
                             style={{
                               left: `${isSeeking ? (seekTime / duration) * 100 : progress}%`,
                             }}
                             initial={{ scale: 1, x: "-50%", y: "-50%" }}
                             animate={{
-                              scale: isSeeking ? 1.4 : 1,
-                              width: isSeeking ? 24 : 18,
-                              height: isSeeking ? 24 : 18,
+                              scale: isSeeking ? 1.3 : 1,
+                              width: isSeeking ? 18 : 14,
+                              height: isSeeking ? 18 : 14,
                             }}
-                            whileHover={{ scale: 1.2 }}
+                            whileHover={{ scale: 1.15 }}
                             transition={springPresets.sliderThumb}
                           >
                             {isSeeking && (
                               <motion.div
-                                className="absolute inset-0 rounded-full bg-[var(--color-accent)]"
+                                className="absolute inset-0 rounded-full bg-[#4ecdc4]"
                                 initial={{ scale: 1, opacity: 0.5 }}
                                 animate={{ scale: 2, opacity: 0 }}
                                 transition={{ duration: 0.5, repeat: Infinity }}
@@ -1171,7 +1175,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             )}
                           </motion.div>
                         </div>
-                        <div className="mt-3 flex justify-between text-[11px] text-[var(--color-subtext)] tabular-nums">
+                        <div className="mt-1.5 flex justify-between text-[10px] text-[var(--color-subtext)] tabular-nums">
                           <motion.span
                             animate={{ scale: isSeeking ? 1.05 : 1 }}
                             transition={springPresets.snappy}
@@ -1187,9 +1191,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </div>
                       </div>
 
-                      <div className="h-px w-full bg-[rgba(255,255,255,0.08)]" />
+                      <div className="h-px w-full bg-gradient-to-r from-transparent via-[rgba(255,107,107,0.3)] to-transparent" />
 
-                      <div className="flex items-center justify-between px-1">
+                      <div className="flex items-center justify-between px-1 pt-1.5">
                         <motion.button
                           onClick={(e) => {
                             e.preventDefault();
@@ -1197,16 +1201,16 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             handleToggleShuffle();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className={`touch-target rounded-full p-2 transition-colors ${
+                          className={`touch-target rounded-full p-1 transition-colors ${
                             isShuffled
-                              ? "text-[var(--color-accent)]"
+                              ? "text-[#ffd93d]"
                               : "text-[var(--color-subtext)]"
                           }`}
                           aria-label={
                             isShuffled ? "Disable shuffle" : "Enable shuffle"
                           }
                         >
-                          <Shuffle className="h-5 w-5" />
+                          <Shuffle className="h-4 w-4" />
                         </motion.button>
 
                         <motion.button
@@ -1217,12 +1221,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             onSkipBackward();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
+                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors hover:text-[#4ecdc4]"
                           title="Skip backward 10s"
                           aria-label="Skip backward 10 seconds"
                         >
                           <svg
-                            className="h-5 w-5"
+                            className="h-4 w-4"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1244,12 +1248,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             onSkipForward();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
+                          className="touch-target rounded-full p-1 text-[var(--color-subtext)] transition-colors hover:text-[#4ecdc4]"
                           title="Skip forward 10s"
                           aria-label="Skip forward 10 seconds"
                         >
                           <svg
-                            className="h-5 w-5"
+                            className="h-4 w-4"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1270,9 +1274,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             handleCycleRepeat();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className={`touch-target rounded-full p-2 transition-colors ${
+                          className={`touch-target rounded-full p-1 transition-colors ${
                             repeatMode !== "none"
-                              ? "text-[var(--color-accent)]"
+                              ? "text-[#ffd93d]"
                               : "text-[var(--color-subtext)]"
                           }`}
                           aria-label={
@@ -1284,14 +1288,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }
                         >
                           {repeatMode === "one" ? (
-                            <Repeat1 className="h-5 w-5" />
+                            <Repeat1 className="h-4 w-4" />
                           ) : (
-                            <Repeat className="h-5 w-5" />
+                            <Repeat className="h-4 w-4" />
                           )}
                         </motion.button>
                       </div>
 
-                      <div className="mt-4 flex items-center justify-center gap-10">
+                      <div className="mt-2 flex items-center justify-center gap-6">
                         <motion.button
                           onClick={(e) => {
                             e.preventDefault();
@@ -1299,10 +1303,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             handlePrevious();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target-lg text-[var(--color-text)]"
+                          className="touch-target-lg text-[#6bcf7f]"
                           aria-label="Previous track"
                         >
-                          <SkipBack className="h-8 w-8 fill-current" />
+                          <SkipBack className="h-6 w-6 fill-current" />
                         </motion.button>
 
                         <motion.button
@@ -1313,17 +1317,17 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                           whileTap={{ scale: 0.92 }}
                           whileHover={{ scale: 1.05 }}
-                          className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-text)] to-[var(--color-accent)] text-[#0f141d] shadow-[0_10px_36px_rgba(244,178,102,0.45)] ring-2 ring-[var(--color-accent)]/20 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
-                          style={{ width: 80, height: 80 }}
+                          className="relative flex items-center justify-center rounded-full bg-gradient-to-br from-[#ff6b6b] via-[#ffd93d] to-[#4ecdc4] text-[#0f141d] shadow-[0_8px_24px_rgba(255,107,107,0.4)] ring-2 ring-[rgba(78,205,196,0.5)] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          style={{ width: 64, height: 64 }}
                           aria-label={isPlaying ? "Pause track" : "Play track"}
                           disabled={isLoading}
                         >
-                          <div className="absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(244,178,102,0.5)_0%,transparent_70%)] opacity-80 blur-xl" />
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
+                          <div className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(255,217,61,0.6)_0%,transparent_70%)] opacity-80 blur-xl" />
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/15 to-transparent" />
                           {isPlaying ? (
-                            <Pause className="relative h-9 w-9 fill-current" />
+                            <Pause className="relative h-7 w-7 fill-current" />
                           ) : (
-                            <Play className="relative ml-0.5 h-9 w-9 fill-current" />
+                            <Play className="relative ml-0.5 h-7 w-7 fill-current" />
                           )}
                         </motion.button>
 
@@ -1337,10 +1341,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                           disabled={queue.length === 0}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target-lg text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="touch-target-lg text-[#6bcf7f] disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label="Next track"
                         >
-                          <SkipForward className="h-8 w-8 fill-current" />
+                          <SkipForward className="h-6 w-6 fill-current" />
                         </motion.button>
                       </div>
                     </div>
@@ -1844,7 +1848,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           {filteredNowPlaying && (
                             <div className="border-b border-[rgba(255,255,255,0.05)]">
                               <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider bg-[rgba(245,241,232,0.02)]">
-                                Now Playing
+                                Now Playing on
                               </div>
                               <QueueItem
                                 track={filteredNowPlaying.track}
@@ -1861,12 +1865,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                   removeFromQueue(filteredNowPlaying.index);
                                 }}
                                 onToggleSelect={(e) => {
-                                  if (e.type === 'touchstart' && e.touches.length === 1) {
-                                    const timer = setTimeout(() => {
-                                      hapticMedium();
-                                      handleToggleQueueSelect(filteredNowPlaying.index);
-                                    }, 500);
-                                    setLongPressTimer(timer);
+                                  if (e.type === 'touchstart' && 'touches' in e) {
+                                    const touchEvent = e as React.TouchEvent;
+                                    if (touchEvent.touches.length === 1) {
+                                      const timer = setTimeout(() => {
+                                        hapticMedium();
+                                        handleToggleQueueSelect(filteredNowPlaying.index);
+                                      }, 500);
+                                      setLongPressTimer(timer);
+                                    }
                                   } else {
                                     if (longPressTimer) {
                                       clearTimeout(longPressTimer);
@@ -1919,12 +1926,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                       removeFromQueue(entry.index);
                                     }}
                                     onToggleSelect={(e) => {
-                                      if (e.type === 'touchstart' && e.touches.length === 1) {
-                                        const timer = setTimeout(() => {
-                                          hapticMedium();
-                                          handleToggleQueueSelect(entry.index);
-                                        }, 500);
-                                        setLongPressTimer(timer);
+                                      if (e.type === 'touchstart' && 'touches' in e) {
+                                        const touchEvent = e as React.TouchEvent;
+                                        if (touchEvent.touches.length === 1) {
+                                          const timer = setTimeout(() => {
+                                            hapticMedium();
+                                            handleToggleQueueSelect(entry.index);
+                                          }, 500);
+                                          setLongPressTimer(timer);
+                                        }
                                       } else {
                                         if (longPressTimer) {
                                           clearTimeout(longPressTimer);
@@ -1992,12 +2002,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                         removeFromQueue(entry.index);
                                       }}
                                       onToggleSelect={(e) => {
-                                        if (e.type === 'touchstart' && e.touches.length === 1) {
-                                          const timer = setTimeout(() => {
-                                            hapticMedium();
-                                            handleToggleQueueSelect(entry.index);
-                                          }, 500);
-                                          setLongPressTimer(timer);
+                                        if (e.type === 'touchstart' && 'touches' in e) {
+                                          const touchEvent = e as React.TouchEvent;
+                                          if (touchEvent.touches.length === 1) {
+                                            const timer = setTimeout(() => {
+                                              hapticMedium();
+                                              handleToggleQueueSelect(entry.index);
+                                            }, 500);
+                                            setLongPressTimer(timer);
+                                          }
                                         } else {
                                           if (longPressTimer) {
                                             clearTimeout(longPressTimer);
