@@ -19,11 +19,13 @@ declare module "next-auth" {
     user: {
       id: string;
       userHash?: string | null;
+      admin: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
     userHash?: string | null;
+    admin?: boolean;
   }
 }
 
@@ -155,6 +157,7 @@ export const authConfig = {
           email: user.email ?? null,
           image: user.image ?? null,
           userHash: user.userHash ?? null,
+          admin: user.admin ?? false,
         },
       };
     },

@@ -53,6 +53,7 @@ export const users = createTable("user", (d) => ({
 
       return crypto.randomUUID().replace(/-/g, "").substring(0, 16);
     }),
+  admin: d.boolean().default(false).notNull(),
   profilePublic: d.boolean().default(true).notNull(),
   bio: d.text(),
 }));

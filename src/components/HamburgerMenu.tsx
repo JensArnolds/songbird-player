@@ -9,6 +9,7 @@ import {
   ListMusic,
   User,
   Settings,
+  Shield,
   Info,
   FileText,
   LogOut,
@@ -101,6 +102,16 @@ export default function HamburgerMenu() {
       dividerAfter: true,
     },
   ];
+
+  if (session?.user?.admin) {
+    menuItems.push({
+      id: "admin",
+      label: "Admin",
+      icon: <Shield className="h-5 w-5" />,
+      path: "/admin",
+      requiresAuth: true,
+    });
+  }
 
   if (session) {
     menuItems.push({

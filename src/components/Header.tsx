@@ -4,7 +4,7 @@
 
 import { env } from "@/env";
 import { api } from "@/trpc/react";
-import { LogOut, User } from "lucide-react";
+import { LogOut, Shield, User } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +15,7 @@ export default function Header() {
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const isAdmin = session?.user?.admin === true;
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
@@ -237,6 +238,14 @@ export default function Header() {
             >
               Playlists
             </Link>
+            {session?.user?.admin && (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+              >
+                Admin
+              </Link>
+            )}
             {session && (
               <Link
                 href="/settings"
@@ -327,6 +336,28 @@ export default function Header() {
                 </div>
               </Link>
             ) : null}
+            {isAdmin &&
+              (isDarkfloorHost ? (
+                <Link
+                  href="/admin"
+                  className="hidden items-center transition-opacity hover:opacity-80 md:flex"
+                  aria-label="Administrate"
+                  title="Administrate"
+                >
+                  <Shield className="h-5 w-5 text-[var(--color-text)]" />
+                </Link>
+              ) : (
+                <Link
+                  href="/admin"
+                  className="group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
+                  aria-label="Administrate"
+                  title="Administrate"
+                >
+                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-[rgba(0,0,0,0.6)]">
+                    <Shield className="h-4 w-4 opacity-70 transition-opacity group-hover:opacity-100" />
+                  </div>
+                </Link>
+              ))}
             {}
             {session ? (
               <div className="relative hidden md:block" ref={menuRef}>

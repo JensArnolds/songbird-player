@@ -2113,6 +2113,7 @@ export const musicRouter = createTRPCRouter({
       email: user.email,
       image: user.image,
       userHash: user.userHash,
+      admin: user.admin,
       profilePublic: user.profilePublic,
       bio: user.bio,
     };

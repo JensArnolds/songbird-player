@@ -5,6 +5,24 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-01-26
+
+### Added
+
+- **Admin Role Support**: Added `admin` boolean column with default false and wired it into session payloads for authorization
+  - Location: `src/server/db/schema.ts`, `src/server/auth/config.ts`, `drizzle/0017_admin_flag.sql`, `drizzle/meta/0017_snapshot.json`
+
+- **Admin APIs**: New TRPC router for listing users and toggling admin access with a self-demotion guard
+  - Location: `src/server/api/routers/admin.ts`, `src/server/api/root.ts`
+
+- **Admin Console Page**: New `/admin` page for viewing users, profile links, and managing admin status
+  - Location: `src/app/admin/page.tsx`
+
+### Changed
+
+- **Admin Navigation**: Added admin entry in the menu and an icon shortcut near the server/Vercel badge for quick access
+  - Location: `src/components/HamburgerMenu.tsx`, `src/components/Header.tsx`
+
 ## [0.9.25] - 2026-01-22
 
 ### Fixed

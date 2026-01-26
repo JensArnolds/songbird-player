@@ -207,6 +207,7 @@ export interface UserProfile {
   visibility: ProfileVisibility;
   isVerified: boolean;
   isPro: boolean;
+  admin: boolean;
   createdAt: Date;
   lastActiveAt: Date | null;
   stats: UserStats;
@@ -741,7 +742,8 @@ export function isUserProfile(obj: unknown): obj is UserProfile {
     obj !== null &&
     "userId" in obj &&
     "userHash" in obj &&
-    "stats" in obj
+    "stats" in obj &&
+    "admin" in obj
   );
 }
 
