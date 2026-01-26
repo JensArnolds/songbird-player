@@ -930,7 +930,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
               onDragEnd={handleExpandedDragEnd}
               style={{ y: dragY, opacity }}
               transition={springPresets.gentle}
-              className="safe-bottom fixed inset-0 z-[99] flex flex-col overflow-hidden"
+              className="fixed inset-0 z-[99] flex flex-col overflow-hidden pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+24px)]"
             >
               {}
               <div
@@ -941,7 +941,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
               {}
               <div className="relative z-10 flex flex-1 flex-col">
-                <div className="flex justify-center pt-3 pb-1">
+                <div className="flex justify-center pt-2 pb-1">
                   <div className="h-1 w-12 rounded-full bg-[rgba(255,255,255,0.3)]" />
                 </div>
 
@@ -969,14 +969,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       Starchild
                     </span>
                   </div>
-                  <div className="flex w-12 justify-end">
-                    <div className="rounded-full border border-[rgba(244,178,102,0.2)] bg-[rgba(244,178,102,0.08)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)]">
-                      Q {queue.length}
-                    </div>
-                  </div>
+                  <div className="w-12" />
                 </div>
 
-                <div className="flex flex-1 flex-col px-6 pb-6 pt-4">
+                <div className="flex flex-1 flex-col px-6 pb-6 pt-3">
                   <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-6">
                     <motion.div
                       ref={artworkRef}
@@ -1102,8 +1098,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       </div>
                     </div>
 
-                    <div className="w-full max-w-[420px]">
-                      <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(8,13,20,0.6)] px-4 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+                  </div>
+
+                  <div className="mt-4 w-full max-w-[420px]">
+                    <div className="rounded-[28px] border border-[rgba(255,255,255,0.12)] bg-[rgba(12,18,27,0.7)] px-4 py-4 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                      <div className="px-1 pb-4">
                         <div
                           ref={progressRef}
                           className="group relative h-2.5 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
@@ -1187,11 +1186,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           </motion.span>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="mt-6 w-full max-w-[420px]">
-                    <div className="rounded-[28px] border border-[rgba(255,255,255,0.12)] bg-[rgba(12,18,27,0.7)] px-4 py-4 shadow-[0_18px_44px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                      <div className="h-px w-full bg-[rgba(255,255,255,0.08)]" />
+
                       <div className="flex items-center justify-between px-1">
                         <motion.button
                           onClick={(e) => {
