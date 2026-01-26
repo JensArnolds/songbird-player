@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.8] - 2026-01-26
+
+### Changed
+
+- **Mobile Player Compact Layout**: Significantly reduced vertical spacing throughout mobile player to prevent Safari browser UI overlap
+  - Reduced main container padding (top: 24px→16px, bottom: 36px→20px) to account for Safari's UI components
+  - Compacted drag handle, header, and content areas with reduced padding
+  - Reduced gap between artwork and track info from 6 to 4
+  - Artwork max width reduced from 330px to 300px for better fit
+  - Track info card: reduced padding (py-3→py-2), smaller text sizes (title: 2xl→xl, artist: sm→xs, album: xs→10px)
+  - Control section moved higher with reduced margins (mt-1→mt-0.5, pb-8px→pb-4px)
+  - Larger playback control buttons: skip buttons (h-6→h-8), play/pause button (64px→72px), play/pause icons (h-7→h-8)
+  - Optimized for newer Safari models with bottom UI bars
+  - Location: `src/components/MobilePlayer.tsx`
+
 ## [0.10.7] - 2026-01-26
 
 ### Changed
