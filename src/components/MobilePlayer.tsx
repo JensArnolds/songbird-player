@@ -1295,7 +1295,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </motion.button>
                       </div>
 
-                      <div className="mt-1.5 flex items-center justify-center gap-6">
+                      <div className="mt-0.5 flex items-center justify-center gap-6">
                         <motion.button
                           onClick={(e) => {
                             e.preventDefault();
@@ -1306,7 +1306,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           className="touch-target-lg text-[#3b82f6]"
                           aria-label="Previous track"
                         >
-                          <SkipBack className="h-8 w-8 fill-current" />
+                          <SkipBack className="h-9 w-9 fill-current" />
                         </motion.button>
 
                         <motion.button
@@ -1318,16 +1318,16 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           whileTap={{ scale: 0.92 }}
                           whileHover={{ scale: 1.05 }}
                           className="relative flex items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] via-[#60a5fa] to-[#2563eb] text-white shadow-[0_8px_24px_rgba(59,130,246,0.4)] ring-2 ring-[rgba(96,165,250,0.5)] transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
-                          style={{ width: 72, height: 72 }}
+                          style={{ width: 68, height: 68 }}
                           aria-label={isPlaying ? "Pause track" : "Play track"}
                           disabled={isLoading}
                         >
                           <div className="absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.6)_0%,transparent_70%)] opacity-80 blur-xl" />
                           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/15 to-transparent" />
                           {isPlaying ? (
-                            <Pause className="relative h-8 w-8 fill-current" />
+                            <Pause className="relative h-7 w-7 fill-current" />
                           ) : (
-                            <Play className="relative ml-0.5 h-8 w-8 fill-current" />
+                            <Play className="relative ml-0.5 h-7 w-7 fill-current" />
                           )}
                         </motion.button>
 
@@ -1344,7 +1344,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           className="touch-target-lg text-[#3b82f6] disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label="Next track"
                         >
-                          <SkipForward className="h-8 w-8 fill-current" />
+                          <SkipForward className="h-9 w-9 fill-current" />
                         </motion.button>
                       </div>
                     </div>
