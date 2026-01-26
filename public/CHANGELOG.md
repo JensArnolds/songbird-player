@@ -5,6 +5,27 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.3] - 2026-01-26
+
+### Fixed
+
+- **iOS Background Playback**: Disabled Web Audio on iOS Safari to keep music playing when the browser is minimized
+  - Location: `src/utils/audioContextManager.ts`, `src/hooks/useEqualizer.ts`, `src/components/Equalizer.tsx`
+
+## [0.10.2] - 2026-01-26
+
+### Fixed
+
+- **Mobile Volume Control**: Volume slider now applies changes reliably during touch and updates the live playback output
+  - Location: `src/components/MobilePlayer.tsx`, `src/hooks/useAudioPlayer.ts`, `src/utils/audioContextManager.ts`
+
+## [0.10.1] - 2026-01-26
+
+### Changed
+
+- **Haptics Tuning**: Smoothed mobile haptics with gentler patterns and paced feedback to reduce jitter
+  - Location: `src/utils/haptics.ts`
+
 ## [0.10.0] - 2026-01-26
 
 ### Added

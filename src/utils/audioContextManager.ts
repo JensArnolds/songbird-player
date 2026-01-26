@@ -10,10 +10,33 @@ interface AudioConnection {
 }
 
 const connectedAudioElements = new WeakMap<HTMLAudioElement, AudioConnection>();
+let hasLoggedIOSWarning = false;
+
+export function isIOSDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const userAgent = navigator.userAgent ?? "";
+  const isAppleMobile = /iPad|iPhone|iPod/i.test(userAgent);
+  const isIPadOS =
+    /Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1;
+  return isAppleMobile || isIPadOS;
+}
+
+export function shouldBypassWebAudio(): boolean {
+  return isIOSDevice();
+}
 
 export function getOrCreateAudioConnection(
   audioElement: HTMLAudioElement,
 ): AudioConnection | null {
+  if (shouldBypassWebAudio()) {
+    if (!hasLoggedIOSWarning) {
+      console.warn(
+        "[audioContextManager] Web Audio disabled on iOS to allow background playback",
+      );
+      hasLoggedIOSWarning = true;
+    }
+    return null;
+  }
 
   const existing = connectedAudioElements.get(audioElement);
   if (existing) {
