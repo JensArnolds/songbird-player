@@ -396,6 +396,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const volumeDragValueRef = useRef(volume);
   const isAdjustingVolumeRef = useRef(false);
   const volumeConnectionElementRef = useRef<HTMLAudioElement | null>(null);
+  const paletteRequestRef = useRef(0);
+  const lastPaletteCoverRef = useRef<string | null>(null);
 
   const { data: playlists, refetch: refetchPlaylists } =
     api.music.getPlaylists.useQuery(undefined, {
@@ -652,21 +654,51 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   }, [isExpanded]);
 
   useEffect(() => {
-    if (currentTrack) {
-      const coverUrl = getCoverImage(currentTrack, "big");
-      extractColorsFromImage(coverUrl)
+    const fallbackCover =
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect fill='%236495ed' width='1' height='1'/%3E%3C/svg%3E";
+    const coverUrl = currentTrack ? getCoverImage(currentTrack, "small") : fallbackCover;
+
+    if (lastPaletteCoverRef.current === coverUrl) {
+      return;
+    }
+    lastPaletteCoverRef.current = coverUrl;
+
+    const requestId = ++paletteRequestRef.current;
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
+
+    const runExtraction = () => {
+      extractColorsFromImage(coverUrl, { size: 64 })
         .then((palette) => {
+          if (cancelled || requestId !== paletteRequestRef.current) return;
           setAlbumColorPalette(palette);
         })
         .catch((error) => {
           console.error("Failed to extract colors, using fallback:", error);
-          extractColorsFromImage(coverUrl).then(setAlbumColorPalette);
         });
+    };
+
+    if (typeof window !== "undefined") {
+      const idleWindow = window as Window & {
+        requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number;
+        cancelIdleCallback?: (id: number) => void;
+      };
+      if (idleWindow.requestIdleCallback) {
+        const idleId = idleWindow.requestIdleCallback(runExtraction, { timeout: 600 });
+        cleanup = () => idleWindow.cancelIdleCallback?.(idleId);
+      } else {
+        const timeoutId = window.setTimeout(runExtraction, 120);
+        cleanup = () => clearTimeout(timeoutId);
+      }
     } else {
-      extractColorsFromImage("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect fill='%236495ed' width='1' height='1'/%3E%3C/svg%3E")
-        .then(setAlbumColorPalette);
+      runExtraction();
     }
-  }, [currentTrack]);
+
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [currentTrack?.id]);
 
   useEffect(() => {
 
