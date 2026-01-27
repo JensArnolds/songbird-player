@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.14] - 2026-01-27
+
+### Changed
+
+- **FlowField Renderer Performance Pass**: Reduced per-frame allocations and consolidated audio analysis for smoother rendering (especially in Firefox)
+  - Moved static pattern arrays to class-level constants to cut GC churn
+  - Single-pass audio band analysis replaces multiple loops
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+
 ## [0.10.13] - 2026-01-27
 
 ### Changed

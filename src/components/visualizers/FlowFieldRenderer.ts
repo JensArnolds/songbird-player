@@ -306,6 +306,119 @@ export class FlowFieldRenderer {
   private static readonly INV_TWO_PI = 1 / (Math.PI * 2);
   private static readonly SQRT3 = 1.7320508075688772;
   private static readonly HUE_255_TO_360 = 360 / 255;
+  private static readonly TRAIL_PATTERNS = new Set<Pattern>([
+    "swarm",
+    "fireworks",
+    "starfield",
+    "constellation",
+  ]);
+  private static readonly MYSTICAL_HUES = [
+    270, 280, 290, 240, 250, 0, 330, 340, 180, 200, 310, 350,
+  ] as const;
+  private static readonly CHAKRA_COLORS = [
+    { h: 0, name: "Root" },
+    { h: 30, name: "Sacral" },
+    { h: 60, name: "Solar" },
+    { h: 120, name: "Heart" },
+    { h: 200, name: "Throat" },
+    { h: 270, name: "Third Eye" },
+    { h: 300, name: "Crown" },
+  ] as const;
+  private static readonly ALCHEMY_SYMBOLS = [
+    { name: "Fire", rotation: 0 },
+    { name: "Water", rotation: Math.PI },
+    { name: "Air", rotation: Math.PI * 0.5 },
+    { name: "Earth", rotation: Math.PI * 1.5 },
+  ] as const;
+  private static readonly ELEMENTAL_CROSS_ELEMENTS = [
+    { angle: 0, hue: 15, symbol: "△" },
+    { angle: Math.PI * 0.5, hue: 60, symbol: "△" },
+    { angle: Math.PI, hue: 200, symbol: "▽" },
+    { angle: Math.PI * 1.5, hue: 120, symbol: "▽" },
+  ] as const;
+  private static readonly KABBALAH_SEPHIROT = [
+    { x: 0, y: -200, name: "Kether", hueOffset: 0 },
+    { x: -80, y: -120, name: "Chokmah", hueOffset: 36 },
+    { x: 80, y: -120, name: "Binah", hueOffset: 72 },
+    { x: -80, y: -40, name: "Chesed", hueOffset: 108 },
+    { x: 80, y: -40, name: "Geburah", hueOffset: 144 },
+    { x: 0, y: 0, name: "Tiphareth", hueOffset: 180 },
+    { x: -80, y: 80, name: "Netzach", hueOffset: 216 },
+    { x: 80, y: 80, name: "Hod", hueOffset: 252 },
+    { x: 0, y: 140, name: "Yesod", hueOffset: 288 },
+    { x: 0, y: 220, name: "Malkuth", hueOffset: 324 },
+  ] as const;
+  private static readonly KABBALAH_PATHS: ReadonlyArray<
+    readonly [number, number]
+  > = [
+    [0, 1],
+    [0, 2],
+    [1, 2],
+    [1, 3],
+    [2, 4],
+    [3, 4],
+    [3, 5],
+    [4, 5],
+    [3, 6],
+    [4, 7],
+    [5, 6],
+    [5, 7],
+    [6, 7],
+    [6, 8],
+    [7, 8],
+    [8, 9],
+    [5, 8],
+  ];
+  private static readonly SRI_YANTRA_TRIANGLES = [
+    { rotation: 0, inverted: true, scale: 1.0, hue: 0 },
+    { rotation: Math.PI * 0.4, inverted: true, scale: 0.85, hue: 40 },
+    { rotation: Math.PI * 0.8, inverted: true, scale: 0.7, hue: 80 },
+    { rotation: Math.PI * 1.2, inverted: true, scale: 0.55, hue: 120 },
+    { rotation: Math.PI * 1.6, inverted: true, scale: 0.4, hue: 160 },
+    { rotation: Math.PI * 0.2, inverted: false, scale: 0.95, hue: 200 },
+    { rotation: Math.PI * 0.6, inverted: false, scale: 0.8, hue: 240 },
+    { rotation: Math.PI, inverted: false, scale: 0.65, hue: 280 },
+    { rotation: Math.PI * 1.4, inverted: false, scale: 0.5, hue: 320 },
+  ] as const;
+  private static readonly ENOCHIAN_CHARS = [
+    "⊕",
+    "⊗",
+    "⊙",
+    "☉",
+    "☊",
+    "☋",
+    "☌",
+    "☍",
+    "⚹",
+    "⚺",
+    "⚻",
+    "⚼",
+  ] as const;
+  private static readonly ANCIENT_GLYPHS = [
+    "ᚠ",
+    "ᚢ",
+    "ᚦ",
+    "ᚨ",
+    "ᚱ",
+    "ᚲ",
+    "ᚷ",
+    "ᚹ",
+    "☥",
+    "☦",
+    "☧",
+    "☨",
+    "☩",
+    "☪",
+    "☫",
+    "☬",
+  ] as const;
+  private static readonly PLATONIC_SOLIDS = [
+    { sides: 3, hue: 0 },
+    { sides: 4, hue: 72 },
+    { sides: 3, hue: 144 },
+    { sides: 5, hue: 216 },
+    { sides: 3, hue: 288 },
+  ] as const;
 
   private static initSinTable(): Float32Array {
     const table = new Float32Array(this.SIN_TABLE_SIZE);
@@ -624,11 +737,10 @@ export class FlowFieldRenderer {
   }
 
   private createBubble(): Bubble {
-    const mysticalHues = [
-      270, 280, 290, 240, 250, 0, 330, 340, 180, 200, 310, 350,
-    ];
     const baseHue =
-      mysticalHues[(Math.random() * mysticalHues.length) | 0] ?? 270;
+      FlowFieldRenderer.MYSTICAL_HUES[
+        (Math.random() * FlowFieldRenderer.MYSTICAL_HUES.length) | 0
+      ] ?? 270;
     const hue = baseHue + (Math.random() - 0.5) * 30;
 
     return {
@@ -2697,38 +2809,15 @@ export class FlowFieldRenderer {
   render(dataArray: Uint8Array, bufferLength: number): void {
     const ctx = this.ctx;
 
-    let sum = 0;
-    for (let i = 0; i < bufferLength; i++) {
-      sum += dataArray[i] ?? 0;
-    }
-    const avgFrequency = sum / bufferLength;
-    const audioIntensity = Math.min(1, avgFrequency * 0.0078125);
-    const bassIntensity = this.getFrequencyBandIntensity(
-      dataArray,
-      bufferLength,
-      0,
-      0.15,
-    );
-    const midIntensity = this.getFrequencyBandIntensity(
-      dataArray,
-      bufferLength,
-      0.15,
-      0.5,
-    );
-    const trebleIntensity = this.getFrequencyBandIntensity(
-      dataArray,
-      bufferLength,
-      0.5,
-      1.0,
-    );
+    const { audioIntensity, bassIntensity, midIntensity, trebleIntensity } =
+      this.analyzeFrequencyBands(dataArray, bufferLength);
 
     this.time += 1;
     this.hueBase = (this.hueBase + 0.3 + bassIntensity * 1.5) % 360;
 
     this.updatePatternTransition(audioIntensity);
 
-    const trailPatterns = ["swarm", "fireworks", "starfield", "constellation"];
-    const fadeAmount = trailPatterns.includes(this.currentPattern)
+    const fadeAmount = FlowFieldRenderer.TRAIL_PATTERNS.has(this.currentPattern)
       ? 0.12
       : 0.06;
     ctx.fillStyle = `rgba(0, 0, 0, ${fadeAmount + audioIntensity * 0.04})`;
@@ -3489,6 +3578,51 @@ export class FlowFieldRenderer {
     return Math.min(1, (sum * 0.0078125) / range);
   }
 
+  private analyzeFrequencyBands(
+    dataArray: Uint8Array,
+    bufferLength: number,
+  ): {
+    audioIntensity: number;
+    bassIntensity: number;
+    midIntensity: number;
+    trebleIntensity: number;
+  } {
+    const bassEnd = (bufferLength * 0.15) | 0;
+    const midEnd = (bufferLength * 0.5) | 0;
+    const trebleStart = midEnd;
+
+    let total = 0;
+    let bassSum = 0;
+    let midSum = 0;
+    let trebleSum = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+      const value = dataArray[i] ?? 0;
+      total += value;
+      if (i < bassEnd) {
+        bassSum += value;
+      } else if (i < trebleStart) {
+        midSum += value;
+      } else {
+        trebleSum += value;
+      }
+    }
+
+    const invByte = 0.0078125;
+    const audioIntensity = Math.min(1, (total * invByte) / bufferLength);
+
+    const bassIntensity =
+      bassEnd > 0 ? Math.min(1, (bassSum * invByte) / bassEnd) : 0;
+    const midRange = trebleStart - bassEnd;
+    const midIntensity =
+      midRange > 0 ? Math.min(1, (midSum * invByte) / midRange) : 0;
+    const trebleRange = bufferLength - trebleStart;
+    const trebleIntensity =
+      trebleRange > 0 ? Math.min(1, (trebleSum * invByte) / trebleRange) : 0;
+
+    return { audioIntensity, bassIntensity, midIntensity, trebleIntensity };
+  }
+
   private hslToRgb(h: number, s: number, l: number): [number, number, number] {
     let r, g, b;
 
@@ -3843,15 +3977,7 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const chakraColors = [
-      { h: 0, name: "Root" },
-      { h: 30, name: "Sacral" },
-      { h: 60, name: "Solar" },
-      { h: 120, name: "Heart" },
-      { h: 200, name: "Throat" },
-      { h: 270, name: "Third Eye" },
-      { h: 300, name: "Crown" },
-    ];
+    const chakraColors = FlowFieldRenderer.CHAKRA_COLORS;
 
     const chakraCount = chakraColors.length;
     const invChakraCountPlus1 = 1 / (chakraCount + 1);
@@ -3940,12 +4066,7 @@ export class FlowFieldRenderer {
     midIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const symbols = [
-      { name: "Fire", rotation: 0 },
-      { name: "Water", rotation: Math.PI },
-      { name: "Air", rotation: Math.PI * 0.5 },
-      { name: "Earth", rotation: Math.PI * 1.5 },
-    ];
+    const symbols = FlowFieldRenderer.ALCHEMY_SYMBOLS;
 
     const radius = 180 + bassIntensity * 80;
     const timeRotation = this.time * 0.001;
@@ -5062,38 +5183,8 @@ export class FlowFieldRenderer {
   ): void {
     const ctx = this.ctx;
 
-    const sephirot = [
-      { x: 0, y: -200, name: "Kether", hueOffset: 0 },
-      { x: -80, y: -120, name: "Chokmah", hueOffset: 36 },
-      { x: 80, y: -120, name: "Binah", hueOffset: 72 },
-      { x: -80, y: -40, name: "Chesed", hueOffset: 108 },
-      { x: 80, y: -40, name: "Geburah", hueOffset: 144 },
-      { x: 0, y: 0, name: "Tiphareth", hueOffset: 180 },
-      { x: -80, y: 80, name: "Netzach", hueOffset: 216 },
-      { x: 80, y: 80, name: "Hod", hueOffset: 252 },
-      { x: 0, y: 140, name: "Yesod", hueOffset: 288 },
-      { x: 0, y: 220, name: "Malkuth", hueOffset: 324 },
-    ];
-
-    const paths = [
-      [0, 1],
-      [0, 2],
-      [1, 2],
-      [1, 3],
-      [2, 4],
-      [3, 4],
-      [3, 5],
-      [4, 5],
-      [3, 6],
-      [4, 7],
-      [5, 6],
-      [5, 7],
-      [6, 7],
-      [6, 8],
-      [7, 8],
-      [8, 9],
-      [5, 8],
-    ];
+    const sephirot = FlowFieldRenderer.KABBALAH_SEPHIROT;
+    const paths = FlowFieldRenderer.KABBALAH_PATHS;
 
     ctx.save();
     ctx.translate(this.centerX, this.centerY + 50);
@@ -5509,18 +5600,7 @@ export class FlowFieldRenderer {
       ctx.restore();
     }
 
-    const triangles = [
-      { rotation: 0, inverted: true, scale: 1.0, hue: 0 },
-      { rotation: Math.PI * 0.4, inverted: true, scale: 0.85, hue: 40 },
-      { rotation: Math.PI * 0.8, inverted: true, scale: 0.7, hue: 80 },
-      { rotation: Math.PI * 1.2, inverted: true, scale: 0.55, hue: 120 },
-      { rotation: Math.PI * 1.6, inverted: true, scale: 0.4, hue: 160 },
-
-      { rotation: Math.PI * 0.2, inverted: false, scale: 0.95, hue: 200 },
-      { rotation: Math.PI * 0.6, inverted: false, scale: 0.8, hue: 240 },
-      { rotation: Math.PI, inverted: false, scale: 0.65, hue: 280 },
-      { rotation: Math.PI * 1.4, inverted: false, scale: 0.5, hue: 320 },
-    ];
+    const triangles = FlowFieldRenderer.SRI_YANTRA_TRIANGLES;
 
     triangles.forEach((tri) => {
       ctx.save();
@@ -6307,20 +6387,7 @@ export class FlowFieldRenderer {
     const cellSize = minDimension / (gridSize + 2);
     const cellSize2 = cellSize * 2;
     const cellSizeHalf = cellSize * 0.5;
-    const enochianChars = [
-      "⊕",
-      "⊗",
-      "⊙",
-      "☉",
-      "☊",
-      "☋",
-      "☌",
-      "☍",
-      "⚹",
-      "⚺",
-      "⚻",
-      "⚼",
-    ];
+    const enochianChars = FlowFieldRenderer.ENOCHIAN_CHARS;
     const timeRotation = this.time * 0.003;
     const timeScale = this.time * 0.005;
     const twoPi = FlowFieldRenderer.TWO_PI;
@@ -6680,18 +6747,11 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
 
     const armLength = Math.min(this.width, this.height) * 0.35;
-    const halfPi = Math.PI * 0.5;
-    const threeHalfPi = Math.PI * 1.5;
     const twoPi = FlowFieldRenderer.TWO_PI;
     const timeSymbol = this.time * 0.005;
     const armLength085 = armLength * 0.85;
     const armLength015 = armLength * 0.15;
-    const elements = [
-      { angle: 0, hue: 15, symbol: "△" },
-      { angle: halfPi, hue: 60, symbol: "△" },
-      { angle: Math.PI, hue: 200, symbol: "▽" },
-      { angle: threeHalfPi, hue: 120, symbol: "▽" },
-    ];
+    const elements = FlowFieldRenderer.ELEMENTAL_CROSS_ELEMENTS;
 
     elements.forEach((element, index) => {
       ctx.save();
@@ -6826,24 +6886,7 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
 
-    const glyphs = [
-      "ᚠ",
-      "ᚢ",
-      "ᚦ",
-      "ᚨ",
-      "ᚱ",
-      "ᚲ",
-      "ᚷ",
-      "ᚹ",
-      "☥",
-      "☦",
-      "☧",
-      "☨",
-      "☩",
-      "☪",
-      "☫",
-      "☬",
-    ];
+    const glyphs = FlowFieldRenderer.ANCIENT_GLYPHS;
     const radius = Math.min(this.width, this.height) * 0.35;
     const glyphCount = 16;
     const invGlyphCount = 1 / glyphCount;
@@ -7163,13 +7206,7 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
 
-    const solids = [
-      { sides: 3, hue: 0 },
-      { sides: 4, hue: 72 },
-      { sides: 3, hue: 144 },
-      { sides: 5, hue: 216 },
-      { sides: 3, hue: 288 },
-    ];
+    const solids = FlowFieldRenderer.PLATONIC_SOLIDS;
     const arrangementRadius = Math.min(this.width, this.height) * 0.28;
     const solidsLength = solids.length;
     const invSolidsLength = 1 / solidsLength;
