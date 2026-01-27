@@ -30,30 +30,48 @@ const inflightExtractions = new Map<string, Promise<ColorPalette>>();
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
-function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
+function hslToRgb(
+  h: number,
+  s: number,
+  l: number,
+): { r: number; g: number; b: number } {
   s /= 100;
   l /= 100;
-  
+
   const c = (1 - Math.abs(2 * l - 1)) * s;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = l - c / 2;
-  
-  let r = 0, g = 0, b = 0;
-  
+
+  let r = 0,
+    g = 0,
+    b = 0;
+
   if (h >= 0 && h < 60) {
-    r = c; g = x; b = 0;
+    r = c;
+    g = x;
+    b = 0;
   } else if (h >= 60 && h < 120) {
-    r = x; g = c; b = 0;
+    r = x;
+    g = c;
+    b = 0;
   } else if (h >= 120 && h < 180) {
-    r = 0; g = c; b = x;
+    r = 0;
+    g = c;
+    b = x;
   } else if (h >= 180 && h < 240) {
-    r = 0; g = x; b = c;
+    r = 0;
+    g = x;
+    b = c;
   } else if (h >= 240 && h < 300) {
-    r = x; g = 0; b = c;
+    r = x;
+    g = 0;
+    b = c;
   } else {
-    r = c; g = 0; b = x;
+    r = c;
+    g = 0;
+    b = x;
   }
-  
+
   return {
     r: Math.round((r + m) * 255),
     g: Math.round((g + m) * 255),
@@ -61,7 +79,11 @@ function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: n
   };
 }
 
-function enhanceSaturation(r: number, g: number, b: number): { r: number; g: number; b: number } {
+function enhanceSaturation(
+  r: number,
+  g: number,
+  b: number,
+): { r: number; g: number; b: number } {
   const hsl = rgbToHsl(r, g, b);
   const enhancedS = Math.min(100, hsl.s * 1.5);
   const enhancedL = Math.max(20, Math.min(80, hsl.l));
@@ -70,8 +92,11 @@ function enhanceSaturation(r: number, g: number, b: number): { r: number; g: num
 
 function generateFallbackFromImage(imageData: ImageData): ColorPalette {
   const data = imageData.data;
-  let r = 0, g = 0, b = 0, count = 0;
-  
+  let r = 0,
+    g = 0,
+    b = 0,
+    count = 0;
+
   for (let i = 0; i < data.length; i += 16) {
     const alpha = data[i + 3] ?? 0;
     if (alpha > 128) {
@@ -81,21 +106,31 @@ function generateFallbackFromImage(imageData: ImageData): ColorPalette {
       count++;
     }
   }
-  
+
   if (count === 0) {
-    r = 100; g = 150; b = 200;
+    r = 100;
+    g = 150;
+    b = 200;
   } else {
     r = Math.floor(r / count);
     g = Math.floor(g / count);
     b = Math.floor(b / count);
   }
-  
+
   const hsl = rgbToHsl(r, g, b);
   const enhanced = enhanceSaturation(r, g, b);
-  
-  const secondaryRgb = hslToRgb((hsl.h + 40) % 360, Math.min(100, hsl.s + 30), Math.min(90, hsl.l + 10));
-  const accentRgb = hslToRgb((hsl.h + 80) % 360, Math.min(100, hsl.s + 25), Math.min(85, hsl.l + 15));
-  
+
+  const secondaryRgb = hslToRgb(
+    (hsl.h + 40) % 360,
+    Math.min(100, hsl.s + 30),
+    Math.min(90, hsl.l + 10),
+  );
+  const accentRgb = hslToRgb(
+    (hsl.h + 80) % 360,
+    Math.min(100, hsl.s + 25),
+    Math.min(85, hsl.l + 15),
+  );
+
   return {
     primary: `rgba(${enhanced.r}, ${enhanced.g}, ${enhanced.b}, 0.8)`,
     secondary: `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, 0.8)`,
@@ -148,37 +183,46 @@ export async function extractColorsFromImage(
       const data = imageData.data;
       const width = imageData.width;
       const height = imageData.height;
-      
+
       // First pass: Calculate average lightness to detect if image is too dark
       let totalLightness = 0;
       let pixelCount = 0;
-      
+
       for (let i = 0; i < data.length; i += 4) {
         const alpha = data[i + 3] ?? 0;
         if (alpha < 128) continue;
-        
+
         const r = data[i] ?? 0;
         const g = data[i + 1] ?? 0;
         const b = data[i + 2] ?? 0;
-        
+
         const hsl = rgbToHsl(r, g, b);
         totalLightness += hsl.l;
         pixelCount++;
       }
-      
+
       const averageLightness = pixelCount > 0 ? totalLightness / pixelCount : 0;
       const isDarkImage = averageLightness < 30; // Threshold: if average lightness < 30%, consider it dark
-      
+
       // For dark images, we'll prioritize brighter pixels
       const minLightnessThreshold = isDarkImage ? 25 : 0; // Only consider pixels with lightness >= 25% for dark images
-      
+
       const buildColors = (
         minAlpha: number,
         minLightness: number,
         boostDark: boolean,
       ) => {
-        const colors: Array<{ r: number; g: number; b: number; count: number; vibrancy: number }> = [];
-        const colorBuckets = new Map<string, { r: number; g: number; b: number; count: number }>();
+        const colors: Array<{
+          r: number;
+          g: number;
+          b: number;
+          count: number;
+          vibrancy: number;
+        }> = [];
+        const colorBuckets = new Map<
+          string,
+          { r: number; g: number; b: number; count: number }
+        >();
         const bucketSize = 16;
 
         for (let i = 0; i < data.length; i += 4) {
@@ -204,7 +248,12 @@ export async function extractColorsFromImage(
                 existing.b += boosted.b;
                 existing.count++;
               } else {
-                colorBuckets.set(bucketKey, { r: boosted.r, g: boosted.g, b: boosted.b, count: 1 });
+                colorBuckets.set(bucketKey, {
+                  r: boosted.r,
+                  g: boosted.g,
+                  b: boosted.b,
+                  count: 1,
+                });
               }
               continue;
             }
@@ -230,7 +279,7 @@ export async function extractColorsFromImage(
           const hsl = rgbToHsl(avgR, avgG, avgB);
           let vibrancy = hsl.s * (hsl.l > 20 && hsl.l < 80 ? 1 : 0.5);
           if (isDarkImage && hsl.l > 30) {
-            vibrancy *= (1 + (hsl.l - 30) / 70);
+            vibrancy *= 1 + (hsl.l - 30) / 70;
           }
 
           colors.push({
@@ -247,7 +296,11 @@ export async function extractColorsFromImage(
 
       let colors = buildColors(128, minLightnessThreshold, true);
       if (colors.length === 0) {
-        colors = buildColors(64, Math.max(0, minLightnessThreshold - 10), false);
+        colors = buildColors(
+          64,
+          Math.max(0, minLightnessThreshold - 10),
+          false,
+        );
       }
       if (colors.length === 0) {
         colors = buildColors(1, 0, false);
@@ -256,36 +309,52 @@ export async function extractColorsFromImage(
       if (colors.length === 0) {
         return generateFallbackFromImage(imageData);
       }
-      
+
       // Sort by vibrancy and count, prioritizing brighter colors for dark images
       colors.sort((a, b) => {
         const scoreA = b.count * b.vibrancy;
         const scoreB = a.count * a.vibrancy;
         return scoreB - scoreA;
       });
-      
-      const primary = colors[0];
-      let secondary = colors.find(c => {
-        const hsl1 = rgbToHsl(primary.r, primary.g, primary.b);
-        const hsl2 = rgbToHsl(c.r, c.g, c.b);
-        const hueDiff = Math.abs(hsl1.h - hsl2.h);
-        return hueDiff > 30 && hueDiff < 150 && c.vibrancy > 30;
-      }) ?? colors[Math.min(1, colors.length - 1)] ?? primary;
-      
-      let accent = colors.find(c => {
-        const hsl1 = rgbToHsl(primary.r, primary.g, primary.b);
-        const hsl2 = rgbToHsl(c.r, c.g, c.b);
-        const hueDiff = Math.abs(hsl1.h - hsl2.h);
-        return hueDiff > 60 && c.vibrancy > 25;
-      }) ?? colors[Math.min(2, colors.length - 1)] ?? secondary;
-      
+
+      const primary = colors[0] ?? {
+        r: 100,
+        g: 149,
+        b: 237,
+        count: 0,
+        vibrancy: 50,
+      };
+      let secondary =
+        colors.find((c) => {
+          const hsl1 = rgbToHsl(primary.r, primary.g, primary.b);
+          const hsl2 = rgbToHsl(c.r, c.g, c.b);
+          const hueDiff = Math.abs(hsl1.h - hsl2.h);
+          return hueDiff > 30 && hueDiff < 150 && c.vibrancy > 30;
+        }) ??
+        colors[Math.min(1, colors.length - 1)] ??
+        primary;
+
+      let accent =
+        colors.find((c) => {
+          const hsl1 = rgbToHsl(primary.r, primary.g, primary.b);
+          const hsl2 = rgbToHsl(c.r, c.g, c.b);
+          const hueDiff = Math.abs(hsl1.h - hsl2.h);
+          return hueDiff > 60 && c.vibrancy > 25;
+        }) ??
+        colors[Math.min(2, colors.length - 1)] ??
+        secondary;
+
       const primaryHsl = rgbToHsl(primary.r, primary.g, primary.b);
-      
+
       // For dark images, ensure minimum lightness for visibility
       if (isDarkImage && primaryHsl.l < 40) {
         // Boost lightness while preserving hue and saturation
         const boostedL = Math.min(75, Math.max(40, primaryHsl.l * 1.8));
-        const boosted = hslToRgb(primaryHsl.h, Math.min(100, primaryHsl.s * 1.2), boostedL);
+        const boosted = hslToRgb(
+          primaryHsl.h,
+          Math.min(100, primaryHsl.s * 1.2),
+          boostedL,
+        );
         primary.r = boosted.r;
         primary.g = boosted.g;
         primary.b = boosted.b;
@@ -295,23 +364,47 @@ export async function extractColorsFromImage(
         primary.g = enhanced.g;
         primary.b = enhanced.b;
       }
-      
+
       if (secondary === primary) {
         const hsl = rgbToHsl(primary.r, primary.g, primary.b);
         // For dark images, ensure secondary is also bright enough
-        const targetLightness = isDarkImage ? Math.min(90, Math.max(45, hsl.l + 20)) : Math.min(90, hsl.l + 15);
-        const secondaryRgb = hslToRgb((hsl.h + 40) % 360, Math.min(100, hsl.s + 20), targetLightness);
-        secondary = { r: secondaryRgb.r, g: secondaryRgb.g, b: secondaryRgb.b, count: 0, vibrancy: hsl.s };
+        const targetLightness = isDarkImage
+          ? Math.min(90, Math.max(45, hsl.l + 20))
+          : Math.min(90, hsl.l + 15);
+        const secondaryRgb = hslToRgb(
+          (hsl.h + 40) % 360,
+          Math.min(100, hsl.s + 20),
+          targetLightness,
+        );
+        secondary = {
+          r: secondaryRgb.r,
+          g: secondaryRgb.g,
+          b: secondaryRgb.b,
+          count: 0,
+          vibrancy: hsl.s,
+        };
       }
-      
+
       if (accent === primary || accent === secondary) {
         const hsl = rgbToHsl(primary.r, primary.g, primary.b);
         // For dark images, ensure accent is also bright enough
-        const targetLightness = isDarkImage ? Math.min(85, Math.max(50, hsl.l + 25)) : Math.min(85, hsl.l + 20);
-        const accentRgb = hslToRgb((hsl.h + 80) % 360, Math.min(100, hsl.s + 15), targetLightness);
-        accent = { r: accentRgb.r, g: accentRgb.g, b: accentRgb.b, count: 0, vibrancy: hsl.s };
+        const targetLightness = isDarkImage
+          ? Math.min(85, Math.max(50, hsl.l + 25))
+          : Math.min(85, hsl.l + 20);
+        const accentRgb = hslToRgb(
+          (hsl.h + 80) % 360,
+          Math.min(100, hsl.s + 15),
+          targetLightness,
+        );
+        accent = {
+          r: accentRgb.r,
+          g: accentRgb.g,
+          b: accentRgb.b,
+          count: 0,
+          vibrancy: hsl.s,
+        };
       }
-      
+
       // Final boost for dark images: ensure all colors meet minimum lightness
       if (isDarkImage) {
         const primaryHslFinal = rgbToHsl(primary.r, primary.g, primary.b);
@@ -321,7 +414,7 @@ export async function extractColorsFromImage(
           primary.g = boosted.g;
           primary.b = boosted.b;
         }
-        
+
         const secondaryHsl = rgbToHsl(secondary.r, secondary.g, secondary.b);
         if (secondaryHsl.l < 40) {
           const boosted = hslToRgb(secondaryHsl.h, secondaryHsl.s, 45);
@@ -329,7 +422,7 @@ export async function extractColorsFromImage(
           secondary.g = boosted.g;
           secondary.b = boosted.b;
         }
-        
+
         const accentHsl = rgbToHsl(accent.r, accent.g, accent.b);
         if (accentHsl.l < 40) {
           const boosted = hslToRgb(accentHsl.h, accentHsl.s, 45);
@@ -338,9 +431,9 @@ export async function extractColorsFromImage(
           accent.b = boosted.b;
         }
       }
-      
+
       const finalHsl = rgbToHsl(primary.r, primary.g, primary.b);
-      
+
       return {
         primary: `rgba(${primary.r}, ${primary.g}, ${primary.b}, 0.8)`,
         secondary: `rgba(${secondary.r}, ${secondary.g}, ${secondary.b}, 0.8)`,
@@ -356,7 +449,11 @@ export async function extractColorsFromImage(
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) {
-          finalize(generateFallbackFromImage(new ImageData(new Uint8ClampedArray(4), 1, 1)));
+          finalize(
+            generateFallbackFromImage(
+              new ImageData(new Uint8ClampedArray(4), 1, 1),
+            ),
+          );
           return;
         }
 
@@ -365,7 +462,7 @@ export async function extractColorsFromImage(
 
         ctx.drawImage(img, 0, 0, size, size);
         const imageData = ctx.getImageData(0, 0, size, size);
-        
+
         const palette = extractRobustColors(imageData);
         finalize(palette);
       } catch (error) {
