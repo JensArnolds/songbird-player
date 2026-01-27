@@ -142,6 +142,7 @@ export async function extractColorsFromImage(
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.decoding = "async";
+    img.referrerPolicy = "no-referrer";
 
     const extractRobustColors = (imageData: ImageData): ColorPalette => {
       const data = imageData.data;
@@ -171,83 +172,87 @@ export async function extractColorsFromImage(
       // For dark images, we'll prioritize brighter pixels
       const minLightnessThreshold = isDarkImage ? 25 : 0; // Only consider pixels with lightness >= 25% for dark images
       
-      const colors: Array<{ r: number; g: number; b: number; count: number; vibrancy: number }> = [];
-      const colorBuckets = new Map<string, { r: number; g: number; b: number; count: number }>();
-      
-      for (let i = 0; i < data.length; i += 4) {
-        const alpha = data[i + 3] ?? 0;
-        if (alpha < 128) continue;
-        
-        const r = data[i] ?? 0;
-        const g = data[i + 1] ?? 0;
-        const b = data[i + 2] ?? 0;
-        
-        // For dark images, filter out very dark pixels and prioritize brighter ones
-        if (isDarkImage) {
-          const hsl = rgbToHsl(r, g, b);
-          if (hsl.l < minLightnessThreshold) continue;
-          
-          // Boost brightness for dark images to make colors more visible
-          // We'll boost pixels that are already somewhat bright (lightness > 30)
-          if (hsl.l > 30) {
-            // Increase lightness while preserving hue and saturation
-            const boostedL = Math.min(100, hsl.l * 1.5);
-            const boosted = hslToRgb(hsl.h, hsl.s, boostedL);
-            // Use boosted color for bucketing
-            const bucketSize = 16;
-            const bucketKey = `${Math.floor(boosted.r / bucketSize)},${Math.floor(boosted.g / bucketSize)},${Math.floor(boosted.b / bucketSize)}`;
-            
-            const existing = colorBuckets.get(bucketKey);
-            if (existing) {
-              existing.r += boosted.r;
-              existing.g += boosted.g;
-              existing.b += boosted.b;
-              existing.count++;
-            } else {
-              colorBuckets.set(bucketKey, { r: boosted.r, g: boosted.g, b: boosted.b, count: 1 });
+      const buildColors = (
+        minAlpha: number,
+        minLightness: number,
+        boostDark: boolean,
+      ) => {
+        const colors: Array<{ r: number; g: number; b: number; count: number; vibrancy: number }> = [];
+        const colorBuckets = new Map<string, { r: number; g: number; b: number; count: number }>();
+        const bucketSize = 16;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const alpha = data[i + 3] ?? 0;
+          if (alpha < minAlpha) continue;
+
+          const r = data[i] ?? 0;
+          const g = data[i + 1] ?? 0;
+          const b = data[i + 2] ?? 0;
+
+          if (isDarkImage) {
+            const hsl = rgbToHsl(r, g, b);
+            if (hsl.l < minLightness) continue;
+
+            if (boostDark && hsl.l > 30) {
+              const boostedL = Math.min(100, hsl.l * 1.5);
+              const boosted = hslToRgb(hsl.h, hsl.s, boostedL);
+              const bucketKey = `${Math.floor(boosted.r / bucketSize)},${Math.floor(boosted.g / bucketSize)},${Math.floor(boosted.b / bucketSize)}`;
+              const existing = colorBuckets.get(bucketKey);
+              if (existing) {
+                existing.r += boosted.r;
+                existing.g += boosted.g;
+                existing.b += boosted.b;
+                existing.count++;
+              } else {
+                colorBuckets.set(bucketKey, { r: boosted.r, g: boosted.g, b: boosted.b, count: 1 });
+              }
+              continue;
             }
-            continue;
+          }
+
+          const bucketKey = `${Math.floor(r / bucketSize)},${Math.floor(g / bucketSize)},${Math.floor(b / bucketSize)}`;
+          const existing = colorBuckets.get(bucketKey);
+          if (existing) {
+            existing.r += r;
+            existing.g += g;
+            existing.b += b;
+            existing.count++;
+          } else {
+            colorBuckets.set(bucketKey, { r, g, b, count: 1 });
           }
         }
-        
-        const bucketSize = 16;
-        const bucketKey = `${Math.floor(r / bucketSize)},${Math.floor(g / bucketSize)},${Math.floor(b / bucketSize)}`;
-        
-        const existing = colorBuckets.get(bucketKey);
-        if (existing) {
-          existing.r += r;
-          existing.g += g;
-          existing.b += b;
-          existing.count++;
-        } else {
-          colorBuckets.set(bucketKey, { r, g, b, count: 1 });
+
+        for (const bucket of colorBuckets.values()) {
+          const avgR = Math.floor(bucket.r / bucket.count);
+          const avgG = Math.floor(bucket.g / bucket.count);
+          const avgB = Math.floor(bucket.b / bucket.count);
+
+          const hsl = rgbToHsl(avgR, avgG, avgB);
+          let vibrancy = hsl.s * (hsl.l > 20 && hsl.l < 80 ? 1 : 0.5);
+          if (isDarkImage && hsl.l > 30) {
+            vibrancy *= (1 + (hsl.l - 30) / 70);
+          }
+
+          colors.push({
+            r: avgR,
+            g: avgG,
+            b: avgB,
+            count: bucket.count,
+            vibrancy,
+          });
         }
+
+        return colors;
+      };
+
+      let colors = buildColors(128, minLightnessThreshold, true);
+      if (colors.length === 0) {
+        colors = buildColors(64, Math.max(0, minLightnessThreshold - 10), false);
       }
-      
-      for (const bucket of colorBuckets.values()) {
-        const avgR = Math.floor(bucket.r / bucket.count);
-        const avgG = Math.floor(bucket.g / bucket.count);
-        const avgB = Math.floor(bucket.b / bucket.count);
-        
-        const hsl = rgbToHsl(avgR, avgG, avgB);
-        
-        // For dark images, prioritize brighter colors with good saturation
-        // Increase vibrancy score for brighter colors in dark images
-        let vibrancy = hsl.s * (hsl.l > 20 && hsl.l < 80 ? 1 : 0.5);
-        if (isDarkImage && hsl.l > 30) {
-          // Boost vibrancy for brighter colors in dark images
-          vibrancy *= (1 + (hsl.l - 30) / 70); // Scale from 1x to ~2x based on lightness
-        }
-        
-        colors.push({
-          r: avgR,
-          g: avgG,
-          b: avgB,
-          count: bucket.count,
-          vibrancy,
-        });
+      if (colors.length === 0) {
+        colors = buildColors(1, 0, false);
       }
-      
+
       if (colors.length === 0) {
         return generateFallbackFromImage(imageData);
       }

@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.13] - 2026-01-27
+
+### Changed
+
+- **More Reliable Color Extraction**: Reduced fallback usage by adding multi-pass bucket collection with relaxed thresholds for dark/transparent images
+  - Secondary pass lowers alpha and lightness thresholds before falling back
+  - Added safer referrer policy on image loads to improve CDN compatibility
+  - Location: `src/utils/colorExtractor.ts`
+
 ## [0.10.12] - 2026-01-27
 
 ### Changed
