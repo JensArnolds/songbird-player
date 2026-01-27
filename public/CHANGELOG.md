@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.15] - 2026-01-27
+
+### Changed
+
+- **FlowField Renderer GC Trim**: Removed per-frame point array allocations and reused typed buffers for Metatron geometry to improve Firefox stability
+  - Replaced dynamic point arrays with cached offsets and reusable buffers
+  - Simplified vesica point rendering to avoid temporary arrays
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+
 ## [0.10.14] - 2026-01-27
 
 ### Changed

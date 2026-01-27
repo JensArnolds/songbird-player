@@ -419,6 +419,23 @@ export class FlowFieldRenderer {
     { sides: 5, hue: 216 },
     { sides: 3, hue: 288 },
   ] as const;
+  private static readonly METATRON_OFFSETS: ReadonlyArray<
+    readonly [number, number]
+  > = [
+    [0, 0],
+    [0, -1],
+    [0.866, -0.5],
+    [0.866, 0.5],
+    [0, 1],
+    [-0.866, 0.5],
+    [-0.866, -0.5],
+    [0, -0.5],
+    [0.433, -0.25],
+    [0.433, 0.25],
+    [0, 0.5],
+    [-0.433, 0.25],
+    [-0.433, -0.25],
+  ];
 
   private static initSinTable(): Float32Array {
     const table = new Float32Array(this.SIN_TABLE_SIZE);
@@ -468,6 +485,8 @@ export class FlowFieldRenderer {
   private bubblePool: Bubble[] = [];
 
   private tempColorArray: [number, number, number] = [0, 0, 0];
+  private metatronPositions = new Float32Array(26);
+  private metatronHexPoints = new Float32Array(12);
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -5417,7 +5436,7 @@ export class FlowFieldRenderer {
     const timePulse = this.time * 0.005;
     const centerAlpha = 0.7 + audioIntensity * 0.3;
     const ringAlpha = 0.6 + audioIntensity * 0.2;
-    const sqrt3 = 1.7320508075688772;
+    const sqrt3 = FlowFieldRenderer.SQRT3;
     const inv6 = 1 / 6;
     const outerAngleStep = twoPi * inv6;
 
@@ -5491,23 +5510,17 @@ export class FlowFieldRenderer {
     );
     ctx.lineWidth = 1;
 
-    const hexPoints = [];
     const hexRadius = radius * 2;
     const hexAngleStep = twoPi * inv6;
-    for (let i = 0; i < 6; i++) {
-      const angle = hexAngleStep * i;
-
-      hexPoints.push({
-        x: this.fastCos(angle) * hexRadius,
-        y: this.fastSin(angle) * hexRadius,
-      });
-    }
 
     ctx.beginPath();
-    hexPoints.forEach((point, i) => {
-      if (i === 0) ctx.moveTo(point.x, point.y);
-      else ctx.lineTo(point.x, point.y);
-    });
+    for (let i = 0; i < 6; i++) {
+      const angle = hexAngleStep * i;
+      const x = this.fastCos(angle) * hexRadius;
+      const y = this.fastSin(angle) * hexRadius;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
     ctx.closePath();
     ctx.stroke();
 
@@ -5665,21 +5678,14 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
     ctx.rotate(this.time * 0.0005);
 
-    const circlePositions = [
-      { x: 0, y: 0 },
-      { x: 0, y: -radius },
-      { x: radius * 0.866, y: -radius * 0.5 },
-      { x: radius * 0.866, y: radius * 0.5 },
-      { x: 0, y: radius },
-      { x: -radius * 0.866, y: radius * 0.5 },
-      { x: -radius * 0.866, y: -radius * 0.5 },
-      { x: 0, y: -radius * 0.5 },
-      { x: radius * 0.433, y: -radius * 0.25 },
-      { x: radius * 0.433, y: radius * 0.25 },
-      { x: 0, y: radius * 0.5 },
-      { x: -radius * 0.433, y: radius * 0.25 },
-      { x: -radius * 0.433, y: -radius * 0.25 },
-    ];
+    const offsets = FlowFieldRenderer.METATRON_OFFSETS;
+    const positions = this.metatronPositions;
+    for (let i = 0; i < offsets.length; i++) {
+      const offset = offsets[i]!;
+      const idx = i * 2;
+      positions[idx] = offset[0] * radius;
+      positions[idx + 1] = offset[1] * radius;
+    }
 
     const circleRadius = radius * 0.2;
 
@@ -5695,25 +5701,32 @@ export class FlowFieldRenderer {
     ctx.lineWidth = 2;
 
     ctx.beginPath();
-    for (let i = 0; i < circlePositions.length; i++) {
-      for (let j = i + 1; j < circlePositions.length; j++) {
-        const from = circlePositions[i];
-        const to = circlePositions[j];
-        if (!from || !to) continue;
+    const circleCount = offsets.length;
+    for (let i = 0; i < circleCount; i++) {
+      const fromIndex = i * 2;
+      const fromX = positions[fromIndex]!;
+      const fromY = positions[fromIndex + 1]!;
+      for (let j = i + 1; j < circleCount; j++) {
+        const toIndex = j * 2;
+        const toX = positions[toIndex]!;
+        const toY = positions[toIndex + 1]!;
 
-        const dx = to.x - from.x;
-        const dy = to.y - from.y;
+        const dx = toX - fromX;
+        const dy = toY - fromY;
         const distSq = dx * dx + dy * dy;
 
         if (distSq < maxDistSq) {
-          ctx.moveTo(from.x, from.y);
-          ctx.lineTo(to.x, to.y);
+          ctx.moveTo(fromX, fromY);
+          ctx.lineTo(toX, toY);
         }
       }
     }
     ctx.stroke();
 
-    circlePositions.forEach((pos, index) => {
+    for (let index = 0; index < circleCount; index++) {
+      const posIndex = index * 2;
+      const posX = positions[posIndex]!;
+      const posY = positions[posIndex + 1]!;
       const hue = this.fastMod360(this.hueBase + index * 28);
 
       const pulse = this.fastSin(timePulse + index * 0.5) * 0.2 + 0.8;
@@ -5724,18 +5737,18 @@ export class FlowFieldRenderer {
       const size03 = size * 0.3;
       const glowAlpha = 0.5 + audioIntensity * 0.3;
       const gradient = ctx.createRadialGradient(
-        pos.x,
-        pos.y,
+        posX,
+        posY,
         size03,
-        pos.x,
-        pos.y,
+        posX,
+        posY,
         size2,
       );
       gradient.addColorStop(0, this.hsla(hue, 90, 70, glowAlpha));
       gradient.addColorStop(1, this.hsla(hue, 80, 60, 0));
 
       ctx.fillStyle = gradient;
-      ctx.fillRect(pos.x - size2, pos.y - size2, size4, size4);
+      ctx.fillRect(posX - size2, posY - size2, size4, size4);
 
       const hue30 = this.fastMod360(hue + 30);
       ctx.fillStyle = this.hsla(hue, 85, 65, 0.8);
@@ -5743,25 +5756,24 @@ export class FlowFieldRenderer {
       ctx.lineWidth = 3;
 
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, size, 0, twoPi);
+      ctx.arc(posX, posY, size, 0, twoPi);
       ctx.fill();
       ctx.stroke();
 
       ctx.strokeStyle = this.hsla(this.fastMod360(hue + 60), 95, 75, 0.7);
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, size * 0.5, 0, twoPi);
+      ctx.arc(posX, posY, size * 0.5, 0, twoPi);
       ctx.stroke();
-    });
+    }
 
-    const hexPoints = [];
+    const hexPoints = this.metatronHexPoints;
     for (let i = 0; i < 6; i++) {
       const angle = hexAngleStep * i;
 
-      hexPoints.push({
-        x: this.fastCos(angle) * radius,
-        y: this.fastSin(angle) * radius,
-      });
+      const idx = i * 2;
+      hexPoints[idx] = this.fastCos(angle) * radius;
+      hexPoints[idx + 1] = this.fastSin(angle) * radius;
     }
 
     const hexStrokeAlpha = 0.5 + bassIntensity * 0.3;
@@ -5774,29 +5786,34 @@ export class FlowFieldRenderer {
     ctx.lineWidth = 3;
 
     ctx.beginPath();
-    hexPoints.forEach((point, i) => {
-      if (i === 0) ctx.moveTo(point.x, point.y);
-      else ctx.lineTo(point.x, point.y);
-    });
+    for (let i = 0; i < 6; i++) {
+      const idx = i * 2;
+      const x = hexPoints[idx]!;
+      const y = hexPoints[idx + 1]!;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
     ctx.closePath();
     ctx.stroke();
 
     ctx.beginPath();
     for (let i = 0; i < 6; i += 2) {
-      const point = hexPoints[i];
-      if (!point) continue;
-      if (i === 0) ctx.moveTo(point.x, point.y);
-      else ctx.lineTo(point.x, point.y);
+      const idx = i * 2;
+      const x = hexPoints[idx]!;
+      const y = hexPoints[idx + 1]!;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
     ctx.closePath();
     ctx.stroke();
 
     ctx.beginPath();
     for (let i = 1; i < 6; i += 2) {
-      const point = hexPoints[i];
-      if (!point) continue;
-      if (i === 1) ctx.moveTo(point.x, point.y);
-      else ctx.lineTo(point.x, point.y);
+      const idx = i * 2;
+      const x = hexPoints[idx]!;
+      const y = hexPoints[idx + 1]!;
+      if (i === 1) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
     ctx.closePath();
     ctx.stroke();
@@ -5925,25 +5942,23 @@ export class FlowFieldRenderer {
 
     ctx.setLineDash([]);
 
-    const points = [
-      { x: 0, y: -intersectionHeight },
-      { x: 0, y: intersectionHeight },
-      { x: 0, y: 0 },
-    ];
+    const topY = -intersectionHeight;
+    const bottomY = intersectionHeight;
 
-    points.forEach((point, i) => {
+    for (let i = 0; i < 3; i++) {
       const pointSize = 8 + bassIntensity * 8 + (i === 2 ? 5 : 0);
       const pointHue = this.fastMod360(vesicaHue + i * 60);
+      const pointY = i === 0 ? topY : i === 1 ? bottomY : 0;
 
       ctx.fillStyle = this.hsla(pointHue, 95, 75, 0.9);
       ctx.strokeStyle = this.hsla(this.fastMod360(pointHue + 30), 100, 80, 1);
       ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.arc(point.x, point.y, pointSize, 0, twoPi);
+      ctx.arc(0, pointY, pointSize, 0, twoPi);
       ctx.fill();
       ctx.stroke();
-    });
+    }
 
     const symbolCount = 6;
     const invSymbolCount = 1 / symbolCount;
