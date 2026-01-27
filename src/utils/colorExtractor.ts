@@ -9,6 +9,27 @@ export interface ColorPalette {
   lightness: number;
 }
 
+export interface ExtractColorsOptions {
+  size?: number;
+  useCache?: boolean;
+}
+
+const DEFAULT_PALETTE: ColorPalette = {
+  primary: "rgba(100, 149, 237, 0.8)",
+  secondary: "rgba(135, 206, 250, 0.8)",
+  accent: "rgba(70, 130, 180, 0.8)",
+  hue: 210,
+  saturation: 60,
+  lightness: 65,
+};
+
+const PALETTE_CACHE_LIMIT = 64;
+const paletteCache = new Map<string, ColorPalette>();
+const inflightExtractions = new Map<string, Promise<ColorPalette>>();
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
+
 function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
   s /= 100;
   l /= 100;
@@ -87,10 +108,40 @@ function generateFallbackFromImage(imageData: ImageData): ColorPalette {
 
 export async function extractColorsFromImage(
   imageUrl: string,
+  options: ExtractColorsOptions = {},
 ): Promise<ColorPalette> {
-  return new Promise((resolve) => {
+  if (!imageUrl) return DEFAULT_PALETTE;
+
+  const size = clamp(Math.round(options.size ?? 72), 24, 128);
+  const useCache = options.useCache !== false;
+  const cacheKey = `${imageUrl}::${size}`;
+
+  if (useCache) {
+    const cached = paletteCache.get(cacheKey);
+    if (cached) return cached;
+    const inflight = inflightExtractions.get(cacheKey);
+    if (inflight) return inflight;
+  }
+
+  const extractionPromise = new Promise<ColorPalette>((resolve) => {
+    let settled = false;
+    const finalize = (palette: ColorPalette) => {
+      if (settled) return;
+      settled = true;
+      if (useCache) {
+        paletteCache.set(cacheKey, palette);
+        if (paletteCache.size > PALETTE_CACHE_LIMIT) {
+          const firstKey = paletteCache.keys().next().value;
+          if (firstKey) paletteCache.delete(firstKey);
+        }
+        inflightExtractions.delete(cacheKey);
+      }
+      resolve(palette);
+    };
+
     const img = new Image();
     img.crossOrigin = "Anonymous";
+    img.decoding = "async";
 
     const extractRobustColors = (imageData: ImageData): ColorPalette => {
       const data = imageData.data;
@@ -300,11 +351,10 @@ export async function extractColorsFromImage(
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) {
-          resolve(generateFallbackFromImage(new ImageData(new Uint8ClampedArray(4), 1, 1)));
+          finalize(generateFallbackFromImage(new ImageData(new Uint8ClampedArray(4), 1, 1)));
           return;
         }
 
-        const size = 100;
         canvas.width = size;
         canvas.height = size;
 
@@ -312,7 +362,7 @@ export async function extractColorsFromImage(
         const imageData = ctx.getImageData(0, 0, size, size);
         
         const palette = extractRobustColors(imageData);
-        resolve(palette);
+        finalize(palette);
       } catch (error) {
         console.error("Error extracting colors:", error);
         const canvas = document.createElement("canvas");
@@ -323,16 +373,9 @@ export async function extractColorsFromImage(
           ctx.fillStyle = "#6495ed";
           ctx.fillRect(0, 0, 1, 1);
           const imageData = ctx.getImageData(0, 0, 1, 1);
-          resolve(generateFallbackFromImage(imageData));
+          finalize(generateFallbackFromImage(imageData));
         } else {
-          resolve({
-            primary: "rgba(100, 149, 237, 0.8)",
-            secondary: "rgba(135, 206, 250, 0.8)",
-            accent: "rgba(70, 130, 180, 0.8)",
-            hue: 210,
-            saturation: 60,
-            lightness: 65,
-          });
+          finalize(DEFAULT_PALETTE);
         }
       }
     };
@@ -346,21 +389,20 @@ export async function extractColorsFromImage(
         ctx.fillStyle = "#6495ed";
         ctx.fillRect(0, 0, 1, 1);
         const imageData = ctx.getImageData(0, 0, 1, 1);
-        resolve(generateFallbackFromImage(imageData));
+        finalize(generateFallbackFromImage(imageData));
       } else {
-        resolve({
-          primary: "rgba(100, 149, 237, 0.8)",
-          secondary: "rgba(135, 206, 250, 0.8)",
-          accent: "rgba(70, 130, 180, 0.8)",
-          hue: 210,
-          saturation: 60,
-          lightness: 65,
-        });
+        finalize(DEFAULT_PALETTE);
       }
     };
 
     img.src = imageUrl;
   });
+
+  if (useCache) {
+    inflightExtractions.set(cacheKey, extractionPromise);
+  }
+
+  return extractionPromise;
 }
 
 function rgbToHsl(
