@@ -103,6 +103,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastLoadedTrackIdRef = useRef<number | null>(null);
   const shouldAutoPlayNextRef = useRef(false);
+  const queueRef = useRef<QueuedTrack[]>([]);
   const loadTrackRef = useRef<
     ((track: Track, streamUrl: string) => void) | null
   >(null);
@@ -118,6 +119,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     [queuedTracks],
   );
   const currentTrack = queue[0] ?? null;
+
+  useEffect(() => {
+    queueRef.current = queuedTracks;
+  }, [queuedTracks]);
+
+
 
   const generateQueueId = useCallback(() => {
     return `queue-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
@@ -732,10 +739,17 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           `Audio error for track ${currentTrack.id}:`,
           errorMessage || "Stream failed",
         );
+        failedTracksRef.current.add(currentTrack.id);
         setIsLoading(false);
         setIsPlaying(false);
 
         onError?.(errorMessage || "Stream failed", currentTrack.id);
+
+        if (queueRef.current.length > 1) {
+          requestAutoPlayNext(true);
+          setHistory((prev) => [...prev, currentTrack]);
+          setQueuedTracks((prev) => prev.slice(1));
+        }
         return;
       }
 

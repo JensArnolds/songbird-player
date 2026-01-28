@@ -16,11 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Auth API Client Errors**: Avoided JSON.parse failures by bypassing rate limiting on auth routes and returning JSON for 429 responses
   - Location: `src/middleware.ts`
 - **Streaming Error Recovery**: Added transient 5xx/429/network retry handling with backoff and cache-busting, plus clearer 502/504 user messaging
+  - Auto-advance to the next track after repeated stream failures
   - Location: `src/hooks/useAudioPlayer.ts`, `src/contexts/AudioPlayerContext.tsx`
 
 ### Changed
 
 - **Service Worker Cache Strategy**: Versioned caches and switched `/_next/static` to network-first with explicit update checks to prevent stale bundles
+  - Auto-activate new workers and reload clients on update
   - Location: `public/sw.js`, `src/app/register-sw.tsx`
 
 ## [0.10.16] - 2026-01-27
