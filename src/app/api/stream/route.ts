@@ -59,55 +59,132 @@ export async function GET(req: NextRequest) {
       requestUrl.replace(streamingKey, "***"),
     );
 
-    const response = await fetch(requestUrl, {
-      headers: {
-        Range: req.headers.get("Range") ?? "",
-      },
+    const rangeHeader = req.headers.get("Range");
+    const fetchHeaders: HeadersInit = {};
+    if (rangeHeader) {
+      fetchHeaders["Range"] = rangeHeader;
+    }
 
-      signal: AbortSignal.timeout(30000),
+    console.log("[Stream API] Request headers:", {
+      Range: rangeHeader ?? "none",
+      "User-Agent": req.headers.get("User-Agent") ?? "unknown",
     });
 
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, {
+        headers: fetchHeaders,
+        signal: AbortSignal.timeout(30000),
+      });
+    } catch (fetchError) {
+      console.error("[Stream API] Fetch failed:", fetchError);
+      if (fetchError instanceof Error) {
+        if (
+          fetchError.name === "AbortError" ||
+          fetchError.message.includes("timeout")
+        ) {
+          console.error(
+            "[Stream API] Request timed out - backend may be unresponsive",
+          );
+          return NextResponse.json(
+            {
+              error: "Backend request timed out",
+              message:
+                "The backend server did not respond in time. Check if the backend is running and accessible.",
+              type: "timeout",
+              backendUrl: normalizedApiUrl,
+            },
+            { status: 504 },
+          );
+        }
+
+        if (
+          fetchError.message.includes("ECONNREFUSED") ||
+          fetchError.message.includes("ENOTFOUND") ||
+          fetchError.message.includes("getaddrinfo")
+        ) {
+          console.error(
+            "[Stream API] Connection refused - backend may not be running or URL is incorrect",
+          );
+          return NextResponse.json(
+            {
+              error: "Cannot connect to backend",
+              message: `Failed to connect to backend at ${normalizedApiUrl}. Check if the backend is running and NEXT_PUBLIC_API_URL is correct.`,
+              type: "connection_error",
+              backendUrl: normalizedApiUrl,
+            },
+            { status: 502 },
+          );
+        }
+      }
+      throw fetchError;
+    }
+
     if (!response.ok) {
-      const errorText = await response
-        .text()
-        .catch(() => "Could not read error response");
-      let errorData: { message?: string; error?: string } = {
-        message: errorText,
-      };
+      const statusCode = response.status;
+      const statusText = response.statusText;
+
+      let errorText = "";
+      let errorData: { message?: string; error?: string } = {};
+
       try {
-        errorData = JSON.parse(errorText) as {
-          message?: string;
-          error?: string;
-        };
-      } catch {
+        errorText = await response.text();
+        try {
+          errorData = JSON.parse(errorText) as {
+            message?: string;
+            error?: string;
+          };
+        } catch {
+          errorData = { message: errorText };
+        }
+      } catch (readError) {
+        console.error("[Stream API] Could not read error response:", readError);
+        errorText = "Could not read error response";
         errorData = { message: errorText };
       }
 
       console.error(
-        `[Stream API] Stream failed: ${response.status} ${response.statusText}`,
+        `[Stream API] Stream failed: ${statusCode} ${statusText}`,
       );
       console.error("[Stream API] Error details:", errorData);
       console.error(
         "[Stream API] Response headers:",
         Object.fromEntries(response.headers.entries()),
       );
+      console.error("[Stream API] Request URL:", requestUrl.replace(streamingKey, "***"));
 
       const isUpstreamError =
+        statusCode === 502 ||
+        statusCode === 503 ||
+        statusCode === 504 ||
         (errorData.message?.includes("upstream error") ?? false) ||
+        (errorData.message?.includes("Bad Gateway") ?? false) ||
+        (errorData.message?.includes("Service Unavailable") ?? false) ||
         errorData.error === "ServiceUnavailableException";
+
+      const errorMessage =
+        statusCode === 502
+          ? "Backend returned 502 Bad Gateway - upstream service may be down or unreachable"
+          : isUpstreamError
+            ? "Upstream service unavailable"
+            : `Stream failed: ${statusText}`;
 
       return NextResponse.json(
         {
-          error: isUpstreamError
-            ? "Upstream service unavailable"
-            : `Stream failed: ${response.statusText}`,
+          error: errorMessage,
           message: errorData.message ?? errorText,
           details: errorData,
-          status: response.status,
+          status: statusCode,
           backendUrl: requestUrl.replace(streamingKey, "***"),
           type: isUpstreamError ? "upstream_error" : "stream_error",
+          diagnostics: {
+            trackId: id ?? null,
+            query: query ?? null,
+            backendBaseUrl: normalizedApiUrl,
+            hasStreamingKey: !!streamingKey,
+          },
         },
-        { status: response.status },
+        { status: statusCode },
       );
     }
 
@@ -131,6 +208,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("[Stream API] Streaming error:", error);
+    console.error("[Stream API] Error stack:", error instanceof Error ? error.stack : "No stack trace");
 
     if (error instanceof Error) {
       if (error.name === "AbortError" || error.message.includes("timeout")) {
@@ -143,6 +221,7 @@ export async function GET(req: NextRequest) {
             message:
               "The backend server did not respond in time. Check if the backend is running and accessible.",
             type: "timeout",
+            backendUrl: env.NEXT_PUBLIC_API_URL,
           },
           { status: 504 },
         );
@@ -150,7 +229,8 @@ export async function GET(req: NextRequest) {
 
       if (
         error.message.includes("ECONNREFUSED") ||
-        error.message.includes("ENOTFOUND")
+        error.message.includes("ENOTFOUND") ||
+        error.message.includes("getaddrinfo")
       ) {
         console.error(
           "[Stream API] Connection refused - backend may not be running or URL is incorrect",
@@ -158,7 +238,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(
           {
             error: "Cannot connect to backend",
-            message: `Failed to connect to backend at ${env.NEXT_PUBLIC_API_URL}. Check if the backend is running.`,
+            message: `Failed to connect to backend at ${env.NEXT_PUBLIC_API_URL}. Check if the backend is running and NEXT_PUBLIC_API_URL is correct.`,
             type: "connection_error",
             backendUrl: env.NEXT_PUBLIC_API_URL,
           },
@@ -172,6 +252,7 @@ export async function GET(req: NextRequest) {
         error: "Failed to fetch stream",
         message: error instanceof Error ? error.message : "Unknown error",
         type: "unknown_error",
+        backendUrl: env.NEXT_PUBLIC_API_URL,
       },
       { status: 500 },
     );
