@@ -50,14 +50,14 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   if (request.nextUrl.pathname.startsWith("/api/")) {
+    const isAuthRoute = request.nextUrl.pathname.startsWith("/api/auth/");
     const rateLimitKey = getRateLimitKey(request);
 
-    if (!checkRateLimit(rateLimitKey)) {
-      return new NextResponse("Too Many Requests", {
+    if (!isAuthRoute && !checkRateLimit(rateLimitKey)) {
+      return NextResponse.json({ error: "Too Many Requests" }, {
         status: 429,
         headers: {
           "Retry-After": "60",
-          "Content-Type": "application/json",
         },
       });
     }
