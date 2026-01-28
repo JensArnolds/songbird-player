@@ -64,6 +64,43 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+const FALLBACK_PALETTE: ColorPalette = {
+  primary: "rgba(100, 149, 237, 0.8)",
+  secondary: "rgba(135, 206, 250, 0.8)",
+  accent: "rgba(70, 130, 180, 0.8)",
+  hue: 210,
+  saturation: 60,
+  lightness: 65,
+};
+
+const RGBA_PATTERN = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+/;
+
+const isPaletteUsable = (
+  palette: ColorPalette | null | undefined,
+): palette is ColorPalette => {
+  if (!palette) return false;
+
+  const colors = [palette.primary, palette.secondary, palette.accent];
+  if (!colors.every((value) => typeof value === "string" && RGBA_PATTERN.test(value))) {
+    return false;
+  }
+
+  const { hue, saturation, lightness } = palette;
+  if (!Number.isFinite(hue) || !Number.isFinite(saturation) || !Number.isFinite(lightness)) {
+    return false;
+  }
+
+  if (hue < 0 || hue > 360) return false;
+  if (saturation < 0 || saturation > 100) return false;
+  if (lightness < 0 || lightness > 100) return false;
+
+  return true;
+};
+
+const isPlaceholderCover = (coverUrl: string) =>
+  coverUrl.startsWith("data:image") ||
+  coverUrl.includes("/images/placeholder-cover.svg");
+
 interface QueueItemProps {
   track: Track;
   index: number;
@@ -663,6 +700,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }
     lastPaletteCoverRef.current = coverUrl;
 
+    if (!currentTrack || isPlaceholderCover(coverUrl)) {
+      setAlbumColorPalette(null);
+      return;
+    }
+
     const requestId = ++paletteRequestRef.current;
     let cancelled = false;
     let cleanup: (() => void) | null = null;
@@ -671,10 +713,17 @@ export default function MobilePlayer(props: MobilePlayerProps) {
       extractColorsFromImage(coverUrl, { size: 64 })
         .then((palette) => {
           if (cancelled || requestId !== paletteRequestRef.current) return;
+          if (!isPaletteUsable(palette)) {
+            console.warn("Palette extraction returned invalid values; using fallback.");
+            setAlbumColorPalette(null);
+            return;
+          }
           setAlbumColorPalette(palette);
         })
         .catch((error) => {
+          if (cancelled || requestId !== paletteRequestRef.current) return;
           console.error("Failed to extract colors, using fallback:", error);
+          setAlbumColorPalette(null);
         });
     };
 
@@ -982,16 +1031,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     return rgbToHex(r, g, b);
   };
 
-  const defaultPalette: ColorPalette = {
-    primary: "rgba(100, 149, 237, 0.8)",
-    secondary: "rgba(135, 206, 250, 0.8)",
-    accent: "rgba(70, 130, 180, 0.8)",
-    hue: 210,
-    saturation: 60,
-    lightness: 65,
-  };
-  
-  const palette = albumColorPalette ?? defaultPalette;
+  const palette = albumColorPalette ?? FALLBACK_PALETTE;
 
   const accentGlow = palette.accent.replace("0.8)", "0.35)");
   
