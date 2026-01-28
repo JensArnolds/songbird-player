@@ -929,8 +929,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     currentTrack.album.cover_medium ??
     currentTrack.album.cover;
 
-  const accentGlow = palette.accent.replace("0.8)", "0.35)");
-
   const extractRgbFromRgba = (rgba: string): [number, number, number] => {
     const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     if (match) {
@@ -994,6 +992,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   };
   
   const palette = albumColorPalette ?? defaultPalette;
+
+  const accentGlow = palette.accent.replace("0.8)", "0.35)");
   
   // Create a full-width gradient using all three key colors from the album cover
   // Extract RGB values and apply appropriate opacity for background
