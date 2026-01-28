@@ -4,6 +4,7 @@
 
 import { env } from "@/env";
 import { api } from "@/trpc/react";
+import { normalizeHealthStatus } from "@/utils/healthStatus";
 import { LogOut, Shield, User } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
@@ -78,20 +79,47 @@ export default function Header() {
           return;
         }
 
-        // Parse JSON responses
-        const apiPayload = apiResponse.ok ? ((await apiResponse.json()) as { status?: string }) : null;
-        const apiV2Payload = apiV2Response.ok ? ((await apiV2Response.json()) as { status?: string }) : null;
+        const readStatus = async (response: Response) => {
+          let rawText = "";
+          try {
+            rawText = await response.text();
+          } catch (error) {
+            console.warn("[Header] Health response read failed:", error);
+          }
+          let payload: unknown = null;
+          if (rawText) {
+            try {
+              payload = JSON.parse(rawText) as unknown;
+            } catch {
+              payload = null;
+            }
+          }
+          return {
+            rawText,
+            status: normalizeHealthStatus(payload, rawText),
+          };
+        };
 
-        const apiStatus = apiPayload?.status;
-        const apiV2Status = apiV2Payload?.status;
+        // Parse responses (supports JSON or plain text "ok")
+        const [apiResult, apiV2Result] = await Promise.all([
+          readStatus(apiResponse),
+          readStatus(apiV2Response),
+        ]);
+
+        const apiStatus = apiResult.status;
+        const apiV2Status = apiV2Result.status;
 
         // Determine overall health status
         let overallStatus: "healthy" | "degraded" | "down";
 
         if (apiStatus === "ok" && apiV2Status === "ok") {
           overallStatus = "healthy"; // Green
-        } else if (apiStatus === "degraded" || apiV2Status === "degraded" ||
-                   apiStatus === "unhealthy" || apiV2Status === "unhealthy") {
+        } else if (
+          apiStatus === "degraded" ||
+          apiV2Status === "degraded" ||
+          apiStatus === "unhealthy" ||
+          apiV2Status === "unhealthy"
+        ) {
           overallStatus = "degraded"; // Yellow
         } else {
           // Unexpected status or missing status field
@@ -100,8 +128,18 @@ export default function Header() {
 
         if (overallStatus !== "healthy") {
           console.warn("[Header] API health degraded:", {
-            api: { url: apiHealthUrl, status: apiResponse.status, apiStatus },
-            apiV2: { url: apiV2HealthUrl, status: apiV2Response.status, apiV2Status },
+            api: {
+              url: apiHealthUrl,
+              status: apiResponse.status,
+              apiStatus,
+              raw: apiResult.rawText,
+            },
+            apiV2: {
+              url: apiV2HealthUrl,
+              status: apiV2Response.status,
+              apiV2Status,
+              raw: apiV2Result.rawText,
+            },
             overallStatus
           });
         }
@@ -238,14 +276,6 @@ export default function Header() {
             >
               Playlists
             </Link>
-            {session?.user?.admin && (
-              <Link
-                href="/admin"
-                className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
-              >
-                Admin
-              </Link>
-            )}
             {session && (
               <Link
                 href="/settings"
@@ -264,6 +294,14 @@ export default function Header() {
             >
               Profile
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+              >
+                Admin
+              </Link>
+            )}
           </nav>
 
           {}
@@ -336,28 +374,6 @@ export default function Header() {
                 </div>
               </Link>
             ) : null}
-            {isAdmin &&
-              (isDarkfloorHost ? (
-                <Link
-                  href="/admin"
-                  className="hidden items-center transition-opacity hover:opacity-80 md:flex"
-                  aria-label="Administrate"
-                  title="Administrate"
-                >
-                  <Shield className="h-5 w-5 text-[var(--color-text)]" />
-                </Link>
-              ) : (
-                <Link
-                  href="/admin"
-                  className="group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
-                  aria-label="Administrate"
-                  title="Administrate"
-                >
-                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-[rgba(0,0,0,0.6)]">
-                    <Shield className="h-4 w-4 opacity-70 transition-opacity group-hover:opacity-100" />
-                  </div>
-                </Link>
-              ))}
             {}
             {session ? (
               <div className="relative hidden md:block" ref={menuRef}>
@@ -429,6 +445,28 @@ export default function Header() {
                 </button>
               </Link>
             )}
+            {isAdmin &&
+              (isDarkfloorHost ? (
+                <Link
+                  href="/admin"
+                  className="hidden items-center transition-opacity hover:opacity-80 md:flex"
+                  aria-label="Administrate"
+                  title="Administrate"
+                >
+                  <Shield className="h-5 w-5 text-[var(--color-text)]" />
+                </Link>
+              ) : (
+                <Link
+                  href="/admin"
+                  className="group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
+                  aria-label="Administrate"
+                  title="Administrate"
+                >
+                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-[rgba(0,0,0,0.6)]">
+                    <Shield className="h-4 w-4 opacity-70 transition-opacity group-hover:opacity-100" />
+                  </div>
+                </Link>
+              ))}
           </div>
         </div>
       </header>

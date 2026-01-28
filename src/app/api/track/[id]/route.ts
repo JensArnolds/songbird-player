@@ -21,6 +21,63 @@ export async function GET(
 
   try {
     const apiUrl = env.NEXT_PUBLIC_API_URL as string | undefined;
+    const streamingKey = env.STREAMING_KEY;
+    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiKey = env.SONGBIRD_API_KEY;
+
+    const normalizeTrack = (track: unknown) => {
+      if (!track || typeof track !== "object") return null;
+      const record = track as Record<string, unknown>;
+      if (!("deezer_id" in record) && typeof record.id === "number") {
+        record.deezer_id = record.id;
+      }
+      return record;
+    };
+
+    if (songbirdApiUrl && songbirdApiKey) {
+      try {
+        const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
+        const songbirdUrl = new URL("music/tracks/batch", normalizedSongbirdUrl);
+        songbirdUrl.searchParams.set("ids", id);
+
+        console.log("[Track API] Trying Songbird V2:", songbirdUrl.toString());
+
+        const songbirdResponse = await fetch(songbirdUrl.toString(), {
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": songbirdApiKey,
+          },
+          signal: AbortSignal.timeout(8000),
+        });
+
+        if (songbirdResponse.ok) {
+          const payload = (await songbirdResponse.json()) as unknown;
+          const tracks = Array.isArray(payload)
+            ? payload
+            : typeof payload === "object" && payload !== null
+              ? Array.isArray((payload as { data?: unknown }).data)
+                ? (payload as { data: unknown[] }).data
+                : Array.isArray((payload as { tracks?: unknown }).tracks)
+                  ? (payload as { tracks: unknown[] }).tracks
+                  : []
+              : [];
+
+          const track = tracks.length > 0 ? normalizeTrack(tracks[0]) : null;
+          if (track) {
+            return NextResponse.json(track);
+          }
+        } else {
+          console.warn(
+            "[Track API] Songbird V2 error:",
+            songbirdResponse.status,
+            songbirdResponse.statusText,
+          );
+        }
+      } catch (error) {
+        console.warn("[Track API] Songbird V2 request failed:", error);
+      }
+    }
+
     if (!apiUrl) {
       console.error("[Track API] NEXT_PUBLIC_API_URL not configured");
       return NextResponse.json(
@@ -29,7 +86,6 @@ export async function GET(
       );
     }
 
-    const streamingKey = env.STREAMING_KEY;
     if (!streamingKey) {
       console.error("[Track API] STREAMING_KEY not configured");
       return NextResponse.json(
@@ -86,15 +142,8 @@ export async function GET(
     }
 
     const data = await response.json();
-    if (data && typeof data === "object" && !("deezer_id" in data)) {
-      if (typeof (data as Record<string, unknown>).id === "number") {
-        (data as Record<string, unknown>).deezer_id = (data as Record<
-          string,
-          unknown
-        >).id;
-      }
-    }
-    return NextResponse.json(data);
+    const normalized = normalizeTrack(data) ?? data;
+    return NextResponse.json(normalized);
   } catch (error) {
     console.error("[Track API] Error fetching track:", error);
 

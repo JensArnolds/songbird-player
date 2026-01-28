@@ -3,11 +3,11 @@
 // Stream endpoint that proxies audio streaming requests to the backend API.
 // 
 // Troubleshooting 502 Bad Gateway errors:
-// 1. Verify backend service at NEXT_PUBLIC_API_URL is reachable:
-//    - Check if backend is running: curl ${NEXT_PUBLIC_API_URL}/health
+// 1. Verify backend service at NEXT_PUBLIC_V2_API_URL is reachable:
+//    - Check if backend is running: curl ${NEXT_PUBLIC_V2_API_URL}/health (if available)
 //    - Verify network connectivity and firewall rules
-// 2. Confirm STREAMING_KEY is valid and has streaming permissions
-// 3. Check backend logs for upstream errors when requesting music/stream?id={trackId}
+// 2. Confirm SONGBIRD_API_KEY is valid and has streaming permissions
+// 3. Check backend logs for upstream errors when requesting music/stream?key=...&id={trackId}
 // 4. Verify the specific track ID (e.g., 417602442) exists and is streamable
 // 5. Check gateway/proxy (nginx, load balancer) for 502s, timeouts, or connection resets
 // 6. Ensure backend's upstream music service is healthy and accessible
@@ -34,45 +34,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const apiUrl = env.NEXT_PUBLIC_API_URL as string | undefined;
-    if (!apiUrl) {
-      console.error("[Stream API] NEXT_PUBLIC_API_URL not configured");
-      return NextResponse.json(
-        { error: "API URL not configured" },
-        { status: 500 },
-      );
-    }
-
-    const streamingKey = env.STREAMING_KEY;
-    if (!streamingKey) {
-      console.error("[Stream API] STREAMING_KEY not configured");
-      return NextResponse.json(
-        { error: "Streaming key not configured" },
-        { status: 500 },
-      );
-    }
-
-    const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
-    const url = new URL("music/stream", normalizedApiUrl);
-    url.searchParams.set("key", streamingKey);
-
-    if (id) {
-      url.searchParams.set("id", id);
-      console.log("[Stream API] Streaming by ID:", id);
-    } else if (query) {
-      url.searchParams.set("q", query);
-      console.log("[Stream API] Streaming by query:", query);
-    }
-
-    const requestUrl = url.toString();
-    console.log(
-      "[Stream API] Fetching stream from:",
-      requestUrl.replace(streamingKey, "***"),
-    );
-    console.log(
-      "[Stream API] Full URL (key hidden):",
-      requestUrl.replace(streamingKey, "***"),
-    );
+    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiKey = env.SONGBIRD_API_KEY;
 
     const rangeHeader = req.headers.get("Range");
     const fetchHeaders: HeadersInit = {};
@@ -84,6 +47,63 @@ export async function GET(req: NextRequest) {
       Range: rangeHeader ?? "none",
       "User-Agent": req.headers.get("User-Agent") ?? "unknown",
     });
+
+    const buildStreamResponse = (response: Response) => {
+      const contentType = response.headers.get("content-type") ?? "audio/mpeg";
+      const contentLength = response.headers.get("content-length");
+      const acceptRanges = response.headers.get("accept-ranges");
+      const contentRange = response.headers.get("content-range");
+
+      const headers: Record<string, string> = {
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=3600",
+      };
+
+      if (contentLength) headers["Content-Length"] = contentLength;
+      if (acceptRanges) headers["Accept-Ranges"] = acceptRanges;
+      if (contentRange) headers["Content-Range"] = contentRange;
+
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers,
+      });
+    };
+
+    if (!songbirdApiUrl || !songbirdApiKey) {
+      console.error(
+        "[Stream API] NEXT_PUBLIC_V2_API_URL or SONGBIRD_API_KEY not configured",
+      );
+      return NextResponse.json(
+        { error: "V2 API not configured" },
+        { status: 500 },
+      );
+    }
+
+    const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
+    const url = new URL("music/stream", normalizedSongbirdUrl);
+    url.searchParams.set("key", songbirdApiKey);
+    url.searchParams.set(
+      "kbps",
+      req.nextUrl.searchParams.get("kbps") ?? "320",
+    );
+
+    if (id) {
+      url.searchParams.set("id", id);
+      console.log("[Stream API] V2 streaming by ID:", id);
+    } else if (query) {
+      url.searchParams.set("q", query);
+      console.log("[Stream API] V2 streaming by query:", query);
+    }
+
+    const requestUrl = url.toString();
+    console.log(
+      "[Stream API] Fetching stream from:",
+      requestUrl.replace(songbirdApiKey, "***"),
+    );
+    console.log(
+      "[Stream API] Full URL (key hidden):",
+      requestUrl.replace(songbirdApiKey, "***"),
+    );
 
     let response: Response;
     try {
@@ -107,7 +127,7 @@ export async function GET(req: NextRequest) {
               message:
                 "The backend server did not respond in time. Check if the backend is running and accessible.",
               type: "timeout",
-              backendUrl: normalizedApiUrl,
+              backendUrl: normalizedSongbirdUrl,
             },
             { status: 504 },
           );
@@ -124,9 +144,9 @@ export async function GET(req: NextRequest) {
           return NextResponse.json(
             {
               error: "Cannot connect to backend",
-              message: `Failed to connect to backend at ${normalizedApiUrl}. Check if the backend is running and NEXT_PUBLIC_API_URL is correct.`,
+              message: `Failed to connect to backend at ${normalizedSongbirdUrl}. Check if the backend is running and NEXT_PUBLIC_V2_API_URL is correct.`,
               type: "connection_error",
-              backendUrl: normalizedApiUrl,
+              backendUrl: normalizedSongbirdUrl,
             },
             { status: 502 },
           );
@@ -166,7 +186,7 @@ export async function GET(req: NextRequest) {
         "[Stream API] Response headers:",
         Object.fromEntries(response.headers.entries()),
       );
-      console.error("[Stream API] Request URL:", requestUrl.replace(streamingKey, "***"));
+      console.error("[Stream API] Request URL:", requestUrl.replace(songbirdApiKey, "***"));
 
       const isUpstreamError =
         statusCode === 502 ||
@@ -190,37 +210,20 @@ export async function GET(req: NextRequest) {
           message: errorData.message ?? errorText,
           details: errorData,
           status: statusCode,
-          backendUrl: requestUrl.replace(streamingKey, "***"),
+          backendUrl: requestUrl.replace(songbirdApiKey, "***"),
           type: isUpstreamError ? "upstream_error" : "stream_error",
           diagnostics: {
             trackId: id ?? null,
             query: query ?? null,
-            backendBaseUrl: normalizedApiUrl,
-            hasStreamingKey: !!streamingKey,
+            backendBaseUrl: normalizedSongbirdUrl,
+            hasApiKey: !!songbirdApiKey,
           },
         },
         { status: statusCode },
       );
     }
 
-    const contentType = response.headers.get("content-type") ?? "audio/mpeg";
-    const contentLength = response.headers.get("content-length");
-    const acceptRanges = response.headers.get("accept-ranges");
-    const contentRange = response.headers.get("content-range");
-
-    const headers: Record<string, string> = {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=3600",
-    };
-
-    if (contentLength) headers["Content-Length"] = contentLength;
-    if (acceptRanges) headers["Accept-Ranges"] = acceptRanges;
-    if (contentRange) headers["Content-Range"] = contentRange;
-
-    return new NextResponse(response.body, {
-      status: response.status,
-      headers,
-    });
+    return buildStreamResponse(response);
   } catch (error) {
     console.error("[Stream API] Streaming error:", error);
     console.error("[Stream API] Error stack:", error instanceof Error ? error.stack : "No stack trace");
@@ -236,7 +239,7 @@ export async function GET(req: NextRequest) {
             message:
               "The backend server did not respond in time. Check if the backend is running and accessible.",
             type: "timeout",
-            backendUrl: env.NEXT_PUBLIC_API_URL,
+            backendUrl: env.NEXT_PUBLIC_V2_API_URL,
           },
           { status: 504 },
         );
@@ -253,9 +256,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(
           {
             error: "Cannot connect to backend",
-            message: `Failed to connect to backend at ${env.NEXT_PUBLIC_API_URL}. Check if the backend is running and NEXT_PUBLIC_API_URL is correct.`,
+            message: `Failed to connect to backend at ${env.NEXT_PUBLIC_V2_API_URL}. Check if the backend is running and NEXT_PUBLIC_V2_API_URL is correct.`,
             type: "connection_error",
-            backendUrl: env.NEXT_PUBLIC_API_URL,
+            backendUrl: env.NEXT_PUBLIC_V2_API_URL,
           },
           { status: 502 },
         );
@@ -267,7 +270,7 @@ export async function GET(req: NextRequest) {
         error: "Failed to fetch stream",
         message: error instanceof Error ? error.message : "Unknown error",
         type: "unknown_error",
-        backendUrl: env.NEXT_PUBLIC_API_URL,
+        backendUrl: env.NEXT_PUBLIC_V2_API_URL,
       },
       { status: 500 },
     );

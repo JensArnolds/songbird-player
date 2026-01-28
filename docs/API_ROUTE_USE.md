@@ -17,24 +17,30 @@ This document summarizes the two backend APIs used by Starchild Music and their 
 **Required:** Yes
 **Fallback:** Deezer API (<https://api.deezer.com>) for track/album/artist endpoints
 **Authentication:** Uses `STREAMING_KEY` environment variable
+**Note:** `/api/music/search` and `/api/stream` now go through V2; V1 remains for track metadata fallback and legacy endpoints.
 
 ### API Routes
 
-| Route | Purpose | Backend Endpoint |
-|-------|---------|------------------|
-| **Search & Discovery** |
-| `/api/music/search` | Search for tracks, albums, artists | `GET /music/search?q={query}` |
-| **Streaming** |
-| `/api/stream` | Get audio stream URL for playback | `GET /stream/{trackId}?key={STREAMING_KEY}` |
-| **Track Operations** |
-| `/api/track/[id]` | Fetch track metadata by ID | `GET /music/track/{id}?key={STREAMING_KEY}` |
-| `/track/[id]/page.tsx` | Generate SEO metadata for track pages | `GET /music/track/{id}?key={STREAMING_KEY}` |
-| **Album Operations** |
-| `/api/album/[id]` | Fetch album details + tracks | `GET /music/album/{id}?key={STREAMING_KEY}` |
-| `/api/album/[id]/tracks` | Fetch album tracks only | `GET /music/album/{id}/tracks?key={STREAMING_KEY}` |
-| **Artist Operations** |
-| `/api/artist/[id]` | Fetch artist details | `GET /music/artist/{id}?key={STREAMING_KEY}` |
-| `/api/artist/[id]/tracks` | Fetch artist top tracks | `GET /music/artist/{id}/tracks?key={STREAMING_KEY}` |
+Below is a quick overview of the **frontend API routes** under `src/app/api` and how they proxy to the underlying backends.
+
+| Route | Category | Purpose | Backend / Target |
+|-------|----------|---------|------------------|
+| **Search & Discovery** ||||
+| `/api/music/search` | Search | Search tracks, albums, artists | `GET {NEXT_PUBLIC_V2_API_URL}/music/search?key={SONGBIRD_API_KEY}&kbps=320&q={query}[&offset]` (V2 only) |
+| **Streaming** ||||
+| `/api/stream` | Streaming | Get audio stream URL for playback (supports `Range`) | `GET {NEXT_PUBLIC_V2_API_URL}/music/stream?key={SONGBIRD_API_KEY}&kbps={kbps}&(id|q)` (V2 only, no Deezer fallback) |
+| **Track Operations** ||||
+| `/api/track/[id]` | Track metadata | Fetch track metadata by Deezer ID with smart fallbacks | `GET {NEXT_PUBLIC_V2_API_URL}/music/tracks/batch?ids={id}` (V2, `X-API-Key`) → `GET {NEXT_PUBLIC_API_URL}/music/track/{id}?key={STREAMING_KEY}` (V1) → `GET https://api.deezer.com/track/{id}` |
+| `/track/[id]/page.tsx` | Track SEO | Generate SEO metadata + OG image for track pages | `GET {NEXT_PUBLIC_V2_API_URL}/music/tracks/batch?ids={id}` (V2, `X-API-Key`) → fallback to `GET https://api.deezer.com/track/{id}` |
+| **Album Operations** ||||
+| `/api/album/[id]` | Album metadata | Fetch album details + tracks | `GET https://api.deezer.com/album/{id}` (direct Deezer proxy) |
+| `/api/album/[id]/tracks` | Album tracks | Fetch album tracks only | `GET {NEXT_PUBLIC_API_URL}/music/album/{id}/tracks?key={STREAMING_KEY}` (V1, with Deezer fallback if configured as such) |
+| **Artist Operations** ||||
+| `/api/artist/[id]` | Artist metadata | Fetch artist details | `GET https://api.deezer.com/artist/{id}` (direct Deezer proxy) |
+| `/api/artist/[id]/tracks` | Artist top tracks | Fetch artist top tracks | `GET {NEXT_PUBLIC_API_URL}/music/artist/{id}/tracks?key={STREAMING_KEY}` (V1, with Deezer fallback if configured as such) |
+| **OG Images & Health** ||||
+| `/api/og` | OG images | Track share previews and search OG images | Track: `302` redirect to `{NEXT_PUBLIC_V2_API_URL}/api/track/{deezerId}/preview` (V2) → fallback to `{NEXT_PUBLIC_API_URL}/api/preview?q={query}` (V1) → final fallback to static `/og-image.png` |
+| `/api/health` | Health | App + DB health check for the frontend server | Local health JSON (DB ping + memory) used by UI; separate external health checks use `NEXT_PUBLIC_API_HEALTH_URL` and `NEXT_PUBLIC_API_V2_HEALTH_URL` from the browser (see `Header.tsx`) |
 
 ### tRPC Procedures
 
@@ -51,13 +57,16 @@ This document summarizes the two backend APIs used by Starchild Music and their 
 
 ### Fallback Behavior
 
+If `NEXT_PUBLIC_V2_API_URL` + `SONGBIRD_API_KEY` are configured, `/api/track/[id]` first tries V2 `/music/tracks/batch?ids={id}`. If V2 fails or returns no track, it falls back to V1, then Deezer.
+`/api/music/search` and `/api/stream` now require V2 (`key` + `kbps=320`) and no longer fall back to V1.
+
 When `NEXT_PUBLIC_API_URL` is unavailable (404/400 errors), the following routes fall back to Deezer API:
 
 - `/api/track/[id]` → `https://api.deezer.com/track/{id}`
 - `/api/album/[id]` → `https://api.deezer.com/album/{id}`
 - `/api/artist/[id]` → `https://api.deezer.com/artist/{id}`
 
-**Note:** `/api/stream` does NOT have a fallback - streaming requires the backend API.
+**Note:** `/api/stream` has no Deezer fallback. If V2 is unavailable, streaming fails.
 
 ---
 
@@ -67,6 +76,12 @@ When `NEXT_PUBLIC_API_URL` is unavailable (404/400 errors), the following routes
 **Required:** No (optional)
 **Fallback:** Deezer API for basic artist radio
 **Authentication:** Uses `SONGBIRD_API_KEY` via `X-API-Key` header
+
+### OG Images (V2)
+
+| Use | Songbird Endpoint |
+|-----|-------------------|
+| Track OG image | `GET /api/track/{deezerId}/preview` |
 
 ### tRPC Procedures
 

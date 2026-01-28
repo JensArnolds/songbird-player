@@ -20,24 +20,57 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiKey = env.SONGBIRD_API_KEY;
 
-    const backendUrl = env.NEXT_PUBLIC_API_URL;
+    const parseSearchResponse = (data: unknown): SearchResponse | null => {
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "data" in data &&
+        Array.isArray((data as Record<string, unknown>).data) &&
+        "total" in data &&
+        typeof (data as Record<string, unknown>).total === "number"
+      ) {
+        const responseData = data as {
+          data: unknown[];
+          total: number;
+          next?: string;
+        };
 
-    if (!backendUrl) {
+        return {
+          data: responseData.data as SearchResponse["data"],
+          total: responseData.total,
+          ...(responseData.next && { next: responseData.next }),
+        };
+      }
+
+      return null;
+    };
+
+    if (!songbirdApiUrl || !songbirdApiKey) {
       return NextResponse.json(
-        { error: "NEXT_PUBLIC_API_URL not configured" },
+        { error: "NEXT_PUBLIC_V2_API_URL or SONGBIRD_API_KEY not configured" },
         { status: 500 },
       );
     }
 
-    const normalizedBackendUrl = backendUrl.replace(/\/+$/, "");
-    const url = new URL("music/search", normalizedBackendUrl);
+    const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
+    const url = new URL("music/search", normalizedSongbirdUrl);
+    url.searchParams.set("key", songbirdApiKey);
+    url.searchParams.set(
+      "kbps",
+      req.nextUrl.searchParams.get("kbps") ?? "320",
+    );
     url.searchParams.set("q", query);
     if (offset != null) {
       url.searchParams.set("offset", offset);
     }
 
-    console.log("[Music Search API] Fetching from:", url.toString());
+    console.log(
+      "[Music Search API] Fetching from:",
+      url.toString().replace(songbirdApiKey, "***"),
+    );
 
     const response = await fetch(url.toString(), {
       headers: {
@@ -49,50 +82,32 @@ export async function GET(req: NextRequest) {
 
     if (!response.ok) {
       console.error(
-        "[Music Search API] Backend returned error:",
+        "[Music Search API] Songbird returned error:",
         response.status,
         response.statusText,
       );
       return NextResponse.json(
-        { error: `Backend API error: ${response.status}` },
+        { error: `Songbird API error: ${response.status}` },
         { status: response.status },
       );
     }
 
     const data: unknown = await response.json();
-
-    if (
-      typeof data === "object" &&
-      data !== null &&
-      "data" in data &&
-      Array.isArray((data as Record<string, unknown>).data) &&
-      "total" in data &&
-      typeof (data as Record<string, unknown>).total === "number"
-    ) {
-      const responseData = data as {
-        data: unknown[];
-        total: number;
-        next?: string;
-      };
-
-      const validatedResponse: SearchResponse = {
-        data: responseData.data as SearchResponse["data"],
-        total: responseData.total,
-        ...(responseData.next && { next: responseData.next }),
-      };
-      return NextResponse.json(validatedResponse);
-    } else {
-      console.error(
-        "[Music Search API] Invalid response structure from backend:",
-        data,
-      );
-      return NextResponse.json(
-        {
-          error: "Invalid response from backend API: missing required fields (data: Track[], total: number)",
-        },
-        { status: 502 },
-      );
+    const parsed = parseSearchResponse(data);
+    if (parsed) {
+      return NextResponse.json(parsed);
     }
+
+    console.error(
+      "[Music Search API] Invalid response structure from Songbird:",
+      data,
+    );
+    return NextResponse.json(
+      {
+        error: "Invalid response from Songbird API: missing required fields (data: Track[], total: number)",
+      },
+      { status: 502 },
+    );
   } catch (error) {
     console.error("[Music Search API] Error:", error);
     const errorMessage =

@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.18] - 2026-01-28
+
+### Added
+
+- **V2 API Tests**: Added coverage for V2-only search/stream handlers and health status normalization, plus V2 track batch SEO path
+  - Location: `src/__tests__/api-search-v2.test.ts`, `src/__tests__/api-stream-v2.test.ts`, `src/__tests__/health-status.test.ts`, `src/__tests__/track-seo.test.ts`
+
+### Changed
+
+- **V2-Only Search & Stream**: `/api/music/search` and `/api/stream` now require V2 (`NEXT_PUBLIC_V2_API_URL` + `SONGBIRD_API_KEY`) with no V1 fallback
+  - Location: `src/app/api/music/search/route.ts`, `src/app/api/stream/route.ts`
+- **Track SEO Metadata via V2**: Track page metadata now fetches from V2 batch endpoint (Deezer fallback only)
+  - Location: `src/app/track/[id]/page.tsx`
+- **OG Track Previews via V2**: `/api/og` uses V2 track preview for trackId and search hits
+  - Location: `src/app/api/og/route.tsx`
+- **API Docs Updated**: Reflected V2 routing and OG preview changes
+  - Location: `docs/API_ROUTE_USE.md`, `docs/API_USE.md`
+
+### Fixed
+
+- **Health Indicator Parsing**: Header health check now accepts JSON or plain-text statuses like `ok`
+  - Location: `src/components/Header.tsx`, `src/utils/healthStatus.ts`
+
 ## [0.10.17] - 2026-01-28
 
 ### Fixed

@@ -57,11 +57,51 @@ describe("track SEO metadata", () => {
 
     const ogUrl = new URL(ogImage?.url as string);
     expect(ogUrl.pathname).toBe("/api/og");
-    expect(ogUrl.searchParams.get("title")).toBe(mockTrack.title);
-    expect(ogUrl.searchParams.get("artist")).toBe(mockTrack.artist.name);
-    expect(ogUrl.searchParams.get("album")).toBe(mockTrack.album.title);
-    expect(ogUrl.searchParams.get("cover")).toBe(mockTrack.album.cover_medium);
-    expect(ogUrl.searchParams.get("duration")).toBe(String(mockTrack.duration));
-    expect(ogUrl.searchParams.get("v")).toBe(String(mockTrack.id));
+    expect(ogUrl.searchParams.get("trackId")).toBe(String(mockTrack.id));
+  });
+
+  it("uses V2 batch endpoint when configured", async () => {
+    vi.resetModules();
+    vi.doMock("@/env", () => ({
+      env: {
+        NEXT_PUBLIC_V2_API_URL: "https://darkfloor.one/",
+        SONGBIRD_API_KEY: "test-key",
+        NEXT_PUBLIC_NEXTAUTH_URL: "https://starchildmusic.com",
+        NEXTAUTH_URL: "https://starchildmusic.com",
+      },
+    }));
+
+    const fetchMock = vi.fn(async (input: RequestInfo, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input.url;
+      if (url.includes("/music/tracks/batch")) {
+        return {
+          ok: true,
+          json: async () => [mockTrack],
+        } as Response;
+      }
+
+      return {
+        ok: false,
+        status: 404,
+        json: async () => ({}),
+      } as Response;
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateMetadata } = await import("@/app/track/[id]/page");
+    await generateMetadata({
+      params: Promise.resolve({ id: String(mockTrack.id) }),
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [calledUrl, options] = fetchMock.mock.calls[0] ?? [];
+    const urlObj = new URL(calledUrl as string);
+    expect(urlObj.pathname).toBe("/music/tracks/batch");
+    expect(urlObj.searchParams.get("ids")).toBe(String(mockTrack.id));
+    const headers = (options as RequestInit | undefined)?.headers as
+      | Record<string, string>
+      | undefined;
+    expect(headers?.["X-API-Key"]).toBe("test-key");
   });
 });

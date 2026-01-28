@@ -12,50 +12,19 @@ export async function GET(request: NextRequest) {
 
   const trackId = searchParams.get("trackId");
   const query = searchParams.get("q");
+  const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
 
   if (trackId) {
-    try {
-      console.log("[OG Route] Fetching track by ID:", trackId);
-      const trackUrl = new URL(`/api/track/${trackId}`, origin);
-      const trackResponse = await fetch(trackUrl.toString(), {
-        signal: AbortSignal.timeout(5000),
-      });
-
-      if (trackResponse.ok) {
-        const track = (await trackResponse.json()) as {
-          title?: string;
-          artist?: { name?: string } | string;
-          album?: { title?: string } | null;
-        };
-
-        const title = track.title || "";
-        const artistName = typeof track.artist === "string"
-          ? track.artist
-          : track.artist?.name || "";
-        const albumTitle = track.album && typeof track.album === "object"
-          ? track.album.title || ""
-          : "";
-
-        if (title && artistName) {
-          const params = new URLSearchParams();
-          params.set("title", title);
-          params.set("artist", artistName);
-          if (albumTitle) {
-            params.set("album", albumTitle);
-          }
-
-          const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
-          if (songbirdApiUrl) {
-            const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-            const previewUrl = `${normalizedSongbirdUrl}/api/preview?${params.toString()}`;
-            console.log("[OG Route] Redirecting to darkfloor preview:", previewUrl);
-            return Response.redirect(previewUrl, 302);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("[OG Route] Error fetching track:", error);
+    if (songbirdApiUrl) {
+      const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
+      const previewUrl = `${normalizedSongbirdUrl}/api/track/${encodeURIComponent(
+        trackId,
+      )}/preview`;
+      console.log("[OG Route] Redirecting to V2 track preview:", previewUrl);
+      return Response.redirect(previewUrl, 302);
     }
+
+    console.log("[OG Route] V2 not configured for track preview");
   } else if (query) {
     const trimmedQuery = query.trim();
     
@@ -86,43 +55,13 @@ export async function GET(request: NextRequest) {
           // Found a track! Use trackId-based preview (most reliable)
           console.log("[OG Route] Found track via search, using trackId:", firstTrack.id);
           
-          // Fetch track details to get full metadata
-          const trackUrl = new URL(`/api/track/${firstTrack.id}`, origin);
-          const trackResponse = await fetch(trackUrl.toString(), {
-            signal: AbortSignal.timeout(5000),
-          });
-
-          if (trackResponse.ok) {
-            const track = (await trackResponse.json()) as {
-              title?: string;
-              artist?: { name?: string } | string;
-              album?: { title?: string } | null;
-            };
-
-            const title = track.title || "";
-            const artistName = typeof track.artist === "string"
-              ? track.artist
-              : track.artist?.name || "";
-            const albumTitle = track.album && typeof track.album === "object"
-              ? track.album.title || ""
-              : "";
-
-            if (title && artistName) {
-              const params = new URLSearchParams();
-              params.set("title", title);
-              params.set("artist", artistName);
-              if (albumTitle) {
-                params.set("album", albumTitle);
-              }
-
-              const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
-              if (songbirdApiUrl) {
-                const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-                const previewUrl = `${normalizedSongbirdUrl}/api/preview?${params.toString()}`;
-                console.log("[OG Route] Redirecting to track-specific preview:", previewUrl);
-                return Response.redirect(previewUrl, 302);
-              }
-            }
+          if (songbirdApiUrl) {
+            const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
+            const previewUrl = `${normalizedSongbirdUrl}/api/track/${encodeURIComponent(
+              String(firstTrack.id),
+            )}/preview`;
+            console.log("[OG Route] Redirecting to V2 track preview:", previewUrl);
+            return Response.redirect(previewUrl, 302);
           }
         }
       }
@@ -184,7 +123,6 @@ export async function GET(request: NextRequest) {
   }
 
   console.log("[OG Route] No track data found, using default image");
-  const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
   if (songbirdApiUrl) {
     const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
     return Response.redirect(`${normalizedSongbirdUrl}/api/preview/default`, 302);

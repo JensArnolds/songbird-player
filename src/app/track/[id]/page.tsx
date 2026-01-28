@@ -25,28 +25,44 @@ interface Track {
 
 async function getTrack(id: string): Promise<Track | null> {
   try {
-    const apiUrl = env.NEXT_PUBLIC_API_URL as string | undefined;
-    const streamingKey = env.STREAMING_KEY;
+    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiKey = env.SONGBIRD_API_KEY;
 
-    if (apiUrl && streamingKey) {
-      const normalizedApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-      const url = new URL(`music/track/${id}`, normalizedApiUrl);
-      url.searchParams.set("key", streamingKey);
+    if (songbirdApiUrl && songbirdApiKey) {
+      const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
+      const url = new URL("music/tracks/batch", normalizedSongbirdUrl);
+      url.searchParams.set("ids", id);
 
       const response = await fetch(url.toString(), {
+        headers: {
+          "X-API-Key": songbirdApiKey,
+        },
         signal: AbortSignal.timeout(10000),
         cache: "no-store",
       });
 
       if (response.ok) {
-        return (await response.json()) as Track;
+        const payload = (await response.json()) as unknown;
+        const tracks = Array.isArray(payload)
+          ? payload
+          : typeof payload === "object" && payload !== null
+            ? Array.isArray((payload as { data?: unknown }).data)
+              ? (payload as { data: unknown[] }).data
+              : Array.isArray((payload as { tracks?: unknown }).tracks)
+                ? (payload as { tracks: unknown[] }).tracks
+                : []
+            : [];
+        const track = tracks[0];
+        if (track) {
+          return track as Track;
+        }
       }
     } else {
-      if (!apiUrl) {
-        console.error("[Track Page] NEXT_PUBLIC_API_URL not configured");
+      if (!songbirdApiUrl) {
+        console.error("[Track Page] NEXT_PUBLIC_V2_API_URL not configured");
       }
-      if (!streamingKey) {
-        console.error("[Track Page] STREAMING_KEY not configured");
+      if (!songbirdApiKey) {
+        console.error("[Track Page] SONGBIRD_API_KEY not configured");
       }
     }
 
