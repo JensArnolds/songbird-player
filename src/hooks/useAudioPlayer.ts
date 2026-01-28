@@ -88,6 +88,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
   const maxRetries = 3;
+  const streamErrorRetryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const streamErrorRetryCountRef = useRef(0);
+  const streamErrorTrackIdRef = useRef<number | null>(null);
+  const maxStreamErrorRetries = 2;
   const failedTracksRef = useRef<Set<number>>(new Set());
   const isInitialMountRef = useRef(true);
   const isPlayPauseOperationRef = useRef(false);
@@ -99,6 +103,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastLoadedTrackIdRef = useRef<number | null>(null);
   const shouldAutoPlayNextRef = useRef(false);
+  const loadTrackRef = useRef<
+    ((track: Track, streamUrl: string) => void) | null
+  >(null);
+  const playRef = useRef<(() => Promise<void>) | null>(null);
   const requestAutoPlayNext = useCallback((force = false) => {
     if (force || isPlayingRef.current) {
       shouldAutoPlayNextRef.current = true;
@@ -623,6 +631,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const handleLoadStart = () => setIsLoading(true);
     const handleCanPlay = () => {
       setIsLoading(false);
+      if (currentTrack && streamErrorTrackIdRef.current === currentTrack.id) {
+        streamErrorRetryCountRef.current = 0;
+      }
     };
     const handleError = (e: Event) => {
 
@@ -650,6 +661,16 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         return;
       }
 
+      const statusMatch = errorMessage.match(/\b(\d{3})\b/);
+      const statusCode = statusMatch ? Number(statusMatch[1]) : null;
+      const isRetryableStatus =
+        statusCode !== null &&
+        [429, 500, 502, 503, 504].includes(statusCode);
+      const isRetryableMessage = /Bad Gateway|Gateway Timeout|Service Unavailable/i.test(
+        errorMessage,
+      );
+      const isNetworkError = error?.code === MediaError.MEDIA_ERR_NETWORK;
+
       const isHttpError =
         /^\d{3}:/.test(errorMessage) ||
         errorMessage.includes("Service Unavailable") ||
@@ -657,6 +678,66 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const isUpstreamError =
         errorMessage.includes("upstream error") ||
         errorMessage.includes("ServiceUnavailableException");
+
+      if (
+        currentTrack &&
+        (isUpstreamError || isRetryableStatus || isRetryableMessage || isNetworkError)
+      ) {
+        if (streamErrorTrackIdRef.current !== currentTrack.id) {
+          streamErrorRetryCountRef.current = 0;
+          streamErrorTrackIdRef.current = currentTrack.id;
+        }
+
+        if (streamErrorRetryCountRef.current < maxStreamErrorRetries) {
+          const attempt = streamErrorRetryCountRef.current;
+          const baseDelayMs = 800;
+          const jitterMs = Math.floor(Math.random() * 200);
+          const delay = Math.min(5000, baseDelayMs * Math.pow(2, attempt)) + jitterMs;
+          streamErrorRetryCountRef.current += 1;
+
+          if (streamErrorRetryTimeoutRef.current) {
+            clearTimeout(streamErrorRetryTimeoutRef.current);
+          }
+
+          logger.warn(
+            `[useAudioPlayer] Transient stream error for track ${currentTrack.id}, retrying in ${delay}ms (attempt ${streamErrorRetryCountRef.current}/${maxStreamErrorRetries})`,
+          );
+          setIsLoading(true);
+          setIsPlaying(false);
+
+          streamErrorRetryTimeoutRef.current = setTimeout(() => {
+            streamErrorRetryTimeoutRef.current = null;
+            if (!audioRef.current) return;
+            if (streamErrorTrackIdRef.current !== currentTrack.id) return;
+
+            const retryUrl = `${getStreamUrlById(
+              currentTrack.id.toString(),
+            )}&retry=${Date.now()}`;
+            loadTrackRef.current?.(currentTrack, retryUrl);
+            playRef
+              .current?.()
+              .catch((err) =>
+                logger.debug("[useAudioPlayer] Retry play() failed:", err),
+              );
+          }, delay);
+          return;
+        }
+
+        streamErrorRetryCountRef.current = 0;
+        if (streamErrorRetryTimeoutRef.current) {
+          clearTimeout(streamErrorRetryTimeoutRef.current);
+          streamErrorRetryTimeoutRef.current = null;
+        }
+        logger.error(
+          `Audio error for track ${currentTrack.id}:`,
+          errorMessage || "Stream failed",
+        );
+        setIsLoading(false);
+        setIsPlaying(false);
+
+        onError?.(errorMessage || "Stream failed", currentTrack.id);
+        return;
+      }
 
       if (isHttpError && currentTrack) {
 
@@ -961,8 +1042,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         retryTimeoutRef.current = null;
       }
 
+      if (streamErrorRetryTimeoutRef.current) {
+        clearTimeout(streamErrorRetryTimeoutRef.current);
+        streamErrorRetryTimeoutRef.current = null;
+      }
+
       if (currentTrack?.id !== track.id) {
         retryCountRef.current = 0;
+        streamErrorRetryCountRef.current = 0;
+        streamErrorTrackIdRef.current = track.id;
       }
 
       try {
@@ -1061,6 +1149,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     },
     [currentTrack, onTrackChange, onError],
   );
+
+  loadTrackRef.current = loadTrack;
 
   const play = useCallback(async () => {
     if (!audioRef.current) {
@@ -1212,6 +1302,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       isPlayPauseOperationRef.current = false;
     }
   }, []);
+
+  playRef.current = play;
 
   const pause = useCallback(() => {
     if (!audioRef.current) {
@@ -2023,6 +2115,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     return () => {
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
+      }
+      if (streamErrorRetryTimeoutRef.current) {
+        clearTimeout(streamErrorRetryTimeoutRef.current);
       }
     };
   }, []);

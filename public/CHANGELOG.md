@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.17] - 2026-01-28
+
+### Fixed
+
+- **MobilePlayer Palette Stability**: Ensured palette access happens after initialization and added a robust fallback when extraction fails or returns invalid values
+  - Skip extraction for placeholder covers, validate palette shape/ranges, fall back safely on errors
+  - Location: `src/components/MobilePlayer.tsx`
+- **Auth API Client Errors**: Avoided JSON.parse failures by bypassing rate limiting on auth routes and returning JSON for 429 responses
+  - Location: `src/middleware.ts`
+- **Streaming Error Recovery**: Added transient 5xx/429/network retry handling with backoff and cache-busting, plus clearer 502/504 user messaging
+  - Location: `src/hooks/useAudioPlayer.ts`, `src/contexts/AudioPlayerContext.tsx`
+
+### Changed
+
+- **Service Worker Cache Strategy**: Versioned caches and switched `/_next/static` to network-first with explicit update checks to prevent stale bundles
+  - Location: `public/sw.js`, `src/app/register-sw.tsx`
+
 ## [0.10.16] - 2026-01-27
 
 ### Changed

@@ -258,6 +258,16 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           "error",
         );
       } else if (
+        error.includes("502") ||
+        error.includes("504") ||
+        error.includes("Bad Gateway") ||
+        error.includes("Gateway Timeout")
+      ) {
+        showToast(
+          "Streaming gateway error. Please try again in a moment.",
+          "error",
+        );
+      } else if (
         error.includes("503") ||
         error.includes("Service Unavailable")
       ) {
