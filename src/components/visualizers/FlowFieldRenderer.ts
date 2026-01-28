@@ -487,6 +487,11 @@ export class FlowFieldRenderer {
   private tempColorArray: [number, number, number] = [0, 0, 0];
   private metatronPositions = new Float32Array(26);
   private metatronHexPoints = new Float32Array(12);
+  private emChargeX = new Float32Array(8);
+  private emChargeY = new Float32Array(8);
+  private emChargeSign = new Float32Array(8);
+  private sacredTrianglePoints = new Float32Array(6);
+  private sacredInnerTrianglePoints = new Float32Array(6);
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -13590,6 +13595,7 @@ export class FlowFieldRenderer {
     const time = this.time * 0.0005;
     const minDimension = Math.min(this.width, this.height);
     const maxRadius = minDimension * (0.45 + audioIntensity * 0.25);
+    const twoPi = FlowFieldRenderer.TWO_PI;
 
     const baseHue = this.fastMod360(this.hueBase + 200 + time * 2);
     const gothicHue = this.fastMod360(baseHue + 20);
@@ -13604,12 +13610,12 @@ export class FlowFieldRenderer {
     ctx.shadowBlur = 20 + bassIntensity * 15;
     ctx.shadowColor = this.hsla(gothicHue, 90, 30, 0.6);
     ctx.beginPath();
-    ctx.arc(0, 0, centralCoreRadius, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, centralCoreRadius, 0, twoPi);
     ctx.fill();
 
     const spikeCount = 12 + ((audioIntensity * 10) | 0);
     const invSpikeCount = 1 / spikeCount;
-    const angleStep = FlowFieldRenderer.TWO_PI * invSpikeCount;
+    const angleStep = twoPi * invSpikeCount;
     const baseSpikeLength = maxRadius * (0.7 + audioIntensity * 0.3);
     const spikeWidth = 3 + bassIntensity * 4;
 
@@ -13681,7 +13687,8 @@ export class FlowFieldRenderer {
       const ringRotation = time * (0.2 + r * 0.1);
 
       const smallSpikeCount = 8 + r * 2;
-      const smallSpikeAngleStep = FlowFieldRenderer.TWO_PI / smallSpikeCount;
+      const invSmallSpikeCount = 1 / smallSpikeCount;
+      const smallSpikeAngleStep = twoPi * invSmallSpikeCount;
       const smallSpikeLength = 8 + bassIntensity * 6;
 
       for (let s = 0; s < smallSpikeCount; s++) {
@@ -13705,8 +13712,10 @@ export class FlowFieldRenderer {
     }
 
     const thornCount = 20 + ((trebleIntensity * 15) | 0);
+    const invThornCount = 1 / thornCount;
+    const thornAngleStep = twoPi * invThornCount;
     for (let t = 0; t < thornCount; t++) {
-      const thornAngle = (t / thornCount) * FlowFieldRenderer.TWO_PI + time * 0.4;
+      const thornAngle = thornAngleStep * t + time * 0.4;
       const thornRadius = centralCoreRadius + 30 + this.fastSin(time * 1.5 + t * 0.4) * 25;
       const thornX = this.fastCos(thornAngle) * thornRadius;
       const thornY = this.fastSin(thornAngle) * thornRadius;
@@ -13757,17 +13766,20 @@ export class FlowFieldRenderer {
     ctx.fillStyle = darkAuraGradient;
     ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.arc(0, 0, darkAuraRadius, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, darkAuraRadius, 0, twoPi);
     ctx.fill();
 
     const crackCount = 5 + ((audioIntensity * 3) | 0);
+    const invCrackCount = 1 / crackCount;
+    const crackAngleStep = twoPi * invCrackCount;
     for (let c = 0; c < crackCount; c++) {
-      const crackAngle = (c / crackCount) * FlowFieldRenderer.TWO_PI + time * 0.1;
+      const crackAngle = crackAngleStep * c + time * 0.1;
       const crackLength = maxRadius * (0.3 + audioIntensity * 0.2);
       const crackHue = this.fastMod360(gothicHue - 10);
       const crackAlpha = 0.3 + bassIntensity * 0.2;
 
       const crackPoints = 8;
+      const invCrackPoints = 1 / crackPoints;
       ctx.strokeStyle = this.hsla(crackHue, 60, 15, crackAlpha);
       ctx.lineWidth = 1.5;
       ctx.lineCap = "square";
@@ -13780,7 +13792,7 @@ export class FlowFieldRenderer {
       ctx.moveTo(currentX, currentY);
 
       for (let p = 1; p <= crackPoints; p++) {
-        const progress = p / crackPoints;
+        const progress = p * invCrackPoints;
         const angleVariation = this.fastSin(time * 2 + c + p) * 0.2;
         const currentAngle = crackAngle + angleVariation;
         const currentLength = crackLength * progress;
@@ -13816,20 +13828,29 @@ export class FlowFieldRenderer {
     const triangleHue = this.fastMod360(baseHue + 30);
     const rotation = time * 0.2;
 
-    const trianglePoints: Array<{ x: number; y: number }> = [];
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const angleStep = twoPi / 3;
+    const angleBase = rotation - Math.PI * 0.5;
+    const trianglePoints = this.sacredTrianglePoints;
     for (let i = 0; i < 3; i++) {
-      const angle = (i / 3) * FlowFieldRenderer.TWO_PI - Math.PI / 2 + rotation;
-      trianglePoints.push({
-        x: this.fastCos(angle) * triangleSize,
-        y: this.fastSin(angle) * triangleSize,
-      });
+      const angle = angleStep * i + angleBase;
+      const idx = i * 2;
+      trianglePoints[idx] = this.fastCos(angle) * triangleSize;
+      trianglePoints[idx + 1] = this.fastSin(angle) * triangleSize;
     }
 
+    const p0x = trianglePoints[0]!;
+    const p0y = trianglePoints[1]!;
+    const p1x = trianglePoints[2]!;
+    const p1y = trianglePoints[3]!;
+    const p2x = trianglePoints[4]!;
+    const p2y = trianglePoints[5]!;
+
     const triangleGradient = ctx.createLinearGradient(
-      trianglePoints[0]!.x,
-      trianglePoints[0]!.y,
-      (trianglePoints[1]!.x + trianglePoints[2]!.x) / 2,
-      (trianglePoints[1]!.y + trianglePoints[2]!.y) / 2,
+      p0x,
+      p0y,
+      (p1x + p2x) * 0.5,
+      (p1y + p2y) * 0.5,
     );
     triangleGradient.addColorStop(0, this.hsla(triangleHue, 100, 75, 0.9 + audioIntensity * 0.1));
     triangleGradient.addColorStop(0.5, this.hsla(triangleHue, 95, 70, 0.85 + audioIntensity * 0.1));
@@ -13839,9 +13860,9 @@ export class FlowFieldRenderer {
     ctx.shadowBlur = 30 + audioIntensity * 25;
     ctx.shadowColor = this.hsla(triangleHue, 100, 80, 0.7);
     ctx.beginPath();
-    ctx.moveTo(trianglePoints[0]!.x, trianglePoints[0]!.y);
-    ctx.lineTo(trianglePoints[1]!.x, trianglePoints[1]!.y);
-    ctx.lineTo(trianglePoints[2]!.x, trianglePoints[2]!.y);
+    ctx.moveTo(p0x, p0y);
+    ctx.lineTo(p1x, p1y);
+    ctx.lineTo(p2x, p2y);
     ctx.closePath();
     ctx.fill();
 
@@ -13853,20 +13874,26 @@ export class FlowFieldRenderer {
     ctx.stroke();
 
     const innerTriangleSize = triangleSize * (0.6 + trebleIntensity * 0.1);
-    const innerTrianglePoints: Array<{ x: number; y: number }> = [];
+    const innerTrianglePoints = this.sacredInnerTrianglePoints;
     for (let i = 0; i < 3; i++) {
-      const angle = (i / 3) * FlowFieldRenderer.TWO_PI - Math.PI / 2 + rotation;
-      innerTrianglePoints.push({
-        x: this.fastCos(angle) * innerTriangleSize,
-        y: this.fastSin(angle) * innerTriangleSize,
-      });
+      const angle = angleStep * i + angleBase;
+      const idx = i * 2;
+      innerTrianglePoints[idx] = this.fastCos(angle) * innerTriangleSize;
+      innerTrianglePoints[idx + 1] = this.fastSin(angle) * innerTriangleSize;
     }
 
+    const i0x = innerTrianglePoints[0]!;
+    const i0y = innerTrianglePoints[1]!;
+    const i1x = innerTrianglePoints[2]!;
+    const i1y = innerTrianglePoints[3]!;
+    const i2x = innerTrianglePoints[4]!;
+    const i2y = innerTrianglePoints[5]!;
+
     const innerGradient = ctx.createLinearGradient(
-      innerTrianglePoints[0]!.x,
-      innerTrianglePoints[0]!.y,
-      (innerTrianglePoints[1]!.x + innerTrianglePoints[2]!.x) / 2,
-      (innerTrianglePoints[1]!.y + innerTrianglePoints[2]!.y) / 2,
+      i0x,
+      i0y,
+      (i1x + i2x) * 0.5,
+      (i1y + i2y) * 0.5,
     );
     innerGradient.addColorStop(0, this.hsla(triangleHue, 100, 80, 0.6 + trebleIntensity * 0.2));
     innerGradient.addColorStop(1, this.hsla(triangleHue, 95, 75, 0.4 + trebleIntensity * 0.2));
@@ -13874,9 +13901,9 @@ export class FlowFieldRenderer {
     ctx.fillStyle = innerGradient;
     ctx.shadowBlur = 15 + trebleIntensity * 10;
     ctx.beginPath();
-    ctx.moveTo(innerTrianglePoints[0]!.x, innerTrianglePoints[0]!.y);
-    ctx.lineTo(innerTrianglePoints[1]!.x, innerTrianglePoints[1]!.y);
-    ctx.lineTo(innerTrianglePoints[2]!.x, innerTrianglePoints[2]!.y);
+    ctx.moveTo(i0x, i0y);
+    ctx.lineTo(i1x, i1y);
+    ctx.lineTo(i2x, i2y);
     ctx.closePath();
     ctx.fill();
 
@@ -13893,8 +13920,8 @@ export class FlowFieldRenderer {
     ctx.fillStyle = haloGradient;
     ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.arc(0, 0, haloOuterRadius, 0, FlowFieldRenderer.TWO_PI);
-    ctx.arc(0, 0, haloInnerRadius, 0, FlowFieldRenderer.TWO_PI, true);
+    ctx.arc(0, 0, haloOuterRadius, 0, twoPi);
+    ctx.arc(0, 0, haloInnerRadius, 0, twoPi, true);
     ctx.fill("evenodd");
 
     const haloStrokeGradient = ctx.createLinearGradient(
@@ -13912,10 +13939,10 @@ export class FlowFieldRenderer {
     ctx.shadowBlur = 15 + audioIntensity * 10;
     ctx.shadowColor = this.hsla(triangleHue, 100, 80, 0.5);
     ctx.beginPath();
-    ctx.arc(0, 0, haloOuterRadius, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, haloOuterRadius, 0, twoPi);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(0, 0, haloInnerRadius, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, haloInnerRadius, 0, twoPi);
     ctx.stroke();
 
     const cornerOrbCount = 3;
@@ -13949,7 +13976,7 @@ export class FlowFieldRenderer {
         cornerPoint.y,
         cornerOrbSize * cornerPulse,
         0,
-        FlowFieldRenderer.TWO_PI,
+        twoPi,
       );
       ctx.fill();
     }
@@ -13964,7 +13991,7 @@ export class FlowFieldRenderer {
     ctx.shadowBlur = 25 + audioIntensity * 20;
     ctx.shadowColor = this.hsla(triangleHue, 100, 95, 0.8);
     ctx.beginPath();
-    ctx.arc(0, 0, centerOrbSize, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, centerOrbSize, 0, twoPi);
     ctx.fill();
 
     const outerAuraRadius = haloOuterRadius * (1.3 + audioIntensity * 0.2);
@@ -13983,12 +14010,14 @@ export class FlowFieldRenderer {
     ctx.fillStyle = outerAuraGradient;
     ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.arc(0, 0, outerAuraRadius, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, outerAuraRadius, 0, twoPi);
     ctx.fill();
 
     const particleCount = 12 + ((trebleIntensity * 10) | 0);
+    const invParticleCount = 1 / particleCount;
+    const particleAngleStep = twoPi * invParticleCount;
     for (let p = 0; p < particleCount; p++) {
-      const particleAngle = (p / particleCount) * FlowFieldRenderer.TWO_PI + time * 0.5;
+      const particleAngle = particleAngleStep * p + time * 0.5;
       const particleRadius = haloOuterRadius + 20 + this.fastSin(time * 2 + p) * 15;
       const particleX = this.fastCos(particleAngle) * particleRadius;
       const particleY = this.fastSin(particleAngle) * particleRadius;
@@ -14001,7 +14030,7 @@ export class FlowFieldRenderer {
       ctx.shadowBlur = 10 + trebleIntensity * 8;
       ctx.shadowColor = this.hsla(particleHue, 100, 80, 0.5);
       ctx.beginPath();
-      ctx.arc(particleX, particleY, particleSize, 0, FlowFieldRenderer.TWO_PI);
+      ctx.arc(particleX, particleY, particleSize, 0, twoPi);
       ctx.fill();
     }
 
@@ -14022,122 +14051,106 @@ export class FlowFieldRenderer {
     const time = this.time * 0.0004;
     const minDimension = Math.min(this.width, this.height);
     const maxRadius = minDimension * (0.45 + audioIntensity * 0.25);
+    const twoPi = FlowFieldRenderer.TWO_PI;
 
     const baseHue = this.fastMod360(this.hueBase + time * 3);
     const fieldHue = this.fastMod360(baseHue + 180);
 
     const chargeCount = 2 + ((audioIntensity * 1) | 0);
-    const chargePositions: Array<{ x: number; y: number; charge: number }> = [];
-
+    const chargeX = this.emChargeX;
+    const chargeY = this.emChargeY;
+    const chargeSign = this.emChargeSign;
+    const invChargeCount = 1 / chargeCount;
     for (let c = 0; c < chargeCount; c++) {
-      const chargeAngle = (c / chargeCount) * FlowFieldRenderer.TWO_PI + time * 0.1;
+      const chargeAngle = c * invChargeCount * twoPi + time * 0.1;
       const chargeRadius = maxRadius * (0.2 + c * 0.15);
-      chargePositions.push({
-        x: this.fastCos(chargeAngle) * chargeRadius,
-        y: this.fastSin(chargeAngle) * chargeRadius,
-        charge: c % 2 === 0 ? 1 : -1,
-      });
+      chargeX[c] = this.fastCos(chargeAngle) * chargeRadius;
+      chargeY[c] = this.fastSin(chargeAngle) * chargeRadius;
+      chargeSign[c] = (c & 1) === 0 ? 1 : -1;
     }
 
     const fieldLineCount = 16 + ((audioIntensity * 12) | 0);
     const invFieldLineCount = 1 / fieldLineCount;
-
-    const drawFieldLine = (
-      startX: number,
-      startY: number,
-      chargeX: number,
-      chargeY: number,
-      charge: number,
-      lineHue: number,
-      lineAlpha: number,
-    ): void => {
-      const steps = 50;
-      const stepSize = 3 + audioIntensity * 2;
-      let currentX = startX;
-      let currentY = startY;
-      let totalDistance = 0;
-      const maxDistance = maxRadius * 1.5;
-
-      ctx.strokeStyle = this.hsla(lineHue, 85, 70, lineAlpha);
-      ctx.lineWidth = 1.5 + trebleIntensity * 2;
-      ctx.lineCap = "round";
-      ctx.shadowBlur = 8 + audioIntensity * 6;
-      ctx.shadowColor = this.hsla(lineHue, 90, 75, 0.4);
-
-      ctx.beginPath();
-      ctx.moveTo(currentX, currentY);
-
-      for (let s = 0; s < steps && totalDistance < maxDistance; s++) {
-        let fieldX = 0;
-        let fieldY = 0;
-
-        for (const chargePos of chargePositions) {
-          const dx = currentX - chargePos.x;
-          const dy = currentY - chargePos.y;
-          const distanceSq = dx * dx + dy * dy;
-          const distance = this.fastSqrt(distanceSq);
-
-          if (distance > 5) {
-            const force = chargePos.charge / (distanceSq + 1);
-            fieldX += (dx / distance) * force;
-            fieldY += (dy / distance) * force;
-          }
-        }
-
-        const fieldMagnitude = this.fastSqrt(fieldX * fieldX + fieldY * fieldY);
-        if (fieldMagnitude > 0.01) {
-          const normalizedX = fieldX / fieldMagnitude;
-          const normalizedY = fieldY / fieldMagnitude;
-          currentX += normalizedX * stepSize;
-          currentY += normalizedY * stepSize;
-          totalDistance += stepSize;
-
-          ctx.lineTo(currentX, currentY);
-        } else {
-          break;
-        }
-      }
-
-      ctx.stroke();
-    };
+    const lineAngleStep = twoPi * invFieldLineCount;
+    const lineRadius = maxRadius * (0.15 + audioIntensity * 0.1);
+    const lineStepSize = 3 + audioIntensity * 2;
+    const lineWidth = 1.5 + trebleIntensity * 2;
+    const lineShadowBlur = 8 + audioIntensity * 6;
+    const maxLineDistance = maxRadius * 1.5;
+    ctx.lineCap = "round";
 
     for (let i = 0; i < fieldLineCount; i++) {
-      const lineAngle = (i / fieldLineCount) * FlowFieldRenderer.TWO_PI;
-      const lineRadius = maxRadius * (0.15 + audioIntensity * 0.1);
+      const lineAngle = lineAngleStep * i;
       const startX = this.fastCos(lineAngle) * lineRadius;
       const startY = this.fastSin(lineAngle) * lineRadius;
 
       const lineHue = this.fastMod360(fieldHue + i * (360 * invFieldLineCount));
       const lineAlpha = 0.4 + audioIntensity * 0.3;
 
-      if (chargePositions.length > 0) {
-        const targetCharge = chargePositions[i % chargePositions.length]!;
-        drawFieldLine(
-          startX,
-          startY,
-          targetCharge.x,
-          targetCharge.y,
-          targetCharge.charge,
-          lineHue,
-          lineAlpha,
-        );
+      if (chargeCount > 0) {
+        let currentX = startX;
+        let currentY = startY;
+        let totalDistance = 0;
+
+        ctx.strokeStyle = this.hsla(lineHue, 85, 70, lineAlpha);
+        ctx.lineWidth = lineWidth;
+        ctx.shadowBlur = lineShadowBlur;
+        ctx.shadowColor = this.hsla(lineHue, 90, 75, 0.4);
+
+        ctx.beginPath();
+        ctx.moveTo(currentX, currentY);
+
+        for (let s = 0; s < 50 && totalDistance < maxLineDistance; s++) {
+          let fieldX = 0;
+          let fieldY = 0;
+
+          for (let c = 0; c < chargeCount; c++) {
+            const dx = currentX - chargeX[c]!;
+            const dy = currentY - chargeY[c]!;
+            const distanceSq = dx * dx + dy * dy;
+            const distance = this.fastSqrt(distanceSq);
+
+            if (distance > 5) {
+              const force = chargeSign[c]! / (distanceSq + 1);
+              fieldX += (dx / distance) * force;
+              fieldY += (dy / distance) * force;
+            }
+          }
+
+          const fieldMagnitude = this.fastSqrt(fieldX * fieldX + fieldY * fieldY);
+          if (fieldMagnitude > 0.01) {
+            const normalizedX = fieldX / fieldMagnitude;
+            const normalizedY = fieldY / fieldMagnitude;
+            currentX += normalizedX * lineStepSize;
+            currentY += normalizedY * lineStepSize;
+            totalDistance += lineStepSize;
+
+            ctx.lineTo(currentX, currentY);
+          } else {
+            break;
+          }
+        }
+
+        ctx.stroke();
       }
     }
 
-    for (const chargePos of chargePositions) {
+    for (let c = 0; c < chargeCount; c++) {
       const chargeSize = 12 + bassIntensity * 10 + audioIntensity * 8;
-      const chargeHue = chargePos.charge > 0
+      const chargeHue = chargeSign[c]! > 0
         ? this.fastMod360(fieldHue + 30)
         : this.fastMod360(fieldHue + 210);
       const chargeAlpha = 0.7 + audioIntensity * 0.2;
       const chargePulse = 1 + this.fastSin(time * 2) * (0.15 + bassIntensity * 0.1);
+      const chargePosX = chargeX[c]!;
+      const chargePosY = chargeY[c]!;
 
       const chargeGradient = ctx.createRadialGradient(
-        chargePos.x,
-        chargePos.y,
+        chargePosX,
+        chargePosY,
         0,
-        chargePos.x,
-        chargePos.y,
+        chargePosX,
+        chargePosY,
         chargeSize * chargePulse,
       );
       chargeGradient.addColorStop(0, this.hsla(chargeHue, 100, 80, chargeAlpha));
@@ -14148,13 +14161,7 @@ export class FlowFieldRenderer {
       ctx.shadowBlur = 20 + audioIntensity * 15;
       ctx.shadowColor = this.hsla(chargeHue, 100, 85, 0.6);
       ctx.beginPath();
-      ctx.arc(
-        chargePos.x,
-        chargePos.y,
-        chargeSize * chargePulse,
-        0,
-        FlowFieldRenderer.TWO_PI,
-      );
+      ctx.arc(chargePosX, chargePosY, chargeSize * chargePulse, 0, twoPi);
       ctx.fill();
 
       const chargeRingRadius = chargeSize * chargePulse * 1.3;
@@ -14162,13 +14169,15 @@ export class FlowFieldRenderer {
       ctx.lineWidth = 2;
       ctx.shadowBlur = 10;
       ctx.beginPath();
-      ctx.arc(chargePos.x, chargePos.y, chargeRingRadius, 0, FlowFieldRenderer.TWO_PI);
+      ctx.arc(chargePosX, chargePosY, chargeRingRadius, 0, twoPi);
       ctx.stroke();
     }
 
     const particleCount = 25 + ((audioIntensity * 20) | 0);
+    const invParticleCount = 1 / particleCount;
+    const particleAngleStep = twoPi * invParticleCount;
     for (let p = 0; p < particleCount; p++) {
-      const particleAngle = (p / particleCount) * FlowFieldRenderer.TWO_PI + time * 0.6;
+      const particleAngle = particleAngleStep * p + time * 0.6;
       const particleRadius = maxRadius * (0.2 + (p % 3) * 0.15);
       const baseParticleX = this.fastCos(particleAngle) * particleRadius;
       const baseParticleY = this.fastSin(particleAngle) * particleRadius;
@@ -14176,14 +14185,14 @@ export class FlowFieldRenderer {
       let particleX = baseParticleX;
       let particleY = baseParticleY;
 
-      for (const chargePos of chargePositions) {
-        const dx = particleX - chargePos.x;
-        const dy = particleY - chargePos.y;
+      for (let c = 0; c < chargeCount; c++) {
+        const dx = particleX - chargeX[c]!;
+        const dy = particleY - chargeY[c]!;
         const distanceSq = dx * dx + dy * dy;
         const distance = this.fastSqrt(distanceSq);
 
         if (distance > 10) {
-          const force = chargePos.charge * 0.5 / (distanceSq + 1);
+          const force = chargeSign[c]! * 0.5 / (distanceSq + 1);
           particleX += (dx / distance) * force;
           particleY += (dy / distance) * force;
         }
@@ -14197,30 +14206,37 @@ export class FlowFieldRenderer {
       ctx.shadowBlur = 8 + trebleIntensity * 6;
       ctx.shadowColor = this.hsla(particleHue, 95, 80, 0.4);
       ctx.beginPath();
-      ctx.arc(particleX, particleY, particleSize, 0, FlowFieldRenderer.TWO_PI);
+      ctx.arc(particleX, particleY, particleSize, 0, twoPi);
       ctx.fill();
 
       const trailLength = particleSize * 3;
-      const trailAngle = Math.atan2(particleY - baseParticleY, particleX - baseParticleX);
-      const trailGradient = ctx.createLinearGradient(
-        particleX - this.fastCos(trailAngle) * trailLength,
-        particleY - this.fastSin(trailAngle) * trailLength,
-        particleX,
-        particleY,
-      );
-      trailGradient.addColorStop(0, this.hsla(particleHue, 85, 70, 0));
-      trailGradient.addColorStop(1, this.hsla(particleHue, 90, 75, particleAlpha * 0.5));
+      const trailDX = particleX - baseParticleX;
+      const trailDY = particleY - baseParticleY;
+      const trailLenSq = trailDX * trailDX + trailDY * trailDY;
+      if (trailLenSq > 0.0001) {
+        const invTrailLen = 1 / this.fastSqrt(trailLenSq);
+        const dirX = trailDX * invTrailLen;
+        const dirY = trailDY * invTrailLen;
+        const trailStartX = particleX - dirX * trailLength;
+        const trailStartY = particleY - dirY * trailLength;
 
-      ctx.strokeStyle = trailGradient;
-      ctx.lineWidth = particleSize * 0.6;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(
-        particleX - this.fastCos(trailAngle) * trailLength,
-        particleY - this.fastSin(trailAngle) * trailLength,
-      );
-      ctx.lineTo(particleX, particleY);
-      ctx.stroke();
+        const trailGradient = ctx.createLinearGradient(
+          trailStartX,
+          trailStartY,
+          particleX,
+          particleY,
+        );
+        trailGradient.addColorStop(0, this.hsla(particleHue, 85, 70, 0));
+        trailGradient.addColorStop(1, this.hsla(particleHue, 90, 75, particleAlpha * 0.5));
+
+        ctx.strokeStyle = trailGradient;
+        ctx.lineWidth = particleSize * 0.6;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(trailStartX, trailStartY);
+        ctx.lineTo(particleX, particleY);
+        ctx.stroke();
+      }
     }
 
     const waveCount = 3 + ((audioIntensity * 2) | 0);
@@ -14238,9 +14254,11 @@ export class FlowFieldRenderer {
       ctx.shadowColor = this.hsla(waveHue, 90, 75, 0.3);
 
       const wavePoints = 64;
+      const invWavePoints = 1 / wavePoints;
+      const waveAngleStep = twoPi * invWavePoints;
       ctx.beginPath();
       for (let wp = 0; wp <= wavePoints; wp++) {
-        const waveAngle = (wp / wavePoints) * FlowFieldRenderer.TWO_PI;
+        const waveAngle = waveAngleStep * wp;
         const waveOffset = this.fastSin(waveAngle * 3 + wavePhase) * waveAmplitude;
         const currentRadius = waveRadius + waveOffset;
         const waveX = this.fastCos(waveAngle) * currentRadius;
@@ -14273,15 +14291,18 @@ export class FlowFieldRenderer {
     const time = this.time * 0.0006;
     const minDimension = Math.min(this.width, this.height);
     const maxRadius = minDimension * (0.5 + audioIntensity * 0.3);
+    const twoPi = FlowFieldRenderer.TWO_PI;
 
     const baseHue = this.fastMod360(this.hueBase + time * 4);
     const foamHue = this.fastMod360(baseHue + 60);
 
     const foamCellCount = 40 + ((audioIntensity * 30) | 0);
+    const invFoamCellCount = 1 / foamCellCount;
+    const foamCellAngleStep = twoPi * invFoamCellCount;
     const cellSize = maxRadius * 0.15;
 
     for (let c = 0; c < foamCellCount; c++) {
-      const cellAngle = (c / foamCellCount) * FlowFieldRenderer.TWO_PI + time * 0.3;
+      const cellAngle = foamCellAngleStep * c + time * 0.3;
       const cellRadius = maxRadius * (0.1 + (c % 5) * 0.1) + this.fastSin(time * 2 + c) * 20;
       const cellX = this.fastCos(cellAngle) * cellRadius;
       const cellY = this.fastSin(cellAngle) * cellRadius;
@@ -14307,7 +14328,7 @@ export class FlowFieldRenderer {
       ctx.shadowBlur = 12 + audioIntensity * 10;
       ctx.shadowColor = this.hsla(cellHue, 90, 75, 0.4);
       ctx.beginPath();
-      ctx.arc(cellX, cellY, currentCellSize, 0, FlowFieldRenderer.TWO_PI);
+      ctx.arc(cellX, cellY, currentCellSize, 0, twoPi);
       ctx.fill();
 
       const cellRingRadius = currentCellSize * 1.2;
@@ -14315,16 +14336,18 @@ export class FlowFieldRenderer {
       ctx.lineWidth = 1.5;
       ctx.shadowBlur = 6;
       ctx.beginPath();
-      ctx.arc(cellX, cellY, cellRingRadius, 0, FlowFieldRenderer.TWO_PI);
+      ctx.arc(cellX, cellY, cellRingRadius, 0, twoPi);
       ctx.stroke();
     }
 
     const virtualParticleCount = 60 + ((audioIntensity * 40) | 0);
+    const invVirtualParticleCount = 1 / virtualParticleCount;
+    const virtualParticleAngleStep = twoPi * invVirtualParticleCount;
     for (let v = 0; v < virtualParticleCount; v++) {
-      const particleLife = (v / virtualParticleCount + time * 0.5) % 1;
+      const particleLife = (v * invVirtualParticleCount + time * 0.5) % 1;
       if (particleLife < 0.3 || particleLife > 0.7) continue;
 
-      const particleAngle = (v / virtualParticleCount) * FlowFieldRenderer.TWO_PI + time * 0.4;
+      const particleAngle = virtualParticleAngleStep * v + time * 0.4;
       const particleRadius = maxRadius * (0.2 + (v % 4) * 0.15);
       const particleX = this.fastCos(particleAngle) * particleRadius;
       const particleY = this.fastSin(particleAngle) * particleRadius;
@@ -14339,13 +14362,15 @@ export class FlowFieldRenderer {
       ctx.shadowBlur = 8 + trebleIntensity * 6;
       ctx.shadowColor = this.hsla(particleHue, 100, 80, 0.5);
       ctx.beginPath();
-      ctx.arc(particleX, particleY, particleSize, 0, FlowFieldRenderer.TWO_PI);
+      ctx.arc(particleX, particleY, particleSize, 0, twoPi);
       ctx.fill();
     }
 
     const energyFluctuationCount = 8 + ((audioIntensity * 6) | 0);
+    const invFluctuationCount = 1 / energyFluctuationCount;
+    const fluctuationAngleStep = twoPi * invFluctuationCount;
     for (let e = 0; e < energyFluctuationCount; e++) {
-      const fluctuationAngle = (e / energyFluctuationCount) * FlowFieldRenderer.TWO_PI + time * 0.2;
+      const fluctuationAngle = fluctuationAngleStep * e + time * 0.2;
       const fluctuationRadius = maxRadius * (0.15 + (e % 3) * 0.12);
       const fluctuationX = this.fastCos(fluctuationAngle) * fluctuationRadius;
       const fluctuationY = this.fastSin(fluctuationAngle) * fluctuationRadius;
@@ -14376,15 +14401,17 @@ export class FlowFieldRenderer {
         fluctuationY,
         fluctuationSize * fluctuationPulse,
         0,
-        FlowFieldRenderer.TWO_PI,
+        twoPi,
       );
       ctx.fill();
     }
 
     const connectionCount = 15 + ((audioIntensity * 12) | 0);
+    const invConnectionCount = 1 / connectionCount;
+    const connectionAngleStep = twoPi * invConnectionCount;
     for (let conn = 0; conn < connectionCount; conn++) {
-      const connAngle1 = (conn / connectionCount) * FlowFieldRenderer.TWO_PI + time * 0.3;
-      const connAngle2 = ((conn + 3) / connectionCount) * FlowFieldRenderer.TWO_PI + time * 0.3;
+      const connAngle1 = connectionAngleStep * conn + time * 0.3;
+      const connAngle2 = connectionAngleStep * (conn + 3) + time * 0.3;
       const connRadius1 = maxRadius * (0.2 + (conn % 3) * 0.1);
       const connRadius2 = maxRadius * (0.25 + ((conn + 1) % 3) * 0.1);
 
@@ -14431,9 +14458,11 @@ export class FlowFieldRenderer {
       ctx.shadowColor = this.hsla(foamWaveHue, 85, 70, 0.2);
 
       const foamWavePoints = 48;
+      const invFoamWavePoints = 1 / foamWavePoints;
+      const foamWaveAngleStep = twoPi * invFoamWavePoints;
       ctx.beginPath();
       for (let fwp = 0; fwp <= foamWavePoints; fwp++) {
-        const foamWaveAngle = (fwp / foamWavePoints) * FlowFieldRenderer.TWO_PI;
+        const foamWaveAngle = foamWaveAngleStep * fwp;
         const foamWaveOffset = this.fastSin(foamWaveAngle * 4 + foamWavePhase) * foamWaveAmplitude;
         const currentFoamRadius = foamWaveRadius + foamWaveOffset;
         const foamWaveX = this.fastCos(foamWaveAngle) * currentFoamRadius;
@@ -14458,7 +14487,7 @@ export class FlowFieldRenderer {
     ctx.fillStyle = voidGradient;
     ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.arc(0, 0, centralVoidRadius, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, centralVoidRadius, 0, twoPi);
     ctx.fill();
 
     const outerFoamAuraRadius = maxRadius * 0.9;
@@ -14476,7 +14505,7 @@ export class FlowFieldRenderer {
     ctx.fillStyle = foamAuraGradient;
     ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.arc(0, 0, outerFoamAuraRadius, 0, FlowFieldRenderer.TWO_PI);
+    ctx.arc(0, 0, outerFoamAuraRadius, 0, twoPi);
     ctx.fill();
 
     ctx.shadowBlur = 0;

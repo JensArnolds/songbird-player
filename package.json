@@ -1,6 +1,6 @@
 {
   "name": "starchildmusic",
-  "version": "0.10.15",
+  "version": "0.10.16",
   "description": "A modern music streaming and discovery platform with intelligent recommendations, advanced audio features, and a beautiful user interface",
   "private": true,
   "type": "module",

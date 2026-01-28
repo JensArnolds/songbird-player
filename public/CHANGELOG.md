@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.16] - 2026-01-27
+
+### Changed
+
+- **FlowField Renderer Bottom Patterns Optimization**: Reduced per-frame allocations and math overhead in the lowest listed visuals for smoother Firefox rendering
+  - Reused buffers in Sacred Triangle and EM Field; reduced angle divisions and per-frame object creation
+  - Optimized Quantum Foam loops with precomputed angle steps and local constants
+  - Tightened Gothic Thorns angle math to reduce repeated division
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+
 ## [0.10.15] - 2026-01-27
 
 ### Changed
