@@ -1,11 +1,11 @@
 // File: src/__tests__/og-image-darkfloor-links.test.ts
 
-import { beforeAll, describe, expect, it } from "vitest";
 import { GET } from "@/app/api/og/route";
-import type { NextRequest } from "next/server";
-import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
 import type { SearchResponse, Track } from "@/types";
+import { mkdir, writeFile } from "fs/promises";
+import type { NextRequest } from "next/server";
+import { join } from "path";
+import { beforeAll, describe, expect, it } from "vitest";
 
 const TEST_URLS = [
   "https://www.darkfloor.art/?q=film+burn+yppah",
@@ -14,7 +14,7 @@ const TEST_URLS = [
   "https://www.darkfloor.art/track/1913577097",
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.darkfloor.art";
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const STREAMING_KEY =
   process.env.STREAMING_KEY ?? "avnadminavnadminavnadmin";
 

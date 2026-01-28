@@ -25,8 +25,8 @@ import { MenuProvider } from "@/contexts/MenuContext";
 import { PlaylistContextMenuProvider } from "@/contexts/PlaylistContextMenuContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TrackContextMenuProvider } from "@/contexts/TrackContextMenuContext";
-import { TRPCReactProvider } from "@/trpc/react";
 import { env } from "@/env";
+import { TRPCReactProvider } from "@/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { RegisterServiceWorker } from "./register-sw";
 
@@ -39,13 +39,13 @@ const baseUrl = getBaseUrl();
 
 // Get default OG image URL from environment
 const getDefaultOgImageUrl = (): string => {
-  const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+  const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
   if (songbirdApiUrl) {
-    const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
+    const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
     return `${normalizedSongbirdUrl}/api/preview/default`;
   }
-  // Fallback to hardcoded URL if env not configured
-  return "https://darkfloor.one/api/preview/default";
+  // Fallback to static OG image served by this app if env not configured
+  return "/og-image.png";
 };
 
 const defaultOgImageUrl = getDefaultOgImageUrl();

@@ -1,8 +1,8 @@
 // File: src/middleware.ts
 
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { env } from "@/env";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const rateLimit = new Map<string, { count: number; resetTime: number }>();
 
@@ -71,16 +71,17 @@ export function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/api/") &&
     !request.nextUrl.pathname.startsWith("/_next/")
   ) {
-    // Get API URLs from environment variables
     const apiUrl = env.NEXT_PUBLIC_API_URL;
-    const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
-    
-    // Extract domains from URLs for CSP
-    const apiDomain = apiUrl ? new URL(apiUrl).origin : "https://api.darkfloor.art";
-    const songbirdDomain = songbirdApiUrl ? new URL(songbirdApiUrl).origin : "https://songbird.darkfloor.art";
-    // Generate wildcard WebSocket domain for songbird (e.g., wss://*.darkfloor.one)
-    const songbirdWsDomain = songbirdDomain.replace(/^https?:\/\//, "wss://*.");
-    
+    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+
+    const apiDomain = apiUrl ? new URL(apiUrl).origin : "";
+    const songbirdDomain = songbirdApiUrl
+      ? new URL(songbirdApiUrl).origin
+      : "";
+    const songbirdWsDomain = songbirdDomain
+      ? songbirdDomain.replace(/^https?:\/\//, "wss://*.")
+      : "";
+
     const cspHeader = `
       default-src 'self';
       script-src 'self' 'unsafe-eval' 'unsafe-inline';

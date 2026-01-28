@@ -1,9 +1,6 @@
 const path = require("path");
 const fs = require("fs");
 
-// ONLY load .env.local - no other env files
-// For dev: uses .env.local from project root
-// For packaged: uses .env.local copied to standalone directory
 try {
   const dotenv = require("dotenv");
 
@@ -77,8 +74,7 @@ const loadWindowState = () => {
     log("Failed to load window state:", err);
   }
 
-  // Default window state
-  return {
+    return {
     width: 1200,
     height: 800,
     isMaximized: false,
@@ -211,8 +207,7 @@ const startServer = async () => {
       nodeExecutable = bundledNodePath;
       log("Using bundled Node.js:", bundledNodePath);
     } else {
-      // Check if 'node' is available in system PATH
-      try {
+            try {
         require("child_process").execSync("node --version", { stdio: "ignore" });
         log("Using system Node.js from PATH");
       } catch (err) {
@@ -302,8 +297,7 @@ const createWindow = async () => {
     }
   }
 
-  // Load saved window state
-  const windowState = loadWindowState();
+    const windowState = loadWindowState();
 
   mainWindow = new BrowserWindow({
     width: windowState.width,
@@ -318,21 +312,18 @@ const createWindow = async () => {
       contextIsolation: true,
       sandbox: true,
       devTools: enableDevTools,
-      // Enable persistent storage partition
-      partition: "persist:darkfloor-art",
+            partition: "persist:darkfloor-art",
     },
     icon: path.join(__dirname, "../public/icon.png"),
     backgroundColor: "#000000",
     show: false,
   });
 
-  // Restore maximized state
-  if (windowState.isMaximized) {
+    if (windowState.isMaximized) {
     mainWindow.maximize();
   }
 
-  // Save window state on resize and move
-  mainWindow.on("resize", () => {
+    mainWindow.on("resize", () => {
     if (mainWindow && !mainWindow.isMaximized()) {
       saveWindowState(mainWindow);
     }
