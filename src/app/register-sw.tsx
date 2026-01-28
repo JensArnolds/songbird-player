@@ -18,6 +18,9 @@ export function RegisterServiceWorker() {
             "Service Worker registered with scope:",
             registration.scope,
           );
+          registration.update().catch(() => {
+            // Update checks can fail if the user goes offline.
+          });
         })
         .catch((error) => {
           console.error("Service Worker registration failed:", error);
