@@ -322,7 +322,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - No more edge runtime timeouts (backend handles image generation)
     - Better image quality (native canvas vs Next.js ImageResponse)
   - **Fallback**: If backend unavailable, falls back to frontend generation with 5s API / 2s cover timeouts
-  - **Env**: Uses `SONGBIRD_PUBLIC_API_URL` (local: http://127.0.0.1:3333/, prod: https://darkfloor.one/)
+  - **Env**: Uses `NEXT_PUBLIC_V2_API_URL` (local: http://127.0.0.1:3333/, prod: https://darkfloor.one/)
   - **Endpoints**: `/api/og?trackId=123` → Backend `/api/track/123/preview`, `/api/og?q=search` → Backend POST
   - Locations: `src/app/api/og/route.tsx`, `src/app/page.tsx`, `src/app/track/[id]/page.tsx`
 
@@ -779,7 +779,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Songbird Env Var**: Use `NEXT_PUBLIC_V2_API_URL` for the Songbird base URL
+- **Songbird Env Alias**: Support `SONGBIRD_PUBLIC_API_URL` for the Songbird base URL
   - **Impact**: Easier env configuration across environments
   - Location: `src/services/songbird.ts`
 
