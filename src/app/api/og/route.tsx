@@ -1,7 +1,7 @@
 // File: src/app/api/og/route.tsx
 
-import type { NextRequest } from "next/server";
 import { env } from "@/env";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,12 +44,12 @@ export async function GET(request: NextRequest) {
             params.set("album", albumTitle);
           }
 
-          const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+          const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
           if (songbirdApiUrl) {
-            const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
-            const darkfloorUrl = `${normalizedSongbirdUrl}/api/preview?${params.toString()}`;
-            console.log("[OG Route] Redirecting to darkfloor preview:", darkfloorUrl);
-            return Response.redirect(darkfloorUrl, 302);
+            const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
+            const previewUrl = `${normalizedSongbirdUrl}/api/preview?${params.toString()}`;
+            console.log("[OG Route] Redirecting to darkfloor preview:", previewUrl);
+            return Response.redirect(previewUrl, 302);
           }
         }
       }
@@ -115,12 +115,12 @@ export async function GET(request: NextRequest) {
                 params.set("album", albumTitle);
               }
 
-              const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+              const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
               if (songbirdApiUrl) {
-                const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
-                const darkfloorUrl = `${normalizedSongbirdUrl}/api/preview?${params.toString()}`;
-                console.log("[OG Route] Redirecting to track-specific preview:", darkfloorUrl);
-                return Response.redirect(darkfloorUrl, 302);
+                const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
+                const previewUrl = `${normalizedSongbirdUrl}/api/preview?${params.toString()}`;
+                console.log("[OG Route] Redirecting to track-specific preview:", previewUrl);
+                return Response.redirect(previewUrl, 302);
               }
             }
           }
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     // This is less reliable but works when frontend search doesn't find a match
     const backendApiUrl = env.NEXT_PUBLIC_API_URL;
     if (backendApiUrl) {
-      const normalizedUrl = backendApiUrl.endsWith("/") ? backendApiUrl.slice(0, -1) : backendApiUrl;
+      const normalizedUrl = backendApiUrl.replace(/\/+$/, "");
       const encodedQuery = encodeURIComponent(trimmedQuery);
       const previewUrl = `${normalizedUrl}/api/preview?q=${encodedQuery}`;
       
@@ -184,11 +184,12 @@ export async function GET(request: NextRequest) {
   }
 
   console.log("[OG Route] No track data found, using default image");
-  const songbirdApiUrl = env.SONGBIRD_PUBLIC_API_URL || env.NEXT_PUBLIC_SONGBIRD_API_URL;
+  const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
   if (songbirdApiUrl) {
-    const normalizedSongbirdUrl = songbirdApiUrl.endsWith("/") ? songbirdApiUrl.slice(0, -1) : songbirdApiUrl;
+    const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
     return Response.redirect(`${normalizedSongbirdUrl}/api/preview/default`, 302);
   }
-  // Fallback to hardcoded URL if env not configured
-  return Response.redirect("https://darkfloor.one/api/preview/default", 302);
+  // Fallback to static OG image on the current origin if env not configured
+  const fallbackUrl = new URL("/og-image.png", origin);
+  return Response.redirect(fallbackUrl.toString(), 302);
 }

@@ -61,7 +61,7 @@ When `NEXT_PUBLIC_API_URL` is unavailable (404/400 errors), the following routes
 
 ---
 
-## Songbird Recommendations API (`SONGBIRD_PUBLIC_API_URL`)
+## Songbird Recommendations API (`NEXT_PUBLIC_V2_API_URL`)
 
 **Purpose:** Enhanced AI/ML-powered music recommendations
 **Required:** No (optional)
@@ -125,9 +125,9 @@ STREAMING_KEY=your_streaming_key_here
 
 ```bash
 # Songbird Recommendations API (Optional - enhances recommendations)
-NEXT_PUBLIC_SONGBIRD_API_URL=https://songbird-api.example.com
+NEXT_PUBLIC_V2_API_URL=https://songbird-api.example.com
 # OR (server-side only)
-SONGBIRD_PUBLIC_API_URL=https://songbird-api.example.com
+NEXT_PUBLIC_V2_API_URL=https://songbird-api.example.com
 
 SONGBIRD_API_KEY=your_songbird_api_key_here
 ```

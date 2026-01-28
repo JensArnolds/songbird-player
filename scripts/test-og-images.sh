@@ -6,9 +6,9 @@
 
 echo "🎨 Testing OG Image Generation..."
 echo ""
-echo "Note: Backend API URLs:"
-echo "  Local:      http://127.0.0.1:3333"
-echo "  Production: https://darkfloor.one"
+echo "Note: Backend API URLs (from env):"
+echo "  NEXT_PUBLIC_API_URL:           ${NEXT_PUBLIC_API_URL:-"(not set)"}"
+echo "  NEXT_PUBLIC_V2_API_URL:       ${NEXT_PUBLIC_V2_API_URL:-"(not set)"}"
 echo ""
 
 BASE_URL="${1:-http://localhost:3222}"

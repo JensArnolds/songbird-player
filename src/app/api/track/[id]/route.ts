@@ -38,7 +38,7 @@ export async function GET(
       );
     }
 
-    const normalizedApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
+    const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
     const url = new URL(`music/track/${id}`, normalizedApiUrl);
     url.searchParams.set("key", streamingKey);
 

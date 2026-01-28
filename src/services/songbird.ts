@@ -2,8 +2,10 @@
 
 import { env } from "@/env";
 
-const SONGBIRD_API_URL =
-  env.NEXT_PUBLIC_SONGBIRD_API_URL ?? env.SONGBIRD_PUBLIC_API_URL;
+const rawSongbirdUrl = env.NEXT_PUBLIC_V2_API_URL;
+const SONGBIRD_API_URL = rawSongbirdUrl
+  ? rawSongbirdUrl.replace(/\/+$/, "")
+  : undefined;
 const SONGBIRD_API_KEY = env.SONGBIRD_API_KEY;
 
 async function songbirdRequest<T>(
@@ -11,9 +13,7 @@ async function songbirdRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   if (!SONGBIRD_API_URL) {
-    throw new Error(
-      "Songbird API URL is not configured. Set NEXT_PUBLIC_SONGBIRD_API_URL or SONGBIRD_PUBLIC_API_URL.",
-    );
+    throw new Error("Songbird API URL is not configured. Set NEXT_PUBLIC_V2_API_URL.");
   }
 
   if (!SONGBIRD_API_KEY) {
@@ -22,7 +22,10 @@ async function songbirdRequest<T>(
     );
   }
 
-  const url = `${SONGBIRD_API_URL}${endpoint.startsWith("/") ? endpoint.slice(1) : endpoint}`;
+  const normalizedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+  const url = `${SONGBIRD_API_URL}${normalizedEndpoint}`;
 
   const response = await fetch(url, {
     ...options,

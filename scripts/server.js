@@ -167,14 +167,14 @@ function printStartupBanner() {
 
     if (process.env.NEXT_PUBLIC_API_URL) {
     console.log(chalk.bold("  API Configuration:"));
+  console.log(
+    `    ${chalk.gray("•")} API URL:         ${chalk.white(process.env.NEXT_PUBLIC_API_URL)}`,
+  );
+  if (process.env.NEXT_PUBLIC_V2_API_URL) {
     console.log(
-      `    ${chalk.gray("•")} API URL:         ${chalk.white(process.env.NEXT_PUBLIC_API_URL)}`,
+      `    ${chalk.gray("•")} V2 API:          ${chalk.white(process.env.NEXT_PUBLIC_V2_API_URL)}`,
     );
-    if (process.env.SONGBIRD_PUBLIC_API_URL) {
-      console.log(
-        `    ${chalk.gray("•")} Songbird API:    ${chalk.white(process.env.SONGBIRD_PUBLIC_API_URL)}`,
-      );
-    }
+  }
     console.log("");
   }
 

@@ -168,7 +168,7 @@
     NEXT_PUBLIC_API_URL="https://api.darkfloor.art/"  # Darkfloor API for search/streaming
     STREAMING_KEY="your-secure-stream-key"  # Optional: For authenticated streaming
     SONGBIRD_API_KEY=""  # Optional: For Songbird API recommendations
-    NEXT_PUBLIC_SONGBIRD_API_URL="https://songbird.darkfloor.art/"  # Optional: Songbird API
+    NEXT_PUBLIC_V2_API_URL="https://songbird.darkfloor.art/"  # Optional: V2 API
 
     # Environment
     NODE_ENV="development"
@@ -1064,7 +1064,7 @@ DB_SSL_CA="/path/to/ca.pem"  # Optional: SSL certificate
 NEXT_PUBLIC_API_URL="https://api.darkfloor.art/"  # Darkfloor API (search & streaming)
 STREAMING_KEY="your-secure-stream-key"  # Optional: For authenticated streaming
 SONGBIRD_API_KEY="optional-songbird-key"  # Optional: For Songbird API features
-NEXT_PUBLIC_SONGBIRD_API_URL="https://songbird.darkfloor.art/"  # Songbird API (recommendations)
+NEXT_PUBLIC_V2_API_URL="https://songbird.darkfloor.art/"  # V2 API (recommendations)
 
 # Environment
 NODE_ENV="production"

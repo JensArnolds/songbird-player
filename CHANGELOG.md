@@ -291,14 +291,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replaced GitLab logo SVG with GitHub octocat logo SVG
   - **Location**: `src/app/HomePageClient.tsx:635-668`
 
-- **API Health Check URL**: Updated health check to use dedicated `API_HEALTH_URL` environment variable
+- **API Health Check URL**: Updated health check to use dedicated `NEXT_PUBLIC_API_HEALTH_URL` environment variable
   - **Previous**: Constructed health URL from `NEXT_PUBLIC_API_URL + "/health"`
-  - **New**: Uses `API_HEALTH_URL` environment variable directly (falls back to constructed URL if not set)
-  - **Configuration**: Added `NEXT_PUBLIC_API_HEALTH_URL` to client env schema, mapped from `API_HEALTH_URL`
+  - **New**: Uses `NEXT_PUBLIC_API_HEALTH_URL` environment variable directly (falls back to constructed URL if not set)
+  - **Configuration**: Added `NEXT_PUBLIC_API_HEALTH_URL` to client env schema
   - **Location**: `src/env.js:37, 57`, `src/components/Header.tsx:47-53`
 
 - **Dual API Health Monitoring**: Added monitoring for both API v1 and v2 health endpoints
-  - **New Environment Variable**: `API_V2_HEALTH_URL` for secondary API health check
+  - **New Environment Variable**: `NEXT_PUBLIC_API_V2_HEALTH_URL` for secondary API health check
   - **Three-State Status**: Health indicator now shows three states:
     - 🟢 **Green "Api Healthy"**: Both APIs return `status: "ok"`
     - 🟡 **Yellow "Api Degraded"**: APIs respond but one returns `status: "degraded"` or `"unhealthy"`
@@ -322,7 +322,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - No more edge runtime timeouts (backend handles image generation)
     - Better image quality (native canvas vs Next.js ImageResponse)
   - **Fallback**: If backend unavailable, falls back to frontend generation with 5s API / 2s cover timeouts
-  - **Env**: Uses `SONGBIRD_PUBLIC_API_URL` (local: http://127.0.0.1:3333/, prod: https://darkfloor.one/)
+  - **Env**: Uses `NEXT_PUBLIC_V2_API_URL` (local: http://127.0.0.1:3333/, prod: https://darkfloor.one/)
   - **Endpoints**: `/api/og?trackId=123` → Backend `/api/track/123/preview`, `/api/og?q=search` → Backend POST
   - Locations: `src/app/api/og/route.tsx`, `src/app/page.tsx`, `src/app/track/[id]/page.tsx`
 
