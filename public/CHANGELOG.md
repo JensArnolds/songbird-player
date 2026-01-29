@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Location: `src/components/visualizers/FlowFieldRenderer.ts`
 - **Further Visual Optimizations**: Reduced cost in Fractal, Mandelbrot Spiral, and Menger Sponge using adaptive quality scaling
   - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+- **More Visual Optimizations**: Tuned Plasma Storm, Perlin Noise Field, and Superformula for adaptive detail scaling on Firefox
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+- **Additional Visual Optimizations**: Reduced gradient/shadow load and element counts in Divine Light, Transcendence, and Tree of Life
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+- **Additional Visual Optimizations**: Scaled Solar Flare, Gothic Thorns, and Phoenix with adaptive detail to reduce gradient/shadow cost
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
 - **API Decryption Modernization**: API modernised to use new decryption methods
 
 ## [0.10.19] - 2026-01-29
