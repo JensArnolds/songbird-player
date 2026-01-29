@@ -498,6 +498,9 @@ export class FlowFieldRenderer {
   private sacredTrianglePoints = new Float32Array(6);
   private sacredInnerTrianglePoints = new Float32Array(6);
   private voronoiSeedData = new Float32Array(0);
+  private chaosVortexRadiusMods = new Float32Array(0);
+  private langtonsAntGrid = new Uint8Array(0);
+  private langtonsAntGridSize = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -1485,20 +1488,28 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const waveCount = this.waveCount;
+    const pixelCount = this.width * this.height;
+    const detailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const waveCount = Math.max(3, (this.waveCount * detailScale) | 0);
     const amplitude = (50 + audioIntensity * 100) * this.waveAmplitude;
     const frequency = 0.02 + trebleIntensity * 0.03;
+    const time = this.time;
+    const time02 = time * 0.02;
+    const time01 = time * 0.01;
+    const time005 = time * 0.05;
+    const time003 = time * 0.03;
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
 
     for (let w = 0; w < waveCount; w++) {
-      const phase = this.time * 0.02 + (w * Math.PI) / waveCount;
+      const phase = time02 + (w * Math.PI) / waveCount;
       const baseRadius = 50 + (w << 6) - (w << 2);
 
       ctx.beginPath();
 
-      const steps = 157;
+      const steps = Math.max(96, (157 * detailScale) | 0);
       const angleStep = FlowFieldRenderer.TWO_PI / steps;
 
       for (let i = 0; i <= steps; i++) {
@@ -1515,7 +1526,7 @@ export class FlowFieldRenderer {
         const x = this.centerX + this.fastCos(angle) * r;
         const y = this.centerY + this.fastSin(angle) * r;
 
-        if (angle === 0) {
+        if (i === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
@@ -1552,32 +1563,37 @@ export class FlowFieldRenderer {
       ctx.fill();
     }
 
-    const gridSize = 48;
+    let gridSize = 48;
+    if (pixelCount > 900_000) gridSize = 80;
+    else if (pixelCount > 700_000) gridSize = 64;
+    else if (pixelCount > 500_000) gridSize = 56;
     ctx.globalAlpha = 0.18 + audioIntensity * 0.25;
+    const drawHighlights = detailScale >= 0.85;
 
     for (let y = 0; y < this.height; y += gridSize) {
       for (let x = 0; x < this.width; x += gridSize) {
         const dx = x - this.centerX;
         const dy = y - this.centerY;
         const distSq = dx * dx + dy * dy;
-        const dist = Math.sqrt(distSq);
+        const dist = this.fastSqrt(distSq);
 
         const wave1 =
-          Math.sin(dist * frequency - this.time * 0.05) * 10 * trebleIntensity;
+          this.fastSin(dist * frequency - time005) * 10 * trebleIntensity;
         const wave2 =
-          Math.cos(dist * frequency * 0.7 + this.time * 0.03) *
+          this.fastCos(dist * frequency * 0.7 + time003) *
           5 *
           bassIntensity;
         const wave = wave1 + wave2;
 
-        const hue = ((this.hueBase + (dist >> 1) + this.time * 0.08) % 360) | 0;
-        const size = (2 + Math.abs(wave)) | 0;
+        const hue = ((this.hueBase + (dist >> 1) + time * 0.08) % 360) | 0;
+        const absWave = wave < 0 ? -wave : wave;
+        const size = (2 + absWave) | 0;
 
-        const pointAlpha = 0.5 + Math.sin(this.time * 0.01 + dist * 0.02) * 0.3;
+        const pointAlpha = 0.5 + this.fastSin(time01 + dist * 0.02) * 0.3;
         ctx.fillStyle = `hsla(${hue}, 85%, 72%, ${pointAlpha})`;
         ctx.fillRect((x + wave) | 0, (y + wave) | 0, size, size);
 
-        if ((x & 0x3f) === 0 && (y & 0x3f) === 0) {
+        if (drawHighlights && (x & 0x3f) === 0 && (y & 0x3f) === 0) {
           ctx.fillStyle = `hsla(${hue + 30}, 100%, 80%, ${pointAlpha * 0.3})`;
           ctx.fillRect(
             (x + wave - 2) | 0,
@@ -2452,6 +2468,12 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
 
+    const pixelCount = this.width * this.height;
+    const detailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const starStride = detailScale < 0.85 ? 2 : 1;
+    const useGradient = detailScale >= 0.85;
+    const drawTrails = detailScale >= 0.85;
     const zSpeed =
       (2 + bassIntensity * 15 + trebleIntensity * 10) * this.starSpeed;
     const inv1000 = 1 / 1000;
@@ -2460,7 +2482,9 @@ export class FlowFieldRenderer {
     const height2 = this.height * 2;
     const sizeMultiplier = 2 + audioIntensity * 3;
 
-    for (const star of this.stars) {
+    for (let i = 0; i < this.stars.length; i++) {
+      const star = this.stars[i];
+      if (!star) continue;
       star.z -= zSpeed;
 
       if (star.z <= 0) {
@@ -2473,6 +2497,8 @@ export class FlowFieldRenderer {
         star.x = rng1 * width2;
         star.y = rng2 * height2;
       }
+
+      if (starStride > 1 && (i % starStride) !== 0) continue;
 
       const invZ = 1 / star.z;
       const x = star.x * invZ * projectionScale + this.centerX;
@@ -2487,15 +2513,18 @@ export class FlowFieldRenderer {
       const size2 = size * 2;
       const size4 = size * 4;
 
-      const gradient = ctx.createRadialGradient(x, y, 0, x, y, size2);
-      gradient.addColorStop(0, this.hsla(hue, 100, 90, alpha));
-      gradient.addColorStop(0.5, this.hsla(hue, 90, 80, alpha * 0.5));
-      gradient.addColorStop(1, this.hsla(hue, 80, 70, 0));
-
-      ctx.fillStyle = gradient;
+      if (useGradient) {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, size2);
+        gradient.addColorStop(0, this.hsla(hue, 100, 90, alpha));
+        gradient.addColorStop(0.5, this.hsla(hue, 90, 80, alpha * 0.5));
+        gradient.addColorStop(1, this.hsla(hue, 80, 70, 0));
+        ctx.fillStyle = gradient;
+      } else {
+        ctx.fillStyle = this.hsla(hue, 95, 85, alpha);
+      }
       ctx.fillRect(x - size2, y - size2, size4, size4);
 
-      if (bassIntensity > 0.3) {
+      if (drawTrails && bassIntensity > 0.3) {
         const prevZ = star.z + 5 + bassIntensity * 15;
         const invPrevZ = 1 / prevZ;
         const prevX = star.x * invPrevZ * projectionScale + this.centerX;
@@ -8378,8 +8407,11 @@ export class FlowFieldRenderer {
 
     const maxRadius =
       (this.width < this.height ? this.width : this.height) * 0.5;
-    const spirals = 12;
-    const pointsPerSpiral = 320;
+    const pixelCount = this.width * this.height;
+    const detailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const spirals = Math.max(6, (12 * detailScale) | 0);
+    const pointsPerSpiral = Math.max(180, (320 * detailScale) | 0);
     const invPointsPerSpiral = 1 / pointsPerSpiral;
     const t = this.time | 0;
     const bass = (bassIntensity * 8) | 0;
@@ -8391,14 +8423,18 @@ export class FlowFieldRenderer {
     const timeChaos = t * 0.025;
     const chaosMultiplier = (1 + bassIntensity * 2) * 12;
     const spiralAlpha = 0.75 + midIntensity * 0.6;
-    const lineWidth = (3.5 + bass) | 0;
+    const lineWidth = Math.max(2, ((3.5 + bass) * detailScale) | 0);
 
-    const radiusModulations = new Float32Array(spirals);
+    let radiusModulations = this.chaosVortexRadiusMods;
+    if (radiusModulations.length < spirals) {
+      radiusModulations = new Float32Array(spirals);
+      this.chaosVortexRadiusMods = radiusModulations;
+    }
     for (let s = 0; s < spirals; s++) {
       radiusModulations[s] = 0.8 + this.fastSin(timeRadius + s) * 0.35;
     }
 
-    ctx.shadowBlur = 45;
+    ctx.shadowBlur = 45 * detailScale;
     ctx.lineWidth = lineWidth;
 
     for (let spiral = 0; spiral < spirals; spiral++) {
@@ -11875,7 +11911,11 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
 
     const time = this.time * 0.0005;
-    const cellSize = 16 + ((audioIntensity * 6) | 0);
+    const pixelCount = this.width * this.height;
+    const detailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const cellSize =
+      (16 + ((audioIntensity * 6) | 0)) * (detailScale < 1 ? 1 / detailScale : 1);
     const cols = ((this.width / cellSize) | 0) + 1;
     const rows = ((this.height / cellSize) | 0) + 1;
     const rotation = time * 0.3;
@@ -11894,7 +11934,7 @@ export class FlowFieldRenderer {
       for (let col = 0; col < cols; col++) {
         const x = (col - halfCols) * cellSize;
         const distSq = x * x + ySq;
-        const dist = distSq < 1 ? 1 : Math.sqrt(distSq);
+        const dist = this.fastSqrt(distSq < 1 ? 1 : distSq);
         const alpha = 0.3 + audioIntensity * 0.4 - (dist / 400) * 0.3;
         if (alpha <= 0) continue;
         const cellHash = ((col * 73) ^ cellHashRow) & 0xff;
@@ -11909,7 +11949,7 @@ export class FlowFieldRenderer {
 
         ctx.fillStyle = this.hsla(hue, 85, 60, alpha);
 
-        if (pattern < 8) {
+        if (pattern < 8 || detailScale < 0.85) {
           ctx.fillRect(x - halfSizeScaled, y - halfSizeScaled, size, size);
         } else {
           ctx.beginPath();
@@ -12034,7 +12074,10 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
 
     const time = this.time * 0.0004;
-    const cellSize = 60;
+    const pixelCount = this.width * this.height;
+    const detailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const cellSize = 60 * (detailScale < 1 ? 1 / detailScale : 1);
     const cols = ((this.width / cellSize) | 0) + 1;
     const rows = ((this.height / cellSize) | 0) + 1;
     const halfCols = cols * 0.5;
@@ -12053,7 +12096,7 @@ export class FlowFieldRenderer {
         const x = (col - halfCols) * cellSize;
         const distSq = x * x + ySq;
         if (distSq > 40000) continue;
-        const dist = distSq < 1 ? 1 : Math.sqrt(distSq);
+        const dist = this.fastSqrt(distSq < 1 ? 1 : distSq);
         const cellHash = ((col * 73) ^ cellHashRow) & 0xff;
         const frequency = 0.05 + (cellHash & 0x0f) * 0.005;
         const wave = this.fastSin(time10 + dist * 0.02) * cellSize015;
@@ -12613,19 +12656,34 @@ export class FlowFieldRenderer {
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(this.centerX, this.centerY);
 
-    const gridSize = 60 + ((audioIntensity * 20) | 0);
+    const baseGridSize = 60 + ((audioIntensity * 20) | 0);
+    const pixelCount = this.width * this.height;
+    const gridScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const gridSize = Math.max(30, (baseGridSize * gridScale) | 0);
     const cellSize = Math.min(this.width, this.height) / gridSize;
     const time = this.time * 0.0001;
     let antX = gridSize >> 1;
     let antY = gridSize >> 1;
     let antDir = ((this.time >> 5) & 3) % 4;
 
-    const grid = new Uint8Array(gridSize * gridSize);
+    let grid = this.langtonsAntGrid;
+    const gridLength = gridSize * gridSize;
+    if (this.langtonsAntGridSize !== gridSize || grid.length < gridLength) {
+      grid = new Uint8Array(gridLength);
+      this.langtonsAntGrid = grid;
+      this.langtonsAntGridSize = gridSize;
+    } else {
+      grid.fill(0);
+    }
 
-    const steps = 100 + ((audioIntensity * 200) | 0);
+    const steps = Math.max(
+      60,
+      ((100 + ((audioIntensity * 200) | 0)) * gridScale) | 0,
+    );
     for (let step = 0; step < steps; step++) {
       const cellIdx = antY * gridSize + antX;
-      const cellVal = grid[cellIdx] ?? 0;
+      const cellVal = grid[cellIdx];
 
       if (cellVal === 0) {
         antDir = (antDir + 1) & 3;
@@ -12653,10 +12711,10 @@ export class FlowFieldRenderer {
 
     for (let gy = 0; gy < gridSize; gy++) {
       for (let gx = 0; gx < gridSize; gx++) {
-        const cellVal = grid[gy * gridSize + gx] ?? 0;
+        const cellVal = grid[gy * gridSize + gx];
         const x = (gx - gridSize / 2) * cellSize;
         const y = (gy - gridSize / 2) * cellSize;
-        const dist = Math.sqrt(x * x + y * y);
+        const dist = this.fastSqrt(x * x + y * y);
 
         const hue = cellVal
           ? this.fastMod360(this.hueBase + dist * 0.1)
