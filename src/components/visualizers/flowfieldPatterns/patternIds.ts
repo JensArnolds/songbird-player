@@ -107,4 +107,9 @@ export type Pattern =
   | "gothicThorns"
   | "sacredTriangle"
   | "emField"
-  | "quantumFoam";
+  | "quantumFoam"
+  | "prismBloom"
+  | "auroraWeave"
+  | "orbitShards"
+  | "harmonicPetals"
+  | "latticeDrift";
