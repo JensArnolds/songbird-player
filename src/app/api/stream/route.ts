@@ -1,12 +1,5 @@
 // File: src/app/api/stream/route.ts
 
-// 4. Verify the specific track ID (e.g., 417602442) exists and is streamable
-// 5. Check gateway/proxy (nginx, load balancer) for 502s, timeouts, or connection resets
-// 6. Ensure backend's upstream music service is healthy and accessible
-// 7. Verify Range request support - backend must handle Range headers for audio streaming
-//
-// Expected: Returns 200 or 206 (Partial Content) with audio stream, not 502
-
 import { env } from "@/env";
 import { NextResponse, type NextRequest } from "next/server";
 
