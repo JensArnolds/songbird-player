@@ -1580,9 +1580,7 @@ export class FlowFieldRenderer {
         const wave1 =
           this.fastSin(dist * frequency - time005) * 10 * trebleIntensity;
         const wave2 =
-          this.fastCos(dist * frequency * 0.7 + time003) *
-          5 *
-          bassIntensity;
+          this.fastCos(dist * frequency * 0.7 + time003) * 5 * bassIntensity;
         const wave = wave1 + wave2;
 
         const hue = ((this.hueBase + (dist >> 1) + time * 0.08) % 360) | 0;
@@ -2498,7 +2496,7 @@ export class FlowFieldRenderer {
         star.y = rng2 * height2;
       }
 
-      if (starStride > 1 && (i % starStride) !== 0) continue;
+      if (starStride > 1 && i % starStride !== 0) continue;
 
       const invZ = 1 / star.z;
       const x = star.x * invZ * projectionScale + this.centerX;
@@ -3347,11 +3345,7 @@ export class FlowFieldRenderer {
         this.renderOrbitShards(audioIntensity, bassIntensity, trebleIntensity);
         break;
       case "harmonicPetals":
-        this.renderHarmonicPetals(
-          audioIntensity,
-          bassIntensity,
-          midIntensity,
-        );
+        this.renderHarmonicPetals(audioIntensity, bassIntensity, midIntensity);
         break;
       case "latticeDrift":
         this.renderLatticeDrift(audioIntensity, bassIntensity, trebleIntensity);
@@ -11915,7 +11909,8 @@ export class FlowFieldRenderer {
     const detailScale =
       pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
     const cellSize =
-      (16 + ((audioIntensity * 6) | 0)) * (detailScale < 1 ? 1 / detailScale : 1);
+      (16 + ((audioIntensity * 6) | 0)) *
+      (detailScale < 1 ? 1 / detailScale : 1);
     const cols = ((this.width / cellSize) | 0) + 1;
     const rows = ((this.height / cellSize) | 0) + 1;
     const rotation = time * 0.3;
@@ -14210,13 +14205,7 @@ export class FlowFieldRenderer {
       ctx.shadowBlur = (20 + audioIntensity * 15) * blurScale;
       ctx.shadowColor = this.hsla(cornerHue, 100, 90, 0.6);
       ctx.beginPath();
-      ctx.arc(
-        cornerX,
-        cornerY,
-        cornerOrbSize * cornerPulse,
-        0,
-        twoPi,
-      );
+      ctx.arc(cornerX, cornerY, cornerOrbSize * cornerPulse, 0, twoPi);
       ctx.fill();
     }
 
@@ -14308,6 +14297,11 @@ export class FlowFieldRenderer {
     const minDimension = Math.min(this.width, this.height);
     const maxRadius = minDimension * (0.45 + audioIntensity * 0.25);
     const twoPi = FlowFieldRenderer.TWO_PI;
+    const pixelCount = this.width * this.height;
+    const detailScale =
+      pixelCount > 900_000 ? 0.65 : pixelCount > 700_000 ? 0.8 : 1;
+    const shadowScale = detailScale;
+    const useShadows = detailScale >= 0.85;
 
     const baseHue = this.fastMod360(this.hueBase + time * 3);
     const fieldHue = this.fastMod360(baseHue + 180);
@@ -14469,9 +14463,7 @@ export class FlowFieldRenderer {
       const particleAlpha = 0.6 + audioIntensity * 0.3;
 
       ctx.fillStyle = this.hsla(particleHue, 90, 75, particleAlpha);
-      ctx.shadowBlur = useShadows
-        ? (8 + trebleIntensity * 6) * shadowScale
-        : 0;
+      ctx.shadowBlur = useShadows ? (8 + trebleIntensity * 6) * shadowScale : 0;
       ctx.shadowColor = this.hsla(particleHue, 95, 80, 0.4);
       ctx.beginPath();
       ctx.arc(particleX, particleY, particleSize, 0, twoPi);
@@ -14614,7 +14606,9 @@ export class FlowFieldRenderer {
         cellGradient.addColorStop(1, this.hsla(cellHue, 80, 60, 0));
         ctx.fillStyle = cellGradient;
       }
-      ctx.shadowBlur = useShadows ? (12 + audioIntensity * 10) * shadowScale : 0;
+      ctx.shadowBlur = useShadows
+        ? (12 + audioIntensity * 10) * shadowScale
+        : 0;
       ctx.shadowColor = this.hsla(cellHue, 90, 75, 0.4);
       ctx.beginPath();
       ctx.arc(cellX, cellY, currentCellSize, 0, twoPi);
@@ -14703,9 +14697,7 @@ export class FlowFieldRenderer {
         );
         ctx.fillStyle = fluctuationGradient;
       }
-      ctx.shadowBlur = useShadows
-        ? (15 + bassIntensity * 12) * shadowScale
-        : 0;
+      ctx.shadowBlur = useShadows ? (15 + bassIntensity * 12) * shadowScale : 0;
       ctx.shadowColor = this.hsla(fluctuationHue, 100, 85, 0.5);
       ctx.beginPath();
       ctx.arc(
@@ -15107,12 +15099,9 @@ export class FlowFieldRenderer {
 
       for (let i = -lineCount; i <= lineCount; i++) {
         const offset =
-          i * spacing +
-          drift * this.fastSin(time * 1.5 + i * 0.4 + layer);
+          i * spacing + drift * this.fastSin(time * 1.5 + i * 0.4 + layer);
         const alpha =
-          0.12 +
-          audioIntensity * 0.2 -
-          (Math.abs(i) / (lineCount + 1)) * 0.12;
+          0.12 + audioIntensity * 0.2 - (Math.abs(i) / (lineCount + 1)) * 0.12;
         if (alpha <= 0) continue;
 
         const hue = this.fastMod360(layerHue + i * 6);
