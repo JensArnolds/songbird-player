@@ -46,6 +46,10 @@ export class FlowFieldRenderer {
   private centerX = 0;
   private centerY = 0;
   private hueBase = 0;
+  private qualityScale = 1;
+  private qualityFrameTime = 16.67;
+  private qualityLastTime = 0;
+  private qualityWarmupFrames = 0;
 
   private patternTimer = 0;
   private patternDuration = 10;
@@ -704,6 +708,43 @@ export class FlowFieldRenderer {
     while (x >= 360) x -= 360;
     while (x < 0) x += 360;
     return x;
+  }
+
+  private updateQualityScale(): void {
+    const now =
+      typeof performance !== "undefined" && performance.now
+        ? performance.now()
+        : Date.now();
+    if (this.qualityLastTime === 0) {
+      this.qualityLastTime = now;
+      return;
+    }
+
+    const dt = now - this.qualityLastTime;
+    this.qualityLastTime = now;
+
+    if (dt <= 0 || dt > 120) return;
+
+    this.qualityFrameTime = this.qualityFrameTime * 0.9 + dt * 0.1;
+    if (this.qualityWarmupFrames < 15) {
+      this.qualityWarmupFrames++;
+      return;
+    }
+
+    const targetFrameMs = 16.67;
+    const pressure = this.qualityFrameTime / targetFrameMs;
+
+    if (pressure > 1.15) {
+      this.qualityScale = Math.max(0.6, this.qualityScale - 0.05);
+    } else if (pressure < 0.92) {
+      this.qualityScale = Math.min(1, this.qualityScale + 0.03);
+    }
+  }
+
+  private getAdaptiveDetailScale(pixelCount = this.width * this.height): number {
+    const resolutionScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    return resolutionScale * this.qualityScale;
   }
 
   private getPatternContext(
@@ -1489,8 +1530,7 @@ export class FlowFieldRenderer {
   ): void {
     const ctx = this.ctx;
     const pixelCount = this.width * this.height;
-    const detailScale =
-      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
     const waveCount = Math.max(3, (this.waveCount * detailScale) | 0);
     const amplitude = (50 + audioIntensity * 100) * this.waveAmplitude;
     const frequency = 0.02 + trebleIntensity * 0.03;
@@ -2467,8 +2507,7 @@ export class FlowFieldRenderer {
     ctx.globalCompositeOperation = "lighter";
 
     const pixelCount = this.width * this.height;
-    const detailScale =
-      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
     const starStride = detailScale < 0.85 ? 2 : 1;
     const useGradient = detailScale >= 0.85;
     const drawTrails = detailScale >= 0.85;
@@ -2546,7 +2585,10 @@ export class FlowFieldRenderer {
     midIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const gridSize = 30;
+    const pixelCount = this.width * this.height;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
+    const gridSize = Math.max(24, Math.round(30 / detailScale));
+    const useGradient = detailScale >= 0.85;
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -2555,8 +2597,8 @@ export class FlowFieldRenderer {
     const flowFreq = 0.01;
     const distFreq = 0.02;
     const flowBassMultiplier = bassIntensity * 2;
-    const length = 15 + audioIntensity * 20;
-    const lineWidth = 2 + midIntensity * 3;
+    const length = (15 + audioIntensity * 20) * detailScale;
+    const lineWidth = (2 + midIntensity * 3) * detailScale;
     const baseAlpha = 0.3 + audioIntensity * 0.4;
 
     for (let y = 0; y < this.height; y += gridSize) {
@@ -2578,12 +2620,15 @@ export class FlowFieldRenderer {
         const endY = y + this.fastSin(angle) * length;
 
         const hue = this.fastMod360(this.hueBase + dist * 0.3 + flow1 * 60);
-        const hue60 = this.fastMod360(hue + 60);
-        const gradient = ctx.createLinearGradient(x, y, endX, endY);
-        gradient.addColorStop(0, this.hsla(hue, 90, 70, baseAlpha));
-        gradient.addColorStop(1, this.hsla(hue60, 85, 65, 0));
-
-        ctx.strokeStyle = gradient;
+        if (useGradient) {
+          const hue60 = this.fastMod360(hue + 60);
+          const gradient = ctx.createLinearGradient(x, y, endX, endY);
+          gradient.addColorStop(0, this.hsla(hue, 90, 70, baseAlpha));
+          gradient.addColorStop(1, this.hsla(hue60, 85, 65, 0));
+          ctx.strokeStyle = gradient;
+        } else {
+          ctx.strokeStyle = this.hsla(hue, 90, 70, baseAlpha);
+        }
         ctx.lineWidth = lineWidth;
         ctx.lineCap = "round";
         ctx.beginPath();
@@ -2871,6 +2916,7 @@ export class FlowFieldRenderer {
 
     this.time += 1;
     this.hueBase = (this.hueBase + 0.3 + bassIntensity * 1.5) % 360;
+    this.updateQualityScale();
 
     this.updatePatternTransition(audioIntensity);
 
@@ -2930,7 +2976,9 @@ export class FlowFieldRenderer {
         break;
       case "rays":
         renderRays(
-          this.getPatternContext({ rayCount: this.rayCount }),
+          this.getPatternContext({
+            rayCount: Math.max(6, (this.rayCount * this.qualityScale) | 0),
+          }),
           audioIntensity,
           bassIntensity,
           trebleIntensity,
@@ -3223,9 +3271,15 @@ export class FlowFieldRenderer {
       case "kaleidoscope":
         renderKaleidoscope(
           this.getPatternContext({
-            kaleidoscopeSegments: this.kaleidoscopeSegments,
+            kaleidoscopeSegments: Math.max(
+              3,
+              (this.kaleidoscopeSegments * this.qualityScale) | 0,
+            ),
             kaleidoscopeRotationSpeed: this.kaleidoscopeRotationSpeed,
-            kaleidoscopeParticleDensity: this.kaleidoscopeParticleDensity,
+            kaleidoscopeParticleDensity: Math.max(
+              0.15,
+              this.kaleidoscopeParticleDensity * this.qualityScale,
+            ),
             kaleidoscopeColorShift: this.kaleidoscopeColorShift,
           }),
           audioIntensity,
@@ -8402,8 +8456,7 @@ export class FlowFieldRenderer {
     const maxRadius =
       (this.width < this.height ? this.width : this.height) * 0.5;
     const pixelCount = this.width * this.height;
-    const detailScale =
-      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
     const spirals = Math.max(6, (12 * detailScale) | 0);
     const pointsPerSpiral = Math.max(180, (320 * detailScale) | 0);
     const invPointsPerSpiral = 1 / pointsPerSpiral;
@@ -11906,8 +11959,7 @@ export class FlowFieldRenderer {
 
     const time = this.time * 0.0005;
     const pixelCount = this.width * this.height;
-    const detailScale =
-      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
     const cellSize =
       (16 + ((audioIntensity * 6) | 0)) *
       (detailScale < 1 ? 1 / detailScale : 1);
@@ -12070,8 +12122,7 @@ export class FlowFieldRenderer {
 
     const time = this.time * 0.0004;
     const pixelCount = this.width * this.height;
-    const detailScale =
-      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
     const cellSize = 60 * (detailScale < 1 ? 1 / detailScale : 1);
     const cols = ((this.width / cellSize) | 0) + 1;
     const rows = ((this.height / cellSize) | 0) + 1;
@@ -12125,7 +12176,9 @@ export class FlowFieldRenderer {
 
     const time = this.time * 0.0004;
     const twoPi = FlowFieldRenderer.TWO_PI;
-    const bands = 8;
+    const pixelCount = this.width * this.height;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
+    const bands = Math.max(4, (8 * detailScale) | 0);
     const invBands = 1 / bands;
     const baseRadius = 180;
     const time05 = time * 0.5;
@@ -12138,7 +12191,8 @@ export class FlowFieldRenderer {
 
       const wavePhase = time05 + band * 0.3;
       const waveAmplitude =
-        20 + ((audioIntensity * 30) | 0) + ((bassIntensity * 15) | 0);
+        (20 + ((audioIntensity * 30) | 0) + ((bassIntensity * 15) | 0)) *
+        (detailScale < 1 ? detailScale : 1);
       const waveAmp05 = waveAmplitude * 0.5;
       const waveAmp03 = waveAmplitude * 0.3;
       const waveAmp02 = waveAmplitude * 0.2;
@@ -12151,10 +12205,10 @@ export class FlowFieldRenderer {
         65 + ((bandProgress * 10) | 0),
         0.4 + audioIntensity * 0.3 - bandProgress * 0.15,
       );
-      ctx.lineWidth = 2.5 + bassIntensity * 1.5 - bandProgress;
+      ctx.lineWidth = (2.5 + bassIntensity * 1.5 - bandProgress) * detailScale;
       ctx.beginPath();
 
-      const points = 180;
+      const points = Math.max(96, (180 * detailScale) | 0);
       const pointStep = twoPi / points;
       for (let i = 0; i <= points; i++) {
         const angle = i * pointStep;
@@ -12522,6 +12576,9 @@ export class FlowFieldRenderer {
     if (pixelCount > 900_000) cellSize = 10;
     else if (pixelCount > 700_000) cellSize = 8;
     else if (pixelCount > 500_000) cellSize = 7;
+    if (this.qualityScale < 1) {
+      cellSize = Math.round(cellSize / this.qualityScale);
+    }
     const halfCell = cellSize * 0.5;
     const halfHeight = this.height * 0.5;
     const halfWidth = this.width * 0.5;
@@ -12589,11 +12646,17 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
 
     const time = this.time * 0.0002;
-    const iterations = 13 + ((audioIntensity * 3) | 0);
-    const segmentLength = 7 - ((iterations - 13) >> 2);
+    const pixelCount = this.width * this.height;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
+    const iterations = Math.max(
+      9,
+      (13 + ((audioIntensity * 3) | 0) - (detailScale < 0.85 ? 2 : 0)) | 0,
+    );
+    const segmentLength =
+      (7 - ((iterations - 13) >> 2)) * (detailScale < 1 ? detailScale : 1);
     const rotation = time * 0.3;
 
-    const curves = 3;
+    const curves = Math.max(1, (3 * detailScale) | 0);
     for (let curve = 0; curve < curves; curve++) {
       const curveRotation =
         (curve / curves) * FlowFieldRenderer.TWO_PI + rotation;
@@ -12605,7 +12668,7 @@ export class FlowFieldRenderer {
         65,
         0.5 + audioIntensity * 0.3 - curve * 0.1,
       );
-      ctx.lineWidth = 2 + trebleIntensity * 1.5;
+      ctx.lineWidth = (2 + trebleIntensity * 1.5) * detailScale;
       ctx.beginPath();
 
       let x = 0;
@@ -12613,7 +12676,10 @@ export class FlowFieldRenderer {
       let angle = curveRotation;
       ctx.moveTo(x, y);
 
-      const maxSteps = Math.min(1 << iterations, 4000);
+      const maxSteps = Math.min(
+        1 << iterations,
+        Math.max(1000, (4000 * detailScale) | 0),
+      );
       const pi2 = Math.PI / 2;
       for (let step = 0; step < maxSteps; step++) {
         let bits = step;
@@ -12653,8 +12719,9 @@ export class FlowFieldRenderer {
 
     const baseGridSize = 60 + ((audioIntensity * 20) | 0);
     const pixelCount = this.width * this.height;
-    const gridScale =
+    const baseGridScale =
       pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const gridScale = baseGridScale * this.qualityScale;
     const gridSize = Math.max(30, (baseGridSize * gridScale) | 0);
     const cellSize = Math.min(this.width, this.height) / gridSize;
     const time = this.time * 0.0001;
@@ -14010,8 +14077,7 @@ export class FlowFieldRenderer {
     const trianglePulse = 1 + this.fastSin(time * 2) * (audioIntensity * 0.1);
     const triangleSize = baseTriangleSize * trianglePulse;
     const pixelCount = this.width * this.height;
-    const detailScale =
-      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
     const blurScale = detailScale;
 
     const baseHue = this.fastMod360(this.hueBase + time * 5);
@@ -14298,8 +14364,10 @@ export class FlowFieldRenderer {
     const maxRadius = minDimension * (0.45 + audioIntensity * 0.25);
     const twoPi = FlowFieldRenderer.TWO_PI;
     const pixelCount = this.width * this.height;
-    const detailScale =
-      pixelCount > 900_000 ? 0.65 : pixelCount > 700_000 ? 0.8 : 1;
+    const detailScale = Math.min(
+      1,
+      this.getAdaptiveDetailScale(pixelCount) / 0.85,
+    );
     const shadowScale = detailScale;
     const useShadows = detailScale >= 0.85;
 
@@ -14557,8 +14625,9 @@ export class FlowFieldRenderer {
     const maxRadius = minDimension * (0.5 + audioIntensity * 0.3);
     const twoPi = FlowFieldRenderer.TWO_PI;
     const pixelCount = this.width * this.height;
-    const detailScale =
+    const baseDetailScale =
       pixelCount > 900_000 ? 0.65 : pixelCount > 700_000 ? 0.8 : 1;
+    const detailScale = baseDetailScale * this.qualityScale;
     const shadowScale = detailScale;
     const lowDetail = detailScale < 0.8;
     const useShadows = detailScale >= 0.85;

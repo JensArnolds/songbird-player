@@ -1,10 +1,6 @@
 #!/usr/bin/zsh
 # File: scripts/fetch_og_images.sh
 
-# Base URLs for local Songbird API and production Songbird API.
-# These should be provided via environment variables so we don't hardcode domains:
-#   - NEXT_PUBLIC_V2_API_URL
-
 if [ -z "$NEXT_PUBLIC_V2_API_URL" ]; then
   echo "ERROR: Please set NEXT_PUBLIC_V2_API_URL before running this script."
   exit 1
@@ -24,4 +20,3 @@ curl "${PROD_BASE%/}/api/preview?q=isobel%20bj%C3%B6rk" --output preview-isobel-
 
 curl "${LOCAL_BASE%/}/api/preview" --output preview-default.png
 curl "${PROD_BASE%/}/api/preview" --output preview-default-url.png
-
