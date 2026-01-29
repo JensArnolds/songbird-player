@@ -22,13 +22,7 @@ import {
   staggerItem,
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  BookOpen,
-  Music2,
-  Search,
-  Shuffle,
-  Sparkles,
-} from "lucide-react";
+import { BookOpen, Music2, Search, Shuffle, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -103,7 +97,10 @@ export default function HomePageClient() {
         if (shouldAutoPlayRef.current && response.data.length > 0) {
           const firstTrack = response.data[0];
           if (firstTrack) {
-            console.log("[HomePageClient] Auto-playing first search result:", firstTrack.title);
+            console.log(
+              "[HomePageClient] Auto-playing first search result:",
+              firstTrack.title,
+            );
             hapticSuccess();
             player.playTrack(firstTrack);
             shouldAutoPlayRef.current = false;
@@ -142,7 +139,6 @@ export default function HomePageClient() {
 
         let albumName: string | undefined;
         if (response.data.length > 0) {
-
           const firstTrack = response.data[0];
           if (firstTrack && "album" in firstTrack && firstTrack.album) {
             albumName = firstTrack.album.title;
@@ -250,7 +246,7 @@ export default function HomePageClient() {
         }
       }
     }
-      }, [searchParams]);
+  }, [searchParams]);
 
   const updateURL = (searchQuery: string) => {
     const params = new URLSearchParams();
@@ -276,7 +272,6 @@ export default function HomePageClient() {
 
     try {
       if (isArtistSearch) {
-
         const currentApiOffset = apiOffset;
         const response = await searchTracksByArtist(
           currentQuery,
@@ -290,10 +285,8 @@ export default function HomePageClient() {
           const newResults = [...prev, ...response.data];
 
           if (!response.next) {
-
             setTotal(newResults.length);
           } else {
-
             setTotal(response.total);
           }
 
@@ -302,7 +295,6 @@ export default function HomePageClient() {
 
         setApiOffset(newApiOffset);
       } else {
-
         const nextOffset = results.length;
         if (nextOffset >= total) {
           setLoadingMore(false);
@@ -377,7 +369,6 @@ export default function HomePageClient() {
     setTotal(0);
 
     try {
-
       const popularQueries = ["pop", "rock", "electronic", "jazz", "indie"];
       const randomQuery =
         popularQueries[Math.floor(Math.random() * popularQueries.length)];
@@ -385,10 +376,9 @@ export default function HomePageClient() {
       const response = await searchTracks(randomQuery!, 0);
 
       if (response.data.length > 0) {
-
         const shuffled = [...response.data].sort(() => Math.random() - 0.5);
 
-      player.playTrack(shuffled[0]!);
+        player.playTrack(shuffled[0]!);
 
         if (shuffled.length > 1) {
           player.addToQueue(shuffled.slice(1, 11), false);
@@ -575,7 +565,10 @@ export default function HomePageClient() {
                     : "Search for songs, artists, albums - anything you want to listen to."}
                 </p>
                 <p className="mt-3 max-w-md px-4 text-xs text-[var(--color-muted)] md:text-sm">
-                  This project is a pasttime one. Lossless audio for free. Enjoy it while it lasts. Bugs may appear or disappear as we iterate and feel. 
+                  This project is a pasttime one. Lossless audio for free. Enjoy
+                  it while it lasts. Bugs may appear or disappear as we iterate
+                  and feel. We treat the underlying API as a trade secret for
+                  now although it was public for a while lmao.
                 </p>
 
                 {}
@@ -636,17 +629,15 @@ export default function HomePageClient() {
                     whileTap={{ scale: 0.95 }}
                     className="flex items-center gap-2 rounded-xl bg-[rgba(255,255,255,0.05)] px-5 py-3 text-sm font-medium text-[var(--color-text)] ring-1 ring-white/10 transition-all hover:bg-[rgba(255,255,255,0.1)] hover:ring-[var(--color-accent)]/30"
                   >
-                    <svg 
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill="currentColor" 
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
                       xmlns="http://www.w3.org/2000/svg"
                       className="flex-shrink-0"
                     >
-                      <path 
-                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" 
-                      />
+                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                     </svg>
                     <span>View on GitHub</span>
                   </motion.a>
@@ -676,24 +667,49 @@ export default function HomePageClient() {
                   </h4>
                   <div className="space-y-3 text-xs text-[var(--color-subtext)] md:text-sm">
                     <p className="leading-relaxed">
-                      Starchild Music runs on a <span className="text-[var(--color-accent)]">dual-deployment architecture</span>:
-                      a custom VM server (<span className="font-mono text-[var(--color-text)]">starchildmusic.com</span>)
-                      for backend services and database access, alongside a Vercel edge deployment
-                      (<span className="font-mono text-[var(--color-text)]">darkfloor.art</span>) for global CDN distribution
-                      and optimized performance.
+                      Starchild Music runs on a{" "}
+                      <span className="text-[var(--color-accent)]">
+                        dual-deployment architecture
+                      </span>
+                      : a custom VM server (
+                      <span className="font-mono text-[var(--color-text)]">
+                        starchildmusic.com
+                      </span>
+                      ) for backend services and database access, alongside a
+                      Vercel edge deployment (
+                      <span className="font-mono text-[var(--color-text)]">
+                        darkfloor.art
+                      </span>
+                      ) for global CDN distribution and optimized performance.
                     </p>
                     <p className="leading-relaxed">
-                      Use the <span className="text-[var(--color-accent)]">deployment icon</span> in the header
-                      (desktop only) to switch between environments. The VM provides full backend control and direct
-                      database access, while Vercel offers edge-optimized static delivery and serverless functions
-                      with automatic scaling.
+                      Use the{" "}
+                      <span className="text-[var(--color-accent)]">
+                        deployment icon
+                      </span>{" "}
+                      in the header (desktop only) to switch between
+                      environments. The VM provides full backend control and
+                      direct database access, while Vercel offers edge-optimized
+                      static delivery and serverless functions with automatic
+                      scaling.
                     </p>
                     <p className="leading-relaxed">
-                      Music data is sourced from our <span className="text-[var(--color-accent)]">custom API</span> at
-                      <span className="font-mono text-[var(--color-text)]"> api.starchildmusic.com</span>. 
-                      User data, preferences, and playlists are stored in a
-                      <span className="text-[var(--color-accent)]"> Neon serverless PostgreSQL</span> database,
-                      shared across both deployments for seamless sync.
+                      Music data is sourced from our{" "}
+                      <span className="text-[var(--color-accent)]">
+                        custom API
+                      </span>{" "}
+                      at
+                      <span className="font-mono text-[var(--color-text)]">
+                        {" "}
+                        api.starchildmusic.com
+                      </span>
+                      . User data, preferences, and playlists are stored in a
+                      <span className="text-[var(--color-accent)]">
+                        {" "}
+                        Neon serverless PostgreSQL
+                      </span>{" "}
+                      database, shared across both deployments for seamless
+                      sync.
                     </p>
                   </div>
                 </motion.div>

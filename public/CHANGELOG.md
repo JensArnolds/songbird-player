@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.20] - 2026-01-29
+
+### Fixed
+
+- **Sacred Triangle Corner Orbs**: Corrected corner orb positions to align with triangle vertices
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+
+### Changed
+
+- **Quantum Foam Performance**: Reduced per-frame cost on Firefox with lower element counts, simplified gradients/shadows, and reduced wave resolution
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+- **Voronoi Performance**: Reused seed buffers, constrained sampling radius, and adapted cell size for smoother rendering
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+- **API Decryption Modernization**: API modernised to use new decryption methods
+
 ## [0.10.19] - 2026-01-29
 
 ### Fixed
