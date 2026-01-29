@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.19] - 2026-01-29
+
+### Fixed
+
+- **API Health Check Configuration**: Corrected health check URLs to use local development endpoints instead of production
+  - Updated `NEXT_PUBLIC_API_HEALTH_URL` and `NEXT_PUBLIC_API_V2_HEALTH_URL` in environment configuration to point to local APIs (127.0.0.1)
+  - Resolved "API Down" false positive when developing locally with running API servers
+  - Location: `.env`, `.env.local`
+
 ## [0.10.18] - 2026-01-28
 
 ### Added
