@@ -1,13 +1,5 @@
 // File: src/app/api/stream/route.ts
-//
-// Stream endpoint that proxies audio streaming requests to the backend API.
-// 
-// Troubleshooting 502 Bad Gateway errors:
-// 1. Verify backend service at NEXT_PUBLIC_V2_API_URL is reachable:
-//    - Check if backend is running: curl ${NEXT_PUBLIC_V2_API_URL}/health (if available)
-//    - Verify network connectivity and firewall rules
-// 2. Confirm SONGBIRD_API_KEY is valid and has streaming permissions
-// 3. Check backend logs for upstream errors when requesting music/stream?key=...&id={trackId}
+
 // 4. Verify the specific track ID (e.g., 417602442) exists and is streamable
 // 5. Check gateway/proxy (nginx, load balancer) for 502s, timeouts, or connection resets
 // 6. Ensure backend's upstream music service is healthy and accessible

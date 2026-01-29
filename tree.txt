@@ -10,6 +10,7 @@ songbird-frontend
 ├───CLAUDE.md
 ├───CODEBASE_ANALYSIS.md
 ├───config1.1
+├───CONTEXT.md
 ├───drizzle.config.ts
 ├───drizzle.env.ts
 ├───ecosystem.config.cjs
@@ -23,6 +24,7 @@ songbird-frontend
 ├───postcss.config.js
 ├───prettier.config.js
 ├───README.md
+├───REPOSITORY_ANALYSIS.md
 ├───rollup.config.mjs
 ├───setup-database.sh
 ├───start-database.sh
@@ -63,6 +65,7 @@ songbird-frontend
 │       └───REPOSITORY_OVERVIEW.md
 ├───docs/
 │   ├───API_ROUTE_USE.md
+│   ├───API_USE.md
 │   ├───ROADMAP.md
 │   └───STABILITY_TESTS.md
 ├───drizzle/
@@ -123,9 +126,6 @@ songbird-frontend
 │   └───pm2/
 │       ├───.gitkeep
 │       ├───combined.log
-│       ├───combined__2026-01-17_00-00-00.log
-│       ├───combined__2026-01-18_00-00-01.log
-│       ├───combined__2026-01-19_00-00-00.log
 │       ├───combined__2026-01-20_00-00-00.log
 │       ├───combined__2026-01-21_00-00-00.log
 │       ├───combined__2026-01-22_00-00-00.log
@@ -133,13 +133,13 @@ songbird-frontend
 │       ├───combined__2026-01-24_00-00-00.log
 │       ├───combined__2026-01-25_00-00-00.log
 │       ├───combined__2026-01-26_00-00-00.log
+│       ├───combined__2026-01-27_00-00-00.log
+│       ├───combined__2026-01-28_00-00-00.log
+│       ├───combined__2026-01-29_00-00-00.log
 │       ├───dev-combined.log
 │       ├───dev-error.log
 │       ├───dev-out.log
 │       ├───error.log
-│       ├───error__2026-01-17_00-00-00.log
-│       ├───error__2026-01-18_00-00-01.log
-│       ├───error__2026-01-19_00-00-00.log
 │       ├───error__2026-01-20_00-00-00.log
 │       ├───error__2026-01-21_00-00-00.log
 │       ├───error__2026-01-22_00-00-00.log
@@ -147,17 +147,20 @@ songbird-frontend
 │       ├───error__2026-01-24_00-00-00.log
 │       ├───error__2026-01-25_00-00-00.log
 │       ├───error__2026-01-26_00-00-00.log
+│       ├───error__2026-01-27_00-00-00.log
+│       ├───error__2026-01-28_00-00-00.log
+│       ├───error__2026-01-29_00-00-00.log
 │       ├───out.log
-│       ├───out__2026-01-14_00-00-00.log
-│       ├───out__2026-01-16_00-00-00.log
-│       ├───out__2026-01-18_00-00-01.log
 │       ├───out__2026-01-19_00-00-00.log
 │       ├───out__2026-01-20_00-00-00.log
 │       ├───out__2026-01-21_00-00-00.log
 │       ├───out__2026-01-22_00-00-00.log
 │       ├───out__2026-01-23_00-00-00.log
 │       ├───out__2026-01-24_00-00-00.log
-│       └───out__2026-01-26_00-00-00.log
+│       ├───out__2026-01-26_00-00-00.log
+│       ├───out__2026-01-27_00-00-00.log
+│       ├───out__2026-01-28_00-00-00.log
+│       └───out__2026-01-29_00-00-00.log
 ├───public/
 │   ├───CHANGELOG.md
 │   ├───emily-the-strange-icon.png
@@ -273,7 +276,10 @@ songbird-frontend
 │   ├───global.d.ts
 │   ├───middleware.ts
 │   ├───__tests__/
+│   │   ├───api-search-v2.test.ts
+│   │   ├───api-stream-v2.test.ts
 │   │   ├───ErrorBoundary.stability.test.tsx
+│   │   ├───health-status.test.ts
 │   │   ├───MobileFooter.test.tsx
 │   │   ├───MobileHeader.test.tsx
 │   │   ├───og-image-darkfloor-links.test.ts
@@ -479,6 +485,7 @@ songbird-frontend
 │       ├───errorHandling.ts
 │       ├───getBaseUrl.ts
 │       ├───haptics.ts
+│       ├───healthStatus.ts
 │       ├───images.ts
 │       ├───logger.ts
 │       ├───performance.ts

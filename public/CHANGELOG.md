@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Location: `src/components/visualizers/FlowFieldRenderer.ts`
 - **Voronoi Performance**: Reused seed buffers, constrained sampling radius, and adapted cell size for smoother rendering
   - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+- **Adaptive Visual Quality**: Added dynamic quality throttling based on frame time and scaled heavy patterns (Waves, Starfield, Chaos Vortex, Langton's Ant, Bitfield Matrix, Quantum Resonance, Sacred Triangle, Quantum Foam)
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+- **Additional Visual Optimizations**: Tuned Fluid, Dragon Curve, and Morse Aurora for lower per-frame cost on Firefox
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
 - **API Decryption Modernization**: API modernised to use new decryption methods
 
 ## [0.10.19] - 2026-01-29
