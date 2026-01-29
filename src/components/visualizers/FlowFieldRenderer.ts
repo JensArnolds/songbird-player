@@ -741,7 +741,9 @@ export class FlowFieldRenderer {
     }
   }
 
-  private getAdaptiveDetailScale(pixelCount = this.width * this.height): number {
+  private getAdaptiveDetailScale(
+    pixelCount = this.width * this.height,
+  ): number {
     const resolutionScale =
       pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
     return resolutionScale * this.qualityScale;
@@ -12598,8 +12600,10 @@ export class FlowFieldRenderer {
 
         for (let s = 0; s < seedCount; s++) {
           const seedIndex = s * seedStride;
-          const dx = px - seedData[seedIndex];
-          const dy = py - seedData[seedIndex + 1];
+          const seedX = seedData[seedIndex] ?? 0;
+          const seedY = seedData[seedIndex + 1] ?? 0;
+          const dx = px - seedX;
+          const dy = py - seedY;
           const distSqCalc = dx * dx + dy * dy;
 
           if (distSqCalc < minDistSq) {
@@ -12623,9 +12627,9 @@ export class FlowFieldRenderer {
     const seedRadius = 6 + ((bassIntensity * 4) | 0);
     for (let s = 0; s < seedCount; s++) {
       const seedIndex = s * seedStride;
-      const seedX = seedData[seedIndex];
-      const seedY = seedData[seedIndex + 1];
-      const seedHue = seedData[seedIndex + 2];
+      const seedX = seedData[seedIndex] ?? 0;
+      const seedY = seedData[seedIndex + 1] ?? 0;
+      const seedHue = seedData[seedIndex + 2] ?? this.hueBase;
       ctx.fillStyle = this.hsla(seedHue, 95, 75, 0.8);
       ctx.beginPath();
       ctx.arc(seedX, seedY, seedRadius, 0, FlowFieldRenderer.TWO_PI);
