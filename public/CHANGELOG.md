@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Location: `src/components/visualizers/FlowFieldRenderer.ts`
 - **Additional Visual Optimizations**: Tuned Fluid, Dragon Curve, and Morse Aurora for lower per-frame cost on Firefox
   - Location: `src/components/visualizers/FlowFieldRenderer.ts`
+- **Further Visual Optimizations**: Reduced cost in Fractal, Mandelbrot Spiral, and Menger Sponge using adaptive quality scaling
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts`
 - **API Decryption Modernization**: API modernised to use new decryption methods
 
 ## [0.10.19] - 2026-01-29

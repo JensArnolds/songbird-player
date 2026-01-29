@@ -969,7 +969,12 @@ export class FlowFieldRenderer {
       (0.02 + audioIntensity * 0.05) *
       (1 + this.fastSin(this.time * 0.002) * 0.5);
 
-    const maxIter = Math.min(40, 24 + ((audioIntensity * 20) | 0));
+    const pixelCount = this.width * this.height;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
+    const maxIter = Math.max(
+      12,
+      Math.min(40, ((24 + ((audioIntensity * 20) | 0)) * detailScale) | 0),
+    );
     const zoom = Math.pow(1.5, this.fractalZoom);
 
     const scaleX = 1 / (this.width * 0.25 * zoom);
@@ -979,9 +984,9 @@ export class FlowFieldRenderer {
     const invMaxIter = 1 / maxIter;
     const timeWave = this.fastSin(this.time * 0.002) * 60;
 
-    const pixelCount = this.width * this.height;
     const stepBoost = pixelCount > 500_000 ? 1 : 0;
-    const step = (audioIntensity > 0.75 ? 2 : 3) + stepBoost;
+    const baseStep = (audioIntensity > 0.75 ? 2 : 3) + stepBoost;
+    const step = Math.max(1, Math.round(baseStep / detailScale));
 
     for (let py = 0; py < this.height; py += step) {
       for (let px = 0; px < this.width; px += step) {
@@ -12022,12 +12027,17 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
 
     const time = this.time * 0.0003;
+    const pixelCount = this.width * this.height;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
     const zoom = 0.6 + bassIntensity * 0.2;
     const panX = this.fastSin(time * 0.5) * 0.2;
     const panY = this.fastCos(time * 0.7) * 0.15;
-    const maxIter = 30 + ((audioIntensity * 10) | 0);
+    const maxIter = Math.max(
+      14,
+      ((30 + ((audioIntensity * 10) | 0)) * detailScale) | 0,
+    );
     const baseRadius = 150;
-    const rings = 5 + ((audioIntensity * 3) | 0);
+    const rings = Math.max(3, ((5 + ((audioIntensity * 3) | 0)) * detailScale) | 0);
     const time02 = time * 0.2;
     const time2 = time * 2;
 
@@ -12038,7 +12048,7 @@ export class FlowFieldRenderer {
         this.hueBase + ring * 45 + ((time * 10) | 0),
       );
 
-      const points = 120;
+      const points = Math.max(80, (120 * detailScale) | 0);
       const pointStep = FlowFieldRenderer.TWO_PI / points;
       const maxLocalIter = (maxIter * (1 - ringProgress * 0.5)) | 0;
       const ring2 = ring << 1;
@@ -12048,7 +12058,7 @@ export class FlowFieldRenderer {
         65 + ((ringProgress * 15) | 0),
         0.5 + audioIntensity * 0.3 - ringProgress * 0.2,
       );
-      ctx.lineWidth = 2 + bassIntensity * 1.5 - ringProgress;
+      ctx.lineWidth = (2 + bassIntensity * 1.5 - ringProgress) * detailScale;
       ctx.beginPath();
 
       for (let i = 0; i <= points; i++) {
@@ -12089,11 +12099,11 @@ export class FlowFieldRenderer {
     }
 
     const spiralTurns = 3 + ((audioIntensity * 1) | 0);
-    const spiralPoints = 150;
+    const spiralPoints = Math.max(80, (150 * detailScale) | 0);
     const spiralHue = this.fastMod360(this.hueBase + 180 + ((time * 15) | 0));
 
     ctx.strokeStyle = this.hsla(spiralHue, 95, 70, 0.4 + trebleIntensity * 0.2);
-    ctx.lineWidth = 2 + bassIntensity * 1.5;
+    ctx.lineWidth = (2 + bassIntensity * 1.5) * detailScale;
     ctx.beginPath();
 
     const spiralStep = 1 / spiralPoints;
@@ -12307,7 +12317,12 @@ export class FlowFieldRenderer {
 
     const time = this.time * 0.0002;
     const rotation = time * 0.3;
-    const depth = 2 + ((audioIntensity * 1) | 0);
+    const pixelCount = this.width * this.height;
+    const detailScale = this.getAdaptiveDetailScale(pixelCount);
+    const depth = Math.max(
+      1,
+      (2 + ((audioIntensity * 1) | 0) - (detailScale < 0.85 ? 1 : 0)) | 0,
+    );
     const baseSize = 180 / 3 ** (depth - 1);
     const drawMenger = (
       x: number,
@@ -12349,7 +12364,7 @@ export class FlowFieldRenderer {
             65,
             0.7 - invDepth * 0.3,
           );
-          ctx.lineWidth = 1.5 + bassIntensity * 0.5;
+          ctx.lineWidth = (1.5 + bassIntensity * 0.5) * detailScale;
 
           ctx.fillRect(
             subX - halfSubSize,
@@ -12357,12 +12372,14 @@ export class FlowFieldRenderer {
             subSize,
             subSize,
           );
-          ctx.strokeRect(
-            subX - halfSubSize,
-            subY - halfSubSize,
-            subSize,
-            subSize,
-          );
+          if (detailScale >= 0.85) {
+            ctx.strokeRect(
+              subX - halfSubSize,
+              subY - halfSubSize,
+              subSize,
+              subSize,
+            );
+          }
 
           if (currentDepth > 1) {
             drawMenger(
