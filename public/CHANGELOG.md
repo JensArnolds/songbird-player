@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.22] - 2026-01-30
+
+### Changed
+
+- **Next.js Upgrade**: Upgraded from Next.js 15.5.11 to Next.js 16.1.6
+  - Turbopack build performance improvements
+  - Enhanced optimization for package imports
+  - Improved worker-based page data collection (11 workers)
+  - Location: `package.json`
+
+- **NextAuth Compatibility**: Restored NextAuth v5.0.0-beta.30 for Next.js 16 App Router compatibility
+  - NextAuth v5 beta required for App Router `handlers` API
+  - Fixed build error: "Cannot destructure property 'GET' of 'a.handlers'"
+  - Location: `package.json`, `src/server/auth/index.ts`
+
+### Removed
+
+- **Deprecated ESLint Config**: Removed `eslint` configuration block from next.config.js
+  - Next.js 16 no longer supports ESLint configuration in next.config.js
+  - ESLint configuration now handled exclusively via ESLint config files
+  - Resolves warning: "eslint configuration in next.config.js is no longer supported"
+  - Location: `next.config.js`
+
+### Known Issues
+
+- **Middleware Deprecation Warning**: Next.js 16 deprecates "middleware.ts" in favor of "proxy.ts"
+  - Warning: "The 'middleware' file convention is deprecated. Please use 'proxy' instead"
+  - Current: `src/middleware.ts` handles rate limiting and CSP headers
+  - Impact: Warning only - middleware continues to function normally
+  - Future: Will need to migrate to proxy.ts convention
+  - Reference: https://nextjs.org/docs/messages/middleware-to-proxy
+
 ## [0.10.21] - 2026-01-30
 
 ### Added
