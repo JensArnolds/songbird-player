@@ -124,6 +124,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents build errors when multiple shutdown signals are received
   - Location: `src/server/db/index.ts`
 
+### Known Issues
+
+- **@next/swc Version Mismatch Warning**: Next.js 15.5.11 displays warning about mismatched swc version (15.5.7)
+  - Root cause: @next/swc-linux-x64-gnu@15.5.11 not yet published to npm registry
+  - Latest available version: 15.5.7 (confirmed via npm registry check)
+  - Impact: Cosmetic warning only - build completes successfully and application runs normally
+  - Resolution: Warning will automatically resolve when Next.js publishes matching swc binaries
+  - Workaround: Can be safely ignored or downgrade to Next.js 15.5.7 if warning is concerning
+  - Status: Awaiting upstream package publication
+
 ### Performance
 
 - **Dynamic Import Optimization**: Converted heavy components to dynamic imports with SSR disabled
