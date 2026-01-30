@@ -2159,7 +2159,32 @@ img {
   }
 }
 
-/* iPhone 8 Plus, 7 Plus, 6s Plus (414×736) */
+/* iPhone 8, 7, 6s, 6 (375×667) */
+@media (min-width: 374px) and (max-width: 376px) and (min-height: 666px) and (max-height: 668px) {
+  :root {
+    --mobile-header-height: 55px;
+    --mobile-player-height: 80px;
+    --mobile-player-artwork-size: 320px;
+    --mobile-player-content-width: 395px;
+    --mobile-player-gap: 0.875rem;
+    --mobile-player-play-button-size: 62px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 320px;
+    max-height: 320px;
+  }
+
+  /* Classic home button design */
+  .safe-bottom {
+    padding-bottom: 1rem;
+  }
+}
+
+/* iPhone 8 Plus, 7 Plus, 6s Plus, 6 Plus (414×736) */
 @media (min-width: 414px) and (max-width: 415px) and (min-height: 735px) and (max-height: 738px) {
   :root {
     --mobile-header-height: 56px;
@@ -2185,6 +2210,410 @@ img {
 
   .safe-bottom {
     padding-bottom: 1rem;
+  }
+}
+
+/* iPhone 5s, 5c, 5, SE 1st Gen (320×568) */
+@media (min-width: 319px) and (max-width: 321px) and (min-height: 567px) and (max-height: 569px) {
+  :root {
+    --mobile-header-height: 52px;
+    --mobile-player-height: 74px;
+    --mobile-player-artwork-size: 260px;
+    --mobile-player-content-width: 340px;
+    --mobile-player-gap: 0.625rem;
+    --mobile-player-play-button-size: 54px;
+    --mobile-player-skip-button-size: 30px;
+    --mobile-player-control-button-size: 13px;
+    --mobile-player-controls-gap: 0.875rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 260px;
+    max-height: 260px;
+  }
+
+  /* Very compact - reduce all spacing */
+  .text-lg {
+    font-size: 0.9rem;
+  }
+
+  .text-2xl {
+    font-size: 1.125rem;
+  }
+}
+
+/* Samsung Galaxy S10+, S10 (412×869) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 868px) and (max-height: 870px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 85px;
+    --mobile-player-artwork-size: 360px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 67px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 360px;
+    max-height: 360px;
+  }
+
+  /* One UI with Infinity-O display */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+/* Samsung Galaxy S10e (360×760) */
+@media (min-width: 359px) and (max-width: 361px) and (min-height: 759px) and (max-height: 761px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 82px;
+    --mobile-player-artwork-size: 340px;
+    --mobile-player-content-width: 380px;
+    --mobile-player-gap: 0.875rem;
+    --mobile-player-play-button-size: 64px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 340px;
+    max-height: 340px;
+  }
+}
+
+/* Samsung Galaxy S9+, S9 (360×740) */
+@media (min-width: 359px) and (max-width: 361px) and (min-height: 739px) and (max-height: 741px) {
+  :root {
+    --mobile-header-height: 55px;
+    --mobile-player-height: 81px;
+    --mobile-player-artwork-size: 335px;
+    --mobile-player-content-width: 380px;
+    --mobile-player-gap: 0.875rem;
+    --mobile-player-play-button-size: 63px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 335px;
+    max-height: 335px;
+  }
+}
+
+/* Samsung Galaxy S8+, S8 (360×740) */
+@media (min-width: 359px) and (max-width: 361px) and (min-height: 739px) and (max-height: 741px) {
+  :root {
+    --mobile-header-height: 55px;
+    --mobile-player-height: 81px;
+    --mobile-player-artwork-size: 335px;
+    --mobile-player-content-width: 380px;
+    --mobile-player-gap: 0.875rem;
+    --mobile-player-play-button-size: 63px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 335px;
+    max-height: 335px;
+  }
+
+  /* Infinity Display - first generation */
+  .safe-bottom {
+    padding-bottom: 0.875rem;
+  }
+}
+
+/* Samsung Galaxy S7 Edge, S7 (360×640) */
+@media (min-width: 359px) and (max-width: 361px) and (min-height: 639px) and (max-height: 641px) {
+  :root {
+    --mobile-header-height: 54px;
+    --mobile-player-height: 79px;
+    --mobile-player-artwork-size: 310px;
+    --mobile-player-content-width: 375px;
+    --mobile-player-gap: 0.75rem;
+    --mobile-player-play-button-size: 60px;
+    --mobile-player-skip-button-size: 32px;
+    --mobile-player-control-button-size: 14px;
+    --mobile-player-controls-gap: 1.125rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 310px;
+    max-height: 310px;
+  }
+
+  /* Classic Samsung design */
+  .safe-bottom {
+    padding-bottom: 0.875rem;
+  }
+}
+
+/* Samsung Galaxy Note 9 (414×846) */
+@media (min-width: 413px) and (max-width: 415px) and (min-height: 845px) and (max-height: 847px) {
+  :root {
+    --mobile-header-height: 57px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 355px;
+    --mobile-player-content-width: 430px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 355px;
+    max-height: 355px;
+  }
+
+  /* S Pen optimized spacing */
+  .safe-bottom {
+    padding-bottom: 1rem;
+  }
+}
+
+/* Samsung Galaxy Note 8 (414×846) */
+@media (min-width: 413px) and (max-width: 415px) and (min-height: 845px) and (max-height: 847px) {
+  :root {
+    --mobile-header-height: 57px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 355px;
+    --mobile-player-content-width: 430px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 355px;
+    max-height: 355px;
+  }
+}
+
+/* Google Pixel 5, 4a 5G (393×851) */
+@media (min-width: 392px) and (max-width: 394px) and (min-height: 850px) and (max-height: 852px) {
+  :root {
+    --mobile-header-height: 57px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 355px;
+    --mobile-player-content-width: 415px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 355px;
+    max-height: 355px;
+  }
+
+  /* Material You early version */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1.125rem);
+  }
+}
+
+/* Google Pixel 4a (393×851) */
+@media (min-width: 392px) and (max-width: 394px) and (min-height: 850px) and (max-height: 852px) {
+  :root {
+    --mobile-header-height: 57px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 355px;
+    --mobile-player-content-width: 415px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 355px;
+    max-height: 355px;
+  }
+}
+
+/* Google Pixel 4 XL (412×869) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 868px) and (max-height: 870px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 85px;
+    --mobile-player-artwork-size: 360px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 67px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 360px;
+    max-height: 360px;
+  }
+
+  /* Material Design 2 */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1.125rem);
+  }
+}
+
+/* Google Pixel 4 (393×830) */
+@media (min-width: 392px) and (max-width: 394px) and (min-height: 829px) and (max-height: 831px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 83px;
+    --mobile-player-artwork-size: 350px;
+    --mobile-player-content-width: 415px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 65px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 350px;
+    max-height: 350px;
+  }
+}
+
+/* Google Pixel 3a XL (412×846) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 845px) and (max-height: 847px) {
+  :root {
+    --mobile-header-height: 57px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 355px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 355px;
+    max-height: 355px;
+  }
+}
+
+/* Google Pixel 3a (393×808) */
+@media (min-width: 392px) and (max-width: 394px) and (min-height: 807px) and (max-height: 809px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 82px;
+    --mobile-player-artwork-size: 345px;
+    --mobile-player-content-width: 415px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 64px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 345px;
+    max-height: 345px;
+  }
+}
+
+/* Google Pixel 3 XL (412×847) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 846px) and (max-height: 848px) {
+  :root {
+    --mobile-header-height: 57px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 355px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 355px;
+    max-height: 355px;
+  }
+
+  /* Notch accommodation */
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 1.125rem);
+  }
+}
+
+/* Google Pixel 3 (393×786) */
+@media (min-width: 392px) and (max-width: 394px) and (min-height: 785px) and (max-height: 787px) {
+  :root {
+    --mobile-header-height: 55px;
+    --mobile-player-height: 81px;
+    --mobile-player-artwork-size: 340px;
+    --mobile-player-content-width: 415px;
+    --mobile-player-gap: 0.875rem;
+    --mobile-player-play-button-size: 63px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 340px;
+    max-height: 340px;
+  }
+}
+
+/* Google Pixel 2 XL (412×824) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 823px) and (max-height: 825px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 82px;
+    --mobile-player-artwork-size: 350px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 65px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 350px;
+    max-height: 350px;
+  }
+}
+
+/* Google Pixel 2 (411×731) */
+@media (min-width: 410px) and (max-width: 412px) and (min-height: 730px) and (max-height: 732px) {
+  :root {
+    --mobile-header-height: 55px;
+    --mobile-player-height: 80px;
+    --mobile-player-artwork-size: 335px;
+    --mobile-player-content-width: 430px;
+    --mobile-player-gap: 0.875rem;
+    --mobile-player-play-button-size: 62px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 335px;
+    max-height: 335px;
   }
 }
 

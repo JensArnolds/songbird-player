@@ -1005,22 +1005,79 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     const delta = max - min;
-    
+
     if (delta === 0) {
       const enhanced = Math.min(255, Math.max(0, r * brightnessBoost));
       return [enhanced, enhanced, enhanced];
     }
-    
+
     const avg = (r + g + b) / 3;
     const saturation = delta / (255 - Math.abs(2 * avg - 255));
     const enhancedSaturation = Math.min(1, saturation * saturationBoost);
-    
+
     const factor = enhancedSaturation / saturation;
     const newR = Math.min(255, Math.max(0, avg + (r - avg) * factor * brightnessBoost));
     const newG = Math.min(255, Math.max(0, avg + (g - avg) * factor * brightnessBoost));
     const newB = Math.min(255, Math.max(0, avg + (b - avg) * factor * brightnessBoost));
-    
+
     return [Math.round(newR), Math.round(newG), Math.round(newB)];
+  };
+
+  const getComplementaryColor = (r: number, g: number, b: number): [number, number, number] => {
+    const rNorm = r / 255;
+    const gNorm = g / 255;
+    const bNorm = b / 255;
+
+    const max = Math.max(rNorm, gNorm, bNorm);
+    const min = Math.min(rNorm, gNorm, bNorm);
+    const delta = max - min;
+
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+
+    if (delta !== 0) {
+      s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+
+      if (max === rNorm) {
+        h = ((gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0)) / 6;
+      } else if (max === gNorm) {
+        h = ((bNorm - rNorm) / delta + 2) / 6;
+      } else {
+        h = ((rNorm - gNorm) / delta + 4) / 6;
+      }
+    }
+
+    const compH = (h + 0.5) % 1;
+    const highS = Math.min(1, s * 1.8);
+    const brightL = Math.min(0.75, l * 1.2);
+
+    const c = (1 - Math.abs(2 * brightL - 1)) * highS;
+    const x = c * (1 - Math.abs((compH * 6) % 2 - 1));
+    const m = brightL - c / 2;
+
+    let rOut = 0, gOut = 0, bOut = 0;
+    const hue = compH * 6;
+
+    if (hue < 1) {
+      [rOut, gOut, bOut] = [c, x, 0];
+    } else if (hue < 2) {
+      [rOut, gOut, bOut] = [x, c, 0];
+    } else if (hue < 3) {
+      [rOut, gOut, bOut] = [0, c, x];
+    } else if (hue < 4) {
+      [rOut, gOut, bOut] = [0, x, c];
+    } else if (hue < 5) {
+      [rOut, gOut, bOut] = [x, 0, c];
+    } else {
+      [rOut, gOut, bOut] = [c, 0, x];
+    }
+
+    return [
+      Math.round((rOut + m) * 255),
+      Math.round((gOut + m) * 255),
+      Math.round((bOut + m) * 255)
+    ];
   };
 
   const getPaletteColor = (color: string, opacity: number = 1, enhance: boolean = false): string => {
@@ -1072,6 +1129,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const primaryRgbaGlow = getPaletteColor(palette.secondary, 0.8, true);
   const primaryRgbaShadowButton = getPaletteColor(palette.primary, 0.5, true);
   const primaryRgbaBorder = getPaletteColor(palette.primary, 0.7, true);
+
+  const [compPrimaryR, compPrimaryG, compPrimaryB] = getComplementaryColor(primaryRgb[0], primaryRgb[1], primaryRgb[2]);
+  const [compSecondaryR, compSecondaryG, compSecondaryB] = getComplementaryColor(secondaryRgb[0], secondaryRgb[1], secondaryRgb[2]);
+  const skipBackColor = rgbToHex(compPrimaryR, compPrimaryG, compPrimaryB);
+  const skipForwardColor = rgbToHex(compSecondaryR, compSecondaryG, compSecondaryB);
 
   return (
     <>
@@ -1551,7 +1613,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                           whileTap={{ scale: 0.9 }}
                           className="touch-target-lg"
-                          style={{ color: primaryColor }}
+                          style={{ color: skipBackColor }}
                           aria-label="Previous track"
                         >
                           <SkipBack
@@ -1607,7 +1669,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }}
                           disabled={queue.length === 0}
                           whileTap={{ scale: 0.9 }}
-                          className="touch-target-lg text-[#3b82f6] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="touch-target-lg disabled:cursor-not-allowed disabled:opacity-40"
+                          style={{ color: skipForwardColor }}
                           aria-label="Next track"
                         >
                           <SkipForward
