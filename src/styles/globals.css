@@ -1813,6 +1813,456 @@ img {
   }
 }
 
+/* iPhone 14 Plus, 13 Pro Max, 12 Pro Max (428×926) */
+@media (min-width: 425px) and (max-width: 430px) and (min-height: 920px) and (max-height: 930px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 88px;
+    --mobile-player-artwork-size: 375px;
+    --mobile-player-content-width: 440px;
+    --mobile-player-gap: 1.25rem;
+    --mobile-player-play-button-size: 70px;
+    --mobile-player-skip-button-size: 37px;
+    --mobile-player-control-button-size: 17px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 375px;
+    max-height: 375px;
+  }
+
+  .mobile-player-expanded {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* iPhone 13 mini, 12 mini (375×812) */
+@media (min-width: 375px) and (max-width: 376px) and (min-height: 810px) and (max-height: 815px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 82px;
+    --mobile-player-artwork-size: 330px;
+    --mobile-player-content-width: 390px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 64px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 330px;
+    max-height: 330px;
+  }
+
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 2.25rem);
+  }
+}
+
+/* iPhone SE 2022/2020, SE 3rd Gen (375×667) */
+@media (min-width: 375px) and (max-width: 376px) and (min-height: 665px) and (max-height: 670px) {
+  :root {
+    --mobile-header-height: 54px;
+    --mobile-player-height: 78px;
+    --mobile-player-artwork-size: 310px;
+    --mobile-player-content-width: 380px;
+    --mobile-player-gap: 0.875rem;
+    --mobile-player-play-button-size: 60px;
+    --mobile-player-skip-button-size: 32px;
+    --mobile-player-control-button-size: 14px;
+    --mobile-player-controls-gap: 1.125rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 310px;
+    max-height: 310px;
+  }
+
+  /* No notch - standard spacing */
+  .safe-top {
+    padding-top: 1rem;
+  }
+
+  .pt-16 {
+    padding-top: 3.75rem;
+  }
+}
+
+/* iPhone X, XS, 11 Pro (375×812) */
+@media (min-width: 375px) and (max-width: 376px) and (min-height: 811px) and (max-height: 813px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 82px;
+    --mobile-player-artwork-size: 330px;
+    --mobile-player-content-width: 390px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 64px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 330px;
+    max-height: 330px;
+  }
+
+  /* First-gen notch spacing */
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 2rem);
+  }
+}
+
+/* iPhone XR, 11 (414×896) */
+@media (min-width: 414px) and (max-width: 415px) and (min-height: 895px) and (max-height: 900px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 86px;
+    --mobile-player-artwork-size: 360px;
+    --mobile-player-content-width: 430px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 68px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 360px;
+    max-height: 360px;
+  }
+}
+
+/* Samsung Galaxy S22 Ultra, S21 Ultra (384×854) */
+@media (min-width: 380px) and (max-width: 390px) and (min-height: 850px) and (max-height: 860px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 345px;
+    --mobile-player-content-width: 410px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 345px;
+    max-height: 345px;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+/* Samsung Galaxy S22+, S21+ (384×854) */
+@media (min-width: 384px) and (max-width: 385px) and (min-height: 853px) and (max-height: 855px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 345px;
+    --mobile-player-content-width: 410px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 345px;
+    max-height: 345px;
+  }
+}
+
+/* Samsung Galaxy A54, A53, A52 (360×800) */
+@media (min-width: 360px) and (max-width: 361px) and (min-height: 798px) and (max-height: 802px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 80px;
+    --mobile-player-artwork-size: 315px;
+    --mobile-player-content-width: 380px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 62px;
+    --mobile-player-skip-button-size: 33px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 315px;
+    max-height: 315px;
+  }
+}
+
+/* Google Pixel 9 Pro XL, 8 Pro (412×915) */
+@media (min-width: 412px) and (max-width: 413px) and (min-height: 914px) and (max-height: 916px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 88px;
+    --mobile-player-artwork-size: 370px;
+    --mobile-player-content-width: 440px;
+    --mobile-player-gap: 1.25rem;
+    --mobile-player-play-button-size: 69px;
+    --mobile-player-skip-button-size: 37px;
+    --mobile-player-control-button-size: 17px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 370px;
+    max-height: 370px;
+  }
+
+  /* Material You gesture navigation */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1.125rem);
+  }
+}
+
+/* Google Pixel 9, 8, 7, 6 (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 913px) and (max-height: 916px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 86px;
+    --mobile-player-artwork-size: 365px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 68px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 365px;
+    max-height: 365px;
+  }
+}
+
+/* Google Pixel 9a, 8a, 7a, 6a (412×892) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 890px) and (max-height: 894px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 355px;
+    --mobile-player-content-width: 430px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 355px;
+    max-height: 355px;
+  }
+}
+
+/* OnePlus 12, 11, 10 Pro (412×919) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 917px) and (max-height: 921px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 88px;
+    --mobile-player-artwork-size: 370px;
+    --mobile-player-content-width: 440px;
+    --mobile-player-gap: 1.25rem;
+    --mobile-player-play-button-size: 69px;
+    --mobile-player-skip-button-size: 37px;
+    --mobile-player-control-button-size: 17px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 370px;
+    max-height: 370px;
+  }
+
+  /* OxygenOS gesture navigation */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+/* OnePlus Nord, Nord 2, Nord 3 (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 914px) and (max-height: 916px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 86px;
+    --mobile-player-artwork-size: 365px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 68px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 365px;
+    max-height: 365px;
+  }
+}
+
+/* Xiaomi 14 Pro, 13 Pro, 12 Pro (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 913px) and (max-height: 917px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 88px;
+    --mobile-player-artwork-size: 370px;
+    --mobile-player-content-width: 440px;
+    --mobile-player-gap: 1.25rem;
+    --mobile-player-play-button-size: 69px;
+    --mobile-player-skip-button-size: 37px;
+    --mobile-player-control-button-size: 17px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 370px;
+    max-height: 370px;
+  }
+
+  /* MIUI gesture navigation spacing */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1.125rem);
+  }
+}
+
+/* Nothing Phone (2), Nothing Phone (1) (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 914px) and (max-height: 916px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 86px;
+    --mobile-player-artwork-size: 365px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 68px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 365px;
+    max-height: 365px;
+  }
+
+  /* Nothing OS gesture spacing */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+/* iPhone 8 Plus, 7 Plus, 6s Plus (414×736) */
+@media (min-width: 414px) and (max-width: 415px) and (min-height: 735px) and (max-height: 738px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 82px;
+    --mobile-player-artwork-size: 350px;
+    --mobile-player-content-width: 425px;
+    --mobile-player-gap: 1rem;
+    --mobile-player-play-button-size: 66px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 350px;
+    max-height: 350px;
+  }
+
+  /* No notch - classic home button spacing */
+  .safe-top {
+    padding-top: 1rem;
+  }
+
+  .safe-bottom {
+    padding-bottom: 1rem;
+  }
+}
+
+/* Samsung Galaxy Note 20 Ultra, Note 10+ (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 914px) and (max-height: 916px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 88px;
+    --mobile-player-artwork-size: 370px;
+    --mobile-player-content-width: 440px;
+    --mobile-player-gap: 1.25rem;
+    --mobile-player-play-button-size: 69px;
+    --mobile-player-skip-button-size: 37px;
+    --mobile-player-control-button-size: 17px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 370px;
+    max-height: 370px;
+  }
+
+  /* Note series - S Pen aware spacing */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1.125rem);
+  }
+}
+
+/* LG Wing (main screen: 395×822) */
+@media (min-width: 393px) and (max-width: 397px) and (min-height: 820px) and (max-height: 825px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 84px;
+    --mobile-player-artwork-size: 350px;
+    --mobile-player-content-width: 415px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 67px;
+    --mobile-player-skip-button-size: 35px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.375rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 350px;
+    max-height: 350px;
+  }
+
+  /* Unique form factor spacing */
+  .mobile-player-expanded {
+    padding: 1.75rem 1.25rem;
+  }
+}
+
+/* Fairphone 5, 4 (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 914px) and (max-height: 916px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 86px;
+    --mobile-player-artwork-size: 365px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 68px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 365px;
+    max-height: 365px;
+  }
+
+  /* Sustainable phone - clean spacing */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
 /* Compact phones (width < 375px) - iPhone SE, small Androids */
 @media (max-width: 374px) {
   :root {
@@ -1863,6 +2313,185 @@ img {
 
   .pb-24 {
     padding-bottom: 5rem;
+  }
+}
+
+/* Sony Xperia 1 VI, 1 V (644×1644, typically 412×1096 CSS) */
+@media (min-width: 410px) and (max-width: 415px) and (min-height: 1090px) {
+  :root {
+    --mobile-header-height: 62px;
+    --mobile-player-height: 90px;
+    --mobile-player-artwork-size: 390px;
+    --mobile-player-content-width: 450px;
+    --mobile-player-gap: 1.5rem;
+    --mobile-player-play-button-size: 72px;
+    --mobile-player-skip-button-size: 38px;
+    --mobile-player-control-button-size: 18px;
+    --mobile-player-controls-gap: 1.75rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 390px;
+    max-height: 390px;
+  }
+
+  .mobile-player-expanded {
+    padding: 2.5rem 1.5rem;
+    justify-content: center;
+  }
+
+  /* Cinema-wide aspect ratio spacing */
+  .pb-24 {
+    padding-bottom: 7rem;
+  }
+}
+
+/* Asus ROG Phone 8, 7 (412×952) */
+@media (min-width: 410px) and (max-width: 415px) and (min-height: 950px) and (max-height: 955px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 88px;
+    --mobile-player-artwork-size: 380px;
+    --mobile-player-content-width: 445px;
+    --mobile-player-gap: 1.375rem;
+    --mobile-player-play-button-size: 70px;
+    --mobile-player-skip-button-size: 37px;
+    --mobile-player-control-button-size: 17px;
+    --mobile-player-controls-gap: 1.625rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 380px;
+    max-height: 380px;
+  }
+
+  /* Gaming phone - extra bottom space for controls */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1.25rem);
+  }
+}
+
+/* Oppo Find X7 Ultra, X6 Pro (412×919) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 918px) and (max-height: 920px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 88px;
+    --mobile-player-artwork-size: 370px;
+    --mobile-player-content-width: 440px;
+    --mobile-player-gap: 1.25rem;
+    --mobile-player-play-button-size: 69px;
+    --mobile-player-skip-button-size: 37px;
+    --mobile-player-control-button-size: 17px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 370px;
+    max-height: 370px;
+  }
+
+  /* ColorOS gesture navigation */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+/* Vivo X100 Pro, X90 Pro (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 914px) and (max-height: 916px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 86px;
+    --mobile-player-artwork-size: 365px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 68px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 365px;
+    max-height: 365px;
+  }
+
+  /* Funtouch OS gesture spacing */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+/* Realme GT 6, GT 5 Pro (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 913px) and (max-height: 917px) {
+  :root {
+    --mobile-header-height: 58px;
+    --mobile-player-height: 86px;
+    --mobile-player-artwork-size: 365px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 68px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 365px;
+    max-height: 365px;
+  }
+}
+
+/* Honor Magic 6 Pro, Magic 5 Pro (412×915) */
+@media (min-width: 411px) and (max-width: 413px) and (min-height: 914px) and (max-height: 916px) {
+  :root {
+    --mobile-header-height: 60px;
+    --mobile-player-height: 86px;
+    --mobile-player-artwork-size: 365px;
+    --mobile-player-content-width: 435px;
+    --mobile-player-gap: 1.125rem;
+    --mobile-player-play-button-size: 68px;
+    --mobile-player-skip-button-size: 36px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.5rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 365px;
+    max-height: 365px;
+  }
+
+  /* MagicOS gesture navigation */
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}
+
+/* iPad Mini (744×1133) - portrait mode */
+@media (min-width: 740px) and (max-width: 750px) and (min-height: 1125px) and (max-height: 1140px) and (orientation: portrait) {
+  :root {
+    --mobile-header-height: 64px;
+    --mobile-player-height: 96px;
+    --mobile-player-artwork-size: 480px;
+    --mobile-player-content-width: 720px;
+    --mobile-player-gap: 2rem;
+    --mobile-player-play-button-size: 80px;
+    --mobile-player-skip-button-size: 42px;
+    --mobile-player-control-button-size: 20px;
+    --mobile-player-controls-gap: 2rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 480px;
+    max-height: 480px;
+  }
+
+  .mobile-player-expanded {
+    padding: 3rem 2rem;
+  }
+
+  /* Tablet spacing */
+  .mobile-player-body {
+    max-width: 90vw;
   }
 }
 

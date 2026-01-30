@@ -62,16 +62,21 @@ if (process.env.NODE_ENV === "development") {
   });
 }
 
-if (typeof process !== "undefined") {
-  process.on("SIGTERM", () => {
-    console.log("[DB] SIGTERM received, closing database pool...");
-    void pool.end();
-  });
+// Track if pool has been ended to prevent "Called end on pool more than once" error
+let poolEnded = false;
 
-  process.on("SIGINT", () => {
-    console.log("[DB] SIGINT received, closing database pool...");
+const gracefulShutdown = () => {
+  if (!poolEnded) {
+    poolEnded = true;
+    console.log("[DB] Closing database pool...");
     void pool.end();
-  });
+  }
+};
+
+if (typeof process !== "undefined") {
+  process.on("SIGTERM", gracefulShutdown);
+  process.on("SIGINT", gracefulShutdown);
+  process.on("beforeExit", gracefulShutdown);
 }
 
 export const db = drizzle(pool, { schema });

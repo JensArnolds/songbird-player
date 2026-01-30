@@ -10,6 +10,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Comprehensive Phone Model Support**: Added device-specific responsive breakpoints for 75+ phone models across all major manufacturers
+  - **Apple iPhone (10 models)**:
+    - Flagship: 14 Plus, 13 Pro Max, 12 Pro Max (428×926)
+    - Pro: 16 Pro, 15 Pro (393×852)
+    - Standard: 16, 15, 14, 13, 12 (390×844)
+    - Compact: 13 mini, 12 mini (375×812)
+    - Budget: SE 2022/2020/3rd Gen (375×667)
+    - Classic: X/XS/11 Pro (375×812), XR/11 (414×896), 8 Plus/7 Plus/6s Plus (414×736)
+  - **Samsung Galaxy (8 models)**:
+    - Ultra: S24 Ultra, S23 Ultra (412×915)
+    - Plus: S22+, S21+ (384×854)
+    - Standard: S24, S23, S22 Ultra, S21 Ultra (360-384×854)
+    - Mid-range: A54, A53, A52 (360×800)
+    - Note: Note 20 Ultra, Note 10+ (412×915)
+  - **Google Pixel (9 models)**:
+    - Pro XL: Pixel 9 Pro XL, 8 Pro (412×915)
+    - Standard: Pixel 9, 8, 7, 6 (412×915)
+    - A-Series: Pixel 9a, 8a, 7a, 6a (412×892)
+  - **OnePlus (5 models)**: OnePlus 12/11/10 Pro, Nord/Nord 2/Nord 3 (412×915-919)
+  - **Xiaomi (3 models)**: Xiaomi 14 Pro, 13 Pro, 12 Pro (412×915)
+  - **Nothing Phone (2 models)**: Nothing Phone (2), (1) (412×915)
+  - **Sony Xperia (2 models)**: Xperia 1 VI, 1 V (412×1096 - 21:9 cinema aspect)
+  - **Gaming Phones (2 models)**: Asus ROG Phone 8, 7 (412×952)
+  - **Chinese Flagships (10 models)**:
+    - Oppo: Find X7 Ultra, X6 Pro (412×919)
+    - Vivo: X100 Pro, X90 Pro (412×915)
+    - Realme: GT 6, GT 5 Pro (412×915)
+    - Honor: Magic 6 Pro, Magic 5 Pro (412×915)
+  - **Special Form Factors (3 models)**:
+    - LG Wing: Swivel dual-screen (395×822)
+    - Fairphone: Fairphone 5, 4 (412×915)
+  - **Tablets (1 model)**: iPad Mini (744×1133 portrait)
+  - Location: `src/styles/globals.css`
+
 - **Foldable Device Support**: Added comprehensive responsive breakpoints for foldable devices
   - Samsung Galaxy Z Fold 5/4/3 (cover screen: 344×882, unfolded: 753×906)
   - Samsung Galaxy Z Flip 5/4/3 (cover screen: 260×512)
@@ -17,13 +51,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Location: `src/styles/globals.css`
 
 - **Adaptive Mobile Player Button Sizing**: Added CSS variables for responsive button sizing across all device sizes
-  - `--mobile-player-play-button-size`: Main play/pause button (44px-76px based on device)
-  - `--mobile-player-skip-button-size`: Previous/Next buttons (24px-40px based on device)
-  - `--mobile-player-control-button-size`: Shuffle/Repeat buttons (12px-18px based on device)
+  - `--mobile-player-play-button-size`: Main play/pause button (44px-80px based on device)
+  - `--mobile-player-skip-button-size`: Previous/Next buttons (24px-42px based on device)
+  - `--mobile-player-control-button-size`: Shuffle/Repeat buttons (12px-20px based on device)
   - `--mobile-player-controls-gap`: Spacing between controls (0.75rem-2rem based on device)
   - Location: `src/styles/globals.css`, `src/components/MobilePlayer.tsx`
 
+- **OS-Specific Gesture Navigation Spacing**: Added proper bottom padding for various Android skins and iOS
+  - Material You (Google Pixel): 1.125rem bottom padding
+  - One UI (Samsung): 1rem bottom padding
+  - OxygenOS (OnePlus): 1rem bottom padding
+  - MIUI (Xiaomi): 1.125rem bottom padding
+  - ColorOS (Oppo): 1rem bottom padding
+  - Funtouch OS (Vivo): 1rem bottom padding
+  - MagicOS (Honor): 1rem bottom padding
+  - Nothing OS: 1rem bottom padding
+  - iOS Dynamic Island (iPhone Pro models): 2.5rem top padding
+  - Location: `src/styles/globals.css`
+
 ### Changed
+
+- **Device-Specific Button Sizing**: Optimized button sizes for each phone category
+  - Compact phones (< 375px): Play 58px, Skip 32px, Controls 14px
+  - iPhone SE / Classic models (375×667): Play 60px, Skip 32px, Controls 14px
+  - Standard flagships (375-395×812-852): Play 64-68px, Skip 34-36px, Controls 15-16px
+  - Large flagships (410-430×896-932): Play 69-72px, Skip 37-38px, Controls 17-18px
+  - Tablets (iPad Mini): Play 80px, Skip 42px, Controls 20px
+  - Gaming phones (ROG): Play 70px with extra bottom control space
+  - Cinema phones (Sony Xperia 21:9): Play 72px with extra vertical spacing
+  - Location: `src/styles/globals.css`
+
+- **Artwork Sizing by Device**: Optimized album artwork display for each phone size
+  - Compact phones (< 375px): 280px artwork
+  - iPhone SE: 310px artwork
+  - Standard phones (375-395px): 330-345px artwork
+  - Large flagships (410-430px): 365-380px artwork
+  - Sony Xperia (21:9): 390px artwork
+  - Extra tall phones: 390-400px artwork
+  - Tablets (iPad Mini): 480px artwork
+  - Foldables (Z Fold unfolded): 450px artwork
+  - Location: `src/styles/globals.css`
 
 - **Compact Phone Optimizations**: Tuned button sizes and spacing for devices < 375px width
   - Play button: 68px → 58px
@@ -41,7 +108,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Extra Tall Screen Enhancement**: Improved button sizing for unfolded foldables and tall phones (height > 950px)
   - Larger buttons for better touch targets on expansive screens
   - Play button: 72px, Skip buttons: 38px, Control buttons: 18px
+  - Sony Xperia (21:9): Play button 72px with cinema-wide spacing optimizations
   - Location: `src/styles/globals.css`
+
+### Fixed
+
+- **Multiple Lockfile Warning**: Fixed Next.js workspace root inference when multiple lockfiles exist
+  - Added `outputFileTracingRoot: process.cwd()` to explicitly set workspace root
+  - Resolves warning: "Next.js inferred your workspace root, but it may not be correct"
+  - Location: `next.config.js`
+
+- **Database Pool Double Closure**: Fixed "Called end on pool more than once" error during build
+  - Added `poolEnded` flag to prevent multiple pool.end() calls
+  - Unified SIGTERM, SIGINT, and beforeExit signal handlers with graceful shutdown function
+  - Prevents build errors when multiple shutdown signals are received
+  - Location: `src/server/db/index.ts`
 
 ### Performance
 

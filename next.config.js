@@ -56,6 +56,9 @@ const config = {
 
   output: "standalone",
 
+  // Explicitly set the workspace root to avoid lockfile confusion
+  outputFileTracingRoot: process.cwd(),
+
   poweredByHeader: false,
   compress: true,
 
