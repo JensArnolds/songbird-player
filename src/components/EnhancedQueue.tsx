@@ -3,7 +3,6 @@
 "use client";
 
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { QueueSettingsModal } from "@/components/QueueSettingsModal";
 import { useToast } from "@/contexts/ToastContext";
 import { api } from "@/trpc/react";
 import type { QueuedTrack, SimilarityPreference, SmartQueueState, Track } from "@/types";
@@ -35,9 +34,18 @@ import {
   Trash2,
   X
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+const QueueSettingsModal = dynamic(
+  () =>
+    import("@/components/QueueSettingsModal").then((mod) => ({
+      default: mod.QueueSettingsModal,
+    })),
+  { ssr: false },
+);
 
 interface QueueItemProps {
   track: Track;
@@ -797,14 +805,15 @@ export function EnhancedQueue({
         </div>
       )}
 
-      {/* Settings Modal */}
-      <QueueSettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-        onApply={handleApplySettings}
-        initialCount={smartTracksCount}
-        initialSimilarityLevel={similarityLevel}
-      />
+      {showSettingsModal && (
+        <QueueSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          onApply={handleApplySettings}
+          initialCount={smartTracksCount}
+          initialSimilarityLevel={similarityLevel}
+        />
+      )}
     </div>
   );
 }

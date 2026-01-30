@@ -2,7 +2,6 @@
 
 "use client";
 
-import ChangelogModal from "@/components/ChangelogModal";
 import { PullToRefreshWrapper } from "@/components/PullToRefreshWrapper";
 import SwipeableTrackCard from "@/components/SwipeableTrackCard";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
@@ -24,8 +23,13 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, Music2, Search, Shuffle, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+const ChangelogModal = dynamic(() => import("@/components/ChangelogModal"), {
+  ssr: false,
+});
 
 export default function HomePageClient() {
   const { data: session } = useSession();
@@ -715,11 +719,12 @@ export default function HomePageClient() {
         </div>
       </main>
 
-      {}
-      <ChangelogModal
-        isOpen={isChangelogOpen}
-        onClose={() => setIsChangelogOpen(false)}
-      />
+      {isChangelogOpen && (
+        <ChangelogModal
+          isOpen={isChangelogOpen}
+          onClose={() => setIsChangelogOpen(false)}
+        />
+      )}
     </div>
   );
 

@@ -12,11 +12,22 @@ import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
-import { FlowFieldBackground } from "./FlowFieldBackground";
 import { LightweightParticleBackground } from "./LightweightParticleBackground";
-import PatternControls from "./PatternControls";
 import MaturePlayer from "./Player";
 import type { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
+
+const FlowFieldBackground = dynamic(
+  () =>
+    import("./FlowFieldBackground").then((mod) => ({
+      default: mod.FlowFieldBackground,
+    })),
+  { ssr: false },
+);
+
+const PatternControls = dynamic(
+  () => import("./PatternControls").then((mod) => ({ default: mod.default })),
+  { ssr: false },
+);
 
 const Equalizer = dynamic(
   () => import("./Equalizer").then((mod) => mod.Equalizer),

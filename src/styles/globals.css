@@ -1323,6 +1323,36 @@ img {
 }
 
 /* ------------------------------------------------------------
+   🎧 Mobile Player Sizing
+------------------------------------------------------------- */
+
+:root {
+  --mobile-player-artwork-size: 320px;
+  --mobile-player-content-width: 420px;
+  --mobile-player-gap: 1rem;
+
+  /* Button sizing */
+  --mobile-player-play-button-size: 68px;
+  --mobile-player-skip-button-size: 36px;
+  --mobile-player-control-button-size: 16px;
+  --mobile-player-controls-gap: 1.5rem;
+}
+
+.mobile-player-body {
+  gap: var(--mobile-player-gap);
+}
+
+.mobile-player-content {
+  width: 100%;
+  max-width: min(92vw, var(--mobile-player-content-width));
+}
+
+.mobile-player-artwork {
+  max-width: min(88vw, var(--mobile-player-artwork-size));
+  max-height: min(52vh, var(--mobile-player-artwork-size));
+}
+
+/* ------------------------------------------------------------
    📱 Landscape Mode Optimizations for Mobile
 ------------------------------------------------------------- */
 
@@ -1374,7 +1404,7 @@ img {
 /* Tablet landscape - use horizontal space better */
 @media (min-width: 768px) and (max-height: 600px) and (orientation: landscape) {
   /* Use 2-column layout for expanded player */
-  .mobile-player-expanded {
+  .mobile-player-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
@@ -1672,15 +1702,13 @@ img {
   :root {
     --mobile-header-height: 60px;
     --mobile-player-height: 88px;
+    --mobile-player-artwork-size: 380px;
+    --mobile-player-content-width: 440px;
+    --mobile-player-gap: 1.25rem;
   }
 
   .mobile-player-expanded {
     padding: 2rem 1.5rem;
-  }
-
-  .mobile-player-artwork {
-    max-width: 380px;
-    max-height: 380px;
   }
 
   /* Optimize for taller screen aspect ratio */
@@ -1698,11 +1726,8 @@ img {
   :root {
     --mobile-header-height: 58px;
     --mobile-player-height: 86px;
-  }
-
-  .mobile-player-artwork {
-    max-width: 350px;
-    max-height: 350px;
+    --mobile-player-artwork-size: 350px;
+    --mobile-player-content-width: 420px;
   }
 
   /* Dynamic Island aware spacing */
@@ -1713,6 +1738,11 @@ img {
 
 /* Standard iPhones (390×844) - iPhone 16, 15, 14, 13, 12 */
 @media (min-width: 375px) and (max-width: 395px) and (min-height: 800px) and (max-height: 850px) {
+  :root {
+    --mobile-player-artwork-size: 340px;
+    --mobile-player-content-width: 410px;
+  }
+
   .mobile-player-artwork {
     max-width: 340px;
     max-height: 340px;
@@ -1729,11 +1759,8 @@ img {
   :root {
     --mobile-header-height: 60px;
     --mobile-player-height: 88px;
-  }
-
-  .mobile-player-artwork {
-    max-width: 370px;
-    max-height: 370px;
+    --mobile-player-artwork-size: 370px;
+    --mobile-player-content-width: 440px;
   }
 
   /* Optimize for One UI navigation gestures */
@@ -1748,6 +1775,11 @@ img {
 
 /* Samsung Galaxy S24, S23 (360-384×854) */
 @media (min-width: 360px) and (max-width: 385px) and (min-height: 840px) {
+  :root {
+    --mobile-player-artwork-size: 320px;
+    --mobile-player-content-width: 400px;
+  }
+
   .mobile-player-artwork {
     max-width: 320px;
     max-height: 320px;
@@ -1765,6 +1797,11 @@ img {
 
 /* Pixel 7/8 Pro, OnePlus, other tall Android (412×915) */
 @media (min-width: 410px) and (max-width: 415px) and (min-height: 910px) {
+  :root {
+    --mobile-player-artwork-size: 365px;
+    --mobile-player-content-width: 440px;
+  }
+
   .mobile-player-artwork {
     max-width: 365px;
     max-height: 365px;
@@ -1781,11 +1818,25 @@ img {
   :root {
     --mobile-header-height: 54px;
     --mobile-player-height: 76px;
+    --mobile-player-artwork-size: 280px;
+    --mobile-player-content-width: 360px;
+    --mobile-player-gap: 0.75rem;
+
+    /* Smaller button sizes for compact phones */
+    --mobile-player-play-button-size: 58px;
+    --mobile-player-skip-button-size: 32px;
+    --mobile-player-control-button-size: 14px;
+    --mobile-player-controls-gap: 1rem;
   }
 
   .mobile-player-artwork {
     max-width: 280px;
     max-height: 280px;
+  }
+
+  /* Reduce control spacing */
+  .mobile-player-controls {
+    gap: 0.75rem;
   }
 
   /* Reduce text sizes for compact screens */
@@ -1817,14 +1868,21 @@ img {
 
 /* Extra tall phones (aspect ratio > 20:9) - foldables unfolded, etc */
 @media (min-height: 950px) and (max-width: 500px) {
+  :root {
+    --mobile-player-artwork-size: 400px;
+    --mobile-player-content-width: 460px;
+    --mobile-player-gap: 1.5rem;
+
+    /* Larger buttons for extra tall screens */
+    --mobile-player-play-button-size: 72px;
+    --mobile-player-skip-button-size: 38px;
+    --mobile-player-control-button-size: 18px;
+    --mobile-player-controls-gap: 1.75rem;
+  }
+
   .mobile-player-expanded {
     padding: 2.5rem 1.5rem;
     justify-content: center;
-  }
-
-  .mobile-player-artwork {
-    max-width: 400px;
-    max-height: 400px;
   }
 
   /* Add more breathing room on very tall screens */
@@ -1833,11 +1891,206 @@ img {
   }
 }
 
+/* ------------------------------------------------------------
+   📱 Foldable-Specific Breakpoints
+------------------------------------------------------------- */
+
+/* Samsung Galaxy Z Fold 5/4/3 - Cover Screen (832×2268, typically 344×882 CSS) */
+@media (min-width: 340px) and (max-width: 350px) and (min-height: 860px) {
+  :root {
+    --mobile-header-height: 56px;
+    --mobile-player-height: 80px;
+    --mobile-player-artwork-size: 300px;
+    --mobile-player-content-width: 360px;
+    --mobile-player-gap: 1rem;
+
+    /* Compact buttons for narrow cover screen */
+    --mobile-player-play-button-size: 60px;
+    --mobile-player-skip-button-size: 32px;
+    --mobile-player-control-button-size: 15px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 300px;
+    max-height: 300px;
+  }
+
+  /* Tighter spacing for narrow cover */
+  .mobile-player-expanded {
+    padding: 1.5rem 1rem;
+  }
+
+  /* Adjust content for narrow screen */
+  .mobile-player-content {
+    max-width: 90vw;
+  }
+}
+
+/* Samsung Galaxy Z Fold 5/4/3 - Unfolded Inner Screen (1812×2176, typically 753×906 CSS) */
+@media (min-width: 740px) and (max-width: 770px) and (min-height: 890px) and (max-height: 920px) {
+  :root {
+    --mobile-header-height: 62px;
+    --mobile-player-height: 92px;
+    --mobile-player-artwork-size: 450px;
+    --mobile-player-content-width: 700px;
+    --mobile-player-gap: 2rem;
+
+    /* Larger buttons for tablet-sized unfolded screen */
+    --mobile-player-play-button-size: 76px;
+    --mobile-player-skip-button-size: 40px;
+    --mobile-player-control-button-size: 18px;
+    --mobile-player-controls-gap: 2rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 450px;
+    max-height: 450px;
+  }
+
+  .mobile-player-expanded {
+    padding: 3rem 2rem;
+  }
+
+  /* Use more horizontal space when unfolded */
+  .mobile-player-body {
+    max-width: 85vw;
+  }
+}
+
+/* Galaxy Z Flip 5/4/3 - Cover Screen (720×748, typically 260×512 CSS) */
+@media (min-width: 255px) and (max-width: 270px) and (min-height: 500px) and (max-height: 520px) {
+  :root {
+    --mobile-header-height: 50px;
+    --mobile-player-height: 72px;
+    --mobile-player-artwork-size: 220px;
+    --mobile-player-content-width: 280px;
+    --mobile-player-gap: 0.5rem;
+
+    /* Very compact buttons for tiny flip cover */
+    --mobile-player-play-button-size: 48px;
+    --mobile-player-skip-button-size: 26px;
+    --mobile-player-control-button-size: 13px;
+    --mobile-player-controls-gap: 0.75rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 220px;
+    max-height: 220px;
+  }
+
+  .mobile-player-expanded {
+    padding: 1rem 0.75rem;
+  }
+
+  /* Minimize UI chrome for tiny cover screen */
+  .mobile-player-controls {
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  /* Smaller text for cover screen */
+  .text-lg {
+    font-size: 0.9rem;
+  }
+
+  .text-sm {
+    font-size: 0.75rem;
+  }
+}
+
+/* Motorola Razr+ (Razr 40 Ultra) - Cover Screen (1272×1080, typically 413×360 CSS) */
+@media (min-width: 405px) and (max-width: 420px) and (min-height: 350px) and (max-height: 370px) and (orientation: portrait) {
+  :root {
+    --mobile-header-height: 54px;
+    --mobile-player-height: 78px;
+    --mobile-player-artwork-size: 320px;
+    --mobile-player-content-width: 400px;
+    --mobile-player-gap: 1rem;
+
+    /* Medium compact for Razr+ cover */
+    --mobile-player-play-button-size: 64px;
+    --mobile-player-skip-button-size: 34px;
+    --mobile-player-control-button-size: 16px;
+    --mobile-player-controls-gap: 1.25rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 320px;
+    max-height: 280px;
+  }
+
+  /* Optimize for wide but short cover screen */
+  .mobile-player-expanded {
+    padding: 1rem 1.25rem;
+  }
+
+  .mobile-player-body {
+    display: grid;
+    grid-template-columns: minmax(200px, 280px) 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
+}
+
+/* Very small landscape (height < 400px) - extreme compact mode */
+@media (max-height: 400px) and (orientation: landscape) {
+  :root {
+    --mobile-player-artwork-size: 160px;
+    --mobile-player-content-width: 320px;
+    --mobile-player-gap: 0.5rem;
+
+    /* Minimal button sizes for very small landscape */
+    --mobile-player-play-button-size: 44px;
+    --mobile-player-skip-button-size: 24px;
+    --mobile-player-control-button-size: 12px;
+    --mobile-player-controls-gap: 0.75rem;
+  }
+
+  .mobile-player-artwork {
+    max-width: 160px;
+    max-height: 160px;
+  }
+
+  .mobile-player-expanded {
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Ultra compact controls */
+  .mobile-player-controls {
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+
+  /* Hide non-essential UI in extreme compact mode */
+  .mobile-player-secondary-controls {
+    display: none;
+  }
+}
+
 /* Landscape mode optimizations for phones */
 @media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --mobile-player-artwork-size: 200px;
+    --mobile-player-content-width: 360px;
+    --mobile-player-gap: 0.75rem;
+
+    /* Compact button sizes for landscape */
+    --mobile-player-play-button-size: 52px;
+    --mobile-player-skip-button-size: 28px;
+    --mobile-player-control-button-size: 14px;
+    --mobile-player-controls-gap: 1rem;
+  }
+
   .mobile-player-artwork {
     max-width: 200px;
     max-height: 200px;
+  }
+
+  /* Tighter control spacing in landscape */
+  .mobile-player-controls {
+    gap: 0.5rem;
+    padding: 0.5rem;
   }
 
   .mobile-header {
@@ -1855,9 +2108,12 @@ img {
 
   .mobile-player-expanded {
     padding: 1rem;
+  }
+
+  .mobile-player-body {
     display: grid;
-    grid-template-columns: minmax(180px, 250px) 1fr;
-    gap: 1.5rem;
+    grid-template-columns: minmax(180px, 240px) 1fr;
+    gap: 1.25rem;
     align-items: center;
   }
 }

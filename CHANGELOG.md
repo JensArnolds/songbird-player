@@ -6,6 +6,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.21] - 2026-01-30
+
+### Added
+
+- **Foldable Device Support**: Added comprehensive responsive breakpoints for foldable devices
+  - Samsung Galaxy Z Fold 5/4/3 (cover screen: 344×882, unfolded: 753×906)
+  - Samsung Galaxy Z Flip 5/4/3 (cover screen: 260×512)
+  - Motorola Razr+ / Razr 40 Ultra (cover screen: 413×360)
+  - Location: `src/styles/globals.css`
+
+- **Adaptive Mobile Player Button Sizing**: Added CSS variables for responsive button sizing across all device sizes
+  - `--mobile-player-play-button-size`: Main play/pause button (44px-76px based on device)
+  - `--mobile-player-skip-button-size`: Previous/Next buttons (24px-40px based on device)
+  - `--mobile-player-control-button-size`: Shuffle/Repeat buttons (12px-18px based on device)
+  - `--mobile-player-controls-gap`: Spacing between controls (0.75rem-2rem based on device)
+  - Location: `src/styles/globals.css`, `src/components/MobilePlayer.tsx`
+
+### Changed
+
+- **Compact Phone Optimizations**: Tuned button sizes and spacing for devices < 375px width
+  - Play button: 68px → 58px
+  - Skip buttons: 36px → 32px
+  - Control buttons: 16px → 14px
+  - Tighter control spacing for better ergonomics on small screens
+  - Location: `src/styles/globals.css`
+
+- **Landscape Mode Optimizations**: Enhanced button sizing for small landscape heights
+  - Standard landscape (height < 500px): Play button 52px, tighter spacing
+  - Extreme compact (height < 400px): Play button 44px, minimal UI
+  - Tablet landscape layout improvements with grid-based artwork + controls
+  - Location: `src/styles/globals.css`
+
+- **Extra Tall Screen Enhancement**: Improved button sizing for unfolded foldables and tall phones (height > 950px)
+  - Larger buttons for better touch targets on expansive screens
+  - Play button: 72px, Skip buttons: 38px, Control buttons: 18px
+  - Location: `src/styles/globals.css`
+
+### Performance
+
+- **Dynamic Import Optimization**: Converted heavy components to dynamic imports with SSR disabled
+  - ChangelogModal: Conditionally rendered only when open
+  - QueueSettingsModal: Conditionally rendered only when open
+  - FlowFieldBackground: Dynamic import to reduce initial bundle
+  - PatternControls: Dynamic import to reduce initial bundle
+  - Locations: `src/app/HomePageClient.tsx`, `src/components/EnhancedQueue.tsx`, `src/components/PersistentPlayer.tsx`
+
 ## [0.10.20] - 2026-01-29
 
 ### Fixed

@@ -3,7 +3,6 @@
 "use client";
 
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { QueueSettingsModal } from "@/components/QueueSettingsModal";
 import { STORAGE_KEYS } from "@/config/storage";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -61,8 +60,17 @@ import {
   X
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+const QueueSettingsModal = dynamic(
+  () =>
+    import("@/components/QueueSettingsModal").then((mod) => ({
+      default: mod.QueueSettingsModal,
+    })),
+  { ssr: false },
+);
 
 const FALLBACK_PALETTE: ColorPalette = {
   primary: "rgba(100, 149, 237, 0.8)",
@@ -1108,12 +1116,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_0%,rgba(8,13,20,0.8)_70%)]" />
 
               {}
-              <div className="relative z-10 flex flex-1 flex-col">
+              <div className="mobile-player-expanded relative z-10 flex flex-1 flex-col">
                 <div className="flex justify-center pt-1 pb-0.5">
                   <div className="h-1 w-12 rounded-full bg-[rgba(255,255,255,0.3)]" />
                 </div>
 
-                <div className="flex items-center justify-between px-6 pt-1">
+                <div className="mobile-player-header flex items-center justify-between px-6 pt-1">
                   <motion.button
                     onClick={() => {
                       hapticLight();
@@ -1141,7 +1149,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                 </div>
 
                 <div className="flex flex-1 flex-col px-6 pb-3 pt-2">
-                  <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-4">
+                  <div className="mobile-player-body flex min-h-0 flex-1 flex-col items-center justify-start gap-4">
                     <motion.div
                       ref={artworkRef}
                       initial={{ scale: 0.9, opacity: 0 }}
@@ -1153,7 +1161,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       onDrag={handleArtworkDrag}
                       onDragEnd={handleArtworkDragEnd}
                       transition={springPresets.smooth}
-                      className="relative w-full max-w-[300px] cursor-grab active:cursor-grabbing"
+                      className="mobile-player-artwork relative w-full cursor-grab active:cursor-grabbing"
                     >
                       {coverArt ? (
                         <div className="relative">
@@ -1232,60 +1240,59 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       )}
                     </motion.div>
 
-                    <div className="w-full max-w-[420px]">
-                      <div 
-                        className="rounded-2xl px-4 py-2 backdrop-blur-xl"
-                        style={{
-                          border: `2px solid ${getPaletteColor(palette.primary, 0.5, true)}`,
-                          background: `linear-gradient(145deg, ${getPaletteColor(palette.primary, 0.15, true)}, ${getPaletteColor(palette.secondary, 0.1, true)}, rgba(10,16,24,0.6))`,
-                          boxShadow: `0 16px 40px rgba(0,0,0,0.45), 0 0 20px ${getPaletteColor(palette.primary, 0.3, true)}`,
-                        }}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0 text-left">
-                            <motion.h2
-                              key={currentTrack.id}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="text-xl font-bold text-[var(--color-text)] leading-tight"
-                            >
-                              {currentTrack.title}
-                            </motion.h2>
-                            <motion.p
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.1 }}
-                              className="mt-0.5 text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)]"
-                            >
-                              {currentTrack.artist.name}
-                            </motion.p>
-                            {currentTrack.album?.title && (
-                              <p className="mt-0.5 truncate text-[10px] text-[var(--color-subtext)]">
-                                {currentTrack.album.title}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex flex-col items-end text-[11px] text-[var(--color-subtext)]">
-                            <span className="text-[9px] uppercase tracking-[0.3em] text-[var(--color-muted)]">
-                              Queue
-                            </span>
-                            <span className="text-lg font-semibold text-[var(--color-text)] tabular-nums">
-                              {queue.length}
-                            </span>
-                            <span className="mt-1 text-[9px] uppercase tracking-[0.3em] text-[var(--color-muted)]">
-                              Total
-                            </span>
-                            <span className="text-sm font-semibold text-[var(--color-text)] tabular-nums">
-                              {formatDuration(totalDuration)}
-                            </span>
+                    <div className="mobile-player-info-controls flex w-full flex-col items-center gap-4">
+                      <div className="mobile-player-content w-full">
+                        <div 
+                          className="rounded-2xl px-4 py-2 backdrop-blur-xl"
+                          style={{
+                            border: `2px solid ${getPaletteColor(palette.primary, 0.5, true)}`,
+                            background: `linear-gradient(145deg, ${getPaletteColor(palette.primary, 0.15, true)}, ${getPaletteColor(palette.secondary, 0.1, true)}, rgba(10,16,24,0.6))`,
+                            boxShadow: `0 16px 40px rgba(0,0,0,0.45), 0 0 20px ${getPaletteColor(palette.primary, 0.3, true)}`,
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="min-w-0 text-left">
+                              <motion.h2
+                                key={currentTrack.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-xl font-bold text-[var(--color-text)] leading-tight"
+                              >
+                                {currentTrack.title}
+                              </motion.h2>
+                              <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.1 }}
+                                className="mt-0.5 text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)]"
+                              >
+                                {currentTrack.artist.name}
+                              </motion.p>
+                              {currentTrack.album?.title && (
+                                <p className="mt-0.5 truncate text-[10px] text-[var(--color-subtext)]">
+                                  {currentTrack.album.title}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end text-[11px] text-[var(--color-subtext)]">
+                              <span className="text-[9px] uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                                Queue
+                              </span>
+                              <span className="text-lg font-semibold text-[var(--color-text)] tabular-nums">
+                                {queue.length}
+                              </span>
+                              <span className="mt-1 text-[9px] uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                                Total
+                              </span>
+                              <span className="text-sm font-semibold text-[var(--color-text)] tabular-nums">
+                                {formatDuration(totalDuration)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                  </div>
-
-                  <div className="mt-0.5 w-full max-w-[420px] pb-[calc(env(safe-area-inset-bottom)+4px)]">
+                      <div className="mobile-player-controls mobile-player-content mt-0.5 w-full pb-[calc(env(safe-area-inset-bottom)+4px)]">
                     <div 
                       className="rounded-[20px] px-3 py-1.5 backdrop-blur-xl"
                       style={{
@@ -1411,7 +1418,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             isShuffled ? "Disable shuffle" : "Enable shuffle"
                           }
                         >
-                          <Shuffle className="h-4 w-4" />
+                          <Shuffle
+                            style={{
+                              width: 'var(--mobile-player-control-button-size)',
+                              height: 'var(--mobile-player-control-button-size)'
+                            }}
+                          />
                         </motion.button>
 
                         <motion.button
@@ -1434,7 +1446,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           aria-label="Skip backward 10 seconds"
                         >
                           <svg
-                            className="h-4 w-4"
+                            style={{
+                              width: 'var(--mobile-player-control-button-size)',
+                              height: 'var(--mobile-player-control-button-size)'
+                            }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1468,7 +1483,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           aria-label="Skip forward 10 seconds"
                         >
                           <svg
-                            className="h-4 w-4"
+                            style={{
+                              width: 'var(--mobile-player-control-button-size)',
+                              height: 'var(--mobile-player-control-button-size)'
+                            }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1504,14 +1522,27 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }
                         >
                           {repeatMode === "one" ? (
-                            <Repeat1 className="h-4 w-4" />
+                            <Repeat1
+                              style={{
+                                width: 'var(--mobile-player-control-button-size)',
+                                height: 'var(--mobile-player-control-button-size)'
+                              }}
+                            />
                           ) : (
-                            <Repeat className="h-4 w-4" />
+                            <Repeat
+                              style={{
+                                width: 'var(--mobile-player-control-button-size)',
+                                height: 'var(--mobile-player-control-button-size)'
+                              }}
+                            />
                           )}
                         </motion.button>
                       </div>
 
-                      <div className="mt-0.5 flex items-center justify-center gap-6">
+                      <div
+                        className="mt-0.5 flex items-center justify-center"
+                        style={{ gap: 'var(--mobile-player-controls-gap)' }}
+                      >
                         <motion.button
                           onClick={(e) => {
                             e.preventDefault();
@@ -1523,7 +1554,13 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           style={{ color: primaryColor }}
                           aria-label="Previous track"
                         >
-                          <SkipBack className="h-9 w-9 fill-current" />
+                          <SkipBack
+                            style={{
+                              width: 'var(--mobile-player-skip-button-size)',
+                              height: 'var(--mobile-player-skip-button-size)'
+                            }}
+                            className="fill-current"
+                          />
                         </motion.button>
 
                         <motion.button
@@ -1535,9 +1572,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           whileTap={{ scale: 0.92 }}
                           whileHover={{ scale: 1.05 }}
                           className="relative flex items-center justify-center rounded-full text-white transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
-                          style={{ 
-                            width: 68, 
-                            height: 68,
+                          style={{
+                            width: 'var(--mobile-player-play-button-size)',
+                            height: 'var(--mobile-player-play-button-size)',
                             background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor}, ${accentColor})`,
                             boxShadow: `0 8px 24px ${primaryRgbaShadowButton}, 0 0 30px ${primaryRgbaGlow}60`,
                             border: `3px solid ${primaryRgbaRing}`,
@@ -1573,13 +1610,19 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           className="touch-target-lg text-[#3b82f6] disabled:cursor-not-allowed disabled:opacity-40"
                           aria-label="Next track"
                         >
-                          <SkipForward className="h-9 w-9 fill-current" />
+                          <SkipForward
+                            style={{
+                              width: 'var(--mobile-player-skip-button-size)',
+                              height: 'var(--mobile-player-skip-button-size)'
+                            }}
+                            className="fill-current"
+                          />
                         </motion.button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-5 w-full max-w-[420px]">
+                      <div className="mobile-player-secondary-controls mobile-player-content mt-5 w-full">
                     <div className="flex items-center gap-3 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(12,18,27,0.7)] px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl">
                       <div className="flex min-w-[140px] flex-1 items-center gap-2">
                         <motion.button
@@ -1865,7 +1908,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           />
                         </motion.button>
                       </div>
+                      </div>
                     </div>
+
+                  </div>
                   </div>
                 </div>
               </div>
@@ -2353,14 +2399,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
               )}
             </AnimatePresence>
 
-            {/* Queue Settings Modal */}
-            <QueueSettingsModal
-              isOpen={showQueueSettingsModal}
-              onClose={() => setShowQueueSettingsModal(false)}
-              onApply={handleApplyQueueSettings}
-              initialCount={smartTracksCount}
-              initialSimilarityLevel={similarityLevel}
-            />
+            {showQueueSettingsModal && (
+              <QueueSettingsModal
+                isOpen={showQueueSettingsModal}
+                onClose={() => setShowQueueSettingsModal(false)}
+                onApply={handleApplyQueueSettings}
+                initialCount={smartTracksCount}
+                initialSimilarityLevel={similarityLevel}
+              />
+            )}
           </>
         )}
       </AnimatePresence>
