@@ -6,6 +6,84 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.23] - 2026-01-30
+
+### Added
+
+- **Extended Phone Model Support**: Added responsive breakpoints for 40+ additional phone models
+  - **Motorola**: Edge 50 Pro, Edge 40 Pro, Edge+, Moto G Power, Moto G Stylus (395-400×851-900)
+  - **Nokia**: X30, X20, G60 (412×915)
+  - **TCL**: 40 XL, 40 SE (397×843)
+  - **Samsung Galaxy M Series**: M54, M53, M52 (412×915)
+  - **Huawei**: P50 Pro, P40 Pro, Mate 60 Pro, Mate 50 Pro (408-412×900-952)
+  - **ZTE**: Axon 60 Ultra, Axon 40 Ultra (400×900)
+  - **Meizu**: 21 Pro, 20 Pro (412×919)
+  - **Nubia & Red Magic**: Z60 Ultra, Red Magic 9 Pro (412×952)
+  - **Lenovo Legion**: Y90, Y70 (395×876)
+  - **Black Shark**: 5 Pro, 4 Pro (409×906)
+  - **Oppo Foldables**: Find N3 Flip (cover: 382×840, unfolded: 748×1082), Find N3 Fold (760×1080)
+  - **Honor Foldables**: Magic V3, V2 (unfolded: 762×1080)
+  - **Xiaomi Foldables**: Mix Fold 4, Fold 3 (unfolded: 768×1024)
+  - **Tecno**: Phantom X2 Pro, Camon 20 Pro (395×854)
+  - **Infinix**: Note 40 Pro, Zero 30 (412×915)
+  - **Itel**: Vision 3 Turbo, S24 (390×844)
+  - **Poco**: X6 Pro, F5 Pro (412×915)
+  - **Redmi**: Note 13 Pro+, Note 12 Pro+ (412×915)
+  - Location: `src/styles/globals.css`
+
+- **Legacy Device Support**: Added comprehensive support for older flagship models still in widespread use
+  - **Apple iPhone (Legacy)**:
+    - iPhone 8, 7, 6s, 6 (375×667)
+    - iPhone 8 Plus, 7 Plus, 6s Plus, 6 Plus (414×736)
+    - iPhone 5s, 5c, 5, SE 1st Gen (320×568) with ultra-compact optimizations
+  - **Samsung Galaxy (S-Series Legacy)**:
+    - Galaxy S10+, S10 (412×869) with Infinity-O display
+    - Galaxy S10e (360×760)
+    - Galaxy S9+, S9 (360×740)
+    - Galaxy S8+, S8 (360×740) with first-gen Infinity Display
+    - Galaxy S7 Edge, S7 (360×640) classic design
+  - **Samsung Galaxy (Note-Series Legacy)**:
+    - Galaxy Note 9 (414×846) with S Pen optimizations
+    - Galaxy Note 8 (414×846)
+  - **Google Pixel (Legacy)**:
+    - Pixel 5, 4a 5G, 4a (393×851) with early Material You
+    - Pixel 4 XL (412×869), Pixel 4 (393×830)
+    - Pixel 3a XL (412×846), Pixel 3a (393×808)
+    - Pixel 3 XL (412×847) with notch, Pixel 3 (393×786)
+    - Pixel 2 XL (412×824), Pixel 2 (411×731)
+  - Total device support now exceeds 135+ phone models across all major manufacturers
+  - Location: `src/styles/globals.css`
+
+- **Dynamic Skip Button Colors**: Previous and Next buttons now use complementary colors from album art
+  - Automatically extracts complementary (opposite) colors from primary and secondary album colors
+  - High saturation boost (1.8x) for vibrant, eye-catching button colors
+  - Slight brightness increase (1.2x) for better visibility
+  - Previous button: Complementary of primary color
+  - Next button: Complementary of secondary color
+  - Creates dynamic, album-specific color schemes that harmonize with artwork
+  - Location: `src/components/MobilePlayer.tsx`
+
+### Changed
+
+- **Gaming Phone Optimizations**: Added specialized spacing for gaming phones with cooling fans and side triggers
+  - Lenovo Legion series: Extra padding for side trigger clearance
+  - Nubia/Red Magic series: Bottom padding for cooling fan space
+  - Black Shark series: Optimized touch target spacing
+
+- **Foldable Device Enhancements**: Improved support for large unfolded screens
+  - Larger artwork sizes (460-470px) for tablet-like experiences
+  - Increased button sizes for better reachability on wide screens
+  - Enhanced spacing with 1.75-2rem gaps for comfortable interaction
+
+- **OS-Specific Gesture Navigation**: Added system-specific bottom padding for gesture bars
+  - EMUI (Huawei): 1.125rem bottom padding
+  - Flyme OS (Meizu): 1rem bottom padding
+  - MagicOS (Honor): 1.25rem bottom padding
+  - ColorOS (Oppo): 1.125rem bottom padding
+  - HiOS (Tecno): 1rem bottom padding
+  - XOS (Infinix): 1rem bottom padding
+  - Poco UI (MIUI variant): 1.125rem bottom padding
+
 ## [0.10.22] - 2026-01-30
 
 ### Changed
