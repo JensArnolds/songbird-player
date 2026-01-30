@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cleaner, more compact player interface with focus on content
   - Location: `src/components/MobilePlayer.tsx`
 
+- **Mini Player Positioning**: Moved mini player to bottom edge on mobile
+  - Changed from 68px offset to 0px (sits directly at screen bottom)
+  - Safe area insets still respected for notched/gesture navigation devices
+  - Consistent positioning across all mobile screen sizes
+  - Location: `src/components/MiniPlayer.tsx`
+
 ## [0.10.23] - 2026-01-30
 
 ### Added

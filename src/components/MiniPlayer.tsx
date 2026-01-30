@@ -102,7 +102,7 @@ export default function MiniPlayer({
       animate={{ y: 0 }}
       exit={{ y: 100 }}
       transition={springPresets.gentle}
-      className="safe-bottom fixed right-0 left-0 z-[60] border-t border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.96)] shadow-[0_-16px_48px_rgba(5,10,18,0.8)] backdrop-blur-2xl md:bottom-0 bottom-[68px]"
+      className="safe-bottom fixed right-0 left-0 z-[60] border-t border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.96)] shadow-[0_-16px_48px_rgba(5,10,18,0.8)] backdrop-blur-2xl bottom-0"
     >
       { }
       <AutoQueueBadge count={lastAutoQueueCount} />
