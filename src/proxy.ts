@@ -46,7 +46,7 @@ setInterval(() => {
   }
 }, RATE_LIMIT_WINDOW);
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   if (request.nextUrl.pathname.startsWith("/api/")) {
