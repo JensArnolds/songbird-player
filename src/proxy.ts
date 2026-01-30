@@ -1,4 +1,4 @@
-// File: src/middleware.ts
+// File: src/proxy.ts
 
 import { env } from "@/env";
 import type { NextRequest } from "next/server";

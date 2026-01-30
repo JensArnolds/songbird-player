@@ -37,6 +37,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Consistent positioning across all mobile screen sizes
   - Location: `src/components/MiniPlayer.tsx`
 
+- **Next.js 16 Proxy Migration**: Migrated from deprecated middleware.ts to proxy.ts
+  - Renamed `src/middleware.ts` to `src/proxy.ts` for Next.js 16 compatibility
+  - Functionality unchanged: rate limiting and CSP headers work identically
+  - Resolves deprecation warning: "The 'middleware' file convention is deprecated"
+  - Maintains all security features (100 requests/60s limit, CSP policies)
+  - Location: `src/proxy.ts` (formerly `src/middleware.ts`)
+
 ## [0.10.23] - 2026-01-30
 
 ### Added
@@ -140,11 +147,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known Issues
 
-- **Middleware Deprecation Warning**: Next.js 16 deprecates "middleware.ts" in favor of "proxy.ts"
-  - Warning: "The 'middleware' file convention is deprecated. Please use 'proxy' instead"
-  - Current: `src/middleware.ts` handles rate limiting and CSP headers
-  - Impact: Warning only - middleware continues to function normally
-  - Future: Will need to migrate to proxy.ts convention
+- **Middleware Deprecation Warning**: ~~Next.js 16 deprecates "middleware.ts" in favor of "proxy.ts"~~ **RESOLVED in v0.10.24**
+  - ~~Warning: "The 'middleware' file convention is deprecated. Please use 'proxy' instead"~~
+  - ~~Current: `src/middleware.ts` handles rate limiting and CSP headers~~
+  - ~~Impact: Warning only - middleware continues to function normally~~
+  - ✓ **Fixed**: Migrated to `src/proxy.ts` in v0.10.24
   - Reference: https://nextjs.org/docs/messages/middleware-to-proxy
 
 ## [0.10.21] - 2026-01-30
