@@ -1199,14 +1199,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                   >
                     <ChevronDown className="h-6 w-6" />
                   </motion.button>
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(12,18,27,0.7)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.35em] text-[var(--color-subtext)]">
-                      Now Playing
-                    </span>
-                    <span className="text-[9px] uppercase tracking-[0.5em] text-[var(--color-muted)]">
-                      Starchild
-                    </span>
-                  </div>
                   <div className="w-12" />
                 </div>
 
@@ -1462,7 +1454,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         }}
                       />
 
-                      <div className="flex items-center justify-between px-1 pt-1">
+                      <div className="flex items-center justify-between px-1">
                         <motion.button
                           onClick={(e) => {
                             e.preventDefault();
@@ -1602,7 +1594,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       </div>
 
                       <div
-                        className="mt-0.5 flex items-center justify-center"
+                        className="flex items-center justify-center"
                         style={{ gap: 'var(--mobile-player-controls-gap)' }}
                       >
                         <motion.button

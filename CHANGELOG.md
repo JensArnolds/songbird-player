@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Ensures player controls remain accessible with browser UI visible
   - Location: `src/styles/globals.css`
 
+- **Mobile Player UI Streamlining**: Reduced vertical spacing and simplified header
+  - Removed "Now Playing on Starchild" label from player header
+  - Removed top padding from shuffle/repeat controls row
+  - Removed margin between control rows for tighter layout
+  - Cleaner, more compact player interface with focus on content
+  - Location: `src/components/MobilePlayer.tsx`
+
 ## [0.10.23] - 2026-01-30
 
 ### Added
