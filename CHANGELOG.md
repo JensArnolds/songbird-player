@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.24] - 2026-01-30
+
+### Changed
+
+- **Mobile Player Browser Chrome Accommodation**: Adjusted default sizing to account for browser UI elements
+  - Reduced default artwork size: 320px → 300px
+  - Reduced default play button: 68px → 64px
+  - Reduced default skip buttons: 36px → 34px
+  - Reduced default control buttons: 16px → 15px
+  - Reduced default gaps: 1rem → 0.875rem
+  - Artwork max-height: 52vh → 42vh (accommodates ~130-145px of browser chrome)
+  - Content max-width: 92vw → 90vw
+  - Artwork max-width: 88vw → 85vw
+  - **iOS considerations**: Status bar (44px) + Safari address bar (~50px) + home indicator (34px) = ~128px
+  - **Android considerations**: Status bar (24-30px) + Chrome address bar (~56px) + navigation bar (48-60px) = ~130-146px
+  - Ensures player controls remain accessible with browser UI visible
+  - Location: `src/styles/globals.css`
+
 ## [0.10.23] - 2026-01-30
 
 ### Added
