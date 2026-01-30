@@ -3,30 +3,34 @@
 import "./src/env.js";
 
 if (typeof process !== "undefined") {
-  const originalEmit = process.emit;
-  process.emit = function (event, ...args) {
-    if (event === "unhandledRejection") {
-      const reason = args[0];
-      if (
-        reason &&
-        typeof reason === "object" &&
-        "code" in reason &&
-        reason.code === "ENOENT"
-      ) {
-        const message = "message" in reason ? String(reason.message) : "";
-        const type = "type" in reason ? String(reason.type) : "";
-        const errorText = message || type || "";
+  const originalEmit = /** @type {(...args: any[]) => any} */ (
+    process.emit.bind(process)
+  );
+  process.emit = /** @type {typeof process.emit} */ (
+    function (event, ...args) {
+      if (event === "unhandledRejection") {
+        const reason = args[0];
         if (
-          errorText.includes("_document") ||
-          errorText.includes("_error") ||
-          errorText.includes("PageNotFoundError")
+          reason &&
+          typeof reason === "object" &&
+          "code" in reason &&
+          reason.code === "ENOENT"
         ) {
-          return false;
+          const message = "message" in reason ? String(reason.message) : "";
+          const type = "type" in reason ? String(reason.type) : "";
+          const errorText = message || type || "";
+          if (
+            errorText.includes("_document") ||
+            errorText.includes("_error") ||
+            errorText.includes("PageNotFoundError")
+          ) {
+            return false;
+          }
         }
       }
+      return originalEmit(event, ...args);
     }
-    return originalEmit.apply(process, [event, ...args]);
-  };
+  );
 
   process.on("unhandledRejection", (reason, promise) => {
     if (
