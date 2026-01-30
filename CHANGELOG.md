@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Next.js 16 Proxy Migration**: Migrated from deprecated middleware.ts to proxy.ts
   - Renamed `src/middleware.ts` to `src/proxy.ts` for Next.js 16 compatibility
+  - Renamed exported function from `middleware` to `proxy` (required by Next.js 16)
   - Functionality unchanged: rate limiting and CSP headers work identically
   - Resolves deprecation warning: "The 'middleware' file convention is deprecated"
   - Maintains all security features (100 requests/60s limit, CSP policies)
