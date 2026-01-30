@@ -1324,18 +1324,23 @@ img {
 
 /* ------------------------------------------------------------
    🎧 Mobile Player Sizing
+
+   Conservative sizing accounts for browser chrome and OS UI:
+   - iOS: Status bar (44px) + address bar (~50px) + home indicator (34px) = ~128px
+   - Android: Status bar (24-30px) + address bar (~56px) + nav bar (48-60px) = ~130-146px
+   - Artwork limited to 42vh to ensure visibility with browser UI
 ------------------------------------------------------------- */
 
 :root {
-  --mobile-player-artwork-size: 320px;
+  --mobile-player-artwork-size: 300px;
   --mobile-player-content-width: 420px;
-  --mobile-player-gap: 1rem;
+  --mobile-player-gap: 0.875rem;
 
   /* Button sizing */
-  --mobile-player-play-button-size: 68px;
-  --mobile-player-skip-button-size: 36px;
-  --mobile-player-control-button-size: 16px;
-  --mobile-player-controls-gap: 1.5rem;
+  --mobile-player-play-button-size: 64px;
+  --mobile-player-skip-button-size: 34px;
+  --mobile-player-control-button-size: 15px;
+  --mobile-player-controls-gap: 1.25rem;
 }
 
 .mobile-player-body {
@@ -1344,12 +1349,12 @@ img {
 
 .mobile-player-content {
   width: 100%;
-  max-width: min(92vw, var(--mobile-player-content-width));
+  max-width: min(90vw, var(--mobile-player-content-width));
 }
 
 .mobile-player-artwork {
-  max-width: min(88vw, var(--mobile-player-artwork-size));
-  max-height: min(52vh, var(--mobile-player-artwork-size));
+  max-width: min(85vw, var(--mobile-player-artwork-size));
+  max-height: min(42vh, var(--mobile-player-artwork-size));
 }
 
 /* ------------------------------------------------------------
