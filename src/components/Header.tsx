@@ -225,14 +225,14 @@ export default function Header() {
                 priority
               />
               <div className="hidden items-center gap-2 md:flex">
-                <span className="accent-gradient text-lg font-bold">
+                <span className="header-logo-title accent-gradient text-lg font-bold">
                   {isElectron ? "Starchild" : "Starchild Music"}
                 </span>
               </div>
             </Link>
             {apiHealthy !== null && (
               <div
-                className="hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] md:flex"
+                className="api-health-pill hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] md:flex"
                 aria-label="API health status"
                 title="Combined API health status"
               >

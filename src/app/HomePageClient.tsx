@@ -430,7 +430,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                   />
                 </div>
                 <button
-                  className="btn-primary touch-target-lg flex items-center justify-center gap-2 px-8 md:px-5 md:text-sm"
+                  className="btn-primary touch-target-lg flex items-center justify-center gap-2 px-8 md:px-5 md:text-sm text-[var(--color-on-accent)]"
                   onClick={() => void handleSearch()}
                   disabled={loading}
                 >
@@ -642,7 +642,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 rounded-xl bg-[rgba(255,255,255,0.05)] px-5 py-3 text-sm font-medium text-[var(--color-text)] ring-1 ring-white/10 transition-all hover:bg-[rgba(255,255,255,0.1)] hover:ring-[var(--color-accent)]/30 md:px-3 md:py-2 md:text-xs"
+                    className="btn-github flex items-center gap-2 rounded-xl bg-[rgba(255,255,255,0.05)] px-5 py-3 text-sm font-medium text-[var(--color-text)] ring-1 ring-white/10 transition-all hover:bg-[rgba(255,255,255,0.1)] hover:ring-[var(--color-accent)]/30 md:px-3 md:py-2 md:text-xs"
                   >
                     <svg
                       width="24"
