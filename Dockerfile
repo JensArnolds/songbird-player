@@ -66,6 +66,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+RUN npm install -g pm2@5
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -86,6 +88,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/drizzle-kit ./n
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dotenv ./node_modules/dotenv
 
+COPY --from=builder --chown=nextjs:nodejs /app/ecosystem.docker.cjs ./ecosystem.docker.cjs
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 

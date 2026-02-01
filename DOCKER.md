@@ -119,7 +119,13 @@ The Docker setup uses your existing `.env` file. No additional configuration nee
 1. **base** - Node.js 25.2.0 Alpine + PostgreSQL client
 2. **deps** - Install dependencies
 3. **builder** - Build Next.js application
-4. **runner** - Production runtime (~450MB)
+4. **runner** - Production runtime with PM2 (~450MB)
+
+**Process management (PM2):**
+- The app runs under **pm2-runtime** inside the container (see `ecosystem.docker.cjs`).
+- If the Node process crashes or exits, PM2 restarts it in the same container (no full container restart).
+- Limits: `max_memory_restart: 768M`, `max_restarts: 15`, `restart_delay: 3000` ms.
+- Docker’s `restart: unless-stopped` still applies if the whole container exits (e.g. PM2 itself or the entrypoint fails).
 
 **Security:**
 - Non-root user (nextjs:1001)
@@ -132,6 +138,7 @@ The Docker setup uses your existing `.env` file. No additional configuration nee
 - Layer caching for faster builds
 - Standalone Next.js output
 - Automatic migrations on startup
+- Crash-resistant: in-process restarts via PM2; container restart as fallback
 
 ## Database Management
 
