@@ -578,31 +578,13 @@ export default function HomePageClient() {
                         <span className="mt-0.5 text-[var(--color-accent)]">
                           •
                         </span>
-                        <span>Create and manage custom playlists</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[var(--color-accent)]">
-                          •
+                        <span>
+                          Your privacy is maintained fully, but you can create
+                          and manage custom playlists, have a profile and build
+                          your personal music profile. More features to come
                         </span>
-                        <span>Build your personal music profile</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[var(--color-accent)]">
-                          •
-                        </span>
-                        <span>Save settings and preferences globally</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[var(--color-accent)]">
-                          •
-                        </span>
-                        <span>Track listening history across devices</span>
                       </li>
                     </ul>
-                    <p className="mt-3 text-xs text-[var(--color-muted)]">
-                      Your privacy is fully protected. We only store what you
-                      choose to save.
-                    </p>
                   </motion.div>
                 )}
 
@@ -627,6 +609,7 @@ export default function HomePageClient() {
                   </motion.button>
                 )}
 
+                {/* Make the button stand out more */}
                 <motion.button
                   onClick={() => {
                     hapticLight();
