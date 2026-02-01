@@ -102,7 +102,7 @@ export default function MiniPlayer({
       animate={{ y: 0 }}
       exit={{ y: 100 }}
       transition={springPresets.gentle}
-      className="theme-chrome-bar safe-bottom fixed right-0 left-0 z-[60] border-t backdrop-blur-2xl bottom-0"
+      className="theme-chrome-bar safe-bottom fixed right-0 left-0 z-[60] bottom-16 border-t backdrop-blur-2xl md:bottom-0"
     >
       { }
       <AutoQueueBadge count={lastAutoQueueCount} />

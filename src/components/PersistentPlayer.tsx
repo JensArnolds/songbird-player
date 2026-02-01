@@ -281,7 +281,7 @@ export default function PersistentPlayer() {
       )}
 
       {}
-      {player.currentTrack && visualizerEnabled && (
+      {player.currentTrack && visualizerEnabled && !isMobile && (
         <FlowFieldBackground
           audioElement={player.audioElement}
           onRendererReady={setRenderer}
@@ -297,7 +297,7 @@ export default function PersistentPlayer() {
       )}
 
       {}
-      {!visualizerEnabled && <LightweightParticleBackground />}
+      {(isMobile || !visualizerEnabled) && <LightweightParticleBackground />}
     </>
   );
 }

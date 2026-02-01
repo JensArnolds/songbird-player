@@ -34,7 +34,6 @@ import {
 } from "framer-motion";
 import {
     ChevronDown,
-    Eye,
     GripVertical,
     Heart,
     ListMusic,
@@ -62,14 +61,6 @@ const QueueSettingsModal = dynamic(
   () =>
     import("@/components/QueueSettingsModal").then((mod) => ({
       default: mod.QueueSettingsModal,
-    })),
-  { ssr: false },
-);
-
-const FlowFieldCanvas = dynamic(
-  () =>
-    import("@/components/visualizers/FlowFieldCanvas").then((mod) => ({
-      default: mod.FlowFieldCanvas,
     })),
   { ssr: false },
 );
@@ -411,7 +402,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [isExpanded, setIsExpanded] = useState(forceExpanded);
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
   const [visualizerEnabled, setVisualizerEnabled] = useState(true);
-  const [showVisualizer, setShowVisualizer] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const [albumColorPalette, setAlbumColorPalette] =
     useState<ColorPalette | null>(null);
@@ -785,7 +775,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }
   }, [isAuthenticated]);
 
-  useAudioReactiveBackground(audioElement, isPlaying, visualizerEnabled);
+  useAudioReactiveBackground(audioElement, isPlaying, false);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const displayTime = isSeeking ? seekTime : currentTime;
@@ -1113,113 +1103,52 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         effectivePreferences?.compactMode ? "max-w-[280px]" : "max-w-[360px]"
                       }`}
                     >
-                      {effectivePreferences?.visualizerMode !== "off" && (
-                        <motion.button
-                          onClick={() => {
-                            setShowVisualizer(!showVisualizer);
-                            hapticLight();
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                          className="theme-card-overlay absolute right-2 top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full text-white backdrop-blur-md transition-colors"
-                          style={{
-                            boxShadow: `0 4px 12px ${getPaletteColor(palette.primary, 0.3, true)}`,
-                          }}
-                          aria-label={showVisualizer ? "Show artwork" : "Show visualizer"}
-                        >
-                          <Eye className="h-5 w-5" />
-                        </motion.button>
-                      )}
-
-                      <AnimatePresence mode="wait" initial={false}>
-                        {!showVisualizer ? (
-                          <motion.div
-                            key="artwork"
-                            initial={{ rotateY: -90, opacity: 0 }}
-                            animate={{ rotateY: 0, opacity: 1 }}
-                            exit={{ rotateY: 90, opacity: 0 }}
-                            transition={{ duration: 0.4, ease: "easeInOut" }}
-                            style={{ transformStyle: "preserve-3d" }}
-                          >
-                            {coverArt ? (
-                              <div className="relative">
-                                <div
-                                  className="absolute -inset-6 rounded-[40px] blur-2xl opacity-90"
-                                  style={{
-                                    background: `radial-gradient(circle, ${getPaletteColor(palette.accent, 0.6, true)} 0%, rgba(0,0,0,0) 70%)`,
-                                  }}
-                                />
-                                <div
-                                  className="absolute -inset-2 rounded-[34px] border"
-                                  style={{
-                                    borderColor: getPaletteColor(palette.primary, 0.4, true),
-                                  }}
-                                />
-                                <div
-                                  className="absolute -inset-1 rounded-[32px] border"
-                                  style={{
-                                    borderColor: getPaletteColor(palette.secondary, 0.3, true),
-                                  }}
-                                />
-                                <div className="relative overflow-hidden rounded-[30px]">
-                                  <Image
-                                    src={coverArt}
-                                    alt={currentTrack.title}
-                                    width={450}
-                                    height={450}
-                                    className="relative z-10 aspect-square w-full rounded-[30px] object-cover shadow-[0_24px_64px_rgba(0,0,0,0.75)]"
-                                    priority
-                                    quality={90}
-                                  />
-                                  <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[linear-gradient(145deg,rgba(255,255,255,0.18),transparent_45%,rgba(0,0,0,0.35))]" />
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex aspect-square w-full items-center justify-center rounded-[30px] bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
-                                🎵
-                              </div>
-                            )}
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key="visualizer"
-                            initial={{ rotateY: -90, opacity: 0 }}
-                            animate={{ rotateY: 0, opacity: 1 }}
-                            exit={{ rotateY: 90, opacity: 0 }}
-                            transition={{ duration: 0.4, ease: "easeInOut" }}
-                            style={{ transformStyle: "preserve-3d" }}
-                            className="relative aspect-square w-full"
-                          >
-                            <div className="relative h-full w-full">
-                              <div
-                                className="absolute -inset-6 rounded-[40px] blur-2xl opacity-90"
-                                style={{
-                                  background: `radial-gradient(circle, ${getPaletteColor(palette.accent, 0.6, true)} 0%, rgba(0,0,0,0) 70%)`,
-                                }}
+                      <motion.div
+                        key="artwork"
+                        initial={{ rotateY: -90, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        style={{ transformStyle: "preserve-3d" }}
+                      >
+                        {coverArt ? (
+                          <div className="relative">
+                            <div
+                              className="absolute -inset-6 rounded-[40px] blur-2xl opacity-90"
+                              style={{
+                                background: `radial-gradient(circle, ${getPaletteColor(palette.accent, 0.6, true)} 0%, rgba(0,0,0,0) 70%)`,
+                              }}
+                            />
+                            <div
+                              className="absolute -inset-2 rounded-[34px] border"
+                              style={{
+                                borderColor: getPaletteColor(palette.primary, 0.4, true),
+                              }}
+                            />
+                            <div
+                              className="absolute -inset-1 rounded-[32px] border"
+                              style={{
+                                borderColor: getPaletteColor(palette.secondary, 0.3, true),
+                              }}
+                            />
+                            <div className="relative overflow-hidden rounded-[30px]">
+                              <Image
+                                src={coverArt}
+                                alt={currentTrack.title}
+                                width={450}
+                                height={450}
+                                className="relative z-10 aspect-square w-full rounded-[30px] object-cover shadow-[0_24px_64px_rgba(0,0,0,0.75)]"
+                                priority
+                                quality={90}
                               />
-                              <div
-                                className="absolute -inset-2 rounded-[34px] border"
-                                style={{
-                                  borderColor: getPaletteColor(palette.primary, 0.4, true),
-                                }}
-                              />
-                              <div
-                                className="absolute -inset-1 rounded-[32px] border"
-                                style={{
-                                  borderColor: getPaletteColor(palette.secondary, 0.3, true),
-                                }}
-                              />
-                              <div className="relative h-full w-full overflow-hidden rounded-[30px] bg-[var(--color-bg)]">
-                                <FlowFieldCanvas
-                                  audioElement={audioElement}
-                                  isPlaying={isPlaying}
-                                  visualizerMode={effectivePreferences?.visualizerMode ?? "random"}
-                                  visualizerType={effectivePreferences?.visualizerType ?? "flowfield"}
-                                />
-                              </div>
+                              <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[linear-gradient(145deg,rgba(255,255,255,0.18),transparent_45%,rgba(0,0,0,0.35))]" />
                             </div>
-                          </motion.div>
+                          </div>
+                        ) : (
+                          <div className="flex aspect-square w-full items-center justify-center rounded-[30px] bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
+                            🎵
+                          </div>
                         )}
-                      </AnimatePresence>
+                      </motion.div>
 
                       <AnimatePresence>
                         {isSeeking && seekDirection && (
