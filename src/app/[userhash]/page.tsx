@@ -67,7 +67,7 @@ export default function PublicProfilePage({
     return (
       <div className="page-shell flex min-h-screen items-center justify-center px-6">
         <div className="surface-panel w-full max-w-sm space-y-4 p-8 text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-[rgba(244,178,102,0.35)] border-t-transparent"></div>
+          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-[var(--color-accent)]/35 border-t-transparent"></div>
           <p className="text-[var(--color-subtext)]">Loading profile...</p>
         </div>
       </div>
@@ -200,7 +200,7 @@ export default function PublicProfilePage({
                       className="h-full w-full object-cover transition-transform group-hover:scale-110"
                     />
                   ) : (
-                    <div className="text-4xl text-white/40">🎤</div>
+                    <div className="text-4xl text-[var(--color-muted)]">🎤</div>
                   )}
                 </div>
                 <h3 className="mb-1 truncate font-semibold text-[var(--color-text)]">
@@ -307,7 +307,7 @@ export default function PublicProfilePage({
                             (_, i) => (
                               <div
                                 key={`placeholder-${i}`}
-                                className="flex h-full w-full items-center justify-center bg-[rgba(244,178,102,0.08)] text-2xl text-white/30"
+                                className="flex h-full w-full items-center justify-center bg-[var(--color-surface-hover)] text-2xl text-[var(--color-muted)]"
                               >
                                 🎵
                               </div>
@@ -329,7 +329,7 @@ export default function PublicProfilePage({
                     } else {
 
                       return (
-                        <div className="flex h-full items-center justify-center text-6xl text-white/40">
+                        <div className="flex h-full items-center justify-center text-6xl text-[var(--color-muted)]">
                           🎵
                         </div>
                       );

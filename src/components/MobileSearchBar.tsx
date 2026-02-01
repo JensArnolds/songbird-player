@@ -4,10 +4,10 @@
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import {
-  hapticError,
-  hapticLight,
-  hapticMedium,
-  hapticSuccess,
+    hapticError,
+    hapticLight,
+    hapticMedium,
+    hapticSuccess,
 } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
@@ -213,10 +213,10 @@ export default function MobileSearchBar({
               : "0 4px 16px rgba(0, 0, 0, 0.2)",
           }}
           transition={springPresets.snappy}
-          className={`relative flex items-center gap-3 rounded-2xl border bg-[rgba(18,26,38,0.95)] px-4 py-3 backdrop-blur-xl transition-colors ${
+          className={`theme-panel relative flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl transition-colors ${
             isFocused
-              ? "border-[rgba(244,178,102,0.4)]"
-              : "border-[rgba(244,178,102,0.15)]"
+              ? "border-[var(--color-accent)]"
+              : "border-[var(--color-border)]"
           } ${showAutoSearch ? "pb-6" : ""}`}
         >
           {}
@@ -318,7 +318,7 @@ export default function MobileSearchBar({
                 className="absolute -bottom-5 left-0 right-0"
               >
                 <div className="flex items-center gap-1.5 text-[10px] text-[var(--color-subtext)]">
-                  <div className="h-1 flex-1 rounded-full bg-[rgba(244,178,102,0.15)] overflow-hidden">
+                  <div className="slider-track h-1 flex-1 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] rounded-full"
                       initial={{ width: "0%" }}
@@ -421,7 +421,7 @@ export default function MobileSearchBar({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={springPresets.snappy}
-            className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-xl border border-[rgba(244,178,102,0.15)] bg-[rgba(16,23,33,0.98)] shadow-xl backdrop-blur-xl"
+            className="theme-panel absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-xl border shadow-xl backdrop-blur-xl"
           >
             <div className="px-4 py-2">
               <span className="text-xs font-semibold tracking-wider text-[var(--color-muted)] uppercase">

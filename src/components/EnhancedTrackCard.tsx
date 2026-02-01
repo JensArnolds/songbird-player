@@ -136,7 +136,7 @@ export default function EnhancedTrackCard({
         />
         <button
           onClick={handlePlay}
-          className="touch-active absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-80 backdrop-blur-sm transition-all duration-200 md:opacity-0 md:group-hover:opacity-100"
+          className="theme-card-overlay touch-active absolute inset-0 flex items-center justify-center rounded-lg opacity-80 backdrop-blur-sm transition-all duration-200 md:opacity-0 md:group-hover:opacity-100"
           aria-label="Play track"
         >
           <svg
@@ -262,7 +262,7 @@ export default function EnhancedTrackCard({
               hapticLight();
               setShowAddToPlaylistModal(true);
             }}
-            className="touch-target touch-active rounded-full text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-white"
+            className="touch-target touch-active rounded-full text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-[var(--color-accent)]"
             title="Add to playlist"
           >
             <svg

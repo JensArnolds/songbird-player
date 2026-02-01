@@ -218,7 +218,7 @@ export function TrackContextMenu() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={springPresets.gentle}
-              className="fixed inset-0 z-[102] bg-black/20"
+              className="theme-chrome-backdrop fixed inset-0 z-[102]"
               onClick={closeMenu}
             />
 
@@ -229,7 +229,7 @@ export function TrackContextMenu() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -10 }}
               transition={springPresets.snappy}
-              className="fixed z-[103] flex items-center gap-1 rounded-xl border border-[rgba(244,178,102,0.2)] bg-[rgba(10,16,24,0.98)] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+              className="theme-panel fixed z-[103] flex items-center gap-1 rounded-xl border p-2 shadow-xl backdrop-blur-xl"
               style={{
                 left: position.x,
                 top: position.y,

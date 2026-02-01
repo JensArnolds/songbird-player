@@ -159,7 +159,7 @@ function SortableQueueItem({
         { }
         <button
           onClick={onPlay}
-          className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100"
+          className="theme-card-overlay absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100"
           title="Play from here"
         >
           <Play className="h-5 w-5 fill-white text-white" />
@@ -631,7 +631,7 @@ export function EnhancedQueue({
               placeholder="Search queue..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(18,26,38,0.92)] py-2 pr-4 pl-10 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] focus:border-[rgba(244,178,102,0.35)] focus:ring-2 focus:ring-[rgba(244,178,102,0.28)] focus:outline-none"
+              className="theme-input w-full rounded-lg py-2 pr-4 pl-10 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/25 focus:outline-none"
             />
             {searchQuery && (
               <button
@@ -787,7 +787,7 @@ export function EnhancedQueue({
 
       { }
       {queue.length > 0 && (
-        <div className="border-t border-[rgba(244,178,102,0.12)] p-4 text-sm text-[var(--color-subtext)]">
+        <div className="border-t border-[var(--color-border)] p-4 text-sm text-[var(--color-subtext)]">
           <div className="flex items-center justify-between">
             <span>Total duration:</span>
             <span className="font-medium">{formatDuration(totalDuration)}</span>

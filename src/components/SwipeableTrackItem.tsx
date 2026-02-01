@@ -125,7 +125,7 @@ export function SwipeableTrackItem({
             loading="lazy"
             quality={75}
           />
-          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/60 opacity-0 backdrop-blur-sm transition-opacity hover:opacity-100">
+          <div className="theme-card-overlay absolute inset-0 flex items-center justify-center rounded-lg opacity-0 backdrop-blur-sm transition-opacity hover:opacity-100">
             <svg
               className="h-7 w-7 text-white drop-shadow-lg"
               fill="currentColor"

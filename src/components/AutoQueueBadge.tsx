@@ -25,8 +25,8 @@ export function AutoQueueBadge({ count, onDismiss }: AutoQueueBadgeProps) {
         aria-label={`${count} tracks added to queue`}
         title="Auto-queue added tracks"
       >
-        <Sparkles className="h-3 w-3 text-white" />
-        <span className="text-xs font-semibold text-white">+{count}</span>
+        <Sparkles className="h-3 w-3 text-[var(--color-on-accent)]" />
+        <span className="text-xs font-semibold text-[var(--color-on-accent)]">+{count}</span>
       </motion.button>
     </AnimatePresence>
   );

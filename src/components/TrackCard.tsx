@@ -134,7 +134,7 @@ export default function TrackCard({
           loading="lazy"
           quality={75}
         />
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/60 opacity-80 backdrop-blur-sm transition-opacity md:opacity-0 md:group-hover:opacity-100">
+        <div className="theme-card-overlay absolute inset-0 flex items-center justify-center rounded-lg opacity-80 backdrop-blur-sm transition-opacity md:opacity-0 md:group-hover:opacity-100">
           <svg
             className="h-8 w-8 text-white drop-shadow-lg md:h-7 md:w-7"
             fill="currentColor"
@@ -204,7 +204,7 @@ export default function TrackCard({
               hapticLight();
               setShowAddToPlaylistModal(true);
             }}
-            className="rounded-full p-2 text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-white"
+            className="rounded-full p-2 text-[var(--color-subtext)] transition-all hover:scale-110 hover:text-[var(--color-accent)]"
             title="Add to playlist"
           >
             <MoreVertical className="h-5 w-5" />

@@ -136,9 +136,7 @@ export default function HamburgerMenu() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[60]
-                       bg-black/60
-                       backdrop-blur-sm"
+            className="theme-chrome-backdrop fixed inset-0 z-[60] backdrop-blur-sm"
             onClick={() => {
               hapticLight();
               closeMenu();
@@ -151,17 +149,16 @@ export default function HamburgerMenu() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={springPresets.gentle}
-            className="safe-left safe-top safe-bottom
+            className="theme-chrome-drawer safe-left safe-top safe-bottom
                        fixed bottom-0 left-0 top-0 z-[61]
                        w-[280px] max-w-[80vw]
                        overflow-y-auto
-                       border-r border-[rgba(244,178,102,0.16)]
-                       bg-[rgba(13,19,28,0.98)]
+                       border-r
                        shadow-2xl
                        backdrop-blur-xl"
           >
             {}
-            <div className="border-b border-[rgba(244,178,102,0.12)] p-6">
+            <div className="border-b border-[var(--color-border)] p-6">
               <div className="flex items-center gap-3">
                 <Image
                   src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
@@ -215,7 +212,7 @@ export default function HamburgerMenu() {
                                    rounded-xl px-4 py-3
                                    text-[var(--color-text)]
                                    transition-colors
-                                   hover:bg-[rgba(244,178,102,0.12)]"
+                                   hover:bg-[var(--color-surface-hover)]"
                       >
                         <div className="flex items-center gap-3">
                           {item.icon}
@@ -238,7 +235,7 @@ export default function HamburgerMenu() {
                                  rounded-xl px-4 py-3
                                  text-[var(--color-text)]
                                  transition-colors
-                                 hover:bg-[rgba(242,139,130,0.12)]"
+                                 hover:bg-[var(--color-danger)]/10"
                     >
                       <div className="flex items-center gap-3">
                         {item.icon}
@@ -248,14 +245,14 @@ export default function HamburgerMenu() {
                   )}
 
                   {item.dividerAfter && (
-                    <div className="my-2 h-px bg-[rgba(244,178,102,0.12)]" />
+                    <div className="my-2 h-px bg-[var(--color-border)]" />
                   )}
                 </div>
               ))}
             </nav>
 
             {}
-            <div className="border-t border-[rgba(244,178,102,0.12)] p-6">
+            <div className="border-t border-[var(--color-border)] p-6">
               <p className="text-center text-xs text-[var(--color-muted)]">
                 Starchild Music v1.0
               </p>

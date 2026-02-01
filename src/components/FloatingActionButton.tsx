@@ -89,7 +89,7 @@ export default function FloatingActionButton() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[55] bg-black/40 backdrop-blur-sm"
+            className="theme-chrome-backdrop fixed inset-0 z-[55] backdrop-blur-sm"
             onClick={() => {
               hapticLight();
               setIsOpen(false);
@@ -120,7 +120,7 @@ export default function FloatingActionButton() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
                   transition={{ delay: index * 0.05 + 0.1 }}
-                  className="rounded-lg bg-[rgba(10,16,24,0.95)] px-3 py-1.5 text-sm font-medium text-[var(--color-text)] shadow-lg backdrop-blur-md"
+                  className="theme-panel rounded-lg border px-3 py-1.5 text-sm font-medium text-[var(--color-text)] shadow-lg backdrop-blur-md"
                 >
                   {action.label}
                 </motion.span>
@@ -177,7 +177,7 @@ export default function FloatingActionButton() {
               exit={{ rotate: -90, opacity: 0 }}
               transition={springPresets.immediate}
             >
-              <Plus className="h-6 w-6 text-[#0f141d]" />
+              <Plus className="h-6 w-6 text-[var(--color-on-accent)]" />
             </motion.div>
           )}
         </AnimatePresence>

@@ -19,15 +19,15 @@ interface QueueProps {
 
 export function Queue({ queue, onClose, onRemove, onClear }: QueueProps) {
   return (
-    <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-gray-800 bg-gray-900">
+    <div className="theme-chrome-drawer fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l">
       {}
-      <div className="flex items-center justify-between border-b border-gray-800 p-4">
-        <h2 className="text-xl font-bold text-white">Queue ({queue.length})</h2>
+      <div className="flex items-center justify-between border-b border-[var(--color-border)] p-4">
+        <h2 className="text-xl font-bold text-[var(--color-text)]">Queue ({queue.length})</h2>
         <div className="flex items-center gap-2">
           {queue.length > 0 && (
             <button
               onClick={onClear}
-              className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+              className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
               aria-label="Clear queue"
               title="Clear queue"
             >
@@ -36,10 +36,10 @@ export function Queue({ queue, onClose, onRemove, onClear }: QueueProps) {
           )}
           <button
             onClick={onClose}
-            className="rounded-full p-2 transition-colors hover:bg-gray-800"
+            className="rounded-full p-2 transition-colors hover:bg-[var(--color-surface-hover)]"
             aria-label="Close queue"
           >
-            <X className="h-6 w-6 text-gray-300" />
+            <X className="h-6 w-6 text-[var(--color-subtext)]" />
           </button>
         </div>
       </div>
@@ -47,13 +47,13 @@ export function Queue({ queue, onClose, onRemove, onClear }: QueueProps) {
       {}
       <div className="flex-1 overflow-y-auto">
         {queue.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center p-8 text-center text-gray-500">
+          <div className="flex h-full flex-col items-center justify-center p-8 text-center text-[var(--color-muted)]">
             <div className="mb-4 text-6xl">🎵</div>
             <p className="mb-2 text-lg font-medium">Queue is empty</p>
             <p className="text-sm">Add tracks to start building your queue</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-[var(--color-border)]">
             {queue.map((item, index) => {
               const coverImage =
                 item.track.album.cover_small ?? item.track.album.cover;
@@ -61,15 +61,15 @@ export function Queue({ queue, onClose, onRemove, onClear }: QueueProps) {
               return (
                 <div
                   key={item.id}
-                  className="group flex items-center gap-3 p-3 transition-colors hover:bg-gray-800"
+                  className="group flex items-center gap-3 p-3 transition-colors hover:bg-[var(--color-surface-hover)]"
                 >
                   {}
-                  <div className="w-6 flex-shrink-0 text-center text-sm text-gray-500">
+                  <div className="w-6 flex-shrink-0 text-center text-sm text-[var(--color-muted)]">
                     {index + 1}
                   </div>
 
                   {}
-                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-gray-800">
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-[var(--color-surface-hover)]">
                     {coverImage ? (
                       <Image
                         src={coverImage}
@@ -81,7 +81,7 @@ export function Queue({ queue, onClose, onRemove, onClear }: QueueProps) {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-gray-500">
+                      <div className="flex h-full w-full items-center justify-center text-[var(--color-muted)]">
                         🎵
                       </div>
                     )}
@@ -89,26 +89,26 @@ export function Queue({ queue, onClose, onRemove, onClear }: QueueProps) {
 
                   {}
                   <div className="min-w-0 flex-1">
-                    <h4 className="truncate text-sm font-medium text-white">
+                    <h4 className="truncate text-sm font-medium text-[var(--color-text)]">
                       {item.track.title}
                     </h4>
-                    <p className="truncate text-xs text-gray-400">
+                    <p className="truncate text-xs text-[var(--color-subtext)]">
                       {item.track.artist.name}
                     </p>
                   </div>
 
                   {}
-                  <span className="flex-shrink-0 text-xs text-gray-500 tabular-nums">
+                  <span className="flex-shrink-0 text-xs text-[var(--color-muted)] tabular-nums">
                     {formatDuration(item.track.duration)}
                   </span>
 
                   {}
                   <button
                     onClick={() => onRemove(item.id)}
-                    className="flex-shrink-0 rounded p-1.5 opacity-0 transition-colors group-hover:opacity-100 hover:bg-gray-700"
+                    className="flex-shrink-0 rounded p-1.5 opacity-0 transition-colors group-hover:opacity-100 hover:bg-[var(--color-surface-hover)]"
                     aria-label="Remove from queue"
                   >
-                    <X className="h-4 w-4 text-gray-400 hover:text-white" />
+                    <X className="h-4 w-4 text-[var(--color-subtext)] hover:text-[var(--color-text)]" />
                   </button>
                 </div>
               );

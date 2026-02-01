@@ -292,7 +292,7 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 px-4 py-3 backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] shadow-lg shadow-[rgba(244,178,102,0.3)]">
-                  <Sparkles className="h-4 w-4 text-white" />
+                  <Sparkles className="h-4 w-4 text-[var(--color-on-accent)]" />
                 </div>
                 <h2 className="text-lg font-bold text-[var(--color-text)]">
                   Equalizer
@@ -355,7 +355,7 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
                 <div className="flex items-center justify-center p-12 text-center">
                   <div className="space-y-3">
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] shadow-xl shadow-[rgba(244,178,102,0.35)]">
-                      <Sparkles className="h-8 w-8 animate-pulse text-white" />
+                      <Sparkles className="h-8 w-8 animate-pulse text-[var(--color-on-accent)]" />
                     </div>
                     <p className="text-sm text-[var(--color-text)]">
                       Click anywhere to enable equalizer

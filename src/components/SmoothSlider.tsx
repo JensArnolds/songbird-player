@@ -5,10 +5,10 @@
 import { haptic } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import {
-  motion,
-  useMotionValue,
-  animate,
-  type PanInfo,
+    animate,
+    motion,
+    useMotionValue,
+    type PanInfo,
 } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -234,7 +234,7 @@ export function SmoothSlider({
         className={`
           relative overflow-hidden rounded-full cursor-pointer
           ${isVertical ? "w-full h-full" : "w-full"}
-          ${trackClassName || "bg-[rgba(255,255,255,0.12)]"}
+          ${trackClassName || "slider-track"}
         `}
         style={{
           height: isVertical ? "100%" : sizeConfig.track,
@@ -256,7 +256,7 @@ export function SmoothSlider({
           className={`
             absolute rounded-full
             ${isVertical ? "bottom-0 left-0 right-0" : "top-0 left-0 h-full"}
-            ${fillClassName || "bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"}
+            ${fillClassName || "bg-gradient-to-r from-[var(--color-slider-fill)] to-[var(--color-accent-strong)]"}
           `}
           style={fillStyle}
           transition={{ type: "spring", stiffness: 500, damping: 40 }}

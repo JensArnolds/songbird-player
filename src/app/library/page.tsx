@@ -39,7 +39,7 @@ export default function LibraryPage() {
       </h1>
 
       {}
-      <div className="mb-6 flex gap-2 border-b border-[rgba(244,178,102,0.14)] md:mb-8 md:gap-4">
+      <div className="mb-6 flex gap-2 border-b border-[var(--color-border)] md:mb-8 md:gap-4">
         <button
           onClick={() => setActiveTab("favorites")}
           className={`touch-target relative flex flex-1 items-center justify-center gap-2 px-3 pb-3 font-medium transition md:flex-initial md:px-4 md:pb-4 ${

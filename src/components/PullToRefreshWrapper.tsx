@@ -83,7 +83,7 @@ export function PullToRefreshWrapper({
           icon: <ArrowDown className="h-5 w-5" />,
           text: "Pull to refresh",
           color: "text-[var(--color-subtext)]",
-          bgColor: "bg-[rgba(18,26,38,0.95)]",
+          bgColor: "bg-[var(--color-surface)]",
         };
       case "ready":
         return {

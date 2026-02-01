@@ -2,14 +2,14 @@
 
 "use client";
 
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { formatTime } from "@/utils/time";
-import { useSession } from "next-auth/react";
 import { Heart, Layers, ListPlus, Maximize2, Minimize2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
@@ -180,7 +180,7 @@ export default function MaturePlayer({
       {}
       <div
         ref={progressRef}
-        className="group relative h-1.5 w-full cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)] transition-all hover:h-2"
+        className="slider-track group relative h-1.5 w-full cursor-pointer rounded-full transition-all hover:h-2"
         onClick={handleProgressClick}
         onMouseDown={() => setIsDragging(true)}
         onMouseUp={() => setIsDragging(false)}
@@ -222,7 +222,7 @@ export default function MaturePlayer({
               </div>
             )}
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/60">
+              <div className="theme-card-overlay absolute inset-0 flex items-center justify-center rounded-lg">
                 <div className="border-accent h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
               </div>
             )}
@@ -330,7 +330,7 @@ export default function MaturePlayer({
             <button
               type="button"
               onClick={handlePlayPause}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-text)] text-[#0f141d] shadow-[0_10px_28px_rgba(244,178,102,0.35)] transition hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-text)] text-[var(--color-on-accent)] shadow-[0_10px_28px_rgba(244,178,102,0.35)] transition hover:scale-105 active:scale-95"
               title="Play/Pause (Space)"
             >
               {isPlaying ? (
@@ -519,7 +519,7 @@ export default function MaturePlayer({
                 step={0.01}
                 value={volume}
                 onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-                className="accent-accent h-1 w-full cursor-pointer appearance-none rounded-full bg-[rgba(255,255,255,0.12)]"
+                className="slider-track accent-accent h-1 w-full cursor-pointer appearance-none rounded-full"
                 title="Volume (↑↓)"
               />
             </div>

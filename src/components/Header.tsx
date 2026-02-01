@@ -357,7 +357,7 @@ export default function Header() {
                 className="group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
                 aria-label="View on Vercel"
               >
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-[rgba(0,0,0,0.6)]">
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-black/30">
                   <svg
                     width="14"
                     height="14"
@@ -415,13 +415,13 @@ export default function Header() {
 
                 {}
                 {showUserMenu && (
-                  <div className="animate-in fade-in slide-in-from-top-2 absolute right-0 mt-2 w-52 rounded-xl border border-[rgba(244,178,102,0.16)] bg-[rgba(18,26,38,0.95)] p-1 shadow-xl shadow-[rgba(5,10,18,0.6)] backdrop-blur-lg duration-200">
+                  <div className="theme-panel animate-in fade-in slide-in-from-top-2 absolute right-0 mt-2 w-52 rounded-xl border p-1 shadow-xl backdrop-blur-lg duration-200">
                     <div className="space-y-1">
                       {userProfile?.userHash && (
                         <Link
                           href={`/${userProfile.userHash}`}
                           onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
+                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                         >
                           <User className="h-4 w-4" />
                           My Profile
@@ -429,7 +429,7 @@ export default function Header() {
                       )}
                       <button
                         onClick={handleSignOut}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] transition-colors hover:bg-[rgba(242,139,130,0.12)] hover:text-[var(--color-text)]"
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-text)]"
                       >
                         <LogOut className="h-4 w-4" />
                         Sign Out
@@ -462,7 +462,7 @@ export default function Header() {
                   aria-label="Administrate"
                   title="Administrate"
                 >
-                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-[rgba(0,0,0,0.6)]">
+                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-black/30">
                     <Shield className="h-4 w-4 opacity-70 transition-opacity group-hover:opacity-100" />
                   </div>
                 </Link>

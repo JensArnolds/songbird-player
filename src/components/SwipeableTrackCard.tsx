@@ -241,7 +241,7 @@ export default function SwipeableTrackCard({
         onDragEnd={handleDragEnd}
         onContextMenu={handleContextMenu}
         whileTap={{ cursor: "grabbing" }}
-        className="relative flex items-center gap-4 rounded-xl bg-[linear-gradient(145deg,rgba(18,27,37,0.98),rgba(11,17,24,0.98))] p-4 transition-shadow md:gap-5"
+        className="theme-panel relative flex items-center gap-4 rounded-xl p-4 transition-shadow md:gap-5"
       >
         {}
         <div className="relative flex-shrink-0">
@@ -258,7 +258,7 @@ export default function SwipeableTrackCard({
             onClick={handlePlay}
             whileTap={{ scale: 0.9 }}
             transition={springPresets.immediate}
-            className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/60 opacity-80 backdrop-blur-sm transition-opacity md:opacity-0 md:hover:opacity-100"
+            className="theme-card-overlay absolute inset-0 flex items-center justify-center rounded-xl opacity-80 backdrop-blur-sm transition-opacity md:opacity-0 md:hover:opacity-100"
           >
             <Play className="h-8 w-8 fill-white text-white drop-shadow-lg" />
           </motion.button>
@@ -399,7 +399,7 @@ export default function SwipeableTrackCard({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
                     transition={springPresets.snappy}
-                    className="absolute right-0 z-20 mt-2 w-56 rounded-xl border border-[rgba(244,178,102,0.14)] bg-[rgba(16,23,33,0.98)] py-2 shadow-xl backdrop-blur-xl md:w-48"
+                    className="theme-panel absolute right-0 z-20 mt-2 w-56 rounded-xl border py-2 shadow-xl backdrop-blur-xl md:w-48"
                   >
                     {onAddToPlayNext && (
                       <>

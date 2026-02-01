@@ -150,7 +150,7 @@ export function AddToPlaylistModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={springPresets.gentle}
-            className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm"
+            className="theme-chrome-backdrop fixed inset-0 z-[200] backdrop-blur-sm"
             onClick={() => {
               hapticLight();
               onClose();
@@ -199,7 +199,7 @@ export function AddToPlaylistModal({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search playlists..."
-                    className="w-full rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(18,26,38,0.92)] py-2 pr-4 pl-10 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] backdrop-blur-sm transition-all hover:border-[rgba(244,178,102,0.35)] focus:border-[rgba(244,178,102,0.4)] focus:ring-2 focus:ring-[rgba(244,178,102,0.25)] focus:outline-none"
+                    className="theme-input w-full rounded-lg py-2 pr-4 pl-10 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] backdrop-blur-sm transition-all hover:border-[var(--color-accent)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/25 focus:outline-none"
                   />
                 </div>
               </div>
@@ -221,14 +221,14 @@ export function AddToPlaylistModal({
                         hapticLight();
                         onClose();
                       }}
-                      className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-white shadow-lg shadow-[rgba(244,178,102,0.3)] transition-all hover:scale-105 active:scale-95"
+                      className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] shadow-lg shadow-[var(--color-accent)]/30 transition-all hover:scale-105 active:scale-95"
                     >
                       Sign In
                     </Link>
                   </div>
                 ) : isLoading ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[rgba(244,178,102,0.2)] border-t-[var(--color-accent)]" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-border)] border-t-[var(--color-accent)]" />
                   </div>
                 ) : filteredPlaylists.length === 0 ? (
                   <EmptyState
@@ -345,7 +345,7 @@ function PlaylistItem({
         {}
         <div className="flex-shrink-0">
           {isSubmitting ? (
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[rgba(244,178,102,0.2)] border-t-[var(--color-accent)]" />
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-accent)]" />
           ) : playlist.hasTrack ? (
             <Check className="h-5 w-5 text-[var(--color-success)]" />
           ) : (
@@ -392,7 +392,7 @@ function EmptyState({ hasSearchQuery, onClose }: EmptyStateProps) {
           hapticLight();
           onClose();
         }}
-        className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-white shadow-lg shadow-[rgba(244,178,102,0.3)] transition-all hover:scale-105 active:scale-95"
+        className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] shadow-lg shadow-[var(--color-accent)]/30 transition-all hover:scale-105 active:scale-95"
       >
         Create Playlist
       </Link>

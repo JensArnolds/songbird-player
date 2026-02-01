@@ -45,11 +45,11 @@ export default function ProfileHeader({
               alt={profile.name ?? "User"}
               width={128}
               height={128}
-              className="h-32 w-32 rounded-full border-4 border-[rgba(244,178,102,0.55)] shadow-lg shadow-[rgba(244,178,102,0.28)]"
+              className="h-32 w-32 rounded-full border-4 border-[var(--color-accent)]/55 shadow-lg shadow-[var(--color-accent)]/28"
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-[rgba(244,178,102,0.55)] bg-[linear-gradient(135deg,rgba(244,178,102,0.35),rgba(88,198,177,0.35))] text-5xl font-bold text-[var(--color-text)] shadow-lg shadow-[rgba(244,178,102,0.28)]">
+            <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-[var(--color-accent)]/55 bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-5xl font-bold text-[var(--color-on-accent)] shadow-lg shadow-[var(--color-accent)]/28">
               {profile.name?.charAt(0).toUpperCase() ?? "U"}
             </div>
           )}
@@ -108,7 +108,7 @@ export default function ProfileHeader({
         {isShareSupported && (
           <button
             onClick={onShare}
-            className="touch-target flex items-center gap-2 rounded-lg border border-[rgba(244,178,102,0.25)] bg-[rgba(244,178,102,0.12)] px-4 py-2 text-[var(--color-text)] transition-colors hover:bg-[rgba(244,178,102,0.2)]"
+            className="touch-target flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 px-4 py-2 text-[var(--color-text)] transition-colors hover:bg-[var(--color-accent)]/20"
             aria-label={`Share ${profile.name ?? "user"}'s profile`}
           >
             <svg

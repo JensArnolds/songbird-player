@@ -118,7 +118,7 @@ export function FloatingActionButton({
           ? { repeat: Infinity, duration: 2, ease: "easeInOut" }
           : springPresets.snappy
       }
-      className={`fixed right-4 bottom-20 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] text-[#0f141d] shadow-[0_8px_24px_rgba(244,178,102,0.4)] md:hidden ${className}`}
+      className={`fixed right-4 bottom-20 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] text-[var(--color-on-accent)] shadow-[0_8px_24px_rgba(244,178,102,0.4)] md:hidden ${className}`}
     >
       {icon}
     </motion.button>
@@ -158,7 +158,7 @@ export function AnimatedCheckbox({
       >
         {checked && (
           <motion.svg
-            className="absolute inset-0 m-auto h-4 w-4 text-[#0f141d]"
+            className="absolute inset-0 m-auto h-4 w-4 text-[var(--color-on-accent)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

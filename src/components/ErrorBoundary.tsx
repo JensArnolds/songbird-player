@@ -67,7 +67,7 @@ export class ErrorBoundary extends Component<
             </p>
             <button
               onClick={this.resetError}
-              className="rounded-lg bg-[var(--color-accent)] px-6 py-3 text-white transition-colors hover:opacity-90"
+              className="rounded-lg bg-[var(--color-accent)] px-6 py-3 text-[var(--color-on-accent)] transition-colors hover:opacity-90"
             >
               Try Again
             </button>
@@ -76,7 +76,7 @@ export class ErrorBoundary extends Component<
                 <summary className="cursor-pointer text-sm text-[var(--color-subtext)]">
                   Error Details (Dev Only)
                 </summary>
-                <pre className="mt-2 overflow-auto rounded bg-black/20 p-4 text-xs">
+                <pre className="mt-2 overflow-auto rounded bg-[var(--color-surface)] p-4 text-xs">
                   {this.state.error.toString()}
                   {this.state.error.stack}
                 </pre>
@@ -110,13 +110,13 @@ export function ErrorFallback({
       {resetError && (
         <button
           onClick={resetError}
-          className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm text-white transition-colors hover:opacity-90"
+          className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm text-[var(--color-on-accent)] transition-colors hover:opacity-90"
         >
           Try Again
         </button>
       )}
       {process.env.NODE_ENV === "development" && error && (
-        <pre className="mt-4 max-w-full overflow-auto rounded bg-black/20 p-4 text-left text-xs">
+        <pre className="mt-4 max-w-full overflow-auto rounded bg-[var(--color-surface)] p-4 text-left text-xs">
           {error.message}
         </pre>
       )}

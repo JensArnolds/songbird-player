@@ -35,7 +35,7 @@ export function WelcomeHero({ isVisible, onDismiss }: WelcomeHeroProps) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            className="pointer-events-auto relative w-full max-w-2xl overflow-hidden rounded-2xl border border-[rgba(244,178,102,0.2)] bg-gradient-to-br from-[rgba(18,26,38,0.95)] via-[rgba(18,26,38,0.98)] to-[rgba(18,26,38,0.95)] shadow-2xl backdrop-blur-xl"
+            className="theme-panel pointer-events-auto relative w-full max-w-2xl overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl"
             style={{
               boxShadow: `
                 0 0 40px rgba(244,178,102,0.1),

@@ -469,7 +469,7 @@ export default function PlaylistDetailPage() {
 
         {}
         {isOwner && playlist.tracks && playlist.tracks.length > 0 && (
-          <div className="mb-4 rounded-lg bg-[rgba(16,22,31,0.65)] px-4 py-2 text-sm text-[var(--color-subtext)]">
+          <div className="mb-4 rounded-lg bg-[var(--color-surface-hover)] px-4 py-2 text-sm text-[var(--color-subtext)]">
             💡 Tip: Drag and drop tracks to reorder them
           </div>
         )}
@@ -529,7 +529,7 @@ export default function PlaylistDetailPage() {
                     {isOwner && (
                       <button
                         onClick={() => handleRemoveTrack(item.id)}
-                        className="rounded-full bg-[rgba(16,22,31,0.85)] p-2 text-[var(--color-subtext)] transition hover:text-[var(--color-danger)]"
+                        className="rounded-full bg-[var(--color-surface-hover)] p-2 text-[var(--color-subtext)] transition hover:text-[var(--color-danger)]"
                         title="Remove from playlist"
                       >
                         <svg
