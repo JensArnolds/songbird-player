@@ -80,7 +80,7 @@ export default function AboutPage() {
               <h3 className="mb-2 font-medium text-white">Tech Stack</h3>
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full border border-gray-700 bg-gray-800/50 px-3 py-1 text-sm text-gray-300">
-                  Next.js 15
+                  Next.js 16
                 </span>
                 <span className="rounded-full border border-gray-700 bg-gray-800/50 px-3 py-1 text-sm text-gray-300">
                   TypeScript
