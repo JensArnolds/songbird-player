@@ -40,6 +40,49 @@
   --audio-strobe: 0;
 }
 
+/* ------------------------------------------------------------
+   ☀️ Light Theme Variables
+------------------------------------------------------------- */
+
+html.theme-light {
+  --color-bg: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-surface-hover: #f0f2f5;
+  --color-surface-2: #fafbfc;
+  --color-accent: #f4b266;
+  --color-accent-light: #ffd6a0;
+  --color-accent-strong: #58c6b1;
+  --color-text: #1a1f2e;
+  --color-subtext: #4a5568;
+  --color-muted: #718096;
+  --color-border: #e2e8f0;
+  --color-success: #58c6b1;
+  --color-danger: #f28b82;
+  --color-warning: #f2c761;
+
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --ring: 0 0 0 4px rgba(244, 178, 102, 0.15);
+  --glow-ambient: 0 0 32px rgba(88, 198, 177, 0.15);
+
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+}
+
+html.theme-light::before {
+  background: radial-gradient(ellipse at top center,
+    rgba(88, 198, 177, 0.08) 0%,
+    rgba(139, 92, 246, 0.05) 30%,
+    rgba(168, 85, 247, 0.04) 50%,
+    transparent 70%);
+}
+
+html.theme-light::after {
+  background: radial-gradient(ellipse at bottom center,
+    rgba(244, 178, 102, 0.06) 0%,
+    rgba(236, 72, 153, 0.04) 40%,
+    transparent 70%);
+}
+
 html {
   scroll-behavior: smooth;
   background-color: #0a0a0f;

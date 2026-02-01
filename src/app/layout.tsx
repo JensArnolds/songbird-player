@@ -23,6 +23,7 @@ import { UIWrapper } from "@/components/UIWrapper";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
 import { MenuProvider } from "@/contexts/MenuContext";
 import { PlaylistContextMenuProvider } from "@/contexts/PlaylistContextMenuContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TrackContextMenuProvider } from "@/contexts/TrackContextMenuContext";
 import { env } from "@/env";
@@ -114,8 +115,9 @@ export default function RootLayout({
         <ErrorBoundary>
           <SessionProvider>
             <TRPCReactProvider>
-              <ToastProvider>
-                <AudioPlayerProvider>
+              <ThemeProvider>
+                <ToastProvider>
+                  <AudioPlayerProvider>
                   {}
                   <DynamicTitle />
                   <MenuProvider>
@@ -152,8 +154,9 @@ export default function RootLayout({
                       </PlaylistContextMenuProvider>
                     </TrackContextMenuProvider>
                   </MenuProvider>
-                </AudioPlayerProvider>
-              </ToastProvider>
+                  </AudioPlayerProvider>
+                </ToastProvider>
+              </ThemeProvider>
             </TRPCReactProvider>
           </SessionProvider>
         </ErrorBoundary>
