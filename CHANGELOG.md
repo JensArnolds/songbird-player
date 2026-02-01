@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.11.3] - 2026-02-01
+
+### Improved
+
+- **Docker build**: Dockerfile mirrors all env.js variables via build args (no hardcoded URLs)
+  - Required and optional vars passed as ARG/ENV in builder stage; docker-compose passes them from `.env` as build args
+  - Ensures env validation runs at build time with values from `.env`
+  - Locations: [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml)
+
+- **Docker build**: `.dockerignore` updated so `CHANGELOG.md` is included in the build context
+  - Enables `copy:changelog` (cp CHANGELOG.md public/CHANGELOG.md) to succeed during `npm run build`
+  - Location: [.dockerignore](.dockerignore)
+
+- **Example Playlist button (home)**: Stronger hover and focus styling
+  - Scale and ring on hover/focus; brightness lift; subtle overlay and icon scale on hover
+  - Theme: `--color-secondary-accent` and `--color-secondary-accent-strong` added in `globals.css` (dark and light) for teal gradient
+  - Locations: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx), [src/styles/globals.css](src/styles/globals.css)
+
 ## [0.11.2] - 2026-02-01
 
 ### Improved
