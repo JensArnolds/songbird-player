@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.30] - 2026-02-01
 
+### Added
+
+- **About Page**: New sparse About page accessible from mobile hamburger menu
+  - Team information featuring the developers behind the project
+  - Project motivation and purpose section explaining the frontend for self-made API
+  - Development approach overview (team and pair programming)
+  - Tech stack display with visual badges (Next.js 15, TypeScript, TailwindCSS v4, tRPC, PostgreSQL, Drizzle ORM)
+  - Links to GitHub repository and license page
+  - Consistent minimal iOS-style design matching settings and license pages
+  - Clean card-based layout with subtle borders and backdrop blur effects
+  - Location: [src/app/about/page.tsx](src/app/about/page.tsx)
+
 ### Improved
 
 - **TypeScript Type Safety**: Enhanced type safety in tesseractSpin visualizer pattern
