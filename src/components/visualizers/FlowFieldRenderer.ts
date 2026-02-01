@@ -172,7 +172,6 @@ export class FlowFieldRenderer {
     "latticeDrift",
     "nebulaDrift",
     "crystalPulse",
-    "voidRipples",
     "tesseractSpin",
     "valknut",
   ];
@@ -3421,9 +3420,6 @@ export class FlowFieldRenderer {
         break;
       case "crystalPulse":
         this.renderCrystalPulse(audioIntensity, bassIntensity, trebleIntensity);
-        break;
-      case "voidRipples":
-        this.renderVoidRipples(audioIntensity, bassIntensity, midIntensity);
         break;
       case "tesseractSpin":
         this.renderTesseractSpin(audioIntensity, bassIntensity, trebleIntensity);
@@ -15602,109 +15598,6 @@ export class FlowFieldRenderer {
       ctx.beginPath();
       ctx.moveTo(connectX, connectY);
       ctx.lineTo(nextConnectX, nextConnectY);
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  }
-
-  private renderVoidRipples(
-    audioIntensity: number,
-    bassIntensity: number,
-    midIntensity: number,
-  ): void {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    ctx.translate(this.centerX, this.centerY);
-
-    const time = this.time * 0.0005;
-    const minDimension = Math.min(this.width, this.height);
-    const pixelCount = this.width * this.height;
-    const detailScale = this.getAdaptiveDetailScale(pixelCount);
-    const twoPi = FlowFieldRenderer.TWO_PI;
-
-    const sourceCount = Math.min(
-      4,
-      Math.max(2, ((2 + ((audioIntensity * 2) | 0)) * detailScale) | 0),
-    );
-    const ripplesPerSource = Math.min(
-      8,
-      Math.max(4, ((4 + ((midIntensity * 4) | 0)) * detailScale) | 0),
-    );
-    const maxRadius = minDimension * 0.45;
-    const baseHue = this.fastMod360(this.hueBase + time * 40);
-
-    for (let source = 0; source < sourceCount; source++) {
-      const sourceAngle = (twoPi / sourceCount) * source + time * 0.3;
-      const sourceDistance =
-        minDimension *
-        (0.1 + (source / sourceCount) * 0.15) *
-        (1 + this.fastSin(time * 1.5 + source) * 0.2);
-      const sx = this.fastCos(sourceAngle) * sourceDistance;
-      const sy = this.fastSin(sourceAngle) * sourceDistance;
-      const sourceHue = this.fastMod360(baseHue + source * 70);
-      const pulseSpeed = 0.7 + source * 0.15;
-
-      for (let r = 0; r < ripplesPerSource; r++) {
-        const rippleProgress =
-          (r / ripplesPerSource + time * pulseSpeed) % 1;
-        const radius =
-          rippleProgress * maxRadius +
-          this.fastSin(time * 2 + r * 0.5) * (6 + bassIntensity * 8);
-        const life = 1 - rippleProgress;
-        const alpha = (0.18 + audioIntensity * 0.22) * life * life;
-        if (alpha <= 0.03) continue;
-
-        const rippleHue = this.fastMod360(sourceHue + rippleProgress * 60);
-        const lineWidth =
-          (1 + midIntensity * 1.2 + this.fastSin(time * 3 + r) * 0.4) *
-          (0.5 + life * 0.5);
-
-        ctx.strokeStyle = this.hsla(
-          rippleHue,
-          85,
-          60 + rippleProgress * 15,
-          alpha,
-        );
-        ctx.lineWidth = lineWidth;
-        ctx.beginPath();
-        ctx.arc(sx, sy, radius, 0, twoPi);
-        ctx.stroke();
-      }
-    }
-
-    const interferenceAlpha = 0.08 + audioIntensity * 0.12;
-    ctx.lineWidth = 0.8;
-    for (let source = 0; source < sourceCount - 1; source++) {
-      const sourceAngle = (twoPi / sourceCount) * source + time * 0.3;
-      const sourceDistance =
-        minDimension *
-        (0.1 + (source / sourceCount) * 0.15) *
-        (1 + this.fastSin(time * 1.5 + source) * 0.2);
-      const sx1 = this.fastCos(sourceAngle) * sourceDistance;
-      const sy1 = this.fastSin(sourceAngle) * sourceDistance;
-
-      const nextSource = source + 1;
-      const nextAngle =
-        (twoPi / sourceCount) * nextSource + time * 0.3;
-      const nextDistance =
-        minDimension *
-        (0.1 + (nextSource / sourceCount) * 0.15) *
-        (1 + this.fastSin(time * 1.5 + nextSource) * 0.2);
-      const sx2 = this.fastCos(nextAngle) * nextDistance;
-      const sy2 = this.fastSin(nextAngle) * nextDistance;
-
-      const connectionHue = this.fastMod360(baseHue + source * 35);
-      ctx.strokeStyle = this.hsla(
-        connectionHue,
-        75,
-        65,
-        interferenceAlpha,
-      );
-      ctx.beginPath();
-      ctx.moveTo(sx1, sy1);
-      ctx.lineTo(sx2, sy2);
       ctx.stroke();
     }
 

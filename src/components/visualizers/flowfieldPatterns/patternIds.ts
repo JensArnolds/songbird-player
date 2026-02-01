@@ -115,6 +115,5 @@ export type Pattern =
   | "latticeDrift"
   | "nebulaDrift"
   | "crystalPulse"
-  | "voidRipples"
   | "tesseractSpin"
   | "valknut";
