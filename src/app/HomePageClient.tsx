@@ -558,17 +558,9 @@ export default function HomePageClient() {
                 </motion.div>
                 <h3 className="mb-2 text-lg font-bold text-[var(--color-text)] md:text-xl">
                   {isMobile
-                    ? "Start Your Musical Journey"
-                    : "Explore our library. Best enjoyed on a desktop device or horizontally on mobile."}
-                </h3>
-                <p className="max-w-md px-4 text-sm text-[var(--color-subtext)] md:text-base">
-                  {isMobile
                     ? "Tap to start playing music instantly, or search for something specific."
                     : "Search for songs, artists, albums - anything you want to listen to."}
-                </p>
-                <p className="mt-3 max-w-md px-4 text-xs text-[var(--color-muted)] md:text-sm">
-                  <b>Dedicated to Sebastian K... The only man I ever loved.</b>
-                </p>
+                </h3>
 
                 {!session && (
                   <motion.div
@@ -578,28 +570,38 @@ export default function HomePageClient() {
                     className="mt-6 max-w-md rounded-xl border border-white/5 bg-white/[0.02] px-5 py-4"
                   >
                     <p className="mb-2 text-sm font-semibold text-[var(--color-text)]">
-                      Sign in to unlock features
+                      Sign in is optional, but it unlocks a few features you may
+                      like:
                     </p>
                     <ul className="space-y-1.5 text-xs text-[var(--color-subtext)]">
                       <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[var(--color-accent)]">•</span>
+                        <span className="mt-0.5 text-[var(--color-accent)]">
+                          •
+                        </span>
                         <span>Create and manage custom playlists</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[var(--color-accent)]">•</span>
+                        <span className="mt-0.5 text-[var(--color-accent)]">
+                          •
+                        </span>
                         <span>Build your personal music profile</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[var(--color-accent)]">•</span>
+                        <span className="mt-0.5 text-[var(--color-accent)]">
+                          •
+                        </span>
                         <span>Save settings and preferences globally</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[var(--color-accent)]">•</span>
+                        <span className="mt-0.5 text-[var(--color-accent)]">
+                          •
+                        </span>
                         <span>Track listening history across devices</span>
                       </li>
                     </ul>
                     <p className="mt-3 text-xs text-[var(--color-muted)]">
-                      Your privacy is fully protected. We only store what you choose to save.
+                      Your privacy is fully protected. We only store what you
+                      choose to save.
                     </p>
                   </motion.div>
                 )}
