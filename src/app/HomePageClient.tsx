@@ -574,10 +574,7 @@ export default function HomePageClient() {
                       like:
                     </p>
                     <ul className="space-y-1.5 text-xs text-[var(--color-subtext)] md:space-y-1">
-                      <li className="flex items-start gap-2">
-                        <span className="mt-0.5 text-[var(--color-accent)]">
-                          •
-                        </span>
+                      <li className="flex items-start">
                         <span>
                           Your privacy is maintained fully, but you can create
                           and manage custom playlists, have a profile and build
