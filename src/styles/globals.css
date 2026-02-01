@@ -1743,6 +1743,26 @@ html.theme-light .theme-chrome-header {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
+.header-icon-btn > div {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.header-icon-btn:hover > div {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+html.theme-light .header-icon-btn > div {
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+html.theme-light .header-icon-btn:hover > div {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
 .theme-chrome-bar {
   background: rgba(10, 16, 24, 0.96);
   border-color: rgba(244, 178, 102, 0.16);

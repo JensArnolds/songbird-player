@@ -307,74 +307,6 @@ export default function Header() {
           {}
           <div className="flex items-center gap-3">
             {}
-            {isDarkfloorHost ? (
-              <Link
-                href={
-                  env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER ??
-                  "https://starchildmusic.com"
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden items-center transition-opacity hover:opacity-80 md:flex"
-                aria-label="View on custom server"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-[var(--color-text)]"
-                >
-                  <path
-                    d="M12 2L2 7L12 12L22 7L12 2Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 17L12 22L22 17"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 12L12 17L22 12"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </Link>
-            ) : !isDarkfloorHost && env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL ? (
-              <Link
-                href={env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
-                aria-label="View on Vercel"
-              >
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-black/30">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 76 65"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="opacity-70 transition-opacity group-hover:opacity-100"
-                  >
-                    <path
-                      d="M37.5274 0L75.0548 65H0L37.5274 0Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </div>
-              </Link>
-            ) : null}
-            {}
             {session ? (
               <div className="relative hidden md:block" ref={menuRef}>
                 <button
@@ -458,15 +390,82 @@ export default function Header() {
               ) : (
                 <Link
                   href="/admin"
-                  className="group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
+                  className="header-icon-btn group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
                   aria-label="Administrate"
                   title="Administrate"
                 >
-                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-black/30">
+                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-all group-hover:scale-110">
                     <Shield className="h-4 w-4 opacity-70 transition-opacity group-hover:opacity-100" />
                   </div>
                 </Link>
               ))}
+            {isDarkfloorHost ? (
+              <Link
+                href={
+                  env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER ??
+                  "https://starchildmusic.com"
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden items-center transition-opacity hover:opacity-80 md:flex"
+                aria-label="View on custom server"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-[var(--color-text)]"
+                >
+                  <path
+                    d="M12 2L2 7L12 12L22 7L12 2Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M2 17L12 22L22 17"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M2 12L12 17L22 12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
+            ) : !isDarkfloorHost && env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL ? (
+              <Link
+                href={env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="header-icon-btn group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
+                aria-label="View on Vercel"
+              >
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-all group-hover:scale-110">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 76 65"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="opacity-70 transition-opacity group-hover:opacity-100"
+                  >
+                    <path
+                      d="M37.5274 0L75.0548 65H0L37.5274 0Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </div>
+              </Link>
+            ) : null}
           </div>
         </div>
       </header>
