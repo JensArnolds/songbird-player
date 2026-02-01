@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.30] - 2026-02-01
+
+### Improved
+
+- **TypeScript Type Safety**: Enhanced type safety in tesseractSpin visualizer pattern
+  - Added explicit undefined checks for vertex array destructuring
+  - Added type annotations for edges array (`Array<[number, number]>`)
+  - Added undefined guards for edge indices in sorting function
+  - Added validation check to skip edges with undefined indices
+  - Prevents potential runtime errors in strict TypeScript mode
+  - Improves code reliability and maintainability
+  - No visual or performance changes, purely type safety improvements
+  - Location: [src/components/visualizers/FlowFieldRenderer.ts](src/components/visualizers/FlowFieldRenderer.ts:15730-15790)
+
 ## [0.10.29] - 2026-02-01
 
 ### Added
