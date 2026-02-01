@@ -38,11 +38,35 @@ export const adminRouter = createTRPCRouter({
           image: true,
           userHash: true,
           admin: true,
+          banned: true,
           profilePublic: true,
         },
         orderBy: [asc(users.email)],
         limit,
       });
+    }),
+
+  setBanned: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        banned: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.id === input.userId && input.banned) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You cannot ban yourself.",
+        });
+      }
+
+      await ctx.db
+        .update(users)
+        .set({ banned: input.banned })
+        .where(eq(users.id, input.userId));
+
+      return { success: true };
     }),
 
   setAdmin: adminProcedure

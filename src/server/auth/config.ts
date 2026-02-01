@@ -26,6 +26,7 @@ declare module "next-auth" {
   interface User {
     userHash?: string | null;
     admin?: boolean;
+    banned?: boolean;
   }
 }
 
@@ -35,8 +36,8 @@ console.log("[NextAuth Config] DATABASE_URL:", process.env.DATABASE_URL ? "✓ S
 
 export const authConfig = {
   trustHost: true,
-
   basePath: "/api/auth",
+  pages: { signIn: "/signin" },
   providers: [
     DiscordProvider({
       clientId: env.AUTH_DISCORD_ID,
@@ -104,6 +105,18 @@ export const authConfig = {
         console.log("[NextAuth signIn] Provider:", account?.provider);
         console.log("[NextAuth signIn] User exists:", !!user);
         console.log("[NextAuth signIn] Profile exists:", !!profile);
+
+        if (user?.id) {
+          const [dbUser] = await db
+            .select({ banned: users.banned })
+            .from(users)
+            .where(eq(users.id, user.id))
+            .limit(1);
+          if (dbUser?.banned) {
+            console.log("[NextAuth signIn] User is banned, denying sign in");
+            return "/signin?error=Banned";
+          }
+        }
 
         if (account?.provider === "discord" && profile && user.id) {
           console.log("[NextAuth signIn] Updating Discord user profile...");
