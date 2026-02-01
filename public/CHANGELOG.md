@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.11.2] - 2026-02-01
+
+### Improved
+
+- **Desktop start page (home)**: More compact, denser layout on desktop (md and up)
+  - Reduced main and card padding, gaps, and section spacing
+  - Smaller search bar and button, tighter recent-search chips
+  - Search results header and list spacing reduced; load-more area tightened
+  - Empty state: less vertical padding, smaller hero icon and heading, denser sign-in and example-playlist blocks
+  - Suggestion pills, GitHub/Changelog buttons, and Infrastructure section use smaller type and spacing
+  - Mobile layout unchanged
+  - Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx)
+
 ## [0.11.1] - 2026-01-28
 
 ### Added
