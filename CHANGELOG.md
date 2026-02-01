@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Light theme: further dark-spot fixes and theme-aware styling across components.
 - Sliders: dedicated CSS variables (track/fill/thumb) for both themes so sliders contrast in dark and light.
+- **Light theme gradients**: Orange-to-green gradient (accent → accent-strong) fits light mode; light-theme overrides for `.accent-gradient`, `.btn-primary`, `.badge-accent`, `.text-glow`, `.player-backdrop::before`; CSS vars `--accent-btn-shadow` / `--accent-btn-shadow-hover` for theme-aware button shadows; gradient buttons (Create Playlist, Add to Playlist, Equalizer, Profile avatar, desktop Play) use these; desktop Play button uses same conditional gradient as other primary actions.
+- **Light theme contrast**: Stronger contrast in light mode (darker text `--color-text` / `--color-subtext` / `--color-muted`, darker borders, clearer surface hierarchy, stronger shadows); accent gradients kept lighter (`#d4933d` → `#3da88a`) with `--color-on-accent` for readable text on buttons. Later tuned: light-mode orange slightly darker (`#c9822e` / `#d9933d`) for better contrast; `--ring` and accent shadows use matching orange; `.btn-primary` hover overlay opacity 0.92 so gradient shows through and text stays visible.
+- **Visuals in light mode**: Lightweight particle background no longer hidden; `html.theme-light .lightweight-particle` uses softer orange/teal gradients and lower opacity so particles are visible but subtle in light theme.
+- **Theme toggle**: Settings theme change (Light/Dark) applies instantly: document class and localStorage update immediately; for logged-in users, preferences cache is updated optimistically so ThemeContext reflects the new theme without waiting for the server.
+- **Light mode outlines**: “Starchild Music” header title (`.header-logo-title`) gets a dark per-letter outline in light mode (`-webkit-text-stroke`, `paint-order: stroke fill`); API health pill (`.api-health-pill`) gets a visible border and subtle outer shadow; both outlines strengthened (stroke 1.25px, higher opacity) for clarity.
+- **View on GitHub (light mode)**: “View on GitHub” button (`.btn-github`) in light mode uses gray background (`var(--color-surface-hover)`) and outline (`border: 1px solid var(--color-border)`); hover state slightly darker surface and border.
+
+### Fixed
+
+- **Search button (light theme)**: Home page “Search” button and `.btn-primary` in light theme explicitly use `color: var(--color-on-accent)` so label stays visible on hover (no longer solid orange with invisible text); `.btn-primary > *` inherits color for consistent legibility.
 
 ## [0.12.2] - 2026-02-01
 

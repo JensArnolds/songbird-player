@@ -95,8 +95,32 @@ export default function SettingsPage() {
     }
   };
 
+  const utils = api.useUtils();
+
   const handleSelect = (key: string, value: string) => {
     hapticToggle();
+    if (key === "theme") {
+      const themeValue = value as "light" | "dark";
+      settingsStorage.set("theme", themeValue);
+      const html = document.documentElement;
+      if (themeValue === "light") {
+        html.classList.add("theme-light");
+        html.classList.remove("theme-dark");
+      } else {
+        html.classList.add("theme-dark");
+        html.classList.remove("theme-light");
+      }
+      if (session) {
+        utils.music.getUserPreferences.setData(undefined, (prev) =>
+          prev ? { ...prev, theme: themeValue } : prev
+        );
+        updatePreferences.mutate({ theme: themeValue });
+      } else {
+        setLocalSettings((prev) => ({ ...prev, theme: themeValue }));
+        showToast("Settings saved locally", "success");
+      }
+      return;
+    }
     if (session) {
       updatePreferences.mutate({ [key]: value });
     } else {
