@@ -3,6 +3,7 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
+process.env.API_URL = "http://localhost:3222";
 process.env.NEXT_PUBLIC_API_URL = "http://localhost:3222";
 
 const localStorageMock = (() => {

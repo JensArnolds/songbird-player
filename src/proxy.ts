@@ -71,8 +71,8 @@ export function proxy(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/api/") &&
     !request.nextUrl.pathname.startsWith("/_next/")
   ) {
-    const apiUrl = env.NEXT_PUBLIC_API_URL;
-    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const apiUrl = env.API_URL;
+    const songbirdApiUrl = env.API_V2_URL;
 
     const apiDomain = apiUrl ? new URL(apiUrl).origin : "";
     const songbirdDomain = songbirdApiUrl

@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiUrl = env.API_V2_URL;
     const songbirdApiKey = env.SONGBIRD_API_KEY;
 
     const rangeHeader = req.headers.get("Range");
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 
     if (!songbirdApiUrl || !songbirdApiKey) {
       console.error(
-        "[Stream API] NEXT_PUBLIC_V2_API_URL or SONGBIRD_API_KEY not configured",
+        "[Stream API] API_V2_URL or SONGBIRD_API_KEY not configured",
       );
       return NextResponse.json(
         { error: "V2 API not configured" },
@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
           return NextResponse.json(
             {
               error: "Cannot connect to backend",
-              message: `Failed to connect to backend at ${normalizedSongbirdUrl}. Check if the backend is running and NEXT_PUBLIC_V2_API_URL is correct.`,
+              message: `Failed to connect to backend at ${normalizedSongbirdUrl}. Check if the backend is running and API_V2_URL is correct.`,
               type: "connection_error",
               backendUrl: normalizedSongbirdUrl,
             },
@@ -224,7 +224,7 @@ export async function GET(req: NextRequest) {
             message:
               "The backend server did not respond in time. Check if the backend is running and accessible.",
             type: "timeout",
-            backendUrl: env.NEXT_PUBLIC_V2_API_URL,
+            backendUrl: env.API_V2_URL,
           },
           { status: 504 },
         );
@@ -241,9 +241,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(
           {
             error: "Cannot connect to backend",
-            message: `Failed to connect to backend at ${env.NEXT_PUBLIC_V2_API_URL}. Check if the backend is running and NEXT_PUBLIC_V2_API_URL is correct.`,
+            message: `Failed to connect to backend at ${env.API_V2_URL}. Check if the backend is running and API_V2_URL is correct.`,
             type: "connection_error",
-            backendUrl: env.NEXT_PUBLIC_V2_API_URL,
+            backendUrl: env.API_V2_URL,
           },
           { status: 502 },
         );
@@ -255,7 +255,7 @@ export async function GET(req: NextRequest) {
         error: "Failed to fetch stream",
         message: error instanceof Error ? error.message : "Unknown error",
         type: "unknown_error",
-        backendUrl: env.NEXT_PUBLIC_V2_API_URL,
+        backendUrl: env.API_V2_URL,
       },
       { status: 500 },
     );

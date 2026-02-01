@@ -1,7 +1,7 @@
 // File: src/__tests__/api-search-v2.test.ts
 
-import { describe, expect, it, vi, afterEach } from "vitest";
 import type { NextRequest } from "next/server";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const originalFetch = global.fetch;
 
@@ -15,7 +15,7 @@ describe("Music Search API (V2-only)", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        NEXT_PUBLIC_V2_API_URL: "https://darkfloor.one/",
+        API_V2_URL: "https://darkfloor.one/",
         SONGBIRD_API_KEY: "test-key",
       },
     }));
@@ -54,7 +54,7 @@ describe("Music Search API (V2-only)", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        NEXT_PUBLIC_V2_API_URL: undefined,
+        API_V2_URL: undefined,
         SONGBIRD_API_KEY: undefined,
       },
     }));
@@ -72,7 +72,7 @@ describe("Music Search API (V2-only)", () => {
     const body = await res.json();
 
     expect(res.status).toBe(500);
-    expect(body.error).toMatch(/NEXT_PUBLIC_V2_API_URL|SONGBIRD_API_KEY/);
+    expect(body.error).toMatch(/API_V2_URL|SONGBIRD_API_KEY/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

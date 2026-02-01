@@ -1,7 +1,7 @@
 // File: src/__tests__/api-stream-v2.test.ts
 
-import { describe, expect, it, vi, afterEach } from "vitest";
 import type { NextRequest } from "next/server";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const originalFetch = global.fetch;
 
@@ -15,7 +15,7 @@ describe("Stream API (V2-only)", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        NEXT_PUBLIC_V2_API_URL: "https://darkfloor.one/",
+        API_V2_URL: "https://darkfloor.one/",
         SONGBIRD_API_KEY: "test-key",
       },
     }));
@@ -71,7 +71,7 @@ describe("Stream API (V2-only)", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        NEXT_PUBLIC_V2_API_URL: undefined,
+        API_V2_URL: undefined,
         SONGBIRD_API_KEY: undefined,
       },
     }));

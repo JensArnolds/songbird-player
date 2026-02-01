@@ -20,9 +20,9 @@ export async function GET(
   }
 
   try {
-    const apiUrl = env.NEXT_PUBLIC_API_URL as string | undefined;
+    const apiUrl = env.API_URL;
     const streamingKey = env.STREAMING_KEY;
-    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiUrl = env.API_V2_URL;
     const songbirdApiKey = env.SONGBIRD_API_KEY;
 
     const normalizeTrack = (track: unknown) => {
@@ -79,7 +79,7 @@ export async function GET(
     }
 
     if (!apiUrl) {
-      console.error("[Track API] NEXT_PUBLIC_API_URL not configured");
+      console.error("[Track API] API_URL not configured");
       return NextResponse.json(
         { error: "API URL not configured" },
         { status: 500 },
@@ -166,7 +166,7 @@ export async function GET(
         return NextResponse.json(
           {
             error: "Cannot connect to backend",
-            message: `Failed to connect to backend at ${env.NEXT_PUBLIC_API_URL}.`,
+            message: `Failed to connect to backend at ${env.API_URL}.`,
             type: "connection_error",
           },
           { status: 502 },

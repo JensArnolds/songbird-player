@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.11.4] - 2026-01-28
+
+### Improved
+
+- **README (Docker)**: Detailed Docker instructions and container management
+  - Prerequisites, quick start with `.env.example`, and table of commands (start, stop, restart, logs, shell, db:push, rebuild, status, health)
+  - Notes on when to restart vs rebuild and that db:push runs on startup when DB is configured
+  - Makefile section aligned with actual targets; pointer to DOCKER.md for local PostgreSQL and full guide
+  - Location: [README.md](README.md)
+
+- **Home page (sign-in copy)**: Rephrased optional sign-in / privacy line for clarity and tone
+  - "Your privacy stays fully protected; optional sign-in unlocks custom playlists, a public profile, and your personal music identity—with more features on the way"
+  - Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx)
+
+- **Home page (infrastructure)**: API hostname from env instead of hardcoded URL
+  - Music data source text uses `NEXT_PUBLIC_V2_API_URL` (fallback `NEXT_PUBLIC_API_URL`); displays hostname only
+  - Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx)
+
 ## [0.11.3] - 2026-02-01
 
 ### Improved

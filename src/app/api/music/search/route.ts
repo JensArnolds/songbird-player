@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiUrl = env.API_V2_URL;
     const songbirdApiKey = env.SONGBIRD_API_KEY;
 
     const parseSearchResponse = (data: unknown): SearchResponse | null => {
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
     if (!songbirdApiUrl || !songbirdApiKey) {
       return NextResponse.json(
-        { error: "NEXT_PUBLIC_V2_API_URL or SONGBIRD_API_KEY not configured" },
+        { error: "API_V2_URL or SONGBIRD_API_KEY not configured" },
         { status: 500 },
       );
     }

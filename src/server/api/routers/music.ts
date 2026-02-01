@@ -5,34 +5,34 @@ import { z } from "zod";
 
 import { ENABLE_AUDIO_FEATURES } from "@/config/features";
 import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
+    createTRPCRouter,
+    protectedProcedure,
+    publicProcedure,
 } from "@/server/api/trpc";
 import type { db } from "@/server/db";
 import {
-  audioFeatures,
-  favorites,
-  listeningAnalytics,
-  listeningHistory,
-  playbackState,
-  playerSessions,
-  playlistTracks,
-  playlists,
-  recommendationCache,
-  recommendationLogs,
-  searchHistory,
-  userPreferences,
-  users,
+    audioFeatures,
+    favorites,
+    listeningAnalytics,
+    listeningHistory,
+    playbackState,
+    playerSessions,
+    playlistTracks,
+    playlists,
+    recommendationCache,
+    recommendationLogs,
+    searchHistory,
+    userPreferences,
+    users,
 } from "@/server/db/schema";
 import {
-  fetchDeezerRecommendations,
-  fetchEnhancedRecommendations,
-  fetchHybridRecommendations,
-  fetchMultiSeedRecommendations,
-  filterRecommendations,
-  getCacheExpiryDate,
-  shuffleWithDiversity,
+    fetchDeezerRecommendations,
+    fetchEnhancedRecommendations,
+    fetchHybridRecommendations,
+    fetchMultiSeedRecommendations,
+    filterRecommendations,
+    getCacheExpiryDate,
+    shuffleWithDiversity,
 } from "@/server/services/recommendations";
 import { songbird } from "@/services/songbird";
 import { isTrack, type Track } from "@/types";
@@ -1348,7 +1348,7 @@ export const musicRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const API_URL =
-        process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
+        process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
 
       try {
 
@@ -1791,7 +1791,7 @@ export const musicRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const API_URL =
-        process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
+        process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
 
       try {
 

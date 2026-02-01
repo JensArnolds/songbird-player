@@ -2,7 +2,7 @@
 
 import { env } from "@/env";
 
-const rawSongbirdUrl = env.NEXT_PUBLIC_V2_API_URL;
+const rawSongbirdUrl = env.API_V2_URL;
 const SONGBIRD_API_URL = rawSongbirdUrl
   ? rawSongbirdUrl.replace(/\/+$/, "")
   : undefined;
@@ -13,7 +13,7 @@ async function songbirdRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   if (!SONGBIRD_API_URL) {
-    throw new Error("Songbird API URL is not configured. Set NEXT_PUBLIC_V2_API_URL.");
+    throw new Error("Songbird API URL is not configured. Set API_V2_URL.");
   }
 
   if (!SONGBIRD_API_KEY) {

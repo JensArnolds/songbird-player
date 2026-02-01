@@ -25,7 +25,7 @@ interface Track {
 
 async function getTrack(id: string): Promise<Track | null> {
   try {
-    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiUrl = env.API_V2_URL;
     const songbirdApiKey = env.SONGBIRD_API_KEY;
 
     if (songbirdApiUrl && songbirdApiKey) {
@@ -59,7 +59,7 @@ async function getTrack(id: string): Promise<Track | null> {
       }
     } else {
       if (!songbirdApiUrl) {
-        console.error("[Track Page] NEXT_PUBLIC_V2_API_URL not configured");
+        console.error("[Track Page] API_V2_URL not configured");
       }
       if (!songbirdApiKey) {
         console.error("[Track Page] SONGBIRD_API_KEY not configured");

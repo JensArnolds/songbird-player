@@ -55,7 +55,7 @@ function buildOgImageUrl(track: Track | null, baseUrl: string, query?: string | 
       params.set("q", query);
       return `${baseUrl}/api/og?${params.toString()}`;
     }
-    const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+    const songbirdApiUrl = env.API_V2_URL;
     if (songbirdApiUrl) {
       const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
       return `${normalizedSongbirdUrl}/api/preview/default`;
@@ -169,14 +169,25 @@ export async function generateMetadata({
   };
 }
 
+function getApiHostname(): string | undefined {
+  const url = env.API_V2_URL ?? env.API_URL;
+  if (!url) return undefined;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
 export default function HomePage({
   _searchParams,
 }: {
   _searchParams: Promise<{ q?: string }>;
 }) {
+  const apiHostname = getApiHostname();
   return (
     <Suspense fallback={null}>
-      <HomePageClient />
+      <HomePageClient apiHostname={apiHostname} />
     </Suspense>
   );
 }

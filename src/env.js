@@ -21,15 +21,14 @@ export const env = createEnv({
       .default("development"),
     STREAMING_KEY: z.string(),
     SONGBIRD_API_KEY: z.string().optional(),
-    NEXT_PUBLIC_V2_API_URL: z.string().url().optional(),
+    API_URL: z.string().url().optional(),
+    API_V2_URL: z.string().url().optional(),
     ELECTRON_BUILD: z
       .string()
       .optional()
       .transform((val) => val === "true"),
   },
   client: {
-    NEXT_PUBLIC_API_URL: z.string().url(),
-    NEXT_PUBLIC_V2_API_URL: z.string().url().optional().or(z.undefined()),
     NEXT_PUBLIC_NEXTAUTH_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: z.string().url().optional(),
@@ -48,8 +47,12 @@ export const env = createEnv({
     DB_PORT: process.env.DB_PORT,
     DB_NAME: process.env.DB_NAME,
     NODE_ENV: process.env.NODE_ENV,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_V2_API_URL: process.env.NEXT_PUBLIC_V2_API_URL,
+    API_URL:
+      process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL,
+    API_V2_URL:
+      process.env.API_V2_URL ??
+      process.env.V2_API_URL ??
+      process.env.NEXT_PUBLIC_V2_API_URL,
     NEXT_PUBLIC_NEXTAUTH_URL: process.env.NEXT_PUBLIC_NEXTAUTH_URL,
     NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: process.env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL,
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: process.env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER,

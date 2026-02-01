@@ -14,7 +14,7 @@ const TEST_URLS = [
   "https://www.darkfloor.art/track/1913577097",
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
 const STREAMING_KEY =
   process.env.STREAMING_KEY ?? "avnadminavnadminavnadmin";
 

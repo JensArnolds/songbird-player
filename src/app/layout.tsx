@@ -40,7 +40,7 @@ const baseUrl = getBaseUrl();
 
 // Get default OG image URL from environment
 const getDefaultOgImageUrl = (): string => {
-  const songbirdApiUrl = env.NEXT_PUBLIC_V2_API_URL;
+  const songbirdApiUrl = env.API_V2_URL;
   if (songbirdApiUrl) {
     const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
     return `${normalizedSongbirdUrl}/api/preview/default`;

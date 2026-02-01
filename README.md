@@ -535,60 +535,95 @@ npm run deploy       # Build + reload
 
 ### Docker (Recommended)
 
-The easiest way to deploy Songbird Frontend is using Docker with the included PostgreSQL database.
+The easiest way to deploy Songbird Frontend is using Docker. The app runs in a single container and connects to an external PostgreSQL database (e.g. Neon, Aiven) using your `.env` configuration.
+
+#### Prerequisites
+
+- **Docker** 20.10+
+- **Docker Compose** 2.0+
+- **2GB+** RAM and **5GB+** disk space
 
 #### Quick Start
 
 ```bash
 # 1. Copy environment template
-cp .env.docker.example .env
+cp .env.example .env
 
-# 2. Configure required variables
-# Edit .env with your Discord OAuth credentials, API keys, etc.
+# 2. Edit .env with your values (required for build and runtime):
+#    - AUTH_SECRET, AUTH_DISCORD_ID, AUTH_DISCORD_SECRET, NEXTAUTH_URL
+#    - DATABASE_URL (or DB_HOST, DB_PORT, DB_NAME, DB_ADMIN_USER, DB_ADMIN_PASSWORD)
+#    - NEXT_PUBLIC_API_URL, STREAMING_KEY
+# Generate AUTH_SECRET: npx auth secret
 
-# 3. Start all services (app + database)
-docker-compose up -d
+# 3. Build and start the app (build reads .env and bakes required vars into the image)
+docker compose up -d --build
 
-# 4. View logs
-docker-compose logs -f app
+# 4. Check it’s running
+curl http://localhost:3222/api/health
 ```
 
-Access the application at <http://localhost:3222>
+Access the application at **http://localhost:3222**.
 
-#### Using Makefile
+#### Managing the Container
 
-For convenience, use the included Makefile:
+Use these commands to control the app container and inspect it.
+
+| Action | Docker Compose | Makefile (shortcut) |
+|--------|----------------|---------------------|
+| **Start** (detached) | `docker compose up -d` | `make up` |
+| **Stop** | `docker compose down` | `make down` |
+| **Restart** | `docker compose restart` | `make restart` |
+| **View logs** (follow) | `docker compose logs -f app` | `make logs` |
+| **Logs (last N lines)** | `docker compose logs --tail=100 app` | — |
+| **Open shell in container** | `docker compose exec app sh` | `make shell` |
+| **Run db:push manually** | `docker compose exec app npm run db:push` | `make migrate` |
+| **Rebuild and start** | `docker compose up -d --build` | `make build && make up` |
+| **List containers** | `docker compose ps` | — |
+| **Health check** | `curl http://localhost:3222/api/health` | — |
+
+**Notes:**
+
+- **Start**: Uses `.env` from the project directory; the app listens on port `3222` (override with `PORT` in `.env`).
+- **Stop**: `docker compose down` stops and removes the app container; it does *not* remove images or volumes.
+- **Restart**: Restarts the app container without rebuilding. Use `docker compose up -d --build` to pick up code or env changes.
+- **Logs**: Use `docker compose logs -f app` to stream logs; add `--tail=100` to see only the last 100 lines.
+- **Shell**: `docker compose exec app sh` (or `make shell`) drops you into a shell inside the running app container for debugging.
+- **db:push**: In production, the entrypoint runs `npm run db:push` on startup when `DATABASE_URL` (or `DB_HOST`) is set. You can run it again manually with the commands above.
+
+#### Using the Makefile
+
+The project includes a Makefile that wraps the common Docker commands:
 
 ```bash
-make help        # Show all available commands
-make up          # Start production environment
-make logs        # View application logs
-make down        # Stop all services
-make dev         # Start development with hot reload
-make db-shell    # Access PostgreSQL CLI
-make migrate     # Run database migrations
+make help        # List all Docker-related commands
+make build       # Build the app image
+make up          # Start the app (detached)
+make down        # Stop the app
+make restart     # Restart the app
+make logs        # Stream app logs
+make shell       # Open a shell in the app container
+make migrate     # Run db:push inside the container
+make clean       # Remove containers, volumes, and images (prompts for confirmation)
 ```
+
+For **local PostgreSQL** (optional), see [DOCKER.md](DOCKER.md); the Makefile has `make up-local`, `make down-local`, and `make db-shell` for that setup.
 
 #### Features
 
-- **Isolated Environment**: Containerized app + PostgreSQL database
-- **Auto-Migrations**: Database migrations run automatically on startup
-- **Health Checks**: Built-in health monitoring and auto-restart
-- **Volume Persistence**: Database data persists across restarts
-- **Zero Configuration**: No manual database setup required
-- **Hot Reload**: Development mode supports code changes without rebuild
+- **Single container**: Next.js standalone app in one image; database is external (e.g. Neon/Aiven).
+- **Auto db:push**: On startup in production, the entrypoint runs `npm run db:push` when `DATABASE_URL` or `DB_HOST` is set.
+- **Health checks**: Container health is checked via `/api/health`; Docker can restart the container on failure.
+- **Read-only drizzle**: The `./drizzle` directory is mounted read-only so the container can run migrations without modifying your host files.
 
 #### Full Documentation
 
-See [DOCKER.md](DOCKER.md) for complete Docker deployment guide including:
+See **[DOCKER.md](DOCKER.md)** for the full Docker guide, including:
 
-- Environment configuration
-- Production deployment checklist
-- Database backups and migrations
-- Reverse proxy setup (nginx/Caddy)
-- Troubleshooting and monitoring
-- Security best practices
-- CI/CD integration examples
+- Environment variables and production checklist
+- Local PostgreSQL setup (`docker-compose.local.yml`)
+- Database backups, restores, and migrations
+- Reverse proxy (nginx/Caddy), troubleshooting, and monitoring
+- Security and CI/CD
 
 ### PM2 Process Manager (Traditional Deployment)
 

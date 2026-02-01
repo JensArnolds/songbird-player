@@ -23,7 +23,7 @@ describe("track SEO metadata", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        NEXT_PUBLIC_API_URL: "https://api.starchildmusic.com",
+        API_URL: "https://api.starchildmusic.com",
         STREAMING_KEY: "streaming-key",
         NEXT_PUBLIC_NEXTAUTH_URL: "https://starchildmusic.com",
         NEXTAUTH_URL: "https://starchildmusic.com",
@@ -64,7 +64,7 @@ describe("track SEO metadata", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        NEXT_PUBLIC_V2_API_URL: "https://darkfloor.one/",
+        API_V2_URL: "https://darkfloor.one/",
         SONGBIRD_API_KEY: "test-key",
         NEXT_PUBLIC_NEXTAUTH_URL: "https://starchildmusic.com",
         NEXTAUTH_URL: "https://starchildmusic.com",

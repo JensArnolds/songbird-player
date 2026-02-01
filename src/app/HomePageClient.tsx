@@ -31,7 +31,11 @@ const ChangelogModal = dynamic(() => import("@/components/ChangelogModal"), {
   ssr: false,
 });
 
-export default function HomePageClient() {
+type HomePageClientProps = {
+  apiHostname?: string;
+};
+
+export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -576,9 +580,9 @@ export default function HomePageClient() {
                     <ul className="space-y-1.5 text-xs text-[var(--color-subtext)] md:space-y-1">
                       <li className="flex items-start">
                         <span>
-                          Your privacy is maintained fully, but you can create
-                          and manage custom playlists, have a profile and build
-                          your personal music profile. More features to come
+                          Your privacy stays fully protected; optional sign-in
+                          unlocks custom playlists, a public profile, and your
+                          personal music identity—with more features on the way
                         </span>
                       </li>
                     </ul>
@@ -605,20 +609,6 @@ export default function HomePageClient() {
                     )}
                   </motion.button>
                 )}
-
-                <motion.button
-                  onClick={() => {
-                    hapticLight();
-                    router.push("/playlists/12");
-                  }}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="group relative mt-4 flex w-full max-w-xs items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--color-secondary-accent)] to-[var(--color-secondary-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[var(--color-secondary-accent)]/25 ring-2 ring-white/10 transition-all duration-200 ease-out hover:brightness-110 hover:shadow-xl hover:shadow-[var(--color-secondary-accent)]/40 hover:ring-4 hover:ring-white/25 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40 md:mt-3 md:gap-2 md:px-6 md:py-3 md:text-base"
-                >
-                  <span className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" aria-hidden />
-                  <Music2 className="relative h-6 w-6 md:h-5 md:w-5 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="relative">Example Playlist</span>
-                </motion.button>
 
                 <div className="mt-6 flex flex-wrap justify-center gap-2 md:mt-4 md:gap-1.5">
                   {[
@@ -678,6 +668,18 @@ export default function HomePageClient() {
                     <BookOpen className="h-4 w-4 md:h-3.5 md:w-3.5" />
                     <span>Changelog</span>
                   </motion.button>
+
+                  <motion.button
+                    onClick={() => {
+                      hapticLight();
+                      router.push("/playlists/12");
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="ml-6 flex items-center gap-2 rounded-xl bg-[rgba(88,198,177,0.15)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] ring-1 ring-[var(--color-secondary-accent)]/20 transition-all hover:bg-[rgba(88,198,177,0.25)] hover:ring-[var(--color-secondary-accent)]/40 md:ml-4 md:px-3 md:py-2 md:text-xs"
+                  >
+                    <Music2 className="h-4 w-4 md:h-3.5 md:w-3.5" />
+                    <span>Example Playlist</span>
+                  </motion.button>
                 </div>
 
                 <motion.div
@@ -722,12 +724,18 @@ export default function HomePageClient() {
                       <span className="text-[var(--color-accent)]">
                         custom API
                       </span>{" "}
-                      at
-                      <span className="font-mono text-[var(--color-text)]">
-                        {" "}
-                        api.starchildmusic.com
-                      </span>
-                      . User data, preferences, and playlists are stored in a
+                      {apiHostname ? (
+                        <>
+                          at{" "}
+                          <span className="font-mono text-[var(--color-text)]">
+                            {apiHostname}
+                          </span>
+                          .{" "}
+                        </>
+                      ) : (
+                        ". "
+                      )}
+                      User data, preferences, and playlists are stored in a
                       <span className="text-[var(--color-accent)]">
                         {" "}
                         Neon serverless PostgreSQL

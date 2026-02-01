@@ -27,8 +27,8 @@ ARG DB_NAME
 ARG NODE_ENV
 ARG STREAMING_KEY
 ARG SONGBIRD_API_KEY
-ARG NEXT_PUBLIC_V2_API_URL
-ARG NEXT_PUBLIC_API_URL
+ARG API_URL
+ARG API_V2_URL
 ARG NEXT_PUBLIC_NEXTAUTH_URL
 ARG NEXT_PUBLIC_NEXTAUTH_VERCEL_URL
 ARG NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER
@@ -49,8 +49,8 @@ ENV DB_NAME=${DB_NAME}
 ENV NODE_ENV=${NODE_ENV}
 ENV STREAMING_KEY=${STREAMING_KEY}
 ENV SONGBIRD_API_KEY=${SONGBIRD_API_KEY}
-ENV NEXT_PUBLIC_V2_API_URL=${NEXT_PUBLIC_V2_API_URL}
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV API_URL=${API_URL}
+ENV API_V2_URL=${API_V2_URL}
 ENV NEXT_PUBLIC_NEXTAUTH_URL=${NEXT_PUBLIC_NEXTAUTH_URL}
 ENV NEXT_PUBLIC_NEXTAUTH_VERCEL_URL=${NEXT_PUBLIC_NEXTAUTH_VERCEL_URL}
 ENV NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER=${NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER}
@@ -78,8 +78,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle.env.ts ./
+COPY --from=builder --chown=nextjs:nodejs /app/src/server/db ./src/server/db
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-kit ./node_modules/drizzle-kit
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/drizzle-kit ./node_modules/.bin/drizzle-kit
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dotenv ./node_modules/dotenv
 
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh

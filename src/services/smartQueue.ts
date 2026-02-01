@@ -1,13 +1,17 @@
 // File: src/services/smartQueue.ts
 
+import { env } from "@/env";
 import { isTrack, type Track } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
+const API_BASE_URL =
+  typeof window === "undefined"
+    ? (env.API_URL ?? "http://localhost:3222")
+    : window.location.origin;
 
 if (typeof window !== "undefined") {
   console.log("[SmartQueue] 🔧 Service initialized with config:", {
     apiBaseUrl: API_BASE_URL,
-    hasEnvVar: !!process.env.NEXT_PUBLIC_API_URL,
+    hasEnvVar: true,
   });
 }
 

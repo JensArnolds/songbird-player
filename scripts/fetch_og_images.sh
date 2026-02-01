@@ -1,13 +1,13 @@
 #!/usr/bin/zsh
 # File: scripts/fetch_og_images.sh
 
-if [ -z "$NEXT_PUBLIC_V2_API_URL" ]; then
-  echo "ERROR: Please set NEXT_PUBLIC_V2_API_URL before running this script."
+if [ -z "$API_V2_URL" ]; then
+  echo "ERROR: Please set API_V2_URL before running this script."
   exit 1
 fi
 
-LOCAL_BASE="$NEXT_PUBLIC_V2_API_URL"
-PROD_BASE="$NEXT_PUBLIC_V2_API_URL"
+LOCAL_BASE="$API_V2_URL"
+PROD_BASE="$API_V2_URL"
 
 curl "${LOCAL_BASE%/}/api/preview?q=isobel+björk" --output preview-isobel.png
 curl "${PROD_BASE%/}/api/preview?q=isobel+björk" --output preview-isobel-url.png
