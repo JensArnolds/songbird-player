@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.25] - 2026-02-01
+
+### Removed
+
+- **Mobile Player Volume Controls**: Removed volume slider and mute button from mobile player
+  - Volume controls were non-functional on mobile devices due to browser API limitations
+  - Mobile OS handles volume through physical hardware buttons, making in-app controls redundant
+  - Removed UI elements: volume slider, mute/unmute button, volume adjustment handlers
+  - Simplified mobile player interface by ~100 lines of code
+  - Users can still control volume using device volume buttons (standard mobile UX pattern)
+  - Location: `src/components/MobilePlayer.tsx`
+
+- **Mobile Player Equalizer**: Removed equalizer panel and controls from mobile player
+  - Equalizer caused interference with background playback persistence
+  - Web Audio API context conflicts prevented reliable background audio on mobile browsers
+  - Removing equalizer improves playback stability when app is backgrounded or screen is locked
+  - Equalizer functionality still available on desktop player where background playback is not a concern
+  - Mobile users benefit from more reliable continuous playback during screen-off scenarios
+  - Removed UI elements: equalizer button, equalizer slide-out panel, equalizer state management
+  - Location: `src/components/MobilePlayer.tsx`
+
+### Changed
+
+- **Mobile Player Interface**: Streamlined secondary controls bar
+  - Removed volume controls reduces visual clutter
+  - More space for essential playback controls (queue, add to playlist)
+  - Cleaner, more focused mobile UI optimized for touch interactions
+  - Follows mobile-first design principles (hardware controls preferred over software controls)
+
 ## [0.10.24] - 2026-01-30
 
 ### Changed

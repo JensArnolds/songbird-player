@@ -52,11 +52,8 @@ import {
   Shuffle,
   SkipBack,
   SkipForward,
-  Sliders,
   Sparkles,
   Trash2,
-  Volume2,
-  VolumeX,
   X
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -323,7 +320,6 @@ interface MobilePlayerProps {
   isPlaying: boolean;
   currentTime: number;
   duration: number;
-  volume: number;
   isMuted: boolean;
   isShuffled: boolean;
   repeatMode: "none" | "one" | "all";
@@ -332,14 +328,12 @@ interface MobilePlayerProps {
   onNext: () => void;
   onPrevious: () => void;
   onSeek: (time: number) => void;
-  onVolumeChange: (volume: number) => void;
   onToggleMute: () => void;
   onToggleShuffle: () => void;
   onCycleRepeat: () => void;
   onSkipForward: () => void;
   onSkipBackward: () => void;
   onToggleQueue?: () => void;
-  onToggleEqualizer?: () => void;
   onClose?: () => void;
   forceExpanded?: boolean;
 }
@@ -351,7 +345,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     isPlaying,
     currentTime,
     duration,
-    volume,
     isMuted,
     isShuffled,
     repeatMode,
@@ -360,14 +353,12 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onNext,
     onPrevious,
     onSeek,
-    onVolumeChange,
     onToggleMute,
     onToggleShuffle,
     onCycleRepeat,
     onSkipForward,
     onSkipBackward,
     onToggleQueue,
-    onToggleEqualizer,
     onClose,
     forceExpanded = false,
   } = props;
@@ -423,10 +414,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [seekDirection, setSeekDirection] = useState<
     "forward" | "backward" | null
   >(null);
-  const [isAdjustingVolume, setIsAdjustingVolume] = useState(false);
-  const [localVolume, setLocalVolume] = useState(volume);
   const [showQueuePanel, setShowQueuePanel] = useState(false);
-  const [showEqualizerPanel, setShowEqualizerPanel] = useState(false);
   const [queueSearchQuery, setQueueSearchQuery] = useState("");
   const [selectedQueueIndices, setSelectedQueueIndices] = useState<Set<number>>(new Set());
   const [lastSelectedQueueIndex, setLastSelectedQueueIndex] = useState<number | null>(null);
@@ -437,10 +425,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const artworkRef = useRef<HTMLDivElement>(null);
-  const volumeRef = useRef<HTMLDivElement>(null);
-  const volumeDragValueRef = useRef(volume);
-  const isAdjustingVolumeRef = useRef(false);
-  const volumeConnectionElementRef = useRef<HTMLAudioElement | null>(null);
   const paletteRequestRef = useRef(0);
   const lastPaletteCoverRef = useRef<string | null>(null);
 
@@ -769,61 +753,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }
   }, [contextAudioElement]);
 
-  const getVolumeTargetAudio = useCallback(() => {
-    return (
-      contextAudioElement ||
-      audioElement ||
-      (typeof document !== "undefined"
-        ? (document.querySelector(
-            'audio[data-audio-element="global-player"]',
-          ) as HTMLAudioElement | null)
-        : null)
-    );
-  }, [contextAudioElement, audioElement]);
-
-  const ensureVolumeConnection = useCallback(() => {
-    if (volumeConnectionElementRef.current) {
-      return volumeConnectionElementRef.current;
-    }
-
-    const targetAudio = getVolumeTargetAudio();
-    if (!targetAudio) return null;
-
-    const connection = getOrCreateAudioConnection(targetAudio);
-    if (!connection) return null;
-
-    volumeConnectionElementRef.current = targetAudio;
-    return targetAudio;
-  }, [getVolumeTargetAudio]);
-
-  const applyVolumeToAudio = useCallback(
-    (nextVolume: number) => {
-      const targetAudio = ensureVolumeConnection() ?? getVolumeTargetAudio();
-      if (!targetAudio) return;
-
-      const effectiveVolume = isMuted ? 0 : nextVolume;
-      const connection = getAudioConnection(targetAudio);
-
-      if (connection?.gainNode) {
-        connection.gainNode.gain.value = effectiveVolume;
-        if (targetAudio.volume !== 1) {
-          targetAudio.volume = 1;
-        }
-      } else {
-        targetAudio.volume = effectiveVolume;
-      }
-    },
-    [ensureVolumeConnection, getVolumeTargetAudio, isMuted],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (volumeConnectionElementRef.current) {
-        releaseAudioConnection(volumeConnectionElementRef.current);
-        volumeConnectionElementRef.current = null;
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (preferences) {
@@ -851,16 +780,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const displayTime = isSeeking ? seekTime : currentTime;
-  const displayVolume = isAdjustingVolume ? localVolume : volume;
-
-  // Sync local volume when prop changes (but not during adjustment)
-  useEffect(() => {
-    if (!isAdjustingVolume) {
-      setLocalVolume(volume);
-      volumeDragValueRef.current = volume;
-      isAdjustingVolumeRef.current = false;
-    }
-  }, [volume, isAdjustingVolume]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressRef.current || !duration) return;
@@ -890,40 +809,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }
   };
 
-  const handleVolumeClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!volumeRef.current) return;
-    const rect = volumeRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(1, x / rect.width));
-    volumeDragValueRef.current = percentage;
-    setLocalVolume(percentage);
-    applyVolumeToAudio(percentage);
-    onVolumeChange(percentage);
-    haptic("selection");
-  };
-
-  const handleVolumeTouch = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!volumeRef.current) return;
-    const rect = volumeRef.current.getBoundingClientRect();
-    const touch = e.touches[0];
-    if (!touch) return;
-    const x = touch.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(1, x / rect.width));
-    isAdjustingVolumeRef.current = true;
-    setIsAdjustingVolume(true);
-    volumeDragValueRef.current = percentage;
-    setLocalVolume(percentage);
-    applyVolumeToAudio(percentage);
-  };
-
-  const handleVolumeTouchEnd = () => {
-    if (!isAdjustingVolumeRef.current) return;
-    const nextVolume = volumeDragValueRef.current;
-    onVolumeChange(nextVolume);
-    setIsAdjustingVolume(false);
-    isAdjustingVolumeRef.current = false;
-    hapticSliderEnd();
-  };
 
   const handleArtworkDrag = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -1679,121 +1564,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                       <div className="mobile-player-secondary-controls mobile-player-content mt-5 w-full">
                     <div className="flex items-center gap-3 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(12,18,27,0.7)] px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl">
-                      <div className="flex min-w-[140px] flex-1 items-center gap-2">
-                        <motion.button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            hapticMedium();
-                            onToggleMute();
-                          }}
-                          whileTap={{ scale: 0.85 }}
-                          transition={springPresets.snappy}
-                          className="touch-target text-[var(--color-subtext)]"
-                          aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
-                        >
-                          <motion.div
-                            animate={{ scale: isMuted ? 0.9 : 1 }}
-                            transition={springPresets.snappy}
-                          >
-                            {isMuted || volume === 0 ? (
-                              <VolumeX className="h-5 w-5" />
-                            ) : (
-                              <Volume2 className="h-5 w-5" />
-                            )}
-                          </motion.div>
-                        </motion.button>
-                        <div
-                          ref={volumeRef}
-                          className="relative h-1.5 flex-1 cursor-pointer rounded-full bg-[rgba(255,255,255,0.12)]"
-                          onClick={handleVolumeClick}
-                          onTouchStart={(e) => {
-                            e.preventDefault();
-                            haptic("selection");
-                            handleVolumeTouch(e);
-                          }}
-                          onTouchMove={(e) => {
-                            e.preventDefault();
-                            handleVolumeTouch(e);
-                            hapticSliderContinuous(
-                              volumeDragValueRef.current * 100,
-                              0,
-                              100,
-                              {
-                                intervalMs: 50,
-                                tickThreshold: 5,
-                                boundaryFeedback: true,
-                              },
-                            );
-                          }}
-                          onTouchEnd={(e) => {
-                            e.preventDefault();
-                            handleVolumeTouchEnd();
-                          }}
-                          onTouchCancel={(e) => {
-                            e.preventDefault();
-                            handleVolumeTouchEnd();
-                          }}
-                          role="slider"
-                          aria-label="Volume"
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-valuenow={Math.round(
-                            (isMuted ? 0 : displayVolume) * 100,
-                          )}
-                        >
-                          {isAdjustingVolume && (
-                            <motion.div
-                              className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--color-accent)]/20 to-[var(--color-accent-strong)]/20 blur-md"
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1.05 }}
-                              exit={{ opacity: 0 }}
-                              transition={springPresets.slider}
-                            />
-                          )}
-                          <motion.div
-                            className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
-                            style={{
-                              width: `${isMuted ? 0 : displayVolume * 100}%`,
-                            }}
-                            transition={
-                              isAdjustingVolume
-                                ? { duration: 0 }
-                                : springPresets.slider
-                            }
-                          />
-                          <motion.div
-                            className="absolute top-1/2 rounded-full bg-white shadow-lg"
-                            style={{
-                              left: `${isMuted ? 0 : displayVolume * 100}%`,
-                            }}
-                            initial={{ scale: 1, x: "-50%", y: "-50%" }}
-                            animate={{
-                              scale: isAdjustingVolume ? 1.3 : 1,
-                              width: isAdjustingVolume ? 18 : 14,
-                              height: isAdjustingVolume ? 18 : 14,
-                            }}
-                            whileHover={{ scale: 1.2 }}
-                            transition={springPresets.sliderThumb}
-                          >
-                            {isAdjustingVolume && (
-                              <motion.div
-                                className="absolute inset-0 rounded-full bg-[var(--color-accent)]"
-                                initial={{ scale: 1, opacity: 0.5 }}
-                                animate={{ scale: 2, opacity: 0 }}
-                                transition={{ duration: 0.5, repeat: Infinity }}
-                              />
-                            )}
-                          </motion.div>
-                        </div>
-                      </div>
-
                       <div className="flex items-center gap-2">
                         <motion.button
                           onClick={() => {
                             hapticMedium();
                             setShowQueuePanel(!showQueuePanel);
-                            setShowEqualizerPanel(false);
                           }}
                           whileTap={{ scale: 0.9 }}
                           className={`touch-target relative ${
@@ -1808,22 +1583,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                               {queue.length > 9 ? "9+" : queue.length}
                             </span>
                           )}
-                        </motion.button>
-
-                        <motion.button
-                          onClick={() => {
-                            hapticMedium();
-                            setShowEqualizerPanel(!showEqualizerPanel);
-                            setShowQueuePanel(false);
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                          className={`touch-target ${
-                            showEqualizerPanel
-                              ? "text-[var(--color-accent)]"
-                              : "text-[var(--color-subtext)]"
-                          }`}
-                        >
-                          <Sliders className="h-5 w-5" />
                         </motion.button>
 
                         <div className="relative">
@@ -2399,60 +2158,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
               )}
             </AnimatePresence>
 
-            {}
-            <AnimatePresence>
-              {showEqualizerPanel && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
-                    onClick={() => {
-                      hapticLight();
-                      setShowEqualizerPanel(false);
-                    }}
-                  />
-                  <motion.div
-                    initial={{ x: "-100%" }}
-                    animate={{ x: 0 }}
-                    exit={{ x: "-100%" }}
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={{ left: 0.2, right: 0 }}
-                    onDragEnd={(_, info) => {
-                      if (info.offset.x < -100 || info.velocity.x < -300) {
-                        hapticLight();
-                        setShowEqualizerPanel(false);
-                      }
-                    }}
-                    transition={springPresets.gentle}
-                    className="safe-bottom fixed left-0 top-0 z-[101] flex h-full w-full max-w-md flex-col border-r border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.95)] shadow-[8px_0_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
-                  >
-                    <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] p-4">
-                      <h2 className="text-xl font-bold text-[var(--color-text)]">
-                        Equalizer
-                      </h2>
-                      <motion.button
-                        onClick={() => {
-                          hapticLight();
-                          setShowEqualizerPanel(false);
-                        }}
-                        whileTap={{ scale: 0.9 }}
-                        className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)]"
-                      >
-                        <X className="h-6 w-6" />
-                      </motion.button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-6">
-                      <p className="text-center text-[var(--color-subtext)]">
-                        Equalizer controls will appear here
-                      </p>
-                    </div>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
 
             {showQueueSettingsModal && (
               <QueueSettingsModal
