@@ -121,11 +121,10 @@ The Docker setup uses your existing `.env` file. No additional configuration nee
 3. **builder** - Build Next.js application
 4. **runner** - Production runtime with PM2 (~450MB)
 
-**Process management (PM2):**
-- The app runs under **pm2-runtime** inside the container (see `ecosystem.docker.cjs`).
-- If the Node process crashes or exits, PM2 restarts it in the same container (no full container restart).
-- Limits: `max_memory_restart: 768M`, `max_restarts: 15`, `restart_delay: 3000` ms.
-- Docker’s `restart: unless-stopped` still applies if the whole container exits (e.g. PM2 itself or the entrypoint fails).
+**Process management:**
+- The app runs as **`node server.js`** (Next.js standalone) so it is PID 1 and receives all container env (no PM2 in the default flow). This avoids 502s from the app not binding to `0.0.0.0` or env not reaching the process.
+- Docker’s **`restart: unless-stopped`** restarts the container if the process exits (crash or normal exit).
+- Optional: to run under PM2 in the container, change the entrypoint to `pm2-runtime start ecosystem.docker.cjs --env production` (see `ecosystem.docker.cjs`).
 
 **Security:**
 - Non-root user (nextjs:1001)
@@ -195,6 +194,25 @@ curl http://localhost:3222/api/health
 Docker automatically restarts the container if health checks fail.
 
 ## Troubleshooting
+
+### 502 Bad Gateway (reverse proxy or “outside world”)
+
+If you get 502 when opening the app or from a reverse proxy / forwarded port:
+
+1. **App runs as `node server.js`**  
+   The entrypoint runs the Next.js standalone server directly (no PM2) so it is PID 1 and gets `HOSTNAME=0.0.0.0` and `PORT=3222` from the shell. The standalone server binds to all interfaces by default when `HOSTNAME` is set.
+
+2. **Required env vars**  
+   If `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, or `STREAMING_KEY` are missing in the container, the app can crash on startup (env validation) and the proxy will see 502. Ensure your `.env` (or `env_file` / `environment` in docker-compose) sets these. Check logs: `docker compose logs app`.
+
+3. **Startup delay**  
+   The app needs a few seconds to listen. Health check has `start_period: 60s`. If a reverse proxy hits the app before it’s ready, you’ll see 502. Wait ~10–30s after `docker compose up` or set a longer upstream timeout / retry in the proxy.
+
+4. **Check the app from the host**  
+   Run `curl http://localhost:3222/api/health`. If that fails, the app isn’t listening or has crashed; run `docker compose logs -f app` to see errors.
+
+5. **502 from the app itself**  
+   If the frontend loads but some actions (e.g. search) return 502, the app is up and the error is from an API route (e.g. backend at `API_V2_URL` unreachable). Check `API_V2_URL`/`API_URL` and that the backend is reachable from the container.
 
 ### Container won't start
 

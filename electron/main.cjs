@@ -28,7 +28,6 @@ console.log("  AUTH_DISCORD_ID:", process.env.AUTH_DISCORD_ID ? "✓ set" : "✗
 console.log("  AUTH_DISCORD_SECRET:", process.env.AUTH_DISCORD_SECRET ? "✓ set" : "✗ MISSING");
 console.log("  DATABASE_URL:", process.env.DATABASE_URL ? "✓ set" : "✗ MISSING");
 console.log("  NEXTAUTH_URL:", process.env.NEXTAUTH_URL || "not set (using default)");
-console.log("  ELECTRON_BUILD:", process.env.ELECTRON_BUILD || "not set");
 
 const {
   app,
@@ -232,6 +231,7 @@ const startServer = async () => {
         PORT: serverPort.toString(),
         HOSTNAME: "localhost",
         NODE_ENV: "production",
+        ELECTRON_BUILD: "true",
       },
       /** @type {string} */
       cwd: standaloneDir,

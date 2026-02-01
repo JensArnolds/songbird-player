@@ -1,7 +1,16 @@
 #!/bin/sh
+# File: scripts/docker-entrypoint.sh
+
 set -e
 
 echo "🚀 Starting Songbird Frontend..."
+
+export HOSTNAME="${HOSTNAME:-0.0.0.0}"
+export PORT="${PORT:-3222}"
+
+if [ -z "$AUTH_SECRET" ] || [ -z "$STREAMING_KEY" ]; then
+  echo "⚠️  Warning: AUTH_SECRET or STREAMING_KEY may be unset. The app may exit if env validation fails."
+fi
 
 if [ "$NODE_ENV" = "production" ]; then
   echo "📦 Production mode detected"
@@ -19,5 +28,5 @@ if [ "$NODE_ENV" = "production" ]; then
   fi
 fi
 
-echo "✅ Starting application under PM2 (crash-resistant)..."
-cd /app && exec pm2-runtime start ecosystem.docker.cjs --env production
+echo "✅ Starting application on $HOSTNAME:$PORT (node server.js)..."
+cd /app && exec node server.js

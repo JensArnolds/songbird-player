@@ -571,7 +571,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...springPresets.gentle, delay: 0.2 }}
-                    className="mt-4 max-w-md rounded-xl border border-white/5 bg-white/[0.02] px-5 py-4 md:mt-3 md:px-4 md:py-3"
+                    className="mt-4 max-w-md rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 md:mt-3 md:px-4 md:py-3"
                   >
                     <p className="mb-2 text-sm font-semibold text-[var(--color-text)] md:mb-1.5 md:text-xs">
                       Sign in is optional, but it unlocks a few features you may

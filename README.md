@@ -1164,11 +1164,7 @@ NODE_ENV="production"
 
 ### Electron Setup
 
-For Electron builds, add:
-
-```yaml
-ELECTRON_BUILD="true"  # Disables secure cookies, optimizes build
-```
+Electron builds set `ELECTRON_BUILD` automatically (build scripts for `next build`, and the main process when spawning the Next server). No `.env` variable is required.
 
 ## 🤝 Contributing
 

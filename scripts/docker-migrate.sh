@@ -1,4 +1,6 @@
 #!/bin/sh
+# File: scripts/docker-migrate.sh
+
 set -e
 
 echo "⏳ Waiting for database to be ready..."

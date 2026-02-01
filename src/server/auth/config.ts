@@ -1,17 +1,17 @@
 // File: src/server/auth/config.ts
 
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { eq, sql } from "drizzle-orm";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
-import { eq, sql } from "drizzle-orm";
 
 import { env } from "@/env";
 import { db } from "@/server/db";
 import {
-  accounts,
-  sessions,
-  users,
-  verificationTokens,
+    accounts,
+    sessions,
+    users,
+    verificationTokens,
 } from "@/server/db/schema";
 
 declare module "next-auth" {
@@ -29,7 +29,7 @@ declare module "next-auth" {
   }
 }
 
-console.log("[NextAuth Config] ELECTRON_BUILD:", process.env.ELECTRON_BUILD);
+console.log("[NextAuth Config] ELECTRON_BUILD:", env.ELECTRON_BUILD);
 console.log("[NextAuth Config] NODE_ENV:", process.env.NODE_ENV);
 console.log("[NextAuth Config] DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing");
 
@@ -58,51 +58,41 @@ export const authConfig = {
   cookies: {
     sessionToken: {
       name:
-        process.env.NODE_ENV === "production" &&
-        !process.env.ELECTRON_BUILD
+        process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD
           ? `__Secure-authjs.session-token`
           : `authjs.session-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-
         secure:
-          process.env.NODE_ENV === "production" &&
-          !process.env.ELECTRON_BUILD,
+          process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
         maxAge: 30 * 24 * 60 * 60,
       },
     },
     csrfToken: {
       name:
-        process.env.NODE_ENV === "production" &&
-        !process.env.ELECTRON_BUILD
+        process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD
           ? `__Host-authjs.csrf-token`
           : `authjs.csrf-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-
         secure:
-          process.env.NODE_ENV === "production" &&
-          !process.env.ELECTRON_BUILD,
-
+          process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
       },
     },
     callbackUrl: {
       name:
-        process.env.NODE_ENV === "production" &&
-        !process.env.ELECTRON_BUILD
+        process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD
           ? `__Secure-authjs.callback-url`
           : `authjs.callback-url`,
       options: {
         sameSite: "lax",
         path: "/",
-
         secure:
-          process.env.NODE_ENV === "production" &&
-          !process.env.ELECTRON_BUILD,
+          process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
       },
     },
   },

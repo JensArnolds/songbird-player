@@ -5,11 +5,11 @@
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useTransform,
-  type PanInfo,
+    AnimatePresence,
+    motion,
+    useMotionValue,
+    useTransform,
+    type PanInfo,
 } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -143,7 +143,7 @@ export default function BottomSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={handleBackdropClick}
-            className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm"
+            className="theme-chrome-backdrop fixed inset-0 z-[99] backdrop-blur-sm"
           />
 
           {}
@@ -165,7 +165,7 @@ export default function BottomSheet({
                 height: heightStyle,
                 y,
               }}
-              className={`pointer-events-auto absolute right-0 bottom-0 left-0 flex flex-col overflow-hidden rounded-t-3xl border-t border-[rgba(244,178,102,0.16)] bg-[rgba(13,19,28,0.98)] shadow-[0_-16px_48px_rgba(5,10,18,0.7)] backdrop-blur-xl ${className}`}
+              className={`theme-chrome-drawer pointer-events-auto absolute right-0 bottom-0 left-0 flex flex-col overflow-hidden rounded-t-3xl border-t backdrop-blur-xl ${className}`}
             >
               {}
               {showHandle && (

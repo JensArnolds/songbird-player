@@ -207,7 +207,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-[rgba(244,178,102,0.12)] bg-[rgba(10,16,24,0.88)] shadow-lg shadow-[rgba(5,10,18,0.6)] backdrop-blur-xl">
+      <header className="theme-chrome-header sticky top-0 z-30 border-b backdrop-blur-xl">
         <div className="container flex items-center justify-between py-3.5">
           {}
           <div className="flex items-center gap-3">

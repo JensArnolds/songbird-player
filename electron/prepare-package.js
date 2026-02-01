@@ -91,21 +91,7 @@ try {
     console.warn("[Prepare] ⚠️  Warning: .env.local not found - packaged app will use system environment variables");
   }
 
-        console.log("[Prepare] Ensuring ELECTRON_BUILD=true in .env.local...");
-  if (fs.existsSync(envLocalDest)) {
-    const envContent = fs.readFileSync(envLocalDest, "utf8");
-    if (!envContent.includes("ELECTRON_BUILD=true")) {
-      fs.appendFileSync(envLocalDest, "\n# CRITICAL: Required for NextAuth cookie compatibility in Electron\nELECTRON_BUILD=true\n");
-      console.log("[Prepare] ✓ Added ELECTRON_BUILD=true");
-    } else {
-      console.log("[Prepare] ✓ ELECTRON_BUILD already present");
-    }
-  } else {
-    fs.writeFileSync(envLocalDest, "# CRITICAL: Required for NextAuth cookie compatibility in Electron\nELECTRON_BUILD=true\n");
-    console.log("[Prepare] ✓ Created .env.local with ELECTRON_BUILD=true");
-  }
-
-    if (process.env.ELECTRON_DEV_TOOLS === "true") {
+  if (process.env.ELECTRON_DEV_TOOLS === "true") {
     console.log("[Prepare] Adding dev tools flag to .env.local...");
     const envContent = fs.readFileSync(envLocalDest, "utf8");
     if (!envContent.includes("ELECTRON_DEV_TOOLS=true")) {

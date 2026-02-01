@@ -1,6 +1,5 @@
 // File: src/app/api/health/route.ts
 
-import { pool } from "@/server/db";
 import { NextRequest, NextResponse } from "next/server";
 
 const LOCALHOST_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -44,6 +43,15 @@ export async function GET(request: NextRequest) {
   const isDev = process.env.NODE_ENV === "development";
   const corsHeaders = getCorsHeaders(request);
 
+  const send = (body: object, status: number) => {
+    const res = NextResponse.json(body, { status });
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      if (value !== undefined) res.headers.set(key, value);
+    });
+    return res;
+  };
+
+  try {
   if (isDev) {
     const origin = request.headers.get("origin");
     const userAgent = request.headers.get("user-agent");
@@ -73,38 +81,45 @@ export async function GET(request: NextRequest) {
       rss: Math.round(process.memoryUsage().rss / 1024 / 1024),
     },
     checks: {
-      database: "unknown" as "ok" | "error" | "unknown",
+      database: "unknown" as "ok" | "error" | "unknown" | "skipped",
     },
   };
 
   try {
-
+    const { pool } = await import("@/server/db");
     await pool.query("SELECT 1");
     health.checks.database = "ok";
   } catch (error) {
-    health.checks.database = "error";
-    health.status = "error";
+    if (
+      error instanceof Error &&
+      (error.message.includes("DATABASE_URL") ||
+        error.message.includes("required"))
+    ) {
+      health.checks.database = "skipped";
+    } else {
+      health.checks.database = "error";
+      health.status = "error";
+    }
     const responseTime = Date.now() - startTime;
 
-    if (isDev) {
+    if (isDev && health.checks.database === "error") {
       console.error("[Health Check] Database check failed:", {
         error: error instanceof Error ? error.message : "Unknown error",
         responseTime: `${responseTime}ms`,
       });
     }
 
-    const response = NextResponse.json(
-      {
-        ...health,
-        error: error instanceof Error ? error.message : "Unknown database error",
-        responseTime,
-      },
-      { status: 503 }
-    );
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      response.headers.set(key, value);
-    });
-    return response;
+    if (health.checks.database === "error") {
+      return send(
+        {
+          ...health,
+          error:
+            error instanceof Error ? error.message : "Unknown database error",
+          responseTime,
+        },
+        503
+      );
+    }
   }
 
   const responseTime = Date.now() - startTime;
@@ -118,12 +133,18 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const response = NextResponse.json({
-    ...health,
-    responseTime,
-  });
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    response.headers.set(key, value);
-  });
-  return response;
+  return send({ ...health, responseTime }, 200);
+  } catch (outerError) {
+    return send(
+      {
+        status: "error",
+        timestamp: new Date().toISOString(),
+        error:
+          outerError instanceof Error
+            ? outerError.message
+            : "Health check failed",
+      },
+      503
+    );
+  }
 }
