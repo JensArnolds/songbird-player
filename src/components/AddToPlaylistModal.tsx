@@ -221,7 +221,7 @@ export function AddToPlaylistModal({
                         hapticLight();
                         onClose();
                       }}
-                      className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] shadow-lg shadow-[var(--color-accent)]/30 transition-all hover:scale-105 active:scale-95"
+                      className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition-all hover:scale-105 hover:shadow-[var(--accent-btn-shadow-hover)] active:scale-95"
                     >
                       Sign In
                     </Link>
@@ -392,7 +392,7 @@ function EmptyState({ hasSearchQuery, onClose }: EmptyStateProps) {
           hapticLight();
           onClose();
         }}
-        className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] shadow-lg shadow-[var(--color-accent)]/30 transition-all hover:scale-105 active:scale-95"
+        className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition-all hover:scale-105 hover:shadow-[var(--accent-btn-shadow-hover)] active:scale-95"
       >
         Create Playlist
       </Link>

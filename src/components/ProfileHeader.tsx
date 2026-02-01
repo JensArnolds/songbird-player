@@ -49,7 +49,7 @@ export default function ProfileHeader({
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-[var(--color-accent)]/55 bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-5xl font-bold text-[var(--color-on-accent)] shadow-lg shadow-[var(--color-accent)]/28">
+            <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-[var(--color-accent)]/55 bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-5xl font-bold text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)]">
               {profile.name?.charAt(0).toUpperCase() ?? "U"}
             </div>
           )}

@@ -330,7 +330,7 @@ export default function MaturePlayer({
             <button
               type="button"
               onClick={handlePlayPause}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-accent)] text-[var(--color-on-accent)] shadow-[0_8px_24px_rgba(244,178,102,0.4)] transition hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow-hover)] transition hover:scale-105 active:scale-95"
               title="Play/Pause (Space)"
             >
               {isPlaying ? (
