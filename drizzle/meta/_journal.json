@@ -134,6 +134,13 @@
       "when": 1769961001359,
       "tag": "0018_brief_post",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1769961100000,
+      "tag": "0019_user_banned",
+      "breakpoints": true
     }
   ]
 }

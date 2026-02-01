@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.5] - 2026-02-01
+
+### Added
+
+- **User banning**: Admins can ban users from the admin page; banned users cannot sign in (login with email or username via Discord is blocked). When a banned user attempts to sign in, they are redirected to the sign-in page with the message "Your account has been banned. If you believe this is an error, please contact support."
+  - **Schema**: `users.banned` column (boolean, default `false`). Migration: [drizzle/0019_user_banned.sql](drizzle/0019_user_banned.sql).
+  - **Auth**: NextAuth `signIn` callback checks `users.banned` before allowing sign-in; returns redirect to `/signin?error=Banned`. Custom sign-in page at `/signin` shows the banned message when `error=Banned`. Locations: [src/server/db/schema.ts](src/server/db/schema.ts), [src/server/auth/config.ts](src/server/auth/config.ts), [src/app/signin/page.tsx](src/app/signin/page.tsx).
+  - **Admin**: `admin.setBanned` mutation (`userId`, `banned`); admin page lists `banned` and has Ban / Unban buttons. Admins cannot ban themselves. Locations: [src/server/api/routers/admin.ts](src/server/api/routers/admin.ts), [src/app/admin/page.tsx](src/app/admin/page.tsx).
+
 ## [0.12.4] - 2026-02-01
 
 ### Changed
