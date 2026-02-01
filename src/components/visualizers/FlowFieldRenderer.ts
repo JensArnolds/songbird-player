@@ -170,6 +170,8 @@ export class FlowFieldRenderer {
     "orbitShards",
     "harmonicPetals",
     "latticeDrift",
+    "nebulaDrift",
+    "crystalPulse",
   ];
 
   private currentPattern: Pattern = "kaleidoscope";
@@ -3410,6 +3412,12 @@ export class FlowFieldRenderer {
         break;
       case "latticeDrift":
         this.renderLatticeDrift(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "nebulaDrift":
+        this.renderNebulaDrift(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "crystalPulse":
+        this.renderCrystalPulse(audioIntensity, bassIntensity, trebleIntensity);
         break;
     }
   }
@@ -15388,6 +15396,201 @@ export class FlowFieldRenderer {
       }
 
       ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  private renderNebulaDrift(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const time = this.time * 0.0007;
+    const minDimension = Math.min(this.width, this.height);
+    const pixelCount = this.width * this.height;
+    const baseDetailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = baseDetailScale * this.qualityScale;
+    const lowDetail = detailScale < 0.75;
+
+    const streamCount = Math.max(3, ((5 + ((audioIntensity * 3) | 0)) * detailScale) | 0);
+    const particlesPerStream = Math.max(8, ((16 + ((midIntensity * 12) | 0)) * detailScale) | 0);
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const baseHue = this.fastMod360(this.hueBase + time * 30);
+
+    for (let stream = 0; stream < streamCount; stream++) {
+      const streamAngle = (twoPi / streamCount) * stream + time * 0.4;
+      const streamRadius = minDimension * (0.15 + (stream / streamCount) * 0.25);
+      const streamHue = this.fastMod360(baseHue + stream * 50);
+      const flowSpeed = 0.8 + stream * 0.15;
+
+      for (let p = 0; p < particlesPerStream; p++) {
+        const particleProgress = (p / particlesPerStream + time * flowSpeed) % 1;
+        const life = 1 - Math.abs(particleProgress * 2 - 1);
+        if (life < 0.1) continue;
+
+        const angle = streamAngle + this.fastSin(time * 2 + p * 0.3) * 0.4;
+        const radius = streamRadius + particleProgress * minDimension * 0.4 + this.fastSin(time * 1.5 + p * 0.7) * (15 + bassIntensity * 20);
+        const x = this.fastCos(angle) * radius;
+        const y = this.fastSin(angle) * radius;
+
+        const size = (2 + audioIntensity * 3 + this.fastSin(time * 3 + p) * 1.5) * life;
+        const alpha = (0.2 + audioIntensity * 0.25) * life;
+        const particleHue = this.fastMod360(streamHue + particleProgress * 40);
+
+        if (lowDetail) {
+          ctx.fillStyle = this.hsla(particleHue, 85, 65, alpha);
+        } else {
+          const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+          gradient.addColorStop(0, this.hsla(particleHue, 90, 70, alpha));
+          gradient.addColorStop(0.5, this.hsla(particleHue, 85, 65, alpha * 0.6));
+          gradient.addColorStop(1, this.hsla(particleHue, 80, 60, 0));
+          ctx.fillStyle = gradient;
+        }
+
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, twoPi);
+        ctx.fill();
+      }
+    }
+
+    const connectionsPerStream = lowDetail ? 2 : 3;
+    ctx.lineWidth = 0.8 + midIntensity * 0.8;
+    for (let stream = 0; stream < streamCount; stream++) {
+      const streamAngle = (twoPi / streamCount) * stream + time * 0.4;
+      const streamRadius = minDimension * (0.15 + (stream / streamCount) * 0.25);
+      const streamHue = this.fastMod360(baseHue + stream * 50);
+
+      for (let c = 0; c < connectionsPerStream; c++) {
+        const progress = (c / connectionsPerStream + time * 0.6) % 1;
+        const alpha = (0.08 + audioIntensity * 0.12) * (1 - Math.abs(progress * 2 - 1));
+        if (alpha <= 0.01) continue;
+
+        const angle = streamAngle + this.fastSin(time * 2 + c * 0.3) * 0.4;
+        const radius = streamRadius + progress * minDimension * 0.4;
+        const x = this.fastCos(angle) * radius;
+        const y = this.fastSin(angle) * radius;
+
+        const nextStream = (stream + 1) % streamCount;
+        const nextAngle = (twoPi / streamCount) * nextStream + time * 0.4 + this.fastSin(time * 2 + c * 0.3) * 0.4;
+        const nextRadius = minDimension * (0.15 + (nextStream / streamCount) * 0.25) + progress * minDimension * 0.4;
+        const nx = this.fastCos(nextAngle) * nextRadius;
+        const ny = this.fastSin(nextAngle) * nextRadius;
+
+        ctx.strokeStyle = this.hsla(streamHue, 75, 60, alpha);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  private renderCrystalPulse(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const time = this.time * 0.0008;
+    const minDimension = Math.min(this.width, this.height);
+    const pixelCount = this.width * this.height;
+    const baseDetailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = baseDetailScale * this.qualityScale;
+    const useShadows = detailScale >= 0.85;
+    const shadowScale = detailScale;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+
+    const crystalCount = Math.max(4, ((6 + ((audioIntensity * 4) | 0)) * detailScale) | 0);
+    const baseRotation = time * 0.5;
+    const pulseScale = 1 + this.fastSin(time * 2) * (0.12 + bassIntensity * 0.15);
+    const baseHue = this.fastMod360(this.hueBase + time * 25);
+
+    for (let crystal = 0; crystal < crystalCount; crystal++) {
+      const crystalT = crystal / crystalCount;
+      const crystalAngle = (twoPi / crystalCount) * crystal + baseRotation;
+      const crystalRadius = minDimension * (0.12 + crystalT * 0.18) * pulseScale;
+      const crystalSize = minDimension * (0.08 + crystalT * 0.12 + audioIntensity * 0.06) * pulseScale;
+      const facets = 6 + ((trebleIntensity * 6) | 0);
+      const facetAngle = twoPi / facets;
+      const crystalHue = this.fastMod360(baseHue + crystal * 45);
+      const alpha = 0.25 + audioIntensity * 0.3 - crystalT * 0.08;
+
+      const cx = this.fastCos(crystalAngle) * crystalRadius;
+      const cy = this.fastSin(crystalAngle) * crystalRadius;
+
+      const innerRadius = crystalSize * 0.3;
+      const outerRadius = crystalSize;
+
+      ctx.fillStyle = this.hsla(crystalHue, 85, 60, alpha * 0.7);
+      ctx.strokeStyle = this.hsla(crystalHue, 90, 70, alpha);
+      ctx.lineWidth = 1.2 + trebleIntensity * 1.5;
+
+      if (useShadows) {
+        ctx.shadowBlur = (8 + audioIntensity * 8) * shadowScale;
+        ctx.shadowColor = this.hsla(crystalHue, 90, 75, 0.5);
+      }
+
+      ctx.beginPath();
+      for (let f = 0; f < facets; f++) {
+        const angle = facetAngle * f + baseRotation * (1 + crystalT * 0.5);
+        const outerX = cx + this.fastCos(angle) * outerRadius;
+        const outerY = cy + this.fastSin(angle) * outerRadius;
+
+        if (f === 0) {
+          ctx.moveTo(outerX, outerY);
+        } else {
+          ctx.lineTo(outerX, outerY);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+
+      ctx.strokeStyle = this.hsla(crystalHue, 95, 75, alpha * 0.8);
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      for (let f = 0; f < facets; f++) {
+        const angle = facetAngle * f + baseRotation * (1 + crystalT * 0.5);
+        const innerX = cx + this.fastCos(angle) * innerRadius;
+        const innerY = cy + this.fastSin(angle) * innerRadius;
+        const outerX = cx + this.fastCos(angle) * outerRadius;
+        const outerY = cy + this.fastSin(angle) * outerRadius;
+
+        ctx.moveTo(innerX, innerY);
+        ctx.lineTo(outerX, outerY);
+      }
+      ctx.stroke();
+
+      const connectRadius = crystalRadius * 1.2;
+      const connectX = this.fastCos(crystalAngle) * connectRadius;
+      const connectY = this.fastSin(crystalAngle) * connectRadius;
+      const nextCrystal = (crystal + 1) % crystalCount;
+      const nextAngle = (twoPi / crystalCount) * nextCrystal + baseRotation;
+      const nextConnectX = this.fastCos(nextAngle) * connectRadius;
+      const nextConnectY = this.fastSin(nextAngle) * connectRadius;
+
+      ctx.strokeStyle = this.hsla(crystalHue, 80, 65, alpha * 0.4);
+      ctx.lineWidth = 0.5 + trebleIntensity * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(connectX, connectY);
+      ctx.lineTo(nextConnectX, nextConnectY);
+      ctx.stroke();
     }
 
     ctx.restore();

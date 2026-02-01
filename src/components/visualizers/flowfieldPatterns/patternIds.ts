@@ -112,4 +112,6 @@ export type Pattern =
   | "auroraWeave"
   | "orbitShards"
   | "harmonicPetals"
-  | "latticeDrift";
+  | "latticeDrift"
+  | "nebulaDrift"
+  | "crystalPulse";
