@@ -1559,12 +1559,16 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           />
                         </motion.button>
                       </div>
-                    </div>
-                  </div>
 
-                      <div className="mobile-player-secondary-controls mobile-player-content mt-5 w-full">
-                    <div className="flex items-center gap-3 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(12,18,27,0.7)] px-4 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.4)] backdrop-blur-xl">
-                      <div className="flex items-center gap-2">
+                      <div
+                        className="h-[2px] w-full bg-gradient-to-r from-transparent to-transparent my-2"
+                        style={{
+                          background: `linear-gradient(to right, transparent, ${secondaryRgba}, transparent)`,
+                          boxShadow: `0 0 8px ${secondaryRgba}`,
+                        }}
+                      />
+
+                      <div className="flex items-center justify-center gap-4 px-1 pb-1">
                         <motion.button
                           onClick={() => {
                             hapticMedium();
@@ -1576,6 +1580,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                               ? "text-[var(--color-accent)]"
                               : "text-[var(--color-subtext)]"
                           }`}
+                          aria-label="Show queue"
                         >
                           <ListMusic className="h-5 w-5" />
                           {queue.length > 0 && (
@@ -1604,6 +1609,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                 : "text-[var(--color-subtext)]"
                             }`}
                             title={
+                              isAuthenticated
+                                ? "Add to playlist"
+                                : "Sign in to add to playlists"
+                            }
+                            aria-label={
                               isAuthenticated
                                 ? "Add to playlist"
                                 : "Sign in to add to playlists"
@@ -1722,8 +1732,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           />
                         </motion.button>
                       </div>
-                      </div>
                     </div>
+                  </div>
 
                   </div>
                   </div>

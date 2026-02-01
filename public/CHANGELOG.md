@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.26] - 2026-02-01
+
+### Changed
+
+- **Mobile Player Controls Integration**: Consolidated all player controls into a unified section
+  - Integrated queue, add to playlist, and favorite buttons directly into the main music controls card
+  - Removed the separate secondary controls section that was creating a visual gap at the bottom
+  - Added horizontal divider to separate main playback controls from action buttons
+  - More compact and cohesive mobile player design with all controls in one gradient-bordered card
+  - Improved visual hierarchy and reduced vertical spacing for a cleaner interface
+  - Enhanced touch target accessibility with consistent button sizing and spacing
+  - Location: [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx:1565-1740)
+
+### Improved
+
+- **Mobile Player UX**: Streamlined bottom section
+  - Eliminated the gaping hole at the bottom by integrating all controls
+  - Controls now flow naturally within a single unified card
+  - Better visual consistency with gradient styling matching the main controls
+  - Reduced overall player height while maintaining all functionality
+
 ## [0.10.25] - 2026-02-01
 
 ### Removed
