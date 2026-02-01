@@ -3,6 +3,7 @@
 "use client";
 
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
@@ -53,6 +54,7 @@ export default function SettingsPage() {
   const { showToast } = useToast();
   const player = useGlobalPlayer();
   const isMobile = useIsMobile();
+  const { theme: effectiveTheme } = useTheme();
 
   const [localSettings, setLocalSettings] = useState(() =>
     settingsStorage.getAll(),
@@ -103,7 +105,8 @@ export default function SettingsPage() {
       const themeValue = value as "light" | "dark";
       settingsStorage.set("theme", themeValue);
       const html = document.documentElement;
-      if (themeValue === "light") {
+      const useLight = themeValue === "light" && !isMobile;
+      if (useLight) {
         html.classList.add("theme-light");
         html.classList.remove("theme-dark");
       } else {
@@ -313,13 +316,15 @@ export default function SettingsPage() {
       {
         id: "theme",
         label: "Theme",
-        description: effectivePreferences?.theme === "light" ? "Light" : "Dark",
+        description: effectiveTheme === "light" ? "Light" : "Dark",
         type: "select",
-        value: effectivePreferences?.theme ?? "dark",
-        options: [
-          { label: "Dark", value: "dark" },
-          { label: "Light", value: "light" },
-        ],
+        value: effectiveTheme,
+        options: isMobile
+          ? [{ label: "Dark", value: "dark" }]
+          : [
+              { label: "Dark", value: "dark" },
+              { label: "Light", value: "light" },
+            ],
         onChange: (value) => handleSelect("theme", value as string),
       },
       {
