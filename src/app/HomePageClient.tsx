@@ -9,16 +9,16 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import {
-  getAlbumTracks,
-  getTrackById,
-  searchTracks,
-  searchTracksByArtist,
+    getAlbumTracks,
+    getTrackById,
+    searchTracks,
+    searchTracksByArtist,
 } from "@/utils/api";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import {
-  springPresets,
-  staggerContainer,
-  staggerItem,
+    springPresets,
+    staggerContainer,
+    staggerItem,
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, Music2, Search, Shuffle, Sparkles } from "lucide-react";
@@ -405,20 +405,20 @@ export default function HomePageClient() {
 
   const searchContent = (
     <div className="flex min-h-screen flex-col">
-      <main className="container mx-auto w-full flex-1 py-6 md:py-8">
+      <main className="container mx-auto w-full flex-1 py-6 md:py-5">
         {!isMobile && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...springPresets.gentle, delay: 0.1 }}
-            className="card mb-6 w-full p-4 shadow-xl md:mb-8 md:p-7"
+            className="card mb-4 w-full p-4 shadow-xl md:mb-5 md:p-5"
           >
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3 md:flex-row">
-                <div className="flex flex-1 items-center gap-3 rounded-xl border border-[rgba(244,178,102,0.15)] bg-[rgba(18,26,38,0.9)] px-4 py-3 transition-all focus-within:border-[rgba(244,178,102,0.4)] focus-within:shadow-[0_0_0_4px_rgba(244,178,102,0.1)]">
-                  <Search className="h-5 w-5 flex-shrink-0 text-[var(--color-muted)]" />
+            <div className="flex flex-col gap-3 md:gap-2.5">
+              <div className="flex items-center gap-3 md:flex-row md:gap-2.5">
+                <div className="flex flex-1 items-center gap-3 rounded-xl border border-[rgba(244,178,102,0.15)] bg-[rgba(18,26,38,0.9)] px-4 py-3 transition-all focus-within:border-[rgba(244,178,102,0.4)] focus-within:shadow-[0_0_0_4px_rgba(244,178,102,0.1)] md:px-3 md:py-2.5 md:gap-2">
+                  <Search className="h-5 w-5 flex-shrink-0 text-[var(--color-muted)] md:h-4 md:w-4" />
                   <input
-                    className="min-w-0 flex-1 bg-transparent text-base text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-base text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none md:text-sm"
                     placeholder="Search for songs, artists, or albums..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -426,7 +426,7 @@ export default function HomePageClient() {
                   />
                 </div>
                 <button
-                  className="btn-primary touch-target-lg flex items-center justify-center gap-2 px-8"
+                  className="btn-primary touch-target-lg flex items-center justify-center gap-2 px-8 md:px-5 md:text-sm"
                   onClick={() => void handleSearch()}
                   disabled={loading}
                 >
@@ -442,7 +442,7 @@ export default function HomePageClient() {
               </div>
 
               {session && recentSearches && recentSearches.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 md:gap-1">
                   <span className="text-xs font-medium text-[var(--color-subtext)]">
                     Recent:
                   </span>
@@ -474,12 +474,12 @@ export default function HomePageClient() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="mb-4 flex items-center justify-between md:mb-5">
+                <div className="mb-4 flex items-center justify-between md:mb-3">
                   <div>
-                    <h2 className="text-lg font-bold text-[var(--color-text)] md:text-2xl">
+                    <h2 className="text-lg font-bold text-[var(--color-text)] md:text-xl">
                       Search Results
                     </h2>
-                    <p className="mt-0.5 text-xs text-[var(--color-subtext)] md:mt-1 md:text-sm">
+                    <p className="mt-0.5 text-xs text-[var(--color-subtext)] md:mt-0.5 md:text-xs">
                       {results.length.toLocaleString()}
                       {total > results.length
                         ? ` of ${total.toLocaleString()}`
@@ -493,7 +493,7 @@ export default function HomePageClient() {
                   variants={staggerContainer}
                   initial="hidden"
                   animate="show"
-                  className="grid gap-2 md:gap-3"
+                  className="grid gap-2 md:gap-1.5"
                 >
                   {results.map((track, index) => (
                     <motion.div key={track.id} variants={staggerItem}>
@@ -514,12 +514,12 @@ export default function HomePageClient() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-6 flex justify-center md:mt-8"
+                    className="mt-4 flex justify-center md:mt-5"
                   >
                     <button
                       onClick={() => void handleLoadMore()}
                       disabled={loadingMore}
-                      className="btn-primary touch-target-lg flex w-full items-center justify-center gap-2 md:w-auto md:px-12"
+                      className="btn-primary touch-target-lg flex w-full items-center justify-center gap-2 md:w-auto md:px-8 md:text-sm"
                     >
                       {loadingMore ? (
                         <>
@@ -540,7 +540,7 @@ export default function HomePageClient() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={springPresets.gentle}
-                className="card flex flex-col items-center justify-center py-16 text-center md:py-20"
+                className="card flex flex-col items-center justify-center py-16 text-center md:py-12"
               >
                 <motion.div
                   animate={{
@@ -552,11 +552,11 @@ export default function HomePageClient() {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[rgba(244,178,102,0.15)] to-[rgba(88,198,177,0.15)] ring-2 ring-[var(--color-accent)]/20 md:h-24 md:w-24"
+                  className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[rgba(244,178,102,0.15)] to-[rgba(88,198,177,0.15)] ring-2 ring-[var(--color-accent)]/20 md:mb-3 md:h-16 md:w-16"
                 >
-                  <Music2 className="h-10 w-10 text-[var(--color-accent)] md:h-12 md:w-12" />
+                  <Music2 className="h-10 w-10 text-[var(--color-accent)] md:h-8 md:w-8" />
                 </motion.div>
-                <h3 className="mb-2 text-lg font-bold text-[var(--color-text)] md:text-xl">
+                <h3 className="mb-2 text-lg font-bold text-[var(--color-text)] md:mb-1.5 md:text-base">
                   {isMobile
                     ? "Tap to start playing music instantly, or search for something specific."
                     : "Search for songs, artists, albums - anything you want to listen to."}
@@ -567,13 +567,13 @@ export default function HomePageClient() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...springPresets.gentle, delay: 0.2 }}
-                    className="mt-6 max-w-md rounded-xl border border-white/5 bg-white/[0.02] px-5 py-4"
+                    className="mt-4 max-w-md rounded-xl border border-white/5 bg-white/[0.02] px-5 py-4 md:mt-3 md:px-4 md:py-3"
                   >
-                    <p className="mb-2 text-sm font-semibold text-[var(--color-text)]">
+                    <p className="mb-2 text-sm font-semibold text-[var(--color-text)] md:mb-1.5 md:text-xs">
                       Sign in is optional, but it unlocks a few features you may
                       like:
                     </p>
-                    <ul className="space-y-1.5 text-xs text-[var(--color-subtext)]">
+                    <ul className="space-y-1.5 text-xs text-[var(--color-subtext)] md:space-y-1">
                       <li className="flex items-start gap-2">
                         <span className="mt-0.5 text-[var(--color-accent)]">
                           •
@@ -616,13 +616,13 @@ export default function HomePageClient() {
                     router.push("/playlists/12");
                   }}
                   whileTap={{ scale: 0.95 }}
-                  className="mt-4 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-secondary-accent)] to-[var(--color-secondary-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-[var(--color-secondary-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-secondary-accent)]/40 hover:shadow-xl"
+                  className="mt-4 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-secondary-accent)] to-[var(--color-secondary-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-[var(--color-secondary-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-secondary-accent)]/40 hover:shadow-xl md:mt-3 md:gap-2 md:px-6 md:py-3 md:text-base"
                 >
-                  <Music2 className="h-6 w-6" />
+                  <Music2 className="h-6 w-6 md:h-5 md:w-5" />
                   <span>Example Playlist</span>
                 </motion.button>
 
-                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                <div className="mt-6 flex flex-wrap justify-center gap-2 md:mt-4 md:gap-1.5">
                   {[
                     "Lamb",
                     "Depeche Mode",
@@ -640,21 +640,21 @@ export default function HomePageClient() {
                         void handleSearch(suggestion);
                       }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 rounded-full bg-[rgba(244,178,102,0.1)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[rgba(244,178,102,0.2)]"
+                      className="flex items-center gap-2 rounded-full bg-[rgba(244,178,102,0.1)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[rgba(244,178,102,0.2)] md:px-3 md:py-1.5 md:text-xs"
                     >
-                      <Sparkles className="h-3 w-3" />
+                      <Sparkles className="h-3 w-3 md:h-2.5 md:w-2.5" />
                       {suggestion}
                     </motion.button>
                   ))}
                 </div>
 
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:mt-5 md:gap-2">
                   <motion.a
                     href="https://github.com/soulwax/songbird-player"
                     target="_blank"
                     rel="noopener noreferrer"
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 rounded-xl bg-[rgba(255,255,255,0.05)] px-5 py-3 text-sm font-medium text-[var(--color-text)] ring-1 ring-white/10 transition-all hover:bg-[rgba(255,255,255,0.1)] hover:ring-[var(--color-accent)]/30"
+                    className="flex items-center gap-2 rounded-xl bg-[rgba(255,255,255,0.05)] px-5 py-3 text-sm font-medium text-[var(--color-text)] ring-1 ring-white/10 transition-all hover:bg-[rgba(255,255,255,0.1)] hover:ring-[var(--color-accent)]/30 md:px-3 md:py-2 md:text-xs"
                   >
                     <svg
                       width="24"
@@ -662,7 +662,7 @@ export default function HomePageClient() {
                       viewBox="0 0 24 24"
                       fill="currentColor"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="flex-shrink-0"
+                      className="h-5 w-5 flex-shrink-0 md:h-4 md:w-4"
                     >
                       <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                     </svg>
@@ -675,9 +675,9 @@ export default function HomePageClient() {
                       setIsChangelogOpen(true);
                     }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 rounded-xl bg-[rgba(244,178,102,0.1)] px-5 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 transition-all hover:bg-[rgba(244,178,102,0.2)] hover:ring-[var(--color-accent)]/40"
+                    className="flex items-center gap-2 rounded-xl bg-[rgba(244,178,102,0.1)] px-5 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 transition-all hover:bg-[rgba(244,178,102,0.2)] hover:ring-[var(--color-accent)]/40 md:px-3 md:py-2 md:text-xs"
                   >
-                    <BookOpen className="h-4 w-4" />
+                    <BookOpen className="h-4 w-4 md:h-3.5 md:w-3.5" />
                     <span>Changelog</span>
                   </motion.button>
                 </div>
@@ -686,12 +686,12 @@ export default function HomePageClient() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ ...springPresets.gentle, delay: 0.3 }}
-                  className="mt-12 w-full max-w-2xl border-t border-white/5 pt-8"
+                  className="mt-12 w-full max-w-2xl border-t border-white/5 pt-8 md:mt-8 md:pt-5"
                 >
-                  <h4 className="mb-4 text-center text-sm font-semibold text-[var(--color-text)]">
+                  <h4 className="mb-4 text-center text-sm font-semibold text-[var(--color-text)] md:mb-2.5 md:text-xs">
                     Infrastructure & Architecture
                   </h4>
-                  <div className="space-y-3 text-xs text-[var(--color-subtext)] md:text-sm">
+                  <div className="space-y-3 text-xs text-[var(--color-subtext)] md:space-y-2 md:text-xs">
                     <p className="leading-relaxed">
                       Starchild Music runs on a{" "}
                       <span className="text-[var(--color-accent)]">
