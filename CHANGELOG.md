@@ -6,6 +6,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.28] - 2026-02-01
+
+### Added
+
+- **New Visual Patterns**: Added three hyper-optimized audio-reactive visualizer patterns
+  - **voidRipples**: Concentric interference patterns from multiple ripple sources
+    - Pure stroke-based rendering (no fill operations) for maximum efficiency
+    - Multiple ripple sources create natural interference patterns without computational overhead
+    - Adaptive ripple counts based on screen resolution and audio intensity
+    - Minimal connection lines between sources for visual interest
+    - Audio-reactive: bass affects ripple amplitude, mid frequencies control ripple density, overall intensity affects visibility
+    - Zero gradient usage, zero shadow usage (ultra Firefox-friendly)
+  - **tesseractSpin**: Rotating 4D hypercube (tesseract) projected into 2D space
+    - Pure line-based wireframe geometry (32 edges) for efficient rendering
+    - 4D rotation through multiple dimensional planes (XY, XZ, YZ, XW)
+    - Depth-sorted edge rendering creates proper 3D perspective effect
+    - Conditional shadow usage (only on edges with depth > 0.6 at high quality settings)
+    - Pre-computed rotation matrices for faster frame rendering
+    - Audio-reactive: bass affects rotation speed, treble controls line width, overall intensity affects visibility and depth perception
+  - **valknut**: Norse three-triangle knot symbol with interlocking sacred geometry
+    - Three interlocking equilateral triangles forming the traditional Odin's knot pattern
+    - Pure stroke-based geometry with inner concentric triangles for depth
+    - Conditional shadow usage (only when quality ≥ 0.85)
+    - Triangles rotate in unison while maintaining their interconnected pattern
+    - Minimal connection lines between triangle centers
+    - Audio-reactive: bass drives pulsation scale (breathing effect), treble controls line width, overall intensity affects glow strength
+  - **Firefox-Specific Optimizations**: All patterns include
+    - Minimal or zero gradient usage (solid colors preferred)
+    - Controlled shadow usage (disabled by default, only at high quality)
+    - Reduced element counts (scales down on large displays)
+    - Efficient canvas operations (batched stroke operations)
+    - Fast math helpers and pre-computed values
+    - Depth-sorting optimization for tesseract edge ordering
+  - Location: [src/components/visualizers/FlowFieldRenderer.ts](src/components/visualizers/FlowFieldRenderer.ts:15607-15930), [src/components/visualizers/flowfieldPatterns/patternIds.ts](src/components/visualizers/flowfieldPatterns/patternIds.ts:116-120)
+
 ## [0.10.27] - 2026-02-01
 
 ### Added
