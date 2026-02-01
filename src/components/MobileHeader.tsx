@@ -173,7 +173,7 @@ export default function MobileHeader() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={springPresets.gentle}
-      className="safe-top fixed top-0 right-0 left-0 z-50 border-b border-[rgba(244,178,102,0.12)] bg-[rgba(10,16,24,0.95)] shadow-lg backdrop-blur-xl"
+      className="theme-chrome-header safe-top fixed top-0 right-0 left-0 z-50 border-b shadow-lg backdrop-blur-xl"
     >
       <div className="flex items-center gap-3 px-4 py-3">
         <motion.button
@@ -183,7 +183,7 @@ export default function MobileHeader() {
           }}
           whileTap={{ scale: 0.92 }}
           transition={springPresets.snappy}
-          className="flex items-center justify-center rounded-lg p-2 text-[var(--color-text)] transition-colors active:bg-[rgba(244,178,102,0.08)]"
+          className="flex items-center justify-center rounded-lg p-2 text-[var(--color-text)] transition-colors active:bg-[var(--color-surface-hover)]"
           aria-label="Open menu"
           type="button"
         >

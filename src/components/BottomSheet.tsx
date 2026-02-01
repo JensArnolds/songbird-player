@@ -179,7 +179,7 @@ export default function BottomSheet({
 
               {}
               {showHeader && (
-                <div className="flex items-center justify-between border-b border-[rgba(244,178,102,0.1)] px-6 pt-2 pb-4">
+                <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 pt-2 pb-4">
                   {title && (
                     <h2 className="text-xl font-bold text-[var(--color-text)]">
                       {title}
@@ -193,7 +193,7 @@ export default function BottomSheet({
                       }}
                       whileTap={{ scale: 0.9 }}
                       transition={springPresets.immediate}
-                      className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.1)] hover:text-[var(--color-text)]"
+                      className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                       aria-label="Close"
                     >
                       <X className="h-5 w-5" />
@@ -221,7 +221,7 @@ export default function BottomSheet({
                       className={`h-1.5 w-1.5 rounded-full transition-all ${
                         currentSnapIndex.current === index
                           ? "w-3 bg-[var(--color-accent)]"
-                          : "bg-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.4)]"
+                          : "bg-[var(--color-surface-hover)] hover:bg-[var(--color-surface-hover)]"
                       }`}
                       whileTap={{ scale: 0.8 }}
                       aria-label={`Snap to ${snap}%`}

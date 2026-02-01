@@ -151,7 +151,7 @@ export default function ChangelogModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={springPresets.gentle}
-            className="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm"
+            className="theme-chrome-backdrop fixed inset-0 z-[90] backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -161,7 +161,7 @@ export default function ChangelogModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={springPresets.gentle}
-            className="fixed inset-4 z-[91] mx-auto my-auto flex max-h-[90vh] max-w-4xl flex-col overflow-hidden rounded-2xl border border-[rgba(244,178,102,0.2)] bg-[rgba(11,17,24,0.98)] shadow-2xl backdrop-blur-xl md:inset-8"
+            className="theme-panel fixed inset-4 z-[91] mx-auto my-auto flex max-h-[90vh] max-w-4xl flex-col overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl md:inset-8"
           >
             {}
             <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.1)] px-5 py-4 md:px-6">

@@ -275,7 +275,7 @@ function QueueItem({
             e.stopPropagation();
             onPlay();
           }}
-          className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
+          className="theme-card-overlay absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
         >
           <Play className="h-5 w-5 fill-white text-white" />
         </button>
@@ -1040,7 +1040,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[98] bg-black/90"
+              className="theme-chrome-backdrop fixed inset-0 z-[98]"
               onClick={() => {
                 hapticLight();
                 if (onClose) {
@@ -1120,7 +1120,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             hapticLight();
                           }}
                           whileTap={{ scale: 0.9 }}
-                          className="absolute right-2 top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md transition-colors hover:bg-black/80"
+                          className="theme-card-overlay absolute right-2 top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full text-white backdrop-blur-md transition-colors"
                           style={{
                             boxShadow: `0 4px 12px ${getPaletteColor(palette.primary, 0.3, true)}`,
                           }}
@@ -1208,7 +1208,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                   borderColor: getPaletteColor(palette.secondary, 0.3, true),
                                 }}
                               />
-                              <div className="relative h-full w-full overflow-hidden rounded-[30px] bg-black">
+                              <div className="relative h-full w-full overflow-hidden rounded-[30px] bg-[var(--color-bg)]">
                                 <FlowFieldCanvas
                                   audioElement={audioElement}
                                   isPlaying={isPlaying}
@@ -1227,7 +1227,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 flex items-center justify-center rounded-[30px] bg-black/70"
+                            className="theme-card-overlay absolute inset-0 flex items-center justify-center rounded-[30px]"
                           >
                             <div className="flex flex-col items-center gap-2">
                               <span className="text-4xl font-bold text-[var(--color-text)] tabular-nums">
@@ -1245,7 +1245,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       </AnimatePresence>
 
                       {isLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center rounded-[30px] bg-black/60">
+                        <div className="theme-card-overlay absolute inset-0 flex items-center justify-center rounded-[30px]">
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{
@@ -1269,7 +1269,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           }`}
                           style={{
                             border: `2px solid ${getPaletteColor(palette.primary, 0.5, true)}`,
-                            background: `linear-gradient(145deg, ${getPaletteColor(palette.primary, 0.15, true)}, ${getPaletteColor(palette.secondary, 0.1, true)}, rgba(10,16,24,0.6))`,
+                            background: `linear-gradient(145deg, ${getPaletteColor(palette.primary, 0.15, true)}, ${getPaletteColor(palette.secondary, 0.1, true)}, var(--color-bg))`,
                             boxShadow: `0 16px 40px rgba(0,0,0,0.45), 0 0 20px ${getPaletteColor(palette.primary, 0.3, true)}`,
                           }}
                         >
@@ -1343,7 +1343,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       <div className="px-1 pb-1.5">
                         <div
                           ref={progressRef}
-                          className="group relative h-1.5 cursor-pointer rounded-full bg-[rgba(255,255,255,0.15)]"
+                          className="slider-track group relative h-1.5 cursor-pointer rounded-full"
                           onClick={handleProgressClick}
                           onTouchStart={(e) => {
                             setIsSeeking(true);
@@ -1684,7 +1684,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         >
                           <ListMusic className="h-5 w-5" />
                           {queue.length > 0 && (
-                            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-[#0f141d]">
+                            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-[var(--color-on-accent)]">
                               {queue.length > 9 ? "9+" : queue.length}
                             </span>
                           )}
@@ -1736,7 +1736,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                   animate={{ opacity: 1, scale: 1, y: 0 }}
                                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
                                   transition={springPresets.snappy}
-                                  className="absolute bottom-full right-0 z-20 mb-2 w-64 max-h-72 overflow-y-auto rounded-xl border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,0.98)] shadow-xl backdrop-blur-xl"
+                                  className="theme-panel absolute bottom-full right-0 z-20 mb-2 w-64 max-h-72 overflow-y-auto rounded-xl border shadow-xl backdrop-blur-xl"
                                 >
                                   <div className="border-b border-[rgba(255,255,255,0.08)] p-3">
                                     <h3 className="text-sm font-semibold text-[var(--color-text)]">
@@ -1849,7 +1849,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+                    className="theme-chrome-backdrop fixed inset-0 z-[100] backdrop-blur-sm"
                     onClick={() => {
                       hapticLight();
                       setShowQueuePanel(false);
@@ -1869,7 +1869,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       }
                     }}
                     transition={springPresets.gentle}
-                    className="safe-bottom fixed right-0 top-0 z-[101] flex h-full w-full max-w-md flex-col border-l border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.95)] shadow-[-8px_0_32px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                    className="theme-chrome-drawer safe-bottom fixed right-0 top-0 z-[101] flex h-full w-full max-w-md flex-col border-l backdrop-blur-xl"
                   >
                     <div className="flex flex-col gap-3 border-b border-[rgba(255,255,255,0.08)] p-4">
                       <div className="flex items-center justify-between">
@@ -2005,7 +2005,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             placeholder="Search queue..."
                             value={queueSearchQuery}
                             onChange={(e) => setQueueSearchQuery(e.target.value)}
-                            className="w-full rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(18,26,38,0.92)] py-2 pr-4 pl-10 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] focus:border-[rgba(244,178,102,0.35)] focus:ring-2 focus:ring-[rgba(244,178,102,0.28)] focus:outline-none"
+                            className="theme-input w-full rounded-lg py-2 pr-4 pl-10 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/25 focus:outline-none"
                           />
                           {queueSearchQuery && (
                             <motion.button
@@ -2246,7 +2246,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                     {/* Footer */}
                     {queue.length > 0 && (
-                      <div className="border-t border-[rgba(244,178,102,0.12)] p-4 text-sm text-[var(--color-subtext)]">
+                      <div className="border-t border-[var(--color-border)] p-4 text-sm text-[var(--color-subtext)]">
                         <div className="flex items-center justify-between">
                           <span>Total duration:</span>
                           <span className="font-medium">{formatDuration(totalDuration)}</span>

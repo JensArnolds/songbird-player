@@ -123,7 +123,7 @@ export default function PlaylistsPage() {
 
                     if (playlist.tracks.length < 4) {
                       return (
-                        <div className="relative h-full w-full overflow-hidden rounded-xl bg-[rgba(12,18,27,0.9)]">
+                        <div className="relative h-full w-full overflow-hidden rounded-xl bg-[var(--color-surface)]">
                           <Image
                             src={
                               playlist.tracks[0]?.track?.album?.cover_medium ??
@@ -143,7 +143,7 @@ export default function PlaylistsPage() {
                           {playlist.tracks.slice(0, 4).map((playlistTrack, idx) => (
                             <div
                               key={idx}
-                              className="relative h-full w-full overflow-hidden rounded-[0.65rem] bg-[rgba(12,18,27,0.9)]"
+                              className="relative h-full w-full overflow-hidden rounded-[0.65rem] bg-[var(--color-surface)]"
                             >
                               <Image
                                 src={
@@ -175,7 +175,7 @@ export default function PlaylistsPage() {
                     });
 
                     return (
-                      <div className="relative h-full w-full overflow-hidden rounded-xl bg-[rgba(12,18,27,0.9)]">
+                      <div className="relative h-full w-full overflow-hidden rounded-xl bg-[var(--color-surface)]">
                         <Image
                           src={dominantCover}
                           alt=""
@@ -190,7 +190,7 @@ export default function PlaylistsPage() {
                     <Music className="h-12 w-12 md:h-16 md:w-16" />
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black/35 opacity-0 transition group-hover:opacity-100" />
+                <div className="theme-card-overlay absolute inset-0 opacity-0 transition group-hover:opacity-100" />
               </div>
               <div className="p-3 md:p-4">
                 <h3 className="mb-1 truncate text-base font-semibold text-[var(--color-text)] md:text-lg">
@@ -241,7 +241,7 @@ export default function PlaylistsPage() {
       {showCreateModal && (
         <>
           <div
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            className="theme-chrome-backdrop fixed inset-0 z-50 backdrop-blur-sm"
             onClick={() => {
               setShowCreateModal(false);
               setNewPlaylistName("");
@@ -285,7 +285,7 @@ export default function PlaylistsPage() {
                     id="isPublic"
                     checked={isPublic}
                     onChange={(e) => setIsPublic(e.target.checked)}
-                    className="touch-target h-5 w-5 rounded border-[rgba(244,178,102,0.25)] bg-[rgba(16,22,31,0.85)] text-[var(--color-accent)] focus:ring-2 focus:ring-[rgba(244,178,102,0.25)]"
+                    className="touch-target h-5 w-5 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/25"
                   />
                   <label
                     htmlFor="isPublic"

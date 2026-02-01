@@ -17,7 +17,7 @@ export default function LicensePage() {
         <div className="mb-8">
           <Link
             href="/"
-            className="mb-4 inline-flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
+            className="mb-4 inline-flex items-center gap-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
           >
             <svg
               className="h-5 w-5"
@@ -34,7 +34,7 @@ export default function LicensePage() {
             </svg>
             Back to Home
           </Link>
-          <h1 className="mb-2 text-4xl font-bold text-white">
+          <h1 className="mb-2 text-4xl font-bold text-[var(--color-text)]">
             Software License
           </h1>
           <p className="text-gray-400">
@@ -44,7 +44,7 @@ export default function LicensePage() {
 
         {}
         <div className="mb-8 rounded-2xl border border-indigo-500/30 bg-indigo-900/20 p-6 backdrop-blur-sm">
-          <h2 className="mb-4 text-xl font-semibold text-white">
+          <h2 className="mb-4 text-xl font-semibold text-[var(--color-text)]">
             License Summary
           </h2>
           <div className="space-y-3 text-sm text-gray-300">
@@ -99,7 +99,7 @@ export default function LicensePage() {
 
         {}
         <div className="rounded-lg border border-gray-800 bg-gray-900/30 p-8">
-          <h2 className="mb-6 text-2xl font-bold text-white">
+          <h2 className="mb-6 text-2xl font-bold text-[var(--color-text)]">
             GNU General Public License
           </h2>
           <div className="prose prose-invert max-w-none">
@@ -185,7 +185,7 @@ modification follow.
 
         {}
         <div className="mt-8 rounded-lg border border-gray-800 bg-gray-900/30 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">Learn More</h3>
+          <h3 className="mb-4 text-lg font-semibold text-[var(--color-text)]">Learn More</h3>
           <div className="space-y-3">
             <a
               href="https://www.gnu.org/licenses/gpl-3.0.html"

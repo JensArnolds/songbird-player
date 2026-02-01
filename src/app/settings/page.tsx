@@ -131,7 +131,7 @@ export default function SettingsPage() {
           </p>
           <Link
             href="/api/auth/signin"
-            className="touch-target-lg inline-block rounded-xl bg-[var(--color-accent)] px-6 py-3 font-semibold text-white transition hover:opacity-90"
+            className="touch-target-lg inline-block rounded-xl bg-[var(--color-accent)] px-6 py-3 font-semibold text-[var(--color-on-accent)] transition hover:opacity-90"
           >
             Sign In
           </Link>
@@ -715,10 +715,10 @@ function Slider({
         className="h-2 w-full appearance-none rounded-full outline-none"
         style={{
           background: `linear-gradient(to right,
-            var(--color-accent) 0%,
-            var(--color-accent) ${percentage}%,
-            rgba(255,255,255,0.1) ${percentage}%,
-            rgba(255,255,255,0.1) 100%)`,
+            var(--color-slider-fill) 0%,
+            var(--color-slider-fill) ${percentage}%,
+            var(--color-slider-track) ${percentage}%,
+            var(--color-slider-track) 100%)`,
         }}
       />
       <style jsx>{`
@@ -727,9 +727,9 @@ function Slider({
           width: 18px;
           height: 18px;
           border-radius: 50%;
-          background: white;
+          background: var(--color-slider-thumb);
           cursor: pointer;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
           transition: transform 0.15s ease;
         }
         input[type="range"]::-webkit-slider-thumb:active {
@@ -739,10 +739,10 @@ function Slider({
           width: 18px;
           height: 18px;
           border-radius: 50%;
-          background: white;
+          background: var(--color-slider-thumb);
           cursor: pointer;
           border: none;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
         }
         input[type="range"]::-moz-range-thumb:active {
           transform: scale(1.15);
@@ -812,7 +812,7 @@ function SelectButton({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={springPresets.snappy}
-            className="absolute top-full right-4 left-4 z-50 mt-2 overflow-hidden rounded-xl border border-white/10 bg-[rgba(11,17,24,0.98)] shadow-2xl backdrop-blur-xl"
+            className="theme-panel absolute top-full right-4 left-4 z-50 mt-2 overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
           >
             {options.map((option) => (
               <button

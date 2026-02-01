@@ -74,7 +74,7 @@ export function QueueSettingsModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={springPresets.gentle}
-            className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm"
+            className="theme-chrome-backdrop fixed inset-0 z-[200] backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -173,7 +173,7 @@ export function QueueSettingsModal({
                 </button>
                 <button
                   onClick={handleApply}
-                  className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-[var(--color-accent)] transition-all hover:bg-[var(--color-accent-strong)] hover:scale-105"
+                  className="px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] rounded-lg bg-[var(--color-accent)] transition-all hover:bg-[var(--color-accent-strong)] hover:scale-105"
                 >
                   Apply
                 </button>

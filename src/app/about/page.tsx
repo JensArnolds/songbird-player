@@ -16,7 +16,7 @@ export default function AboutPage() {
         <div className="mb-8">
           <Link
             href="/"
-            className="mb-4 inline-flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
+            className="mb-4 inline-flex items-center gap-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
           >
             <svg
               className="h-5 w-5"
@@ -33,34 +33,34 @@ export default function AboutPage() {
             </svg>
             Back to Home
           </Link>
-          <h1 className="mb-2 text-4xl font-bold text-white">About</h1>
+          <h1 className="mb-2 text-4xl font-bold text-[var(--color-text)]">About</h1>
           <p className="text-gray-400">
             The story behind Starchild Music
           </p>
         </div>
 
         <div className="mb-8 rounded-2xl border border-indigo-500/30 bg-indigo-900/20 p-6 backdrop-blur-sm">
-          <h2 className="mb-4 text-xl font-semibold text-white">Who</h2>
+          <h2 className="mb-4 text-xl font-semibold text-[var(--color-text)]">Who</h2>
           <div className="space-y-4 text-gray-300">
             <div>
-              <p className="font-medium text-white">Christian Kling</p>
+              <p className="font-medium text-[var(--color-text)]">Christian Kling</p>
               <p className="text-sm text-gray-400">
                 Lead Developer · Neurologist & Hobby Programmer
               </p>
             </div>
             <div>
-              <p className="font-medium text-white">Saskia Falkenhagen</p>
+              <p className="font-medium text-[var(--color-text)]">Saskia Falkenhagen</p>
               <p className="text-sm text-gray-400">Developer</p>
             </div>
             <div>
-              <p className="font-medium text-white">Anja Kling</p>
+              <p className="font-medium text-[var(--color-text)]">Anja Kling</p>
               <p className="text-sm text-gray-400">Developer</p>
             </div>
           </div>
         </div>
 
         <div className="mb-8 rounded-lg border border-gray-800 bg-gray-900/50 p-6">
-          <h2 className="mb-4 text-xl font-semibold text-white">Why</h2>
+          <h2 className="mb-4 text-xl font-semibold text-[var(--color-text)]">Why</h2>
           <p className="text-gray-300">
             We wanted to make our self-made API put to use by providing a
             frontend for it. This project serves as both a practical application
@@ -69,17 +69,17 @@ export default function AboutPage() {
         </div>
 
         <div className="mb-8 rounded-lg border border-gray-800 bg-gray-900/50 p-6">
-          <h2 className="mb-4 text-xl font-semibold text-white">How</h2>
+          <h2 className="mb-4 text-xl font-semibold text-[var(--color-text)]">How</h2>
           <div className="space-y-4">
             <div>
-              <h3 className="mb-2 font-medium text-white">Development Approach</h3>
+              <h3 className="mb-2 font-medium text-[var(--color-text)]">Development Approach</h3>
               <p className="text-gray-300">
                 Built through team and pair programming sessions, combining expertise
                 across frontend, backend, and design.
               </p>
             </div>
             <div>
-              <h3 className="mb-2 font-medium text-white">Tech Stack</h3>
+              <h3 className="mb-2 font-medium text-[var(--color-text)]">Tech Stack</h3>
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full border border-gray-700 bg-gray-800/50 px-3 py-1 text-sm text-gray-300">
                   Next.js 16
@@ -105,7 +105,7 @@ export default function AboutPage() {
         </div>
 
         <div className="rounded-lg border border-gray-800 bg-gray-900/30 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">Links</h3>
+          <h3 className="mb-4 text-lg font-semibold text-[var(--color-text)]">Links</h3>
           <div className="space-y-3">
             <a
               href="https://github.com/soulwax/starchild-music-frontend"

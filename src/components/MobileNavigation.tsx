@@ -122,7 +122,7 @@ export default function MobileNavigation() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm"
+              className="theme-chrome-backdrop fixed inset-0 z-[45] backdrop-blur-sm"
               onClick={() => {
                 hapticLight();
                 setShowQuickActions(false);
@@ -133,7 +133,7 @@ export default function MobileNavigation() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={springPresets.gentle}
-              className="pb-safe fixed right-0 bottom-0 left-0 z-[46] rounded-t-3xl border-t border-[rgba(244,178,102,0.16)] bg-[rgba(13,19,28,0.98)] backdrop-blur-xl"
+              className="theme-chrome-drawer pb-safe fixed right-0 bottom-0 left-0 z-[46] rounded-t-3xl border-t backdrop-blur-xl"
             >
               <div className="flex flex-col items-center pt-4">
                 <div className="mb-4 h-1 w-10 rounded-full bg-[rgba(255,255,255,0.2)]" />
@@ -203,7 +203,7 @@ export default function MobileNavigation() {
         </motion.div>
 
         {}
-        <div className="absolute inset-0 border-t border-[rgba(244,178,102,0.12)] bg-[rgba(8,13,20,0.92)] backdrop-blur-xl" />
+        <div className="absolute inset-0 border-t border-[var(--color-border)] bg-[var(--color-bg)]/95 backdrop-blur-xl" />
 
         {}
         <div className="relative">

@@ -49,7 +49,7 @@ function SliderControl({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="accent-accent h-2 w-full cursor-pointer appearance-none rounded-full bg-[rgba(255,255,255,0.12)]"
+        className="slider-track accent-accent h-2 w-full cursor-pointer appearance-none rounded-full"
       />
     </div>
   );
@@ -274,7 +274,7 @@ export default function PatternControls({
                 onChange={(e) => {
                   renderer.setPattern(e.target.value as Pattern);
                 }}
-                className="w-full appearance-none rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,0.95)] px-4 py-2.5 pr-10 text-sm text-[var(--color-text)] transition hover:border-[rgba(244,178,102,0.3)] focus:border-[var(--color-accent)] focus:outline-none"
+                className="theme-input w-full appearance-none rounded-lg px-4 py-2.5 pr-10 text-sm text-[var(--color-text)] transition hover:border-[var(--color-accent)] focus:border-[var(--color-accent)] focus:outline-none"
               >
                 {availablePatterns.map((pattern) => (
                   <option key={pattern} value={pattern}>
@@ -375,7 +375,7 @@ export default function PatternControls({
                     prev ? { ...prev, fractalZoom: value } : null,
                   );
                 }}
-                className="accent-accent h-2 w-full cursor-pointer appearance-none rounded-full bg-[rgba(255,255,255,0.12)]"
+                className="slider-track accent-accent h-2 w-full cursor-pointer appearance-none rounded-full"
               />
             </div>
 
@@ -402,7 +402,7 @@ export default function PatternControls({
                     prev ? { ...prev, fractalOffsetX: value } : null,
                   );
                 }}
-                className="accent-accent h-2 w-full cursor-pointer appearance-none rounded-full bg-[rgba(255,255,255,0.12)]"
+                className="slider-track accent-accent h-2 w-full cursor-pointer appearance-none rounded-full"
               />
             </div>
 
@@ -429,7 +429,7 @@ export default function PatternControls({
                     prev ? { ...prev, fractalOffsetY: value } : null,
                   );
                 }}
-                className="accent-accent h-2 w-full cursor-pointer appearance-none rounded-full bg-[rgba(255,255,255,0.12)]"
+                className="slider-track accent-accent h-2 w-full cursor-pointer appearance-none rounded-full"
               />
             </div>
 
@@ -461,7 +461,7 @@ export default function PatternControls({
                       : null,
                   );
                 }}
-                className="accent-accent h-2 w-full cursor-pointer appearance-none rounded-full bg-[rgba(255,255,255,0.12)]"
+                className="slider-track accent-accent h-2 w-full cursor-pointer appearance-none rounded-full"
               />
             </div>
 
@@ -493,7 +493,7 @@ export default function PatternControls({
                       : null,
                   );
                 }}
-                className="accent-accent h-2 w-full cursor-pointer appearance-none rounded-full bg-[rgba(255,255,255,0.12)]"
+                className="slider-track accent-accent h-2 w-full cursor-pointer appearance-none rounded-full"
               />
             </div>
             </div>

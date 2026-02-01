@@ -290,7 +290,7 @@ export function PlaylistContextMenu() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={springPresets.gentle}
-              className="fixed inset-0 z-[70] bg-black/20"
+              className="theme-chrome-backdrop fixed inset-0 z-[70]"
               onClick={closeMenu}
             />
 
@@ -301,7 +301,7 @@ export function PlaylistContextMenu() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -10 }}
               transition={springPresets.snappy}
-              className="fixed z-[71] flex items-center gap-1 rounded-xl border border-[rgba(244,178,102,0.2)] bg-[rgba(10,16,24,0.98)] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+              className="theme-panel fixed z-[71] flex items-center gap-1 rounded-xl border p-2 shadow-xl backdrop-blur-xl"
               style={{
                 left: position.x,
                 top: position.y,
@@ -432,7 +432,7 @@ export function PlaylistContextMenu() {
 
       {}
       {showMergeModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="theme-chrome-backdrop fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm">
           <div className="surface-panel max-w-md p-6">
             <h3 className="mb-4 text-xl font-bold text-[var(--color-text)]">
               Merge Playlists

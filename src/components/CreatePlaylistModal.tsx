@@ -107,7 +107,7 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={springPresets.gentle}
-            className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm"
+            className="theme-chrome-backdrop fixed inset-0 z-[200] backdrop-blur-sm"
             onClick={() => {
               hapticLight();
               onClose();
@@ -142,7 +142,7 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
                       hapticLight();
                       onClose();
                     }}
-                    className="inline-block rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-6 py-3 text-sm font-medium text-white shadow-lg shadow-[rgba(244,178,102,0.3)] transition-all hover:scale-105 active:scale-95"
+                    className="inline-block rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-6 py-3 text-sm font-medium text-[var(--color-on-accent)] shadow-lg shadow-[var(--color-accent)]/30 transition-all hover:scale-105 active:scale-95"
                   >
                     Sign In
                   </Link>
@@ -159,7 +159,7 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
                         value={newPlaylistName}
                         onChange={(e) => setNewPlaylistName(e.target.value)}
                         placeholder="My Awesome Playlist"
-                        className="w-full rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(18,26,38,0.92)] py-3 px-4 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] backdrop-blur-sm transition-all hover:border-[rgba(244,178,102,0.35)] focus:border-[rgba(244,178,102,0.4)] focus:ring-2 focus:ring-[rgba(244,178,102,0.25)] focus:outline-none"
+                        className="theme-input w-full rounded-lg py-3 px-4 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] backdrop-blur-sm transition-all hover:border-[var(--color-accent)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/25 focus:outline-none"
                         autoFocus
                       />
                     </div>
@@ -173,7 +173,7 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
                         onChange={(e) => setNewPlaylistDescription(e.target.value)}
                         placeholder="Add a description..."
                         rows={3}
-                        className="w-full resize-none rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(18,26,38,0.92)] py-3 px-4 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] backdrop-blur-sm transition-all hover:border-[rgba(244,178,102,0.35)] focus:border-[rgba(244,178,102,0.4)] focus:ring-2 focus:ring-[rgba(244,178,102,0.25)] focus:outline-none"
+                        className="theme-input w-full resize-none rounded-lg py-3 px-4 text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] backdrop-blur-sm transition-all hover:border-[var(--color-accent)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/25 focus:outline-none"
                       />
                     </div>
 
@@ -183,7 +183,7 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
                         id="isPublic"
                         checked={isPublic}
                         onChange={(e) => setIsPublic(e.target.checked)}
-                        className="h-5 w-5 rounded border-[rgba(244,178,102,0.25)] bg-[rgba(16,22,31,0.85)] text-[var(--color-accent)] focus:ring-2 focus:ring-[rgba(244,178,102,0.25)]"
+                        className="h-5 w-5 rounded border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/25"
                       />
                       <label htmlFor="isPublic" className="text-sm text-[var(--color-subtext)]">
                         Make this playlist public
@@ -200,14 +200,14 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
                         setNewPlaylistDescription("");
                         setIsPublic(false);
                       }}
-                      className="flex-1 rounded-lg border border-[rgba(244,178,102,0.25)] bg-[rgba(244,178,102,0.05)] px-4 py-3 text-sm font-medium text-[var(--color-text)] transition-all hover:bg-[rgba(244,178,102,0.12)] active:scale-[0.98]"
+                      className="flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-hover)] px-4 py-3 text-sm font-medium text-[var(--color-text)] transition-all hover:bg-[var(--color-surface-hover)] active:scale-[0.98]"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleCreatePlaylist}
                       disabled={createPlaylist.isPending || !newPlaylistName.trim()}
-                      className="flex-1 rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-3 text-sm font-medium text-white shadow-lg shadow-[rgba(244,178,102,0.3)] transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+                      className="flex-1 rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-3 text-sm font-medium text-[var(--color-on-accent)] shadow-lg shadow-[var(--color-accent)]/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
                     >
                       {createPlaylist.isPending ? "Creating..." : "Create"}
                     </button>

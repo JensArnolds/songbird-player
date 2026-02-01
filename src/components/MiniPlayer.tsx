@@ -109,7 +109,7 @@ export default function MiniPlayer({
 
       { }
       <div
-        className="h-1 w-full cursor-pointer bg-[rgba(255,255,255,0.12)]"
+        className="slider-track h-1 w-full cursor-pointer"
         data-drag-exempt="true"
         onClick={handleProgressClick}
         onTouchMove={handleProgressTouch}

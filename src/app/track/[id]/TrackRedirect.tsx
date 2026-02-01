@@ -22,7 +22,7 @@ export function TrackRedirect({ id }: TrackRedirectProps) {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-      <h1 className="text-2xl font-semibold text-white">Opening track…</h1>
+      <h1 className="text-2xl font-semibold text-[var(--color-text)]">Opening track…</h1>
       <p className="text-sm text-slate-300">
         If you are not redirected, open{" "}
         <Link className="text-orange-300 underline" href={destination}>

@@ -419,7 +419,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
           >
             <div className="flex flex-col gap-3 md:gap-2.5">
               <div className="flex items-center gap-3 md:flex-row md:gap-2.5">
-                <div className="flex flex-1 items-center gap-3 rounded-xl border border-[rgba(244,178,102,0.15)] bg-[rgba(18,26,38,0.9)] px-4 py-3 transition-all focus-within:border-[rgba(244,178,102,0.4)] focus-within:shadow-[0_0_0_4px_rgba(244,178,102,0.1)] md:px-3 md:py-2.5 md:gap-2">
+                <div className="theme-panel flex flex-1 items-center gap-3 rounded-xl border px-4 py-3 transition-all focus-within:border-[var(--color-accent)] focus-within:shadow-[0_0_0_3px_var(--color-accent)]/20 md:px-3 md:py-2.5 md:gap-2">
                   <Search className="h-5 w-5 flex-shrink-0 text-[var(--color-muted)] md:h-4 md:w-4" />
                   <input
                     className="min-w-0 flex-1 bg-transparent text-base text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none md:text-sm"
@@ -594,7 +594,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                     onClick={handleShufflePlay}
                     disabled={loading}
                     whileTap={{ scale: 0.95 }}
-                    className="mt-6 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-[var(--color-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-accent)]/40 hover:shadow-xl disabled:opacity-50"
+                    className="mt-6 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] px-8 py-4 text-lg font-bold text-[var(--color-on-accent)] shadow-[var(--color-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-accent)]/40 hover:shadow-xl disabled:opacity-50"
                   >
                     {loading ? (
                       <>
@@ -686,7 +686,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ ...springPresets.gentle, delay: 0.3 }}
-                  className="mt-12 w-full max-w-2xl border-t border-white/5 pt-8 md:mt-8 md:pt-5"
+                  className="mt-12 w-full max-w-2xl border-t border-[var(--color-border)] pt-8 md:mt-8 md:pt-5"
                 >
                   <h4 className="mb-4 text-center text-sm font-semibold text-[var(--color-text)] md:mb-2.5 md:text-xs">
                     Infrastructure & Architecture
