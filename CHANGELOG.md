@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.4] - 2026-02-01
+
+### Changed
+
+- **Light mode on mobile disabled**: Light theme is no longer available on mobile; effective theme is always dark regardless of stored preference. ThemeContext defaults to mobile (dark) until the media query resolves to avoid a flash of light on load. Settings theme selector on mobile shows only "Dark"; desktop preference (e.g. light) is ignored on mobile and applied again on larger viewports. Locations: [src/contexts/ThemeContext.tsx](src/contexts/ThemeContext.tsx), [src/app/settings/page.tsx](src/app/settings/page.tsx).
+- **Visuals disabled on mobile**: FlowField background visualizer is not rendered on mobile; lightweight particle background is used instead. Full-screen mobile player no longer offers the visualizer: Eye toggle removed, only album artwork is shown, and the reactive background hook is disabled in MobilePlayer. Locations: [src/components/PersistentPlayer.tsx](src/components/PersistentPlayer.tsx), [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx).
+- **Mobile footer visible again**: Mini player was covering the bottom tab bar (both fixed at bottom-0; mini player z-60, footer z-50). Mini player is now positioned above the footer on mobile (`bottom-16`) so both the tab bar (Home, Search, Library, Profile, Create) and the mini player are visible. Location: [src/components/MiniPlayer.tsx](src/components/MiniPlayer.tsx).
+
+### Fixed
+
+- **Mobile queue drawer (dark mode)**: Transparent borders in dark mode for mobile drawer sections and dividers so separator lines do not show as white stripes. Applies to `.mobile-drawer-border`, `.mobile-drawer-section`, `.mobile-drawer-section-header`, `.mobile-drawer-divider` inside the theme chrome drawer. Location: [src/styles/globals.css](src/styles/globals.css).
+
 ## [0.12.3] - 2026-02-01
 
 ### Changed
