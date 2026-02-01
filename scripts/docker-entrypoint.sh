@@ -19,5 +19,5 @@ if [ "$NODE_ENV" = "production" ]; then
   fi
 fi
 
-echo "✅ Starting application..."
-exec node server.js
+echo "✅ Starting application under PM2 (crash-resistant)..."
+cd /app && exec pm2-runtime start ecosystem.docker.cjs --env production
