@@ -6,6 +6,93 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.29] - 2026-02-01
+
+### Added
+
+- **Light Theme**: Added light theme option for mobile with persistent user preference
+  - New ThemeProvider context manages theme state across the application
+  - Light theme features clean white backgrounds with high-contrast text for better daylight readability
+  - Theme selector available in Settings > Visual section (already existed, now functional)
+  - Dark theme remains the default for all users
+  - Theme preference persists across sessions via user_preferences database table
+  - Automatic theme application on mount without page reload
+  - Light theme specifications:
+    - Background: Pure white (#ffffff) with subtle gradients (#f8f9fa)
+    - Text: High contrast dark (#1a1f2e) for maximum readability
+    - Subtext: Medium gray (#4a5568) for secondary content
+    - Surfaces: Light gray (#f8f9fa) with hover states (#f0f2f5)
+    - Borders: Soft light gray (#e2e8f0)
+    - Shadows: Lighter, more subtle (rgba(0,0,0,0.08) vs rgba(5,10,18,0.45))
+    - Accent colors: Maintains orange (#f4b266) and teal (#58c6b1) for consistency
+    - Overlay effects: Reduced opacity for light backgrounds (0.04-0.08 vs 0.08-0.15)
+  - Mobile-optimized with instant visual feedback on theme change
+  - Seamless transition between themes without visual artifacts
+  - Location: [src/contexts/ThemeContext.tsx](src/contexts/ThemeContext.tsx), [src/styles/globals.css](src/styles/globals.css:9-82)
+
+## [0.10.28] - 2026-02-01
+
+### Added
+
+- **New Visual Patterns**: Added three hyper-optimized audio-reactive visualizer patterns
+  - **voidRipples**: Concentric interference patterns from multiple ripple sources
+    - Pure stroke-based rendering (no fill operations) for maximum efficiency
+    - Multiple ripple sources create natural interference patterns without computational overhead
+    - Adaptive ripple counts based on screen resolution and audio intensity
+    - Minimal connection lines between sources for visual interest
+    - Audio-reactive: bass affects ripple amplitude, mid frequencies control ripple density, overall intensity affects visibility
+    - Zero gradient usage, zero shadow usage (ultra Firefox-friendly)
+  - **tesseractSpin**: Rotating 4D hypercube (tesseract) projected into 2D space
+    - Pure line-based wireframe geometry (32 edges) for efficient rendering
+    - 4D rotation through multiple dimensional planes (XY, XZ, YZ, XW)
+    - Depth-sorted edge rendering creates proper 3D perspective effect
+    - Conditional shadow usage (only on edges with depth > 0.6 at high quality settings)
+    - Pre-computed rotation matrices for faster frame rendering
+    - Audio-reactive: bass affects rotation speed, treble controls line width, overall intensity affects visibility and depth perception
+  - **valknut**: Norse three-triangle knot symbol with interlocking sacred geometry
+    - Three interlocking equilateral triangles forming the traditional Odin's knot pattern
+    - Pure stroke-based geometry with inner concentric triangles for depth
+    - Conditional shadow usage (only when quality ≥ 0.85)
+    - Triangles rotate in unison while maintaining their interconnected pattern
+    - Minimal connection lines between triangle centers
+    - Audio-reactive: bass drives pulsation scale (breathing effect), treble controls line width, overall intensity affects glow strength
+  - **Firefox-Specific Optimizations**: All patterns include
+    - Minimal or zero gradient usage (solid colors preferred)
+    - Controlled shadow usage (disabled by default, only at high quality)
+    - Reduced element counts (scales down on large displays)
+    - Efficient canvas operations (batched stroke operations)
+    - Fast math helpers and pre-computed values
+    - Depth-sorting optimization for tesseract edge ordering
+  - Location: [src/components/visualizers/FlowFieldRenderer.ts](src/components/visualizers/FlowFieldRenderer.ts:15607-15930), [src/components/visualizers/flowfieldPatterns/patternIds.ts](src/components/visualizers/flowfieldPatterns/patternIds.ts:116-120)
+
+## [0.10.27] - 2026-02-01
+
+### Added
+
+- **New Visual Patterns**: Added two hyper-optimized audio-reactive visualizer patterns
+  - **nebulaDrift**: Flowing nebula-like particles in spiral streams with dynamic color shifts
+    - Adaptive particle counts based on screen resolution and audio intensity
+    - Conditional gradient usage (solid colors in low detail mode, gradients when quality > 0.75)
+    - Efficient per-stream batching reduces canvas state changes
+    - Minimal connection lines between streams (2-3 for optimal performance)
+    - Early-continue optimizations for particles outside visible life ranges
+    - Audio-reactive: bass affects drift amplitude, mid frequencies control particle density, overall intensity affects size and glow
+  - **crystalPulse**: Pulsating geometric crystalline structures with energy connections
+    - Pure line-based geometry (no gradients) for maximum rendering efficiency
+    - Conditional shadow usage (only when quality ≥ 0.85)
+    - Adaptive crystal and facet counts based on audio intensity and quality scale
+    - Batched stroke operations for facet connections
+    - Pre-computed rotation and positioning values for faster frame rendering
+    - Audio-reactive: bass drives pulsation scale (breathing effect), treble controls facet count, overall intensity affects crystal count and glow
+  - **Firefox-Specific Optimizations**: Both patterns include
+    - Minimal gradient usage (only in high quality mode, solid colors otherwise)
+    - Controlled shadow usage (disabled in low detail, scaled with quality)
+    - Reduced element counts (scales down on large displays and low quality settings)
+    - Efficient canvas operations (batched beginPath/stroke/fill cycles)
+    - Fast math helpers (fastSin, fastCos, fastMod360)
+    - Bitwise integer operations for element counts and indexing
+  - Location: [src/components/visualizers/FlowFieldRenderer.ts](src/components/visualizers/FlowFieldRenderer.ts:15403-15598), [src/components/visualizers/flowfieldPatterns/patternIds.ts](src/components/visualizers/flowfieldPatterns/patternIds.ts:116-117)
+
 ## [0.10.26] - 2026-02-01
 
 ### Changed

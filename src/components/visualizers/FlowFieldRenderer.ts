@@ -15727,7 +15727,11 @@ export class FlowFieldRenderer {
 
     const vertices2D: { x: number; y: number; z: number }[] = [];
     for (const v of vertices4D) {
-      let [x, y, z, w] = v;
+      const [vx = 0, vy = 0, vz = 0, vw = 0] = v ?? [];
+      let x = vx;
+      let y = vy;
+      let z = vz;
+      let w = vw;
 
       let temp = x * cosXW - w * sinXW;
       w = x * sinXW + w * cosXW;
@@ -15754,7 +15758,7 @@ export class FlowFieldRenderer {
       vertices2D.push({ x: projX, y: projY, z: projZ });
     }
 
-    const edges = [
+    const edges: Array<[number, number]> = [
       [0, 1], [1, 3], [3, 2], [2, 0],
       [4, 5], [5, 7], [7, 6], [6, 4],
       [0, 4], [1, 5], [2, 6], [3, 7],
@@ -15766,8 +15770,10 @@ export class FlowFieldRenderer {
     ];
 
     edges.sort((a, b) => {
-      const zA = ((vertices2D[a[0]]?.z ?? 0) + (vertices2D[a[1]]?.z ?? 0)) * 0.5;
-      const zB = ((vertices2D[b[0]]?.z ?? 0) + (vertices2D[b[1]]?.z ?? 0)) * 0.5;
+      const [a0 = 0, a1 = 0] = a;
+      const [b0 = 0, b1 = 0] = b;
+      const zA = ((vertices2D[a0]?.z ?? 0) + (vertices2D[a1]?.z ?? 0)) * 0.5;
+      const zB = ((vertices2D[b0]?.z ?? 0) + (vertices2D[b1]?.z ?? 0)) * 0.5;
       return zA - zB;
     });
 
@@ -15776,6 +15782,7 @@ export class FlowFieldRenderer {
       const edge = edges[i];
       if (!edge) continue;
       const [idx1, idx2] = edge;
+      if (idx1 === undefined || idx2 === undefined) continue;
       const v1 = vertices2D[idx1];
       const v2 = vertices2D[idx2];
       if (!v1 || !v2) continue;
