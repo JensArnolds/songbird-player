@@ -62,7 +62,7 @@ Here’s an optimized, AI‑friendly version of your prompt — condensed, struc
 - Env vars validated in `src/env.js`; key vars:  
   `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `STREAMING_KEY`,  
   `NEXT_PUBLIC_API_URL`, `SONGBIRD_API_KEY`, etc.
-- `ELECTRON_BUILD=true` relaxes secure cookies and image optimization.
+- Electron sets `ELECTRON_BUILD` at runtime when spawning the Next server (and build scripts set it for `next build`); secure cookies and image optimization are relaxed automatically in Electron.
 
 ### UI and Styling
 

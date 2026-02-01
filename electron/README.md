@@ -48,13 +48,13 @@ npm run electron:build:linux
 
 ### Static vs Server Mode
 
-Currently, your Next.js is configured to use `standalone` mode for Electron builds when `ELECTRON_BUILD=true`. However, the build scripts don't set this variable yet.
+Next.js uses `standalone` mode for Electron. `ELECTRON_BUILD` is set automatically: build scripts set it for `next build` (image optimization), and the Electron main process sets it when spawning the Next server (NextAuth cookies).
 
 **If you need server-side features (tRPC, API routes, SSR):**
 
 - Keep standalone mode
-- Update build scripts to set `ELECTRON_BUILD=true`
-- Update electron-builder `files` config to include `.next/standalone/**/*`
+- Use `npm run electron:build` (or electron:build:win etc.) so `ELECTRON_BUILD` is set for the build
+- electron-builder `files` config includes `.next/standalone/**/*`
 
 **If you want a simpler static build (no server-side features):**
 

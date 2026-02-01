@@ -63,12 +63,11 @@ if (allGood) {
 } else {
   console.log("❌ Build verification failed!\n");
   console.log("The standalone server was not created. This means:");
-  console.log("  1. ELECTRON_BUILD=true environment variable may not be set");
-  console.log("  2. Next.js build may have failed");
-  console.log("  3. The output mode in next.config.js may be wrong\n");
+  console.log("  1. Next.js build may have failed");
+  console.log("  2. The output mode in next.config.js may be wrong\n");
   console.log("To fix:");
   console.log('  1. Check next.config.js has: output: "standalone"');
-  console.log("  2. Run: cross-env ELECTRON_BUILD=true next build");
+  console.log("  2. Run: npm run electron:build (or electron:build:win etc.)");
   console.log("  3. Run this script again: node electron/verify-build.js\n");
 }
 

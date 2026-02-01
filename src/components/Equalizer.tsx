@@ -2,18 +2,18 @@
 
 "use client";
 
-import { Power, RotateCcw, X, Sparkles } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { useEqualizer } from "@/hooks/useEqualizer";
 import {
-  hapticLight,
-  hapticMedium,
-  hapticSliderContinuous,
-  hapticSliderEnd,
-  haptic,
+    haptic,
+    hapticLight,
+    hapticMedium,
+    hapticSliderContinuous,
+    hapticSliderEnd,
 } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { motion, type PanInfo } from "framer-motion";
+import { Power, RotateCcw, Sparkles, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface EqualizerProps {
   equalizer: ReturnType<typeof useEqualizer>;
@@ -273,13 +273,13 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
     <>
       {}
       <div
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        className="theme-chrome-backdrop fixed inset-0 z-40 backdrop-blur-sm transition-opacity duration-300"
         onClick={handleClose}
       />
 
       {}
       <div className="animate-in slide-in-from-left fixed top-4 left-4 z-50 max-h-[calc(100vh-180px)] w-full max-w-md duration-300 sm:top-20 sm:left-6 sm:max-w-lg">
-        <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-[rgba(244,178,102,0.16)] bg-[rgba(10,16,24,0.95)] shadow-[0_28px_60px_rgba(5,10,18,0.65)] backdrop-blur-xl">
+        <div className="theme-chrome-drawer relative flex h-full flex-col overflow-hidden rounded-2xl border backdrop-blur-xl">
           {}
           {equalizer.isEnabled && (
             <div className="pointer-events-none absolute inset-0 opacity-20">
@@ -289,7 +289,7 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
 
           <div className="flex h-full flex-col overflow-hidden">
             {}
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[rgba(244,178,102,0.12)] bg-black/30 px-4 py-3 backdrop-blur-sm">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 px-4 py-3 backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] shadow-lg shadow-[rgba(244,178,102,0.3)]">
                   <Sparkles className="h-4 w-4 text-white" />
@@ -368,14 +368,14 @@ export function Equalizer({ equalizer, onClose }: EqualizerProps) {
               ) : (
                 <>
                   {}
-                  <div className="relative border-b border-[rgba(244,178,102,0.12)] bg-black/15 p-4">
+                  <div className="relative border-b border-[var(--color-border)] bg-[var(--color-surface)]/50 p-4">
                     <label className="mb-2 block text-xs font-medium tracking-wider text-[var(--color-subtext)] uppercase">
                       Preset
                     </label>
                     <select
                       value={equalizer.currentPreset}
                       onChange={(e) => handlePresetChange(e.target.value)}
-                      className="w-full cursor-pointer rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(18,26,38,0.92)] px-4 py-2.5 text-sm text-[var(--color-text)] backdrop-blur-sm transition-all hover:border-[rgba(244,178,102,0.35)] focus:border-[rgba(244,178,102,0.4)] focus:ring-2 focus:ring-[rgba(244,178,102,0.25)] focus:outline-none"
+                      className="w-full cursor-pointer rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm text-[var(--color-text)] backdrop-blur-sm transition-all hover:border-[var(--color-accent)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/25 focus:outline-none"
                     >
                       {equalizer.presets.map((preset) => (
                         <option

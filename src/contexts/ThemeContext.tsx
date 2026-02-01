@@ -1,3 +1,5 @@
+// File: src/contexts/ThemeContext.tsx
+
 "use client";
 
 import { api } from "@/trpc/react";

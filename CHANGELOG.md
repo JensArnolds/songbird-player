@@ -6,6 +6,71 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.2] - 2026-02-01
+
+### Changed
+
+- **ELECTRON_BUILD no longer required in .env**: App detects Electron context dynamically
+  - Electron main process sets `ELECTRON_BUILD=true` when spawning the Next.js server, so the server no longer needs this in `.env` or `.env.local`
+  - Build scripts (`npm run electron:build:*`) already set `ELECTRON_BUILD=true` for `next build` (image optimization); runtime flag is now injected by Electron when starting the server
+  - Removed `ELECTRON_BUILD` from `.env.example`; removed prepare-package logic that wrote it into standalone `.env.local`
+  - Auth config uses `env.ELECTRON_BUILD` (set by Electron at runtime); Docker and docs no longer reference the env var
+  - Locations: [electron/main.cjs](electron/main.cjs), [electron/prepare-package.js](electron/prepare-package.js), [src/server/auth/config.ts](src/server/auth/config.ts), [.env.example](.env.example), Dockerfile, docker-compose.yml, README, CONTEXT.md, CLAUDE.md, electron/README.md, electron/DISCORD_OAUTH.md, electron/verify-build.js, scripts/server.js
+
+## [0.12.1] - 2026-02-01
+
+### Fixed
+
+- **Mobile visualizer (eye button)**: "Class constructor FlowFieldRenderer cannot be invoked without 'new'" when enabling visuals on mobile
+  - FlowFieldRenderer is a canvas class, not a React component; it was incorrectly used as a component via dynamic import
+  - New React component `FlowFieldCanvas` wraps a canvas and instantiates `new FlowFieldRenderer(canvas)` with ResizeObserver, audio connection, and animation loop
+  - MobilePlayer now dynamically loads and renders `<FlowFieldCanvas />` with same props (audioElement, isPlaying, visualizerMode, visualizerType)
+  - Locations: [src/components/visualizers/FlowFieldCanvas.tsx](src/components/visualizers/FlowFieldCanvas.tsx), [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx)
+
+### Changed
+
+- **Light mode styling (full revamp)**: Light theme no longer mixes dark base with light variables
+  - Dark-only base: html background and arcane overlays (html::before/::after, body::before/::after) apply only under `html:not(.theme-light)` so light mode gets a clean base
+  - Light theme variables: refreshed palette (e.g. bg #f8fafb, surface #ffffff, accent #d4933d, border #e2e8f0), softer shadows/ring, `--color-on-accent` for buttons/badges/selection
+  - Light base: solid background and subtle teal/amber gradients via html.theme-light::before/::after; lightweight particle background hidden in light mode
+  - Component overrides under `html.theme-light`: .btn-secondary, .btn-ghost, .card, .surface-panel, .surface-muted, .chip, .glass, .player-backdrop, .page-shell, .bottom-sheet, .input-text, scrollbar, scroll-shadow-*, equalizer sliders/labels
+  - Theme-aware chrome: new classes .theme-chrome-header, .theme-chrome-bar, .theme-chrome-drawer, .theme-chrome-backdrop with light variants; Header, MiniPlayer, MobileFooter, BottomSheet, EnhancedQueue, Equalizer, PatternControls use them
+  - Settings and Home: cards/rows use var(--color-border), var(--color-surface), var(--color-surface-hover) instead of white/5; toggle track uses var(--color-border) when unchecked
+  - Locations: [src/styles/globals.css](src/styles/globals.css), [src/components/Header.tsx](src/components/Header.tsx), [src/components/MiniPlayer.tsx](src/components/MiniPlayer.tsx), [src/components/MobileFooter.tsx](src/components/MobileFooter.tsx), [src/components/BottomSheet.tsx](src/components/BottomSheet.tsx), [src/components/EnhancedQueue.tsx](src/components/EnhancedQueue.tsx), [src/components/Equalizer.tsx](src/components/Equalizer.tsx), [src/components/PatternControls.tsx](src/components/PatternControls.tsx), [src/app/settings/page.tsx](src/app/settings/page.tsx), [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx)
+
+## [0.12.0] - 2026-01-28
+
+### Changed
+
+- **Docker**: App runs as PID 1 with `node server.js` (no PM2 in default flow)
+  - Entrypoint runs `exec node server.js` so the Next.js standalone server is the container init process and receives all env (HOSTNAME=0.0.0.0, PORT=3222)
+  - Restart on crash is handled by Docker `restart: unless-stopped`; PM2 inside the container is redundant for single-process apps
+  - Entrypoint warns if AUTH_SECRET or STREAMING_KEY are unset
+  - Locations: [scripts/docker-entrypoint.sh](scripts/docker-entrypoint.sh), [DOCKER.md](DOCKER.md)
+
+- **API env renames (server-only)**: `NEXT_PUBLIC_API_URL` → `API_URL`, `NEXT_PUBLIC_V2_API_URL` / `V2_API_URL` → `API_V2_URL`
+  - All server and API code use `env.API_URL` and `env.API_V2_URL`; client no longer reads these (apiHostname passed from server to HomePageClient)
+  - Backward compatibility: runtimeEnv still reads `NEXT_PUBLIC_*` / `V2_API_URL` when new names are unset
+  - Locations: [src/env.js](src/env.js), API routes, [.env.example](.env.example), Dockerfile, docker-compose, scripts, tests
+
+### Improved
+
+- **Health route (`/api/health`)**: Always returns a response (fixes ERR_EMPTY_RESPONSE / 502)
+  - No top-level import of `@/server/db`; db is loaded via dynamic `import()` inside the handler so missing DATABASE_URL does not crash the process before responding
+  - When DATABASE_URL is missing, response is 200 with `checks.database: "skipped"`; when DB is unreachable, 503 with error
+  - Outer try/catch returns 503 JSON on any uncaught error so the connection is never closed without a response
+  - Location: [src/app/api/health/route.ts](src/app/api/health/route.ts)
+
+- **DOCKER.md**: 502 troubleshooting and process management
+  - Explains app runs as PID 1, required env vars (AUTH_SECRET, STREAMING_KEY, etc.), startup delay, and how to check with `curl` and `docker compose logs`
+  - Process management section updated: default is `node server.js`; optional PM2 via ecosystem.docker.cjs noted
+  - Location: [DOCKER.md](DOCKER.md)
+
+### Removed
+
+- **Void Ripples pattern**: Removed from FlowFieldRenderer and pattern list (had caused visualizer freezes; pattern was reworked then dropped)
+  - Locations: [src/components/visualizers/FlowFieldRenderer.ts](src/components/visualizers/FlowFieldRenderer.ts), [src/components/visualizers/flowfieldPatterns/patternIds.ts](src/components/visualizers/flowfieldPatterns/patternIds.ts)
+
 ## [0.11.4] - 2026-01-28
 
 ### Improved

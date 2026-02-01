@@ -137,7 +137,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={springPresets.gentle}
-      className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-[rgba(244,178,102,0.12)] bg-[rgba(10,16,24,0.98)] shadow-[0_-4px_24px_rgba(5,10,18,0.6)] backdrop-blur-2xl"
+      className="theme-chrome-bar safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur-2xl"
     >
       <div className="grid grid-cols-5 gap-1 px-2 py-2">
         {tabs.map((tab) => {

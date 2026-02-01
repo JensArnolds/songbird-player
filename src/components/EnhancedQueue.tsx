@@ -9,33 +9,33 @@ import type { QueuedTrack, SimilarityPreference, SmartQueueState, Track } from "
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
+    DndContext,
+    KeyboardSensor,
+    PointerSensor,
+    closestCenter,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  GripVertical,
-  Play,
-  Save,
-  Search,
-  Settings,
-  Sparkles,
-  Trash2,
-  X
+    GripVertical,
+    Play,
+    Save,
+    Search,
+    Settings,
+    Sparkles,
+    Trash2,
+    X
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -522,9 +522,9 @@ export function EnhancedQueue({
   const totalDuration = queue.reduce((acc, track) => acc + track.duration, 0);
 
   return (
-    <div className="fixed inset-y-0 right-0 z-[60] flex w-full max-w-md flex-col border-l border-[rgba(244,178,102,0.14)] bg-[rgba(10,16,24,0.96)] shadow-[0_0_40px_rgba(5,10,18,0.65)] backdrop-blur-lg">
+    <div className="theme-chrome-drawer fixed inset-y-0 right-0 z-[60] flex w-full max-w-md flex-col border-l backdrop-blur-lg">
       { }
-      <div className="flex flex-col gap-3 border-b border-[rgba(244,178,102,0.12)] p-4">
+      <div className="flex flex-col gap-3 border-b border-[var(--color-border)] p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-[var(--color-text)]">

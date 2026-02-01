@@ -5,20 +5,20 @@
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import type { SettingsKey } from "@/types/settings";
 import { api } from "@/trpc/react";
+import type { SettingsKey } from "@/types/settings";
 import { hapticLight, hapticToggle } from "@/utils/haptics";
 import { settingsStorage } from "@/utils/settingsStorage";
 import { springPresets } from "@/utils/spring-animations";
 import { motion } from "framer-motion";
 import {
-  ChevronRight,
-  Eye,
-  Music,
-  Settings,
-  Sparkles,
-  User,
-  Volume2,
+    ChevronRight,
+    Eye,
+    Music,
+    Settings,
+    Sparkles,
+    User,
+    Volume2,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -472,7 +472,7 @@ export default function SettingsPage() {
               </h2>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] shadow-lg backdrop-blur-sm">
+            <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg backdrop-blur-sm">
               {section.items.map((item, itemIndex) => (
                 <SettingsItemComponent
                   key={item.id}
@@ -509,7 +509,7 @@ function SettingsItemComponent({
     item.onChange?.(newValue);
   };
 
-  const borderClass = !isLast ? "border-b border-white/5" : "";
+  const borderClass = !isLast ? "border-b border-[var(--color-border)]" : "";
 
   if (item.type === "toggle") {
     return (
@@ -520,7 +520,7 @@ function SettingsItemComponent({
           ...springPresets.smooth,
           delay: index * 0.02,
         }}
-        className={`flex items-center justify-between px-5 py-4 transition-colors active:bg-white/5 md:hover:bg-white/[0.03] ${borderClass}`}
+        className={`flex items-center justify-between px-5 py-4 transition-colors active:bg-[var(--color-surface-hover)] md:hover:bg-[var(--color-surface-hover)] ${borderClass}`}
       >
         <div className="flex-1 pr-4">
           <div className="text-[15px] font-medium text-[var(--color-text)]">
@@ -607,7 +607,7 @@ function SettingsItemComponent({
       >
         <Link
           href={item.href ?? "#"}
-          className="flex items-center justify-between px-5 py-4 transition-colors active:bg-white/5 md:hover:bg-white/[0.03]"
+          className="flex items-center justify-between px-5 py-4 transition-colors active:bg-[var(--color-surface-hover)] md:hover:bg-[var(--color-surface-hover)]"
         >
           <div className="flex-1">
             <div className="text-[15px] font-medium text-[var(--color-text)]">
@@ -642,7 +642,7 @@ function SettingsItemComponent({
           className={`flex w-full items-center justify-between px-5 py-4 text-left transition-colors ${
             isSignOut
               ? "active:bg-red-500/10 md:hover:bg-red-500/5"
-              : "active:bg-white/5 md:hover:bg-white/[0.03]"
+              : "active:bg-[var(--color-surface-hover)] md:hover:bg-[var(--color-surface-hover)]"
           }`}
         >
           <div
@@ -672,7 +672,7 @@ function ToggleSwitch({
     <button
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors ${
-        checked ? "bg-[var(--color-accent)]" : "bg-white/10"
+        checked ? "bg-[var(--color-accent)]" : "bg-[var(--color-border)]"
       }`}
       role="switch"
       aria-checked={checked}
@@ -825,7 +825,7 @@ function SelectButton({
                 className={`w-full px-4 py-3 text-left text-[14px] font-medium transition-colors ${
                   value === option.value
                     ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                    : "text-[var(--color-text)] active:bg-white/5 md:hover:bg-white/[0.03]"
+                    : "text-[var(--color-text)] active:bg-[var(--color-surface-hover)] md:hover:bg-[var(--color-surface-hover)]"
                 }`}
               >
                 {option.label}

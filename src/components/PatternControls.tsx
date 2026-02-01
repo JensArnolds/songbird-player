@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Layers, ChevronDown } from "lucide-react";
+import { ChevronDown, Layers } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
 import type { Pattern } from "./visualizers/flowfieldPatterns/patternIds";
@@ -239,14 +239,14 @@ export default function PatternControls({
     <>
       {}
       <div
-        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+        className="theme-chrome-backdrop fixed inset-0 z-40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {}
-      <div className="fixed bottom-24 left-1/2 z-50 w-full max-w-md -translate-x-1/2 rounded-lg border border-[rgba(244,178,102,0.18)] bg-[rgba(12,18,27,0.98)] shadow-2xl shadow-[rgba(5,10,18,0.8)] backdrop-blur-xl">
+      <div className="theme-chrome-drawer fixed bottom-24 left-1/2 z-50 w-full max-w-md -translate-x-1/2 rounded-lg border shadow-2xl backdrop-blur-xl">
         {}
-        <div className="flex items-center justify-between border-b border-[rgba(244,178,102,0.12)] px-4 py-3">
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
           <div className="flex items-center gap-2">
             <Layers className="h-4 w-4 text-[var(--color-accent)]" />
             <h3 className="font-semibold text-[var(--color-text)]">

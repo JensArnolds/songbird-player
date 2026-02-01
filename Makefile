@@ -1,3 +1,5 @@
+# File: Makefile
+
 .PHONY: help build up down restart logs shell migrate clean up-local down-local db-shell
 
 help:

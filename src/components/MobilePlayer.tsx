@@ -5,59 +5,53 @@
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { STORAGE_KEYS } from "@/config/storage";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import { api } from "@/trpc/react";
 import type { SimilarityPreference, Track } from "@/types";
 import {
-  getAudioConnection,
-  getOrCreateAudioConnection,
-  releaseAudioConnection,
-} from "@/utils/audioContextManager";
-import {
-  extractColorsFromImage,
-  type ColorPalette,
+    extractColorsFromImage,
+    type ColorPalette,
 } from "@/utils/colorExtractor";
 import {
-  haptic,
-  hapticLight,
-  hapticMedium,
-  hapticSliderContinuous,
-  hapticSliderEnd,
-  hapticSuccess,
+    haptic,
+    hapticLight,
+    hapticMedium,
+    hapticSliderContinuous,
+    hapticSliderEnd,
+    hapticSuccess,
 } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
 import { settingsStorage } from "@/utils/settingsStorage";
 import { springPresets } from "@/utils/spring-animations";
 import { formatDuration, formatTime } from "@/utils/time";
 import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useTransform,
-  type PanInfo,
+    AnimatePresence,
+    motion,
+    useMotionValue,
+    useTransform,
+    type PanInfo,
 } from "framer-motion";
 import {
-  ChevronDown,
-  Eye,
-  GripVertical,
-  Heart,
-  ListMusic,
-  ListPlus,
-  Pause,
-  Play,
-  Repeat,
-  Repeat1,
-  Save,
-  Search,
-  Settings,
-  Shuffle,
-  SkipBack,
-  SkipForward,
-  Sparkles,
-  Trash2,
-  X
+    ChevronDown,
+    Eye,
+    GripVertical,
+    Heart,
+    ListMusic,
+    ListPlus,
+    Pause,
+    Play,
+    Repeat,
+    Repeat1,
+    Save,
+    Search,
+    Settings,
+    Shuffle,
+    SkipBack,
+    SkipForward,
+    Sparkles,
+    Trash2,
+    X
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -72,10 +66,10 @@ const QueueSettingsModal = dynamic(
   { ssr: false },
 );
 
-const FlowFieldRenderer = dynamic(
+const FlowFieldCanvas = dynamic(
   () =>
-    import("@/components/visualizers/FlowFieldRenderer").then((mod) => ({
-      default: mod.FlowFieldRenderer,
+    import("@/components/visualizers/FlowFieldCanvas").then((mod) => ({
+      default: mod.FlowFieldCanvas,
     })),
   { ssr: false },
 );
@@ -1215,7 +1209,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                 }}
                               />
                               <div className="relative h-full w-full overflow-hidden rounded-[30px] bg-black">
-                                <FlowFieldRenderer
+                                <FlowFieldCanvas
                                   audioElement={audioElement}
                                   isPlaying={isPlaying}
                                   visualizerMode={effectivePreferences?.visualizerMode ?? "random"}

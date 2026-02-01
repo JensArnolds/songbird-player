@@ -84,7 +84,7 @@ PORT=3222
 **Symptom:** Web version works, but Electron fails after OAuth redirect.
 
 **Solution:**
-- Verify `ELECTRON_BUILD=true` is set in your `.env.local`
+- The Electron main process sets `ELECTRON_BUILD=true` when spawning the Next server (no `.env` needed)
 - Check that cookies are being persisted (see [electron/main.cjs](./main.cjs) lines 398-418)
 - Ensure the `partition: "persist:darkfloor-art"` is set in BrowserWindow webPreferences
 
