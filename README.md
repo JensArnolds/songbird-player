@@ -533,9 +533,66 @@ npm run deploy       # Build + reload
 
 ## 🚀 Production Deployment & Server Management
 
-### PM2 Process Manager
+### Docker (Recommended)
 
-This project uses **PM2** for production process management, providing automatic restarts, logging, and monitoring capabilities.
+The easiest way to deploy Songbird Frontend is using Docker with the included PostgreSQL database.
+
+#### Quick Start
+
+```bash
+# 1. Copy environment template
+cp .env.docker.example .env
+
+# 2. Configure required variables
+# Edit .env with your Discord OAuth credentials, API keys, etc.
+
+# 3. Start all services (app + database)
+docker-compose up -d
+
+# 4. View logs
+docker-compose logs -f app
+```
+
+Access the application at <http://localhost:3222>
+
+#### Using Makefile
+
+For convenience, use the included Makefile:
+
+```bash
+make help        # Show all available commands
+make up          # Start production environment
+make logs        # View application logs
+make down        # Stop all services
+make dev         # Start development with hot reload
+make db-shell    # Access PostgreSQL CLI
+make migrate     # Run database migrations
+```
+
+#### Features
+
+- **Isolated Environment**: Containerized app + PostgreSQL database
+- **Auto-Migrations**: Database migrations run automatically on startup
+- **Health Checks**: Built-in health monitoring and auto-restart
+- **Volume Persistence**: Database data persists across restarts
+- **Zero Configuration**: No manual database setup required
+- **Hot Reload**: Development mode supports code changes without rebuild
+
+#### Full Documentation
+
+See [DOCKER.md](DOCKER.md) for complete Docker deployment guide including:
+
+- Environment configuration
+- Production deployment checklist
+- Database backups and migrations
+- Reverse proxy setup (nginx/Caddy)
+- Troubleshooting and monitoring
+- Security best practices
+- CI/CD integration examples
+
+### PM2 Process Manager (Traditional Deployment)
+
+This project also supports **PM2** for traditional Node.js process management, providing automatic restarts, logging, and monitoring capabilities.
 
 ### Server Startup & Shutdown
 

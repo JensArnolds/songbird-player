@@ -8,11 +8,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.11.1] - 2026-01-28
 
+### Added
+
+- **Docker Deployment Support**: Complete containerization with production-ready Docker setup
+  - Multi-stage Dockerfile optimized for production (~450MB final image)
+  - Docker Compose orchestration for full stack (app + PostgreSQL database)
+  - Development Docker Compose with hot reload and volume mounts
+  - Automatic database migrations on container startup via entrypoint script
+  - Health checks and auto-restart policies for reliability
+  - PostgreSQL 16 Alpine integration with persistent volumes
+  - Non-root user (nextjs:1001) for enhanced security
+  - Environment template with all required variables (`.env.docker.example`)
+  - Locations: [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml), [docker-compose.dev.yml](docker-compose.dev.yml)
+
+- **Docker Helper Scripts**: Automation scripts for Docker deployment
+  - `docker-entrypoint.sh`: Runs migrations before starting app in production
+  - `docker-migrate.sh`: Database migration helper with PostgreSQL readiness check
+  - Executable permissions configured in Dockerfile
+  - Locations: [scripts/docker-entrypoint.sh](scripts/docker-entrypoint.sh), [scripts/docker-migrate.sh](scripts/docker-migrate.sh)
+
+- **Makefile**: Convenient commands for Docker operations
+  - `make up`: Start production environment
+  - `make down`: Stop all services
+  - `make logs`: View application logs
+  - `make dev`: Start development with hot reload
+  - `make db-shell`: Access PostgreSQL CLI
+  - `make migrate`: Run database migrations
+  - `make clean`: Remove all containers and volumes
+  - `make help`: Show all available commands
+  - Location: [Makefile](Makefile)
+
+- **Docker CI/CD Workflow**: GitHub Actions integration for automated builds
+  - Builds and tests Docker images on push and pull requests
+  - Caches Docker layers for faster builds
+  - Pushes to Docker Hub on main branch (configurable)
+  - Multi-platform support ready
+  - Location: [.github/workflows/docker-build.yml](.github/workflows/docker-build.yml)
+
+- **Comprehensive Docker Documentation**: 500+ line deployment guide
+  - Quick start guide with step-by-step instructions
+  - Production deployment checklist
+  - Database management and backup strategies
+  - Reverse proxy setup examples (nginx, Caddy)
+  - Troubleshooting guide for common issues
+  - Security best practices and hardening
+  - Performance tuning recommendations
+  - CI/CD integration examples
+  - Migration guide from non-Docker deployments
+  - Location: [DOCKER.md](DOCKER.md)
+
 ### Improved
+
+- **README.md**: Added Docker as recommended deployment method
+  - Quick start section for Docker deployment
+  - Makefile command reference
+  - Feature highlights (isolation, auto-migrations, health checks)
+  - Links to comprehensive Docker documentation
+  - Positioned Docker before PM2 as recommended approach
+  - Location: [README.md](README.md#-production-deployment--server-management)
+
+- **CLAUDE.md**: Added Docker deployment commands section
+  - Production and development Docker Compose commands
+  - Database operations via Docker
+  - Reference to DOCKER.md for complete guide
+  - Integrated into Common Commands section
+  - Location: [CLAUDE.md](CLAUDE.md#docker-deployment)
+
+- **.dockerignore**: Optimized Docker build context
+  - Excludes node_modules, .next, and build artifacts
+  - Excludes .env files (except example template)
+  - Excludes development files (tests, IDE configs)
+  - Reduces build context size and improves build speed
+  - Location: [.dockerignore](.dockerignore)
 
 - **mark-migrations-applied script**: Fix sync with drizzle-kit migrate (PostgreSQL)
   - Script now writes to `drizzle.__drizzle_migrations` instead of `public.__drizzle_migrations`, matching the schema used by drizzle-orm for PostgreSQL so `npm run db:migrate` recognizes applied migrations
-  - Hash stored is now the SHA-256 hex digest of each migration `.sql` file content (as computed by drizzle-orm’s migrator), instead of the migration tag, so entries match what `drizzle-kit migrate` expects
+  - Hash stored is now the SHA-256 hex digest of each migration `.sql` file content (as computed by drizzle-orm's migrator), instead of the migration tag, so entries match what `drizzle-kit migrate` expects
   - Use when the database already has the tables (e.g. from `db:push` or a previous run) but migrate still tries to re-apply and fails with "relation … already exists"
   - Usage: `npx tsx scripts/mark-migrations-applied.ts` then `npm run db:migrate`
   - Location: [scripts/mark-migrations-applied.ts](scripts/mark-migrations-applied.ts)
