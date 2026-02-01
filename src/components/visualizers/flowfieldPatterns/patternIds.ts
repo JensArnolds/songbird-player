@@ -114,4 +114,7 @@ export type Pattern =
   | "harmonicPetals"
   | "latticeDrift"
   | "nebulaDrift"
-  | "crystalPulse";
+  | "crystalPulse"
+  | "voidRipples"
+  | "tesseractSpin"
+  | "valknut";

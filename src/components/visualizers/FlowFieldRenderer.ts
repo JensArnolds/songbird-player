@@ -172,6 +172,9 @@ export class FlowFieldRenderer {
     "latticeDrift",
     "nebulaDrift",
     "crystalPulse",
+    "voidRipples",
+    "tesseractSpin",
+    "valknut",
   ];
 
   private currentPattern: Pattern = "kaleidoscope";
@@ -3418,6 +3421,15 @@ export class FlowFieldRenderer {
         break;
       case "crystalPulse":
         this.renderCrystalPulse(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "voidRipples":
+        this.renderVoidRipples(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "tesseractSpin":
+        this.renderTesseractSpin(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "valknut":
+        this.renderValknut(audioIntensity, bassIntensity, trebleIntensity);
         break;
     }
   }
@@ -15590,6 +15602,314 @@ export class FlowFieldRenderer {
       ctx.beginPath();
       ctx.moveTo(connectX, connectY);
       ctx.lineTo(nextConnectX, nextConnectY);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  private renderVoidRipples(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const time = this.time * 0.0005;
+    const minDimension = Math.min(this.width, this.height);
+    const pixelCount = this.width * this.height;
+    const baseDetailScale =
+      pixelCount > 900_000 ? 0.65 : pixelCount > 700_000 ? 0.8 : 1;
+    const detailScale = baseDetailScale * this.qualityScale;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+
+    const sourceCount = Math.max(3, ((4 + ((audioIntensity * 3) | 0)) * detailScale) | 0);
+    const ripplesPerSource = Math.max(6, ((10 + ((midIntensity * 8) | 0)) * detailScale) | 0);
+    const maxRadius = minDimension * 0.6;
+    const baseHue = this.fastMod360(this.hueBase + time * 40);
+
+    for (let source = 0; source < sourceCount; source++) {
+      const sourceAngle = (twoPi / sourceCount) * source + time * 0.3;
+      const sourceDistance = minDimension * (0.1 + (source / sourceCount) * 0.15) * (1 + this.fastSin(time * 1.5 + source) * 0.2);
+      const sx = this.fastCos(sourceAngle) * sourceDistance;
+      const sy = this.fastSin(sourceAngle) * sourceDistance;
+      const sourceHue = this.fastMod360(baseHue + source * 70);
+      const pulseSpeed = 0.7 + source * 0.15;
+
+      for (let r = 0; r < ripplesPerSource; r++) {
+        const rippleProgress = (r / ripplesPerSource + time * pulseSpeed) % 1;
+        const radius = rippleProgress * maxRadius + this.fastSin(time * 2 + r * 0.5) * (8 + bassIntensity * 12);
+        const life = 1 - rippleProgress;
+        const alpha = (0.15 + audioIntensity * 0.2) * life * life;
+        if (alpha <= 0.02) continue;
+
+        const rippleHue = this.fastMod360(sourceHue + rippleProgress * 60);
+        const lineWidth = (1.2 + midIntensity * 1.8 + this.fastSin(time * 3 + r) * 0.5) * (0.5 + life * 0.5);
+
+        ctx.strokeStyle = this.hsla(rippleHue, 85, 60 + rippleProgress * 15, alpha);
+        ctx.lineWidth = lineWidth;
+        ctx.beginPath();
+        ctx.arc(sx, sy, radius, 0, twoPi);
+        ctx.stroke();
+      }
+    }
+
+    const interferenceAlpha = 0.08 + audioIntensity * 0.12;
+    ctx.lineWidth = 0.8;
+    for (let source = 0; source < sourceCount - 1; source++) {
+      const sourceAngle = (twoPi / sourceCount) * source + time * 0.3;
+      const sourceDistance = minDimension * (0.1 + (source / sourceCount) * 0.15) * (1 + this.fastSin(time * 1.5 + source) * 0.2);
+      const sx1 = this.fastCos(sourceAngle) * sourceDistance;
+      const sy1 = this.fastSin(sourceAngle) * sourceDistance;
+
+      const nextSource = source + 1;
+      const nextAngle = (twoPi / sourceCount) * nextSource + time * 0.3;
+      const nextDistance = minDimension * (0.1 + (nextSource / sourceCount) * 0.15) * (1 + this.fastSin(time * 1.5 + nextSource) * 0.2);
+      const sx2 = this.fastCos(nextAngle) * nextDistance;
+      const sy2 = this.fastSin(nextAngle) * nextDistance;
+
+      const connectionHue = this.fastMod360(baseHue + source * 35);
+      ctx.strokeStyle = this.hsla(connectionHue, 75, 65, interferenceAlpha);
+      ctx.beginPath();
+      ctx.moveTo(sx1, sy1);
+      ctx.lineTo(sx2, sy2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  private renderTesseractSpin(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const time = this.time * 0.0006;
+    const minDimension = Math.min(this.width, this.height);
+    const pixelCount = this.width * this.height;
+    const baseDetailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = baseDetailScale * this.qualityScale;
+    const useShadows = detailScale >= 0.85;
+    const shadowScale = detailScale;
+
+    const scale = minDimension * (0.15 + audioIntensity * 0.08);
+    const rotationSpeed = 1 + bassIntensity * 0.5;
+    const angleXY = time * rotationSpeed;
+    const angleXZ = time * rotationSpeed * 0.7;
+    const angleYZ = time * rotationSpeed * 0.5;
+    const angleXW = time * rotationSpeed * 0.4;
+    const baseHue = this.fastMod360(this.hueBase + time * 30);
+
+    const cosXY = this.fastCos(angleXY);
+    const sinXY = this.fastSin(angleXY);
+    const cosXZ = this.fastCos(angleXZ);
+    const sinXZ = this.fastSin(angleXZ);
+    const cosYZ = this.fastCos(angleYZ);
+    const sinYZ = this.fastSin(angleYZ);
+    const cosXW = this.fastCos(angleXW);
+    const sinXW = this.fastSin(angleXW);
+
+    const vertices4D = [
+      [-1, -1, -1, -1], [1, -1, -1, -1], [-1, 1, -1, -1], [1, 1, -1, -1],
+      [-1, -1, 1, -1], [1, -1, 1, -1], [-1, 1, 1, -1], [1, 1, 1, -1],
+      [-1, -1, -1, 1], [1, -1, -1, 1], [-1, 1, -1, 1], [1, 1, -1, 1],
+      [-1, -1, 1, 1], [1, -1, 1, 1], [-1, 1, 1, 1], [1, 1, 1, 1],
+    ];
+
+    const vertices2D: { x: number; y: number; z: number }[] = [];
+    for (const v of vertices4D) {
+      let [x, y, z, w] = v;
+
+      let temp = x * cosXW - w * sinXW;
+      w = x * sinXW + w * cosXW;
+      x = temp;
+
+      temp = x * cosXY - y * sinXY;
+      y = x * sinXY + y * cosXY;
+      x = temp;
+
+      temp = x * cosXZ - z * sinXZ;
+      z = x * sinXZ + z * cosXZ;
+      x = temp;
+
+      temp = y * cosYZ - z * sinYZ;
+      z = y * sinYZ + z * cosYZ;
+      y = temp;
+
+      const distance = 3.5;
+      const perspectiveScale = distance / (distance - w);
+      const projX = x * perspectiveScale * scale;
+      const projY = y * perspectiveScale * scale;
+      const projZ = z * perspectiveScale;
+
+      vertices2D.push({ x: projX, y: projY, z: projZ });
+    }
+
+    const edges = [
+      [0, 1], [1, 3], [3, 2], [2, 0],
+      [4, 5], [5, 7], [7, 6], [6, 4],
+      [0, 4], [1, 5], [2, 6], [3, 7],
+      [8, 9], [9, 11], [11, 10], [10, 8],
+      [12, 13], [13, 15], [15, 14], [14, 12],
+      [8, 12], [9, 13], [10, 14], [11, 15],
+      [0, 8], [1, 9], [2, 10], [3, 11],
+      [4, 12], [5, 13], [6, 14], [7, 15],
+    ];
+
+    edges.sort((a, b) => {
+      const zA = ((vertices2D[a[0]]?.z ?? 0) + (vertices2D[a[1]]?.z ?? 0)) * 0.5;
+      const zB = ((vertices2D[b[0]]?.z ?? 0) + (vertices2D[b[1]]?.z ?? 0)) * 0.5;
+      return zA - zB;
+    });
+
+    ctx.lineWidth = 1.5 + trebleIntensity * 2;
+    for (let i = 0; i < edges.length; i++) {
+      const edge = edges[i];
+      if (!edge) continue;
+      const [idx1, idx2] = edge;
+      const v1 = vertices2D[idx1];
+      const v2 = vertices2D[idx2];
+      if (!v1 || !v2) continue;
+
+      const avgZ = (v1.z + v2.z) * 0.5;
+      const depth = (avgZ + 2) / 4;
+      const alpha = 0.2 + audioIntensity * 0.4 + depth * 0.3;
+      const edgeHue = this.fastMod360(baseHue + i * 8 + depth * 50);
+
+      ctx.strokeStyle = this.hsla(edgeHue, 85, 60 + depth * 15, alpha);
+
+      if (useShadows && depth > 0.6) {
+        ctx.shadowBlur = (6 + audioIntensity * 8) * shadowScale;
+        ctx.shadowColor = this.hsla(edgeHue, 90, 70, 0.4);
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(v1.x, v1.y);
+      ctx.lineTo(v2.x, v2.y);
+      ctx.stroke();
+
+      if (useShadows && depth > 0.6) {
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    ctx.restore();
+  }
+
+  private renderValknut(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const time = this.time * 0.0007;
+    const minDimension = Math.min(this.width, this.height);
+    const pixelCount = this.width * this.height;
+    const baseDetailScale =
+      pixelCount > 900_000 ? 0.7 : pixelCount > 700_000 ? 0.85 : 1;
+    const detailScale = baseDetailScale * this.qualityScale;
+    const useShadows = detailScale >= 0.85;
+    const shadowScale = detailScale;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+
+    const mainRotation = time * 0.4;
+    const pulseScale = 1 + this.fastSin(time * 2) * (0.1 + bassIntensity * 0.12);
+    const triangleSize = minDimension * (0.18 + audioIntensity * 0.08) * pulseScale;
+    const baseHue = this.fastMod360(this.hueBase + time * 35);
+
+    const triangleOffsets = [
+      { angle: 0, distance: triangleSize * 0.38 },
+      { angle: twoPi / 3, distance: triangleSize * 0.38 },
+      { angle: (twoPi * 2) / 3, distance: triangleSize * 0.38 },
+    ];
+
+    for (let t = 0; t < 3; t++) {
+      const offset = triangleOffsets[t];
+      if (!offset) continue;
+
+      const cx = this.fastCos(offset.angle + mainRotation) * offset.distance;
+      const cy = this.fastSin(offset.angle + mainRotation) * offset.distance;
+
+      const triangleRotation = mainRotation + t * (twoPi / 3);
+      const hue = this.fastMod360(baseHue + t * 90);
+      const alpha = 0.3 + audioIntensity * 0.35;
+
+      const points: { x: number; y: number }[] = [];
+      for (let i = 0; i < 3; i++) {
+        const angle = triangleRotation + (twoPi / 3) * i + Math.PI * 0.5;
+        const x = cx + this.fastCos(angle) * triangleSize;
+        const y = cy + this.fastSin(angle) * triangleSize;
+        points.push({ x, y });
+      }
+
+      ctx.strokeStyle = this.hsla(hue, 90, 65, alpha);
+      ctx.lineWidth = 2 + trebleIntensity * 2.5;
+
+      if (useShadows) {
+        ctx.shadowBlur = (10 + audioIntensity * 12) * shadowScale;
+        ctx.shadowColor = this.hsla(hue, 95, 70, 0.5);
+      }
+
+      ctx.beginPath();
+      const firstPoint = points[0];
+      if (firstPoint) ctx.moveTo(firstPoint.x, firstPoint.y);
+      for (let i = 1; i < points.length; i++) {
+        const point = points[i];
+        if (point) ctx.lineTo(point.x, point.y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+
+      const innerScale = 0.5 + this.fastSin(time * 2.5 + t) * 0.15;
+      ctx.strokeStyle = this.hsla(hue, 95, 75, alpha * 0.7);
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      const innerFirstPoint = points[0];
+      if (innerFirstPoint) {
+        ctx.moveTo(cx + (innerFirstPoint.x - cx) * innerScale, cy + (innerFirstPoint.y - cy) * innerScale);
+      }
+      for (let i = 1; i < points.length; i++) {
+        const point = points[i];
+        if (point) {
+          ctx.lineTo(cx + (point.x - cx) * innerScale, cy + (point.y - cy) * innerScale);
+        }
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    const connectionAlpha = 0.12 + audioIntensity * 0.15;
+    ctx.lineWidth = 0.8 + trebleIntensity * 0.8;
+    for (let t = 0; t < 3; t++) {
+      const offset1 = triangleOffsets[t];
+      const offset2 = triangleOffsets[(t + 1) % 3];
+      if (!offset1 || !offset2) continue;
+
+      const cx1 = this.fastCos(offset1.angle + mainRotation) * offset1.distance;
+      const cy1 = this.fastSin(offset1.angle + mainRotation) * offset1.distance;
+      const cx2 = this.fastCos(offset2.angle + mainRotation) * offset2.distance;
+      const cy2 = this.fastSin(offset2.angle + mainRotation) * offset2.distance;
+
+      const connectionHue = this.fastMod360(baseHue + t * 60 + 45);
+      ctx.strokeStyle = this.hsla(connectionHue, 80, 70, connectionAlpha);
+      ctx.beginPath();
+      ctx.moveTo(cx1, cy1);
+      ctx.lineTo(cx2, cy2);
       ctx.stroke();
     }
 
