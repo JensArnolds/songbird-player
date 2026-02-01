@@ -14,6 +14,8 @@
   --color-accent: #f4b266;
   --color-accent-light: #ffd6a0;
   --color-accent-strong: #58c6b1;
+  --color-secondary-accent: #4ab8a3;
+  --color-secondary-accent-strong: #58c6b1;
   --color-text: #f5f1e8;
   --color-subtext: #a5afbf;
   --color-muted: #7f8897;
@@ -52,6 +54,8 @@ html.theme-light {
   --color-accent: #f4b266;
   --color-accent-light: #ffd6a0;
   --color-accent-strong: #58c6b1;
+  --color-secondary-accent: #4ab8a3;
+  --color-secondary-accent-strong: #58c6b1;
   --color-text: #1a1f2e;
   --color-subtext: #4a5568;
   --color-muted: #718096;

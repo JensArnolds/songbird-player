@@ -9,16 +9,16 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import {
-    getAlbumTracks,
-    getTrackById,
-    searchTracks,
-    searchTracksByArtist,
+  getAlbumTracks,
+  getTrackById,
+  searchTracks,
+  searchTracksByArtist,
 } from "@/utils/api";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import {
-    springPresets,
-    staggerContainer,
-    staggerItem,
+  springPresets,
+  staggerContainer,
+  staggerItem,
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, Music2, Search, Shuffle, Sparkles } from "lucide-react";
@@ -609,17 +609,18 @@ export default function HomePageClient() {
                   </motion.button>
                 )}
 
-                {/* Make the button stand out more */}
                 <motion.button
                   onClick={() => {
                     hapticLight();
                     router.push("/playlists/12");
                   }}
-                  whileTap={{ scale: 0.95 }}
-                  className="mt-4 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-secondary-accent)] to-[var(--color-secondary-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-[var(--color-secondary-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-secondary-accent)]/40 hover:shadow-xl md:mt-3 md:gap-2 md:px-6 md:py-3 md:text-base"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group relative mt-4 flex w-full max-w-xs items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--color-secondary-accent)] to-[var(--color-secondary-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[var(--color-secondary-accent)]/25 ring-2 ring-white/10 transition-all duration-200 ease-out hover:brightness-110 hover:shadow-xl hover:shadow-[var(--color-secondary-accent)]/40 hover:ring-4 hover:ring-white/25 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40 md:mt-3 md:gap-2 md:px-6 md:py-3 md:text-base"
                 >
-                  <Music2 className="h-6 w-6 md:h-5 md:w-5" />
-                  <span>Example Playlist</span>
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" aria-hidden />
+                  <Music2 className="relative h-6 w-6 md:h-5 md:w-5 transition-transform duration-200 group-hover:scale-110" />
+                  <span className="relative">Example Playlist</span>
                 </motion.button>
 
                 <div className="mt-6 flex flex-wrap justify-center gap-2 md:mt-4 md:gap-1.5">
