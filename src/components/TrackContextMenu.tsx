@@ -4,21 +4,22 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Heart,
-  ListPlus,
-  Play,
-  Plus,
-  Share2,
-  User,
-  Disc3,
-  SkipForward,
+    Disc3,
+    Heart,
+    ListPlus,
+    Play,
+    Plus,
+    Share2,
+    SkipForward,
+    Trash2,
+    User,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
 
-import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
+import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
 import { useWebShare } from "@/hooks/useWebShare";
 import { api } from "@/trpc/react";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
@@ -26,7 +27,7 @@ import { springPresets } from "@/utils/spring-animations";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
 
 export function TrackContextMenu() {
-  const { track, position, excludePlaylistId, closeMenu } =
+  const { track, position, excludePlaylistId, removeFromList, closeMenu } =
     useTrackContextMenu();
   const player = useGlobalPlayer();
   const { showToast } = useToast();
@@ -234,6 +235,7 @@ export function TrackContextMenu() {
                 left: position.x,
                 top: position.y,
               }}
+              onClick={(e) => e.stopPropagation()}
             >
               {}
               <button
@@ -361,6 +363,29 @@ export function TrackContextMenu() {
                   Album
                 </span>
               </button>
+
+              {}
+              {removeFromList && (
+                <>
+                  <div className="h-10 w-px bg-[rgba(244,178,102,0.15)]" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticLight();
+                      const onRemove = removeFromList.onRemove;
+                      onRemove();
+                      closeMenu();
+                    }}
+                    className="group flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all hover:bg-[var(--color-danger)]/15 active:scale-95"
+                    title={removeFromList.label}
+                  >
+                    <Trash2 className="h-5 w-5 text-[var(--color-subtext)] transition-all group-hover:scale-110 group-hover:text-[var(--color-danger)]" />
+                    <span className="text-[10px] font-medium text-[var(--color-subtext)] group-hover:text-[var(--color-text)]">
+                      Remove
+                    </span>
+                  </button>
+                </>
+              )}
             </motion.div>
           </>
         )}

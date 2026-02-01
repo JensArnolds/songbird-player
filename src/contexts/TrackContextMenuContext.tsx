@@ -10,11 +10,22 @@ interface MenuPosition {
   y: number;
 }
 
+export interface RemoveFromListOption {
+  label: string;
+  onRemove: () => void;
+}
+
+export type OpenMenuOptions =
+  | number
+  | { excludePlaylistId?: number; removeFromList?: RemoveFromListOption }
+  | undefined;
+
 interface TrackContextMenuContextType {
   track: Track | null;
   position: MenuPosition | null;
   excludePlaylistId?: number;
-  openMenu: (track: Track, x: number, y: number, excludePlaylistId?: number) => void;
+  removeFromList?: RemoveFromListOption;
+  openMenu: (track: Track, x: number, y: number, options?: OpenMenuOptions) => void;
   closeMenu: () => void;
 }
 
@@ -26,22 +37,36 @@ export function TrackContextMenuProvider({ children }: { children: ReactNode }) 
   const [track, setTrack] = useState<Track | null>(null);
   const [position, setPosition] = useState<MenuPosition | null>(null);
   const [excludePlaylistId, setExcludePlaylistId] = useState<number | undefined>(undefined);
+  const [removeFromList, setRemoveFromList] = useState<RemoveFromListOption | undefined>(undefined);
 
-  const openMenu = useCallback((track: Track, x: number, y: number, excludePlaylistId?: number) => {
-    setTrack(track);
-    setPosition({ x, y });
-    setExcludePlaylistId(excludePlaylistId);
-  }, []);
+  const openMenu = useCallback(
+    (track: Track, x: number, y: number, options?: OpenMenuOptions) => {
+      setTrack(track);
+      setPosition({ x, y });
+      if (options === undefined) {
+        setExcludePlaylistId(undefined);
+        setRemoveFromList(undefined);
+      } else if (typeof options === "number") {
+        setExcludePlaylistId(options);
+        setRemoveFromList(undefined);
+      } else {
+        setExcludePlaylistId(options.excludePlaylistId);
+        setRemoveFromList(options.removeFromList);
+      }
+    },
+    [],
+  );
 
   const closeMenu = useCallback(() => {
     setTrack(null);
     setPosition(null);
     setExcludePlaylistId(undefined);
+    setRemoveFromList(undefined);
   }, []);
 
   return (
     <TrackContextMenuContext.Provider
-      value={{ track, position, excludePlaylistId, openMenu, closeMenu }}
+      value={{ track, position, excludePlaylistId, removeFromList, openMenu, closeMenu }}
     >
       {children}
     </TrackContextMenuContext.Provider>

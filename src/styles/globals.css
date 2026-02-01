@@ -382,28 +382,38 @@ button {
 html.theme-light .btn-primary,
 html.theme-light .btn-primary:hover,
 html.theme-light .btn-primary:focus-visible {
+  background: linear-gradient(135deg, #e8b050, #5bc4a8);
   color: var(--color-on-accent);
-  box-shadow: 0 6px 20px rgba(201, 130, 46, 0.25);
+  box-shadow: 0 6px 20px rgba(232, 176, 80, 0.22);
 }
 html.theme-light .btn-primary:hover {
-  box-shadow: 0 10px 24px rgba(201, 130, 46, 0.32);
+  background: linear-gradient(135deg, #eeb860, #66d0b4);
+  box-shadow: 0 10px 24px rgba(232, 176, 80, 0.28);
+  color: #0f1419;
 }
 html.theme-light .btn-primary::before {
-  background: linear-gradient(
-    135deg,
-    var(--color-accent-light),
-    var(--color-accent)
-  );
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.15));
 }
 html.theme-light .btn-primary:hover::before {
-  opacity: 0.92;
+  opacity: 0.6;
 }
 html.theme-light .btn-primary > *,
 html.theme-light .btn-primary:hover > * {
   color: inherit;
 }
 html.theme-light .btn-primary:active {
-  box-shadow: 0 4px 14px rgba(201, 130, 46, 0.22);
+  background: linear-gradient(135deg, #e0a848, #52c4a4);
+  box-shadow: 0 4px 14px rgba(232, 176, 80, 0.2);
+}
+
+html.theme-light .desktop-play-btn {
+  background: linear-gradient(135deg, #e8b050, #5bc4a8) !important;
+  color: #0f1419;
+  box-shadow: 0 8px 24px rgba(232, 176, 80, 0.28);
+}
+html.theme-light .desktop-play-btn:hover {
+  background: linear-gradient(135deg, #eeb860, #66d0b4) !important;
+  box-shadow: 0 10px 28px rgba(232, 176, 80, 0.32);
 }
 
 /* Secondary and ghost variants for consistent controls */
@@ -1809,7 +1819,7 @@ html.theme-light img {
 /* Theme-aware chrome (header, player bar, drawers) */
 .theme-chrome-header {
   background: rgba(10, 16, 24, 0.88);
-  border-color: rgba(244, 178, 102, 0.12);
+  border-color: var(--color-border);
   box-shadow: 0 10px 40px rgba(5, 10, 18, 0.6);
 }
 
@@ -1819,9 +1829,8 @@ html.theme-light .theme-chrome-header {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
-html.theme-light .header-logo-title {
-  -webkit-text-stroke: 1.25px rgba(15, 20, 25, 0.6);
-  paint-order: stroke fill;
+html.theme-light .header-logo-title.accent-gradient {
+  background-image: linear-gradient(92deg, #c98b38, #4db896);
 }
 
 html.theme-light .api-health-pill {

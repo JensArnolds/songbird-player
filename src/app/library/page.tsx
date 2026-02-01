@@ -8,7 +8,7 @@ import { LoadingState } from "@/components/LoadingSpinner";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { api } from "@/trpc/react";
 import type { FavoriteItem, ListeningHistoryItem } from "@/types";
-import { Heart, Clock } from "lucide-react";
+import { Clock, Heart } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -18,6 +18,7 @@ export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<TabType>("favorites");
 
   const player = useGlobalPlayer();
+  const utils = api.useUtils();
 
   const { data: favorites, isLoading: favoritesLoading } =
     api.music.getFavorites.useQuery(
@@ -30,6 +31,18 @@ export default function LibraryPage() {
       { limit: 100, offset: 0 },
       { enabled: activeTab === "history" },
     );
+
+  const removeFavorite = api.music.removeFavorite.useMutation({
+    onSuccess: async () => {
+      await utils.music.getFavorites.invalidate();
+    },
+  });
+
+  const removeFromHistory = api.music.removeFromHistory.useMutation({
+    onSuccess: async () => {
+      await utils.music.getHistory.invalidate();
+    },
+  });
 
   return (
     <div className="container mx-auto flex min-h-screen flex-col px-3 py-4 md:px-6 md:py-8">
@@ -83,6 +96,10 @@ export default function LibraryPage() {
                   track={fav.track}
                   onPlay={player.play}
                   onAddToQueue={player.addToQueue}
+                  removeFromListLabel="Remove from Favorites"
+                  onRemoveFromList={() =>
+                    removeFavorite.mutate({ trackId: fav.track.id })
+                  }
                 />
               ))}
             </div>
@@ -113,6 +130,10 @@ export default function LibraryPage() {
                   track={item.track}
                   onPlay={player.play}
                   onAddToQueue={player.addToQueue}
+                  removeFromListLabel="Remove from Recently Played"
+                  onRemoveFromList={() =>
+                    removeFromHistory.mutate({ historyId: item.id })
+                  }
                 />
               ))}
             </div>

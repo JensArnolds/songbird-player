@@ -23,9 +23,23 @@ export default function PublicProfilePage({
   const { userhash } = use(params);
   const { share, isSupported: isShareSupported } = useWebShare();
   const { playTrack, addToQueue } = useGlobalPlayer();
+  const utils = api.useUtils();
+
+  const { data: currentUserHash } = api.music.getCurrentUserHash.useQuery(
+    undefined,
+    { staleTime: 5 * 60 * 1000 },
+  );
+  const isOwnProfile =
+    !!currentUserHash && currentUserHash === userhash;
 
   const { data: profile, isLoading: profileLoading } =
-    api.music.getPublicProfile.useQuery({ userHash: userhash });
+    api.music.getPublicProfile.useQuery(
+      { userHash: userhash },
+      {
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    );
 
   const { data: recentTracks, isLoading: tracksLoading } =
     api.music.getPublicListeningHistory.useQuery({
@@ -52,6 +66,15 @@ export default function PublicProfilePage({
     api.music.getPublicTopArtists.useQuery({
       userHash: userhash,
       limit: 6,
+    });
+
+  const removeFromHistoryByTrackId =
+    api.music.removeFromHistoryByTrackId.useMutation({
+      onSuccess: async () => {
+        await utils.music.getPublicListeningHistory.invalidate({
+          userHash: userhash,
+        });
+      },
     });
 
   const handleShareProfile = async () => {
@@ -121,6 +144,17 @@ export default function PublicProfilePage({
                 track={historyItem.trackData}
                 onPlay={(track) => playTrack(track)}
                 onAddToQueue={(track) => addToQueue(track)}
+                removeFromListLabel={
+                  isOwnProfile ? "Remove from Recently Played" : undefined
+                }
+                onRemoveFromList={
+                  isOwnProfile
+                    ? () =>
+                        removeFromHistoryByTrackId.mutate({
+                          trackId: historyItem.trackData.id,
+                        })
+                    : undefined
+                }
               />
             );
           }}

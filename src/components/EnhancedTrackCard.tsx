@@ -19,6 +19,8 @@ export interface EnhancedTrackCardProps {
   onAddToQueue: (track: Track) => void;
   showActions?: boolean;
   excludePlaylistId?: number;
+  removeFromListLabel?: string;
+  onRemoveFromList?: () => void;
 }
 
 export default function EnhancedTrackCard({
@@ -27,6 +29,8 @@ export default function EnhancedTrackCard({
   onAddToQueue,
   showActions = true,
   excludePlaylistId,
+  removeFromListLabel,
+  onRemoveFromList,
 }: EnhancedTrackCardProps) {
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
@@ -111,10 +115,15 @@ export default function EnhancedTrackCard({
     onPlay(track);
   };
 
+  const menuOptions =
+    removeFromListLabel && onRemoveFromList
+      ? { excludePlaylistId, removeFromList: { label: removeFromListLabel, onRemove: onRemoveFromList } }
+      : excludePlaylistId;
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     hapticLight();
-    openMenu(track, e.clientX, e.clientY, excludePlaylistId);
+    openMenu(track, e.clientX, e.clientY, menuOptions);
   };
 
   const coverImage = getCoverImage(track);

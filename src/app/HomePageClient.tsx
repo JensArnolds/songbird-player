@@ -57,6 +57,9 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const shouldAutoPlayRef = useRef(false);
 
   const player = useGlobalPlayer();
+  const visibleResults = results.filter(
+    (track) => !player.failedTrackIds.has(track.id),
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -484,8 +487,8 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                       Search Results
                     </h2>
                     <p className="mt-0.5 text-xs text-[var(--color-subtext)] md:mt-0.5 md:text-xs">
-                      {results.length.toLocaleString()}
-                      {total > results.length
+                      {visibleResults.length.toLocaleString()}
+                      {total > visibleResults.length
                         ? ` of ${total.toLocaleString()}`
                         : ""}{" "}
                       tracks found
@@ -499,7 +502,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                   animate="show"
                   className="grid gap-2 md:gap-1.5"
                 >
-                  {results.map((track, index) => (
+                  {visibleResults.map((track, index) => (
                     <motion.div key={track.id} variants={staggerItem}>
                       <SwipeableTrackCard
                         track={track}
@@ -531,7 +534,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                           <span>Loading...</span>
                         </>
                       ) : (
-                        `Load More (${(total - results.length).toLocaleString()} remaining)`
+                        `Load More (${(total - visibleResults.length).toLocaleString()} remaining)`
                       )}
                     </button>
                   </motion.div>

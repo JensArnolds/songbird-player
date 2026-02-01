@@ -126,7 +126,9 @@ export default function RootLayout({
                         {}
                         <UIWrapper>
                           {}
-                          <Header />
+                          <div suppressHydrationWarning>
+                            <Header />
+                          </div>
                           {}
                           <Suspense fallback={null}>
                             <MobileHeader />

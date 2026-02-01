@@ -93,6 +93,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const streamErrorTrackIdRef = useRef<number | null>(null);
   const maxStreamErrorRetries = 2;
   const failedTracksRef = useRef<Set<number>>(new Set());
+  const [failedTrackIds, setFailedTrackIds] = useState<Set<number>>(new Set());
   const isInitialMountRef = useRef(true);
   const isPlayPauseOperationRef = useRef(false);
   const lastStateSyncRef = useRef<{ time: number; wasPlaying: boolean } | null>(
@@ -740,15 +741,16 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           errorMessage || "Stream failed",
         );
         failedTracksRef.current.add(currentTrack.id);
+        setFailedTrackIds((prev) => new Set(prev).add(currentTrack.id));
         setIsLoading(false);
         setIsPlaying(false);
 
         onError?.(errorMessage || "Stream failed", currentTrack.id);
 
+        setHistory((prev) => [...prev, currentTrack]);
+        setQueuedTracks((prev) => prev.slice(1));
         if (queueRef.current.length > 1) {
           requestAutoPlayNext(true);
-          setHistory((prev) => [...prev, currentTrack]);
-          setQueuedTracks((prev) => prev.slice(1));
         }
         return;
       }
@@ -760,15 +762,22 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             `[useAudioPlayer] Upstream error for track ${currentTrack.id} - may be temporary:`,
             errorMessage,
           );
+          failedTracksRef.current.add(currentTrack.id);
+          setFailedTrackIds((prev) => new Set(prev).add(currentTrack.id));
           setIsLoading(false);
           setIsPlaying(false);
           onError?.(errorMessage, currentTrack.id);
-
+          setHistory((prev) => [...prev, currentTrack]);
+          setQueuedTracks((prev) => prev.slice(1));
+          if (queueRef.current.length > 1) {
+            requestAutoPlayNext(true);
+          }
           retryCountRef.current = 0;
           return;
         }
 
         failedTracksRef.current.add(currentTrack.id);
+        setFailedTrackIds((prev) => new Set(prev).add(currentTrack.id));
         logger.error(
           `Audio error for track ${currentTrack.id}:`,
           errorMessage,
@@ -778,6 +787,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
         onError?.(errorMessage, currentTrack.id);
 
+        setHistory((prev) => [...prev, currentTrack]);
+        setQueuedTracks((prev) => prev.slice(1));
+        if (queueRef.current.length > 1) {
+          requestAutoPlayNext(true);
+        }
         retryCountRef.current = 0;
         return;
       }
@@ -1146,6 +1160,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             `[useAudioPlayer] Max retries (${maxRetries}) exceeded for track ${track.id}`,
           );
           failedTracksRef.current.add(track.id);
+          setFailedTrackIds((prev) => new Set(prev).add(track.id));
           retryCountRef.current = 0;
           setIsLoading(false);
           setIsPlaying(false);
@@ -2138,10 +2153,16 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
   const clearFailedTrack = useCallback((trackId: number) => {
     failedTracksRef.current.delete(trackId);
+    setFailedTrackIds((prev) => {
+      const next = new Set(prev);
+      next.delete(trackId);
+      return next;
+    });
   }, []);
 
   const clearAllFailedTracks = useCallback(() => {
     failedTracksRef.current.clear();
+    setFailedTrackIds(new Set());
   }, []);
 
   const removeDuplicates = useCallback(() => {
@@ -2348,6 +2369,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     repeatMode,
     isLoading,
     lastAutoQueueCount,
+    failedTrackIds,
 
     loadTrack,
     play,

@@ -207,7 +207,10 @@ export default function Header() {
 
   return (
     <>
-      <header className="theme-chrome-header sticky top-0 z-30 border-b backdrop-blur-xl">
+      <header
+        className="theme-chrome-header sticky top-0 z-30 border-b backdrop-blur-xl"
+        suppressHydrationWarning
+      >
         <div className="container flex items-center justify-between py-3.5">
           {}
           <div className="flex items-center gap-3">
@@ -225,7 +228,10 @@ export default function Header() {
                 priority
               />
               <div className="hidden items-center gap-2 md:flex">
-                <span className="header-logo-title accent-gradient text-lg font-bold">
+                <span
+                  className="header-logo-title accent-gradient text-lg font-bold"
+                  suppressHydrationWarning
+                >
                   {isElectron ? "Starchild" : "Starchild Music"}
                 </span>
               </div>
@@ -323,8 +329,9 @@ export default function Header() {
                   className="header-icon-btn group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
                   aria-label="Administrate"
                   title="Administrate"
+                  suppressHydrationWarning
                 >
-                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-all group-hover:scale-110">
+                  <div className="relative flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-all group-hover:scale-110" suppressHydrationWarning>
                     <Shield className="h-4 w-4 opacity-70 transition-opacity group-hover:opacity-100" />
                   </div>
                 </Link>
@@ -378,8 +385,9 @@ export default function Header() {
                 rel="noopener noreferrer"
                 className="header-icon-btn group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
                 aria-label="View on Vercel"
+                suppressHydrationWarning
               >
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-all group-hover:scale-110">
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-all group-hover:scale-110" suppressHydrationWarning>
                   <svg
                     width="14"
                     height="14"

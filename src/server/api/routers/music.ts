@@ -703,6 +703,42 @@ export const musicRouter = createTRPCRouter({
       );
     }),
 
+  removeFromHistory: protectedProcedure
+    .input(z.object({ historyId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(listeningHistory)
+        .where(
+          and(
+            eq(listeningHistory.userId, ctx.session.user.id),
+            eq(listeningHistory.id, input.historyId),
+          ),
+        );
+      return { success: true };
+    }),
+
+  removeFromHistoryByTrackId: protectedProcedure
+    .input(z.object({ trackId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({ id: listeningHistory.id })
+        .from(listeningHistory)
+        .where(
+          and(
+            eq(listeningHistory.userId, ctx.session.user.id),
+            eq(listeningHistory.trackId, input.trackId),
+          ),
+        )
+        .orderBy(desc(listeningHistory.playedAt))
+        .limit(1);
+      if (row) {
+        await ctx.db
+          .delete(listeningHistory)
+          .where(eq(listeningHistory.id, row.id));
+      }
+      return { success: true };
+    }),
+
   addSearchQuery: protectedProcedure
     .input(z.object({ query: z.string().min(1).max(512) }))
     .mutation(async ({ ctx, input }) => {

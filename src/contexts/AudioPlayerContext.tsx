@@ -29,6 +29,7 @@ interface AudioPlayerContextType {
   currentTrack: Track | null;
   queue: Track[];
   queuedTracks: QueuedTrack[];
+  failedTrackIds: Set<number>;
   smartQueueState: SmartQueueState;
   isPlaying: boolean;
   currentTime: number;
@@ -525,6 +526,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       currentTrack: player.currentTrack,
       queue: player.queue,
       queuedTracks: player.queuedTracks,
+      failedTrackIds: player.failedTrackIds,
       smartQueueState: player.smartQueueState,
       isPlaying: player.isPlaying,
       currentTime: player.currentTime,
@@ -578,6 +580,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       player.currentTrack,
       player.queue,
       player.queuedTracks,
+      player.failedTrackIds,
       player.smartQueueState,
       player.isPlaying,
       player.currentTime,

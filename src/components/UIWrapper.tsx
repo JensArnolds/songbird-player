@@ -19,7 +19,7 @@ export function UIWrapper({ children }: UIWrapperProps) {
   }
 
   return (
-    <div className={hideUI ? "hidden" : undefined}>
+    <div className={hideUI ? "hidden" : ""}>
       {children}
     </div>
   );
