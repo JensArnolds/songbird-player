@@ -2,18 +2,24 @@
 // File: scripts/mark-migrations-applied.ts
 
 /**
- * Script to mark all existing migrations as applied in the __drizzle_migrations table.
- * Use this when you've migrated data from another database and the tables already exist,
- * but Drizzle doesn't know the migrations have been applied.
- * 
- * Usage:
- *   DATABASE_URL="postgresql: */
+ * Script to mark all existing migrations as applied in drizzle.__drizzle_migrations (PostgreSQL).
+ * Use when the DB already has the tables (e.g. from db:push or a previous run) but
+ * drizzle-kit migrate still tries to run them.
+ *
+ * For PostgreSQL, drizzle-orm uses schema "drizzle" and stores hash = SHA-256(migration .sql content).
+ * Usage: npx tsx scripts/mark-migrations-applied.ts
+ */
 
 import dotenv from "dotenv";
 import { existsSync, readFileSync } from "fs";
 import { readFile } from "fs/promises";
+import crypto from "node:crypto";
 import { join } from "path";
 import { Pool } from "pg";
+
+const MIGRATIONS_SCHEMA = "drizzle";
+const MIGRATIONS_TABLE = "__drizzle_migrations";
+const DRIZZLE_FOLDER = "drizzle";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config(); 
@@ -81,48 +87,57 @@ async function main() {
   });
 
   try {
-        await pool.query("SELECT 1");
+    await pool.query("SELECT 1");
     log("✓ Database connection successful\n", "green");
 
-        await pool.query(`
-      CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
+    await pool.query(`CREATE SCHEMA IF NOT EXISTS "${MIGRATIONS_SCHEMA}"`);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "${MIGRATIONS_SCHEMA}"."${MIGRATIONS_TABLE}" (
         id SERIAL PRIMARY KEY,
-        hash text NOT NULL UNIQUE,
+        hash text NOT NULL,
         created_at bigint
       );
     `);
-    log("✓ Migration tracking table ready\n", "green");
+    log("✓ Migration tracking table ready (drizzle.__drizzle_migrations)\n", "green");
 
-        const journalPath = join(process.cwd(), "drizzle", "meta", "_journal.json");
+    const journalPath = join(process.cwd(), DRIZZLE_FOLDER, "meta", "_journal.json");
     const journalContent = await readFile(journalPath, "utf-8");
-    const journal = JSON.parse(journalContent);
+    const journal = JSON.parse(journalContent) as {
+      entries: Array<{ tag: string; when: number }>;
+    };
 
-    const migrations = journal.entries || [];
+    const migrations = journal.entries ?? [];
     log(`Found ${migrations.length} migrations in journal\n`, "cyan");
 
-        const appliedResult = await pool.query(
-      'SELECT hash FROM "__drizzle_migrations"'
+    const appliedResult = await pool.query(
+      `SELECT hash FROM "${MIGRATIONS_SCHEMA}"."${MIGRATIONS_TABLE}"`,
     );
     const appliedHashes = new Set(
-      appliedResult.rows.map((row: any) => row.hash)
+      (appliedResult.rows as { hash: string }[]).map((row) => row.hash),
     );
 
     let marked = 0;
     let skipped = 0;
+    const migrationsDir = join(process.cwd(), DRIZZLE_FOLDER);
 
     for (const entry of migrations) {
-      const tag = entry.tag;       
-      if (appliedHashes.has(tag)) {
+      const tag = entry.tag;
+      const sqlPath = join(migrationsDir, `${tag}.sql`);
+      const query = readFileSync(sqlPath, "utf-8");
+      const hash = crypto.createHash("sha256").update(query).digest("hex");
+      const createdAt = entry.when ?? Date.now();
+
+      if (appliedHashes.has(hash)) {
         log(`⊘ ${tag} - already marked as applied`, "yellow");
         skipped++;
         continue;
       }
 
-            const createdAt = entry.when || Date.now();
       await pool.query(
-        'INSERT INTO "__drizzle_migrations" (hash, created_at) VALUES ($1, $2) ON CONFLICT (hash) DO NOTHING',
-        [tag, createdAt]
+        `INSERT INTO "${MIGRATIONS_SCHEMA}"."${MIGRATIONS_TABLE}" (hash, created_at) VALUES ($1, $2)`,
+        [hash, createdAt],
       );
+      appliedHashes.add(hash);
       log(`✓ ${tag} - marked as applied`, "green");
       marked++;
     }
@@ -131,15 +146,14 @@ async function main() {
     log(`   Marked: ${marked} migrations`, "green");
     log(`   Skipped: ${skipped} migrations (already applied)\n`, "green");
 
-        const verifyResult = await pool.query(
-      'SELECT COUNT(*) as count FROM "__drizzle_migrations"'
+    const verifyResult = await pool.query(
+      `SELECT COUNT(*) as count FROM "${MIGRATIONS_SCHEMA}"."${MIGRATIONS_TABLE}"`,
     );
-    log(
-      `📊 Total migrations in tracking table: ${verifyResult.rows[0]?.count || 0}\n`,
-      "cyan"
-    );
-  } catch (error: any) {
-    log(`\n❌ Error: ${error.message}`, "red");
+    const count = (verifyResult.rows[0] as { count: string } | undefined)?.count ?? "0";
+    log(`📊 Total migrations in tracking table: ${count}\n`, "cyan");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    log(`\n❌ Error: ${message}`, "red");
     console.error(error);
     process.exit(1);
   } finally {
@@ -147,8 +161,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  log(`Fatal error: ${err.message}`, "red");
+main().catch((err: unknown) => {
+  const message = err instanceof Error ? err.message : String(err);
+  log(`Fatal error: ${message}`, "red");
   console.error(err);
   process.exit(1);
 });
