@@ -5,8 +5,10 @@
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import type { SettingsKey } from "@/types/settings";
 import { api } from "@/trpc/react";
 import { hapticLight, hapticToggle } from "@/utils/haptics";
+import { settingsStorage } from "@/utils/settingsStorage";
 import { springPresets } from "@/utils/spring-animations";
 import { motion } from "framer-motion";
 import {
@@ -52,6 +54,10 @@ export default function SettingsPage() {
   const player = useGlobalPlayer();
   const isMobile = useIsMobile();
 
+  const [localSettings, setLocalSettings] = useState(() =>
+    settingsStorage.getAll(),
+  );
+
   const { data: preferences, isLoading } =
     api.music.getUserPreferences.useQuery(undefined, { enabled: !!session });
 
@@ -70,18 +76,37 @@ export default function SettingsPage() {
 
   const handleToggle = (key: string, value: boolean) => {
     hapticToggle();
-    updatePreferences.mutate({ [key]: value });
+    if (session) {
+      updatePreferences.mutate({ [key]: value });
+    } else {
+      settingsStorage.set(key as SettingsKey, value);
+      setLocalSettings((prev) => ({ ...prev, [key]: value }));
+      showToast("Settings saved locally", "success");
+    }
   };
 
   const handleSlider = (key: string, value: number) => {
     hapticLight();
-    updatePreferences.mutate({ [key]: value });
+    if (session) {
+      updatePreferences.mutate({ [key]: value });
+    } else {
+      settingsStorage.set(key as SettingsKey, value);
+      setLocalSettings((prev) => ({ ...prev, [key]: value }));
+    }
   };
 
   const handleSelect = (key: string, value: string) => {
     hapticToggle();
-    updatePreferences.mutate({ [key]: value });
+    if (session) {
+      updatePreferences.mutate({ [key]: value });
+    } else {
+      settingsStorage.set(key as SettingsKey, value);
+      setLocalSettings((prev) => ({ ...prev, [key]: value }));
+      showToast("Settings saved locally", "success");
+    }
   };
+
+  const effectivePreferences = session ? preferences : localSettings;
 
   const handleSignOut = () => {
     hapticLight();
@@ -203,7 +228,7 @@ export default function SettingsPage() {
         label: "Background Playback",
         description: "Keep audio playing when the app is in the background",
         type: "toggle",
-        value: preferences?.keepPlaybackAlive ?? true,
+        value: effectivePreferences?.keepPlaybackAlive ?? true,
         onChange: (value) =>
           handleToggle("keepPlaybackAlive", value as boolean),
       },
@@ -220,15 +245,15 @@ export default function SettingsPage() {
         label: "Equalizer",
         description: "Enable audio equalizer",
         type: "toggle",
-        value: preferences?.equalizerEnabled ?? false,
+        value: effectivePreferences?.equalizerEnabled ?? false,
         onChange: (value) => handleToggle("equalizerEnabled", value as boolean),
       },
       {
         id: "equalizerPreset",
         label: "Equalizer Preset",
-        description: preferences?.equalizerPreset ?? "Flat",
+        description: effectivePreferences?.equalizerPreset ?? "Flat",
         type: "select",
-        value: preferences?.equalizerPreset ?? "Flat",
+        value: effectivePreferences?.equalizerPreset ?? "Flat",
         options: [
           { label: "Flat", value: "Flat" },
           { label: "Rock", value: "Rock" },
@@ -264,9 +289,9 @@ export default function SettingsPage() {
       {
         id: "theme",
         label: "Theme",
-        description: preferences?.theme === "light" ? "Light" : "Dark",
+        description: effectivePreferences?.theme === "light" ? "Light" : "Dark",
         type: "select",
-        value: preferences?.theme ?? "dark",
+        value: effectivePreferences?.theme ?? "dark",
         options: [
           { label: "Dark", value: "dark" },
           { label: "Light", value: "light" },
@@ -277,13 +302,13 @@ export default function SettingsPage() {
         id: "visualizerMode",
         label: "Visualizer",
         description:
-          preferences?.visualizerMode === "off"
+          effectivePreferences?.visualizerMode === "off"
             ? "Off"
-            : preferences?.visualizerMode === "specific"
+            : effectivePreferences?.visualizerMode === "specific"
               ? "Specific"
               : "Random",
         type: "select",
-        value: preferences?.visualizerMode ?? "random",
+        value: effectivePreferences?.visualizerMode ?? "random",
         options: [
           { label: "Random", value: "random" },
           { label: "Off", value: "off" },
@@ -291,14 +316,14 @@ export default function SettingsPage() {
         ],
         onChange: (value) => handleSelect("visualizerMode", value as string),
       },
-      ...(preferences?.visualizerMode === "specific"
+      ...(effectivePreferences?.visualizerMode === "specific"
         ? [
             {
               id: "visualizerType",
               label: "Visualizer Type",
-              description: preferences?.visualizerType ?? "flowfield",
+              description: effectivePreferences?.visualizerType ?? "flowfield",
               type: "select" as const,
-              value: preferences?.visualizerType ?? "flowfield",
+              value: effectivePreferences?.visualizerType ?? "flowfield",
               options: [
                 { label: "Flow Field", value: "flowfield" },
                 { label: "Kaleidoscope", value: "kaleidoscope" },
@@ -313,7 +338,7 @@ export default function SettingsPage() {
         label: "Compact Mode",
         description: "Use compact player interface",
         type: "toggle",
-        value: preferences?.compactMode ?? false,
+        value: effectivePreferences?.compactMode ?? false,
         onChange: (value) => handleToggle("compactMode", value as boolean),
       },
     ],
@@ -329,15 +354,15 @@ export default function SettingsPage() {
         label: "Auto Queue",
         description: "Automatically add similar tracks",
         type: "toggle",
-        value: preferences?.autoQueueEnabled ?? false,
+        value: effectivePreferences?.autoQueueEnabled ?? false,
         onChange: (value) => handleToggle("autoQueueEnabled", value as boolean),
       },
       {
         id: "autoQueueThreshold",
         label: "Queue Threshold",
-        description: `${preferences?.autoQueueThreshold ?? 3} tracks`,
+        description: `${effectivePreferences?.autoQueueThreshold ?? 3} tracks`,
         type: "slider",
-        value: preferences?.autoQueueThreshold ?? 3,
+        value: effectivePreferences?.autoQueueThreshold ?? 3,
         min: 1,
         max: 10,
         step: 1,
@@ -346,9 +371,9 @@ export default function SettingsPage() {
       {
         id: "autoQueueCount",
         label: "Tracks to Add",
-        description: `${preferences?.autoQueueCount ?? 5} tracks`,
+        description: `${effectivePreferences?.autoQueueCount ?? 5} tracks`,
         type: "slider",
-        value: preferences?.autoQueueCount ?? 5,
+        value: effectivePreferences?.autoQueueCount ?? 5,
         min: 1,
         max: 20,
         step: 1,
@@ -359,20 +384,20 @@ export default function SettingsPage() {
         label: "Smart Mix",
         description: "Generate personalized mixes",
         type: "toggle",
-        value: preferences?.smartMixEnabled ?? true,
+        value: effectivePreferences?.smartMixEnabled ?? true,
         onChange: (value) => handleToggle("smartMixEnabled", value as boolean),
       },
       {
         id: "similarityPreference",
         label: "Similarity",
         description:
-          preferences?.similarityPreference === "strict"
+          effectivePreferences?.similarityPreference === "strict"
             ? "Strict"
-            : preferences?.similarityPreference === "diverse"
+            : effectivePreferences?.similarityPreference === "diverse"
               ? "Diverse"
               : "Balanced",
         type: "select",
-        value: preferences?.similarityPreference ?? "balanced",
+        value: effectivePreferences?.similarityPreference ?? "balanced",
         options: [
           { label: "Strict", value: "strict" },
           { label: "Balanced", value: "balanced" },

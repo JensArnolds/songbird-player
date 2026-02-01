@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/trpc/react";
+import { settingsStorage } from "@/utils/settingsStorage";
 import { useSession } from "next-auth/react";
 import { createContext, useContext, useEffect } from "react";
 
@@ -26,7 +27,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     },
   );
 
-  const theme = preferences?.theme === "light" ? "light" : "dark";
+  const localTheme = settingsStorage.getSetting("theme", "dark");
+  const theme = session
+    ? preferences?.theme === "light"
+      ? "light"
+      : "dark"
+    : localTheme;
 
   useEffect(() => {
     const htmlElement = document.documentElement;
