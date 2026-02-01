@@ -114,10 +114,8 @@ songbird-frontend
 │   ├───prepare-package.js
 │   ├───README.md
 │   ├───sign.js
-│   ├───SIGNING.md
 │   ├───types.d.ts
-│   ├───verify-build.js
-│   └───WINDOWS_SIGNING.md
+│   └───verify-build.js
 ├───logs/
 │   └───pm2/
 │       ├───.gitkeep

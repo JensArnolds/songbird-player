@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const LOCALHOST_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
 
-function getCorsHeaders(request: NextRequest) {
+function getCorsHeaders(request: NextRequest): Record<string, string> {
   const origin = request.headers.get("origin");
   if (!origin) return {};
 
