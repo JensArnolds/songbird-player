@@ -1,3 +1,5 @@
+// File: src/app/signin/page.tsx
+
 "use client";
 
 import { signIn } from "next-auth/react";

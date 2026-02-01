@@ -8,11 +8,8 @@ songbird-frontend
 ├───.pm2ignore
 ├───.vercelignore
 ├───CHANGELOG.md
-├───CLAUDE.md
 ├───config1.1
-├───CONTEXT.md
 ├───docker-compose.yml
-├───DOCKER.md
 ├───Dockerfile
 ├───drizzle.config.ts
 ├───drizzle.env.ts
@@ -64,17 +61,8 @@ songbird-frontend
 │   │   ├───emily-the-strange-icon.png
 │   │   ├───emily-the-strange.png
 │   │   └───emily-the-strange_vivid.png
-│   ├───docs/
-│   │   ├───BUGFIX-QUEUE-PERSISTENCE-OVERRIDE.md
-│   │   ├───REPOSITORY_ANALYSIS.md
-│   │   └───REPOSITORY_OVERVIEW.md
 │   └───workflows/
 │       └───docker-build.yml
-├───docs/
-│   ├───API_ROUTE_USE.md
-│   ├───API_USE.md
-│   ├───ROADMAP.md
-│   └───STABILITY_TESTS.md
 ├───drizzle/
 │   ├───0000_eager_gideon.sql
 │   ├───0001_strange_warlock.sql
@@ -97,6 +85,7 @@ songbird-frontend
 │   ├───0016_daffy_shriek.sql
 │   ├───0017_admin_flag.sql
 │   ├───0018_brief_post.sql
+│   ├───0019_user_banned.sql
 │   └───meta/
 │       ├───0000_snapshot.json
 │       ├───0001_snapshot.json
@@ -119,8 +108,6 @@ songbird-frontend
 │       ├───0018_snapshot.json
 │       └───_journal.json
 ├───electron/
-│   ├───AZURE_SIGNING_SETUP.md
-│   ├───DISCORD_OAUTH.md
 │   ├───main.cjs
 │   ├───package.json
 │   ├───preload.cjs
@@ -363,6 +350,8 @@ songbird-frontend
 │   │   │   └───[id]/
 │   │   │       └───page.tsx
 │   │   ├───settings/
+│   │   │   └───page.tsx
+│   │   ├───signin/
 │   │   │   └───page.tsx
 │   │   └───track/
 │   │       └───[id]/
