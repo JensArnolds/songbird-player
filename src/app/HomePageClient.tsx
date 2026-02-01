@@ -549,6 +549,9 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                 transition={springPresets.gentle}
                 className="card flex flex-col items-center justify-center py-16 text-center md:py-12"
               >
+                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-[var(--color-muted)] md:mb-3">
+                  Fully migrated to Vercel
+                </p>
                 <motion.div
                   animate={{
                     scale: [1, 1.05, 1],

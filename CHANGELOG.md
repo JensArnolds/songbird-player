@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.6] - 2026-02-01
+
+### Changed
+
+- **Vercel-only deployment**: Header deployment switcher (server / Vercel icon) commented out; start page "Infrastructure & Architecture" explanation removed. Start page now shows a small disclaimer: "Fully migrated to Vercel". Locations: [src/components/Header.tsx](src/components/Header.tsx), [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx).
+
 ## [0.12.5] - 2026-02-01
 
 ### Added
