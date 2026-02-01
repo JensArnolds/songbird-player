@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.27] - 2026-02-01
+
+### Added
+
+- **New Visual Patterns**: Added two hyper-optimized audio-reactive visualizer patterns
+  - **nebulaDrift**: Flowing nebula-like particles in spiral streams with dynamic color shifts
+    - Adaptive particle counts based on screen resolution and audio intensity
+    - Conditional gradient usage (solid colors in low detail mode, gradients when quality > 0.75)
+    - Efficient per-stream batching reduces canvas state changes
+    - Minimal connection lines between streams (2-3 for optimal performance)
+    - Early-continue optimizations for particles outside visible life ranges
+    - Audio-reactive: bass affects drift amplitude, mid frequencies control particle density, overall intensity affects size and glow
+  - **crystalPulse**: Pulsating geometric crystalline structures with energy connections
+    - Pure line-based geometry (no gradients) for maximum rendering efficiency
+    - Conditional shadow usage (only when quality ≥ 0.85)
+    - Adaptive crystal and facet counts based on audio intensity and quality scale
+    - Batched stroke operations for facet connections
+    - Pre-computed rotation and positioning values for faster frame rendering
+    - Audio-reactive: bass drives pulsation scale (breathing effect), treble controls facet count, overall intensity affects crystal count and glow
+  - **Firefox-Specific Optimizations**: Both patterns include
+    - Minimal gradient usage (only in high quality mode, solid colors otherwise)
+    - Controlled shadow usage (disabled in low detail, scaled with quality)
+    - Reduced element counts (scales down on large displays and low quality settings)
+    - Efficient canvas operations (batched beginPath/stroke/fill cycles)
+    - Fast math helpers (fastSin, fastCos, fastMod360)
+    - Bitwise integer operations for element counts and indexing
+  - Location: [src/components/visualizers/FlowFieldRenderer.ts](src/components/visualizers/FlowFieldRenderer.ts:15403-15598), [src/components/visualizers/flowfieldPatterns/patternIds.ts](src/components/visualizers/flowfieldPatterns/patternIds.ts:116-117)
+
 ## [0.10.26] - 2026-02-01
 
 ### Changed
