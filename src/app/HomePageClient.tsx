@@ -406,7 +406,6 @@ export default function HomePageClient() {
   const searchContent = (
     <div className="flex min-h-screen flex-col">
       <main className="container mx-auto w-full flex-1 py-6 md:py-8">
-        {}
         {!isMobile && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -465,7 +464,6 @@ export default function HomePageClient() {
           </motion.div>
         )}
 
-        {}
         <div className="w-full">
           <AnimatePresence mode="wait">
             {results.length > 0 ? (
@@ -571,7 +569,41 @@ export default function HomePageClient() {
                 <p className="mt-3 max-w-md px-4 text-xs text-[var(--color-muted)] md:text-sm">
                   <b>Dedicated to Sebastian K... The only man I ever loved.</b>
                 </p>
-                {}
+
+                {!session && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...springPresets.gentle, delay: 0.2 }}
+                    className="mt-6 max-w-md rounded-xl border border-white/5 bg-white/[0.02] px-5 py-4"
+                  >
+                    <p className="mb-2 text-sm font-semibold text-[var(--color-text)]">
+                      Sign in to unlock features
+                    </p>
+                    <ul className="space-y-1.5 text-xs text-[var(--color-subtext)]">
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-[var(--color-accent)]">•</span>
+                        <span>Create and manage custom playlists</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-[var(--color-accent)]">•</span>
+                        <span>Build your personal music profile</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-[var(--color-accent)]">•</span>
+                        <span>Save settings and preferences globally</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-0.5 text-[var(--color-accent)]">•</span>
+                        <span>Track listening history across devices</span>
+                      </li>
+                    </ul>
+                    <p className="mt-3 text-xs text-[var(--color-muted)]">
+                      Your privacy is fully protected. We only store what you choose to save.
+                    </p>
+                  </motion.div>
+                )}
+
                 {isMobile && (
                   <motion.button
                     onClick={handleShufflePlay}
@@ -593,7 +625,18 @@ export default function HomePageClient() {
                   </motion.button>
                 )}
 
-                {}
+                <motion.button
+                  onClick={() => {
+                    hapticLight();
+                    router.push("/playlists/12");
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-4 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-secondary-accent)] to-[var(--color-secondary-accent-strong)] px-8 py-4 text-lg font-bold text-white shadow-[var(--color-secondary-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-secondary-accent)]/40 hover:shadow-xl"
+                >
+                  <Music2 className="h-6 w-6" />
+                  <span>Example Playlist</span>
+                </motion.button>
+
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                   {[
                     "Lamb",
@@ -620,7 +663,6 @@ export default function HomePageClient() {
                   ))}
                 </div>
 
-                {}
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                   <motion.a
                     href="https://github.com/soulwax/songbird-player"
@@ -655,7 +697,6 @@ export default function HomePageClient() {
                   </motion.button>
                 </div>
 
-                {}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}

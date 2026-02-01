@@ -6,6 +6,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.11.1] - 2026-01-28
+
+### Improved
+
+- **mark-migrations-applied script**: Fix sync with drizzle-kit migrate (PostgreSQL)
+  - Script now writes to `drizzle.__drizzle_migrations` instead of `public.__drizzle_migrations`, matching the schema used by drizzle-orm for PostgreSQL so `npm run db:migrate` recognizes applied migrations
+  - Hash stored is now the SHA-256 hex digest of each migration `.sql` file content (as computed by drizzle-orm’s migrator), instead of the migration tag, so entries match what `drizzle-kit migrate` expects
+  - Use when the database already has the tables (e.g. from `db:push` or a previous run) but migrate still tries to re-apply and fails with "relation … already exists"
+  - Usage: `npx tsx scripts/mark-migrations-applied.ts` then `npm run db:migrate`
+  - Location: [scripts/mark-migrations-applied.ts](scripts/mark-migrations-applied.ts)
+
+## [0.11.0] - 2026-02-01
+
+### Added
+
+- **Mobile Player Visualizer Toggle**: Interactive visualizer overlay on mobile player artwork
+  - Eye icon button in top-right corner of artwork toggles between album cover and visualizer
+  - 3D flip animation using Framer Motion with rotateY transforms for smooth transition
+  - Button only visible when visualizerMode is "random" or "specific" (hidden when "off")
+  - Button styled with backdrop blur and dynamic shadow color based on album palette
+  - Haptic feedback on toggle for enhanced mobile UX
+  - Location: [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx:1119-1225)
+
+- **FlowFieldRenderer Integration**: Full audio-reactive visualizer integration in mobile player
+  - FlowFieldRenderer component dynamically imported for performance optimization
+  - Canvas element replaces album artwork when visualizer is toggled on
+  - Connected to audio element for real-time frequency analysis
+  - Supports visualizerMode settings: "random" (random patterns), "specific" (user-selected), "off" (disabled)
+  - Inherits all 80+ audio-reactive patterns from FlowFieldRenderer
+  - Maintains same border styling and glow effects as album artwork for visual consistency
+  - Responds to isPlaying state for proper play/pause behavior
+  - Location: [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx:1192-1209)
+
+- **Compact Mode for Mobile Player**: Space-efficient mode for smaller screens
+  - Toggle available in Settings > Visual section
+  - Artwork size: 360px → 280px (reduces visual footprint by 22%)
+  - Text sizing adjustments:
+    - Track title: text-xl → text-lg
+    - Artist name: text-xs → text-[11px]
+    - Album title: text-[10px] → text-[9px]
+    - Queue labels: text-[9px] → text-[8px]
+    - Queue numbers: text-lg → text-base (queue count), text-sm → text-xs (total duration)
+  - Spacing reductions:
+    - Info section gap: 4 → 2 (50% reduction)
+    - Card padding: px-4 py-2 → px-3 py-1.5
+    - Content gap: gap-4 → gap-2
+  - Maintains full functionality with reduced visual footprint
+  - Ideal for users who prefer more content visibility or have smaller screens
+  - Settings persist across sessions (localStorage for guests, database for authenticated users)
+  - Location: [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx:1118-1340)
+
+### Improved
+
+- **Settings Persistence**: Enhanced settings storage system for mobile
+  - LocalStorage-based persistence for non-authenticated users via settingsStorage utility
+  - Database persistence for authenticated users via user_preferences table
+  - Unified interface through effectivePreferences pattern (checks authentication status)
+  - Applies to all mobile settings: visualizerMode, compactMode, theme, and player preferences
+  - Seamless migration when users sign in (database preferences override localStorage)
+  - Type-safe settings management with UserSettings interface and DEFAULT_SETTINGS fallback
+  - Location: [src/utils/settingsStorage.ts](src/utils/settingsStorage.ts), [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx:398-406)
+
 ## [0.10.30] - 2026-02-01
 
 ### Added

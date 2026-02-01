@@ -5,6 +5,7 @@
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { STORAGE_KEYS } from "@/config/storage";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import { api } from "@/trpc/react";
@@ -27,6 +28,7 @@ import {
   hapticSuccess,
 } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
+import { settingsStorage } from "@/utils/settingsStorage";
 import { springPresets } from "@/utils/spring-animations";
 import { formatDuration, formatTime } from "@/utils/time";
 import {
@@ -38,6 +40,7 @@ import {
 } from "framer-motion";
 import {
   ChevronDown,
+  Eye,
   GripVertical,
   Heart,
   ListMusic,
@@ -65,6 +68,14 @@ const QueueSettingsModal = dynamic(
   () =>
     import("@/components/QueueSettingsModal").then((mod) => ({
       default: mod.QueueSettingsModal,
+    })),
+  { ssr: false },
+);
+
+const FlowFieldRenderer = dynamic(
+  () =>
+    import("@/components/visualizers/FlowFieldRenderer").then((mod) => ({
+      default: mod.FlowFieldRenderer,
     })),
   { ssr: false },
 );
@@ -389,6 +400,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     },
   );
 
+  const localSettings = settingsStorage.getAll();
+  const effectivePreferences = isAuthenticated ? preferences : localSettings;
+
   // Load smart queue settings
   const { data: smartQueueSettings } = api.music.getSmartQueueSettings.useQuery(
     undefined,
@@ -403,6 +417,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [isExpanded, setIsExpanded] = useState(forceExpanded);
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
   const [visualizerEnabled, setVisualizerEnabled] = useState(true);
+  const [showVisualizer, setShowVisualizer] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const [albumColorPalette, setAlbumColorPalette] =
     useState<ColorPalette | null>(null);
@@ -1100,46 +1115,117 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       onDrag={handleArtworkDrag}
                       onDragEnd={handleArtworkDragEnd}
                       transition={springPresets.smooth}
-                      className="mobile-player-artwork relative w-full cursor-grab active:cursor-grabbing"
+                      className={`mobile-player-artwork relative w-full cursor-grab active:cursor-grabbing ${
+                        effectivePreferences?.compactMode ? "max-w-[280px]" : "max-w-[360px]"
+                      }`}
                     >
-                      {coverArt ? (
-                        <div className="relative">
-                          <div
-                            className="absolute -inset-6 rounded-[40px] blur-2xl opacity-90"
-                            style={{
-                              background: `radial-gradient(circle, ${getPaletteColor(palette.accent, 0.6, true)} 0%, rgba(0,0,0,0) 70%)`,
-                            }}
-                          />
-                          <div 
-                            className="absolute -inset-2 rounded-[34px] border"
-                            style={{
-                              borderColor: getPaletteColor(palette.primary, 0.4, true),
-                            }}
-                          />
-                          <div 
-                            className="absolute -inset-1 rounded-[32px] border"
-                            style={{
-                              borderColor: getPaletteColor(palette.secondary, 0.3, true),
-                            }}
-                          />
-                          <div className="relative overflow-hidden rounded-[30px]">
-                            <Image
-                              src={coverArt}
-                              alt={currentTrack.title}
-                              width={450}
-                              height={450}
-                              className="relative z-10 aspect-square w-full rounded-[30px] object-cover shadow-[0_24px_64px_rgba(0,0,0,0.75)]"
-                              priority
-                              quality={90}
-                            />
-                            <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[linear-gradient(145deg,rgba(255,255,255,0.18),transparent_45%,rgba(0,0,0,0.35))]" />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex aspect-square w-full items-center justify-center rounded-[30px] bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
-                          🎵
-                        </div>
+                      {effectivePreferences?.visualizerMode !== "off" && (
+                        <motion.button
+                          onClick={() => {
+                            setShowVisualizer(!showVisualizer);
+                            hapticLight();
+                          }}
+                          whileTap={{ scale: 0.9 }}
+                          className="absolute right-2 top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md transition-colors hover:bg-black/80"
+                          style={{
+                            boxShadow: `0 4px 12px ${getPaletteColor(palette.primary, 0.3, true)}`,
+                          }}
+                          aria-label={showVisualizer ? "Show artwork" : "Show visualizer"}
+                        >
+                          <Eye className="h-5 w-5" />
+                        </motion.button>
                       )}
+
+                      <AnimatePresence mode="wait" initial={false}>
+                        {!showVisualizer ? (
+                          <motion.div
+                            key="artwork"
+                            initial={{ rotateY: -90, opacity: 0 }}
+                            animate={{ rotateY: 0, opacity: 1 }}
+                            exit={{ rotateY: 90, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: "easeInOut" }}
+                            style={{ transformStyle: "preserve-3d" }}
+                          >
+                            {coverArt ? (
+                              <div className="relative">
+                                <div
+                                  className="absolute -inset-6 rounded-[40px] blur-2xl opacity-90"
+                                  style={{
+                                    background: `radial-gradient(circle, ${getPaletteColor(palette.accent, 0.6, true)} 0%, rgba(0,0,0,0) 70%)`,
+                                  }}
+                                />
+                                <div
+                                  className="absolute -inset-2 rounded-[34px] border"
+                                  style={{
+                                    borderColor: getPaletteColor(palette.primary, 0.4, true),
+                                  }}
+                                />
+                                <div
+                                  className="absolute -inset-1 rounded-[32px] border"
+                                  style={{
+                                    borderColor: getPaletteColor(palette.secondary, 0.3, true),
+                                  }}
+                                />
+                                <div className="relative overflow-hidden rounded-[30px]">
+                                  <Image
+                                    src={coverArt}
+                                    alt={currentTrack.title}
+                                    width={450}
+                                    height={450}
+                                    className="relative z-10 aspect-square w-full rounded-[30px] object-cover shadow-[0_24px_64px_rgba(0,0,0,0.75)]"
+                                    priority
+                                    quality={90}
+                                  />
+                                  <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[linear-gradient(145deg,rgba(255,255,255,0.18),transparent_45%,rgba(0,0,0,0.35))]" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex aspect-square w-full items-center justify-center rounded-[30px] bg-[rgba(244,178,102,0.12)] text-6xl text-[var(--color-muted)]">
+                                🎵
+                              </div>
+                            )}
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="visualizer"
+                            initial={{ rotateY: -90, opacity: 0 }}
+                            animate={{ rotateY: 0, opacity: 1 }}
+                            exit={{ rotateY: 90, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: "easeInOut" }}
+                            style={{ transformStyle: "preserve-3d" }}
+                            className="relative aspect-square w-full"
+                          >
+                            <div className="relative h-full w-full">
+                              <div
+                                className="absolute -inset-6 rounded-[40px] blur-2xl opacity-90"
+                                style={{
+                                  background: `radial-gradient(circle, ${getPaletteColor(palette.accent, 0.6, true)} 0%, rgba(0,0,0,0) 70%)`,
+                                }}
+                              />
+                              <div
+                                className="absolute -inset-2 rounded-[34px] border"
+                                style={{
+                                  borderColor: getPaletteColor(palette.primary, 0.4, true),
+                                }}
+                              />
+                              <div
+                                className="absolute -inset-1 rounded-[32px] border"
+                                style={{
+                                  borderColor: getPaletteColor(palette.secondary, 0.3, true),
+                                }}
+                              />
+                              <div className="relative h-full w-full overflow-hidden rounded-[30px] bg-black">
+                                <FlowFieldRenderer
+                                  audioElement={audioElement}
+                                  isPlaying={isPlaying}
+                                  visualizerMode={effectivePreferences?.visualizerMode ?? "random"}
+                                  visualizerType={effectivePreferences?.visualizerType ?? "flowfield"}
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
                       <AnimatePresence>
                         {isSeeking && seekDirection && (
@@ -1179,23 +1265,31 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                       )}
                     </motion.div>
 
-                    <div className="mobile-player-info-controls flex w-full flex-col items-center gap-4">
+                    <div className={`mobile-player-info-controls flex w-full flex-col items-center ${
+                      effectivePreferences?.compactMode ? "gap-2" : "gap-4"
+                    }`}>
                       <div className="mobile-player-content w-full">
-                        <div 
-                          className="rounded-2xl px-4 py-2 backdrop-blur-xl"
+                        <div
+                          className={`rounded-2xl backdrop-blur-xl ${
+                            effectivePreferences?.compactMode ? "px-3 py-1.5" : "px-4 py-2"
+                          }`}
                           style={{
                             border: `2px solid ${getPaletteColor(palette.primary, 0.5, true)}`,
                             background: `linear-gradient(145deg, ${getPaletteColor(palette.primary, 0.15, true)}, ${getPaletteColor(palette.secondary, 0.1, true)}, rgba(10,16,24,0.6))`,
                             boxShadow: `0 16px 40px rgba(0,0,0,0.45), 0 0 20px ${getPaletteColor(palette.primary, 0.3, true)}`,
                           }}
                         >
-                          <div className="flex items-start justify-between gap-4">
+                          <div className={`flex items-start justify-between ${
+                            effectivePreferences?.compactMode ? "gap-2" : "gap-4"
+                          }`}>
                             <div className="min-w-0 text-left">
                               <motion.h2
                                 key={currentTrack.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="text-xl font-bold text-[var(--color-text)] leading-tight"
+                                className={`font-bold text-[var(--color-text)] leading-tight ${
+                                  effectivePreferences?.compactMode ? "text-lg" : "text-xl"
+                                }`}
                               >
                                 {currentTrack.title}
                               </motion.h2>
@@ -1203,27 +1297,39 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.1 }}
-                                className="mt-0.5 text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)]"
+                                className={`mt-0.5 font-semibold uppercase tracking-[0.25em] text-[var(--color-accent)] ${
+                                  effectivePreferences?.compactMode ? "text-[11px]" : "text-xs"
+                                }`}
                               >
                                 {currentTrack.artist.name}
                               </motion.p>
                               {currentTrack.album?.title && (
-                                <p className="mt-0.5 truncate text-[10px] text-[var(--color-subtext)]">
+                                <p className={`mt-0.5 truncate text-[var(--color-subtext)] ${
+                                  effectivePreferences?.compactMode ? "text-[9px]" : "text-[10px]"
+                                }`}>
                                   {currentTrack.album.title}
                                 </p>
                               )}
                             </div>
                             <div className="flex flex-col items-end text-[11px] text-[var(--color-subtext)]">
-                              <span className="text-[9px] uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                              <span className={`uppercase tracking-[0.3em] text-[var(--color-muted)] ${
+                                effectivePreferences?.compactMode ? "text-[8px]" : "text-[9px]"
+                              }`}>
                                 Queue
                               </span>
-                              <span className="text-lg font-semibold text-[var(--color-text)] tabular-nums">
+                              <span className={`font-semibold text-[var(--color-text)] tabular-nums ${
+                                effectivePreferences?.compactMode ? "text-base" : "text-lg"
+                              }`}>
                                 {queue.length}
                               </span>
-                              <span className="mt-1 text-[9px] uppercase tracking-[0.3em] text-[var(--color-muted)]">
+                              <span className={`mt-1 uppercase tracking-[0.3em] text-[var(--color-muted)] ${
+                                effectivePreferences?.compactMode ? "text-[8px]" : "text-[9px]"
+                              }`}>
                                 Total
                               </span>
-                              <span className="text-sm font-semibold text-[var(--color-text)] tabular-nums">
+                              <span className={`font-semibold text-[var(--color-text)] tabular-nums ${
+                                effectivePreferences?.compactMode ? "text-xs" : "text-sm"
+                              }`}>
                                 {formatDuration(totalDuration)}
                               </span>
                             </div>

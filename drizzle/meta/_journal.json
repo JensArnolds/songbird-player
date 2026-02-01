@@ -127,6 +127,13 @@
       "when": 1769407574080,
       "tag": "0017_admin_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1769961001359,
+      "tag": "0018_brief_post",
+      "breakpoints": true
     }
   ]
 }
