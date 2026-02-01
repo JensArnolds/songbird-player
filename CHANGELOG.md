@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.29] - 2026-02-01
+
+### Added
+
+- **Light Theme**: Added light theme option for mobile with persistent user preference
+  - New ThemeProvider context manages theme state across the application
+  - Light theme features clean white backgrounds with high-contrast text for better daylight readability
+  - Theme selector available in Settings > Visual section (already existed, now functional)
+  - Dark theme remains the default for all users
+  - Theme preference persists across sessions via user_preferences database table
+  - Automatic theme application on mount without page reload
+  - Light theme specifications:
+    - Background: Pure white (#ffffff) with subtle gradients (#f8f9fa)
+    - Text: High contrast dark (#1a1f2e) for maximum readability
+    - Subtext: Medium gray (#4a5568) for secondary content
+    - Surfaces: Light gray (#f8f9fa) with hover states (#f0f2f5)
+    - Borders: Soft light gray (#e2e8f0)
+    - Shadows: Lighter, more subtle (rgba(0,0,0,0.08) vs rgba(5,10,18,0.45))
+    - Accent colors: Maintains orange (#f4b266) and teal (#58c6b1) for consistency
+    - Overlay effects: Reduced opacity for light backgrounds (0.04-0.08 vs 0.08-0.15)
+  - Mobile-optimized with instant visual feedback on theme change
+  - Seamless transition between themes without visual artifacts
+  - Location: [src/contexts/ThemeContext.tsx](src/contexts/ThemeContext.tsx), [src/styles/globals.css](src/styles/globals.css:9-82)
+
 ## [0.10.28] - 2026-02-01
 
 ### Added
