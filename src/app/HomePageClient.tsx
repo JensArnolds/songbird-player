@@ -685,69 +685,6 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                   </motion.button>
                 </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ ...springPresets.gentle, delay: 0.3 }}
-                  className="mt-12 w-full max-w-2xl border-t border-[var(--color-border)] pt-8 md:mt-8 md:pt-5"
-                >
-                  <h4 className="mb-4 text-center text-sm font-semibold text-[var(--color-text)] md:mb-2.5 md:text-xs">
-                    Infrastructure & Architecture
-                  </h4>
-                  <div className="space-y-3 text-xs text-[var(--color-subtext)] md:space-y-2 md:text-xs">
-                    <p className="leading-relaxed">
-                      Starchild Music runs on a{" "}
-                      <span className="text-[var(--color-accent)]">
-                        dual-deployment architecture
-                      </span>
-                      : a custom VM server (
-                      <span className="font-mono text-[var(--color-text)]">
-                        starchildmusic.com
-                      </span>
-                      ) for backend services and database access, alongside a
-                      Vercel edge deployment (
-                      <span className="font-mono text-[var(--color-text)]">
-                        darkfloor.art
-                      </span>
-                      ) for global CDN distribution and optimized performance.
-                    </p>
-                    <p className="leading-relaxed">
-                      Use the{" "}
-                      <span className="text-[var(--color-accent)]">
-                        deployment icon
-                      </span>{" "}
-                      in the header (desktop only) to switch between
-                      environments. The VM provides full backend control and
-                      direct database access, while Vercel offers edge-optimized
-                      static delivery and serverless functions with automatic
-                      scaling.
-                    </p>
-                    <p className="leading-relaxed">
-                      Music data is sourced from our{" "}
-                      <span className="text-[var(--color-accent)]">
-                        custom API
-                      </span>{" "}
-                      {apiHostname ? (
-                        <>
-                          at{" "}
-                          <span className="font-mono text-[var(--color-text)]">
-                            {apiHostname}
-                          </span>
-                          .{" "}
-                        </>
-                      ) : (
-                        ". "
-                      )}
-                      User data, preferences, and playlists are stored in a
-                      <span className="text-[var(--color-accent)]">
-                        {" "}
-                        Neon serverless PostgreSQL
-                      </span>{" "}
-                      database, shared across both deployments for seamless
-                      sync.
-                    </p>
-                  </div>
-                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>

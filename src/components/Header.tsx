@@ -336,6 +336,7 @@ export default function Header() {
                   </div>
                 </Link>
               ))}
+            {/* Deployment switcher (server / Vercel) commented out – moving completely to Vercel
             {isDarkfloorHost ? (
               <Link
                 href={
@@ -385,9 +386,8 @@ export default function Header() {
                 rel="noopener noreferrer"
                 className="header-icon-btn group hidden items-center text-[var(--color-subtext)] transition-all hover:text-[var(--color-text)] md:flex"
                 aria-label="View on Vercel"
-                suppressHydrationWarning
               >
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-all group-hover:scale-110" suppressHydrationWarning>
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-all group-hover:scale-110">
                   <svg
                     width="14"
                     height="14"
@@ -404,6 +404,7 @@ export default function Header() {
                 </div>
               </Link>
             ) : null}
+            */}
             {session ? (
               <div className="relative hidden md:block" ref={menuRef}>
                 <button
