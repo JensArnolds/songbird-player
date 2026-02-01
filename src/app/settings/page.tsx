@@ -4,6 +4,7 @@
 
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
 import { hapticLight, hapticToggle } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
@@ -49,6 +50,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const player = useGlobalPlayer();
+  const isMobile = useIsMobile();
 
   const { data: preferences, isLoading } =
     api.music.getUserPreferences.useQuery(undefined, { enabled: !!session });
@@ -134,21 +136,25 @@ export default function SettingsPage() {
     title: "Playback",
     icon: <Music className="h-5 w-5" />,
     items: [
-      {
-        id: "volume",
-        label: "Volume",
-        description: `${Math.round((player.volume ?? 0.7) * 100)}%`,
-        type: "slider",
-        value: player.volume ?? 0.7,
-        min: 0,
-        max: 1,
-        step: 0.01,
-        onChange: (value) => {
-          const vol = value as number;
-          player.setVolume(vol);
-          handleSlider("volume", vol);
-        },
-      },
+      ...(isMobile
+        ? []
+        : [
+            {
+              id: "volume",
+              label: "Volume",
+              description: `${Math.round((player.volume ?? 0.7) * 100)}%`,
+              type: "slider" as const,
+              value: player.volume ?? 0.7,
+              min: 0,
+              max: 1,
+              step: 0.01,
+              onChange: (value: boolean | number | string) => {
+                const vol = value as number;
+                player.setVolume(vol);
+                handleSlider("volume", vol);
+              },
+            },
+          ]),
       {
         id: "repeatMode",
         label: "Repeat",
@@ -268,26 +274,40 @@ export default function SettingsPage() {
         onChange: (value) => handleSelect("theme", value as string),
       },
       {
-        id: "visualizerEnabled",
+        id: "visualizerMode",
         label: "Visualizer",
-        description: "Show audio visualizations",
-        type: "toggle",
-        value: preferences?.visualizerEnabled ?? true,
-        onChange: (value) =>
-          handleToggle("visualizerEnabled", value as boolean),
-      },
-      {
-        id: "visualizerType",
-        label: "Visualizer Type",
-        description: preferences?.visualizerType ?? "flowfield",
+        description:
+          preferences?.visualizerMode === "off"
+            ? "Off"
+            : preferences?.visualizerMode === "specific"
+              ? "Specific"
+              : "Random",
         type: "select",
-        value: preferences?.visualizerType ?? "flowfield",
+        value: preferences?.visualizerMode ?? "random",
         options: [
-          { label: "Flow Field", value: "flowfield" },
-          { label: "Kaleidoscope", value: "kaleidoscope" },
+          { label: "Random", value: "random" },
+          { label: "Off", value: "off" },
+          { label: "Specific", value: "specific" },
         ],
-        onChange: (value) => handleSelect("visualizerType", value as string),
+        onChange: (value) => handleSelect("visualizerMode", value as string),
       },
+      ...(preferences?.visualizerMode === "specific"
+        ? [
+            {
+              id: "visualizerType",
+              label: "Visualizer Type",
+              description: preferences?.visualizerType ?? "flowfield",
+              type: "select" as const,
+              value: preferences?.visualizerType ?? "flowfield",
+              options: [
+                { label: "Flow Field", value: "flowfield" },
+                { label: "Kaleidoscope", value: "kaleidoscope" },
+              ],
+              onChange: (value: boolean | number | string) =>
+                handleSelect("visualizerType", value as string),
+            },
+          ]
+        : []),
       {
         id: "compactMode",
         label: "Compact Mode",
@@ -387,7 +407,7 @@ export default function SettingsPage() {
 
   const sections: SettingsSection[] = [
     playbackSection,
-    audioSection,
+    ...(isMobile ? [] : [audioSection]),
     visualSection,
     smartQueueSection,
     accountSection,
