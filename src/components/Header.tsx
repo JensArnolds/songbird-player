@@ -307,76 +307,6 @@ export default function Header() {
           {}
           <div className="flex items-center gap-3">
             {}
-            {session ? (
-              <div className="relative hidden md:block" ref={menuRef}>
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="btn-secondary flex items-center gap-2 transition-all hover:scale-105"
-                  aria-label="User menu"
-                  aria-expanded={showUserMenu}
-                >
-                  {session.user?.image && !imageError ? (
-                    <Image
-                      src={session.user.image}
-                      alt={session.user?.name ?? "User"}
-                      width={24}
-                      height={24}
-                      className="h-6 w-6 rounded-full ring-2 ring-white/10"
-                      onError={() => setImageError(true)}
-                    />
-                  ) : (
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(244,178,102,0.4),rgba(88,198,177,0.4))] text-xs font-bold text-[var(--color-text)] shadow-lg shadow-[rgba(244,178,102,0.3)]">
-                      {session.user?.name?.charAt(0).toUpperCase() ?? "U"}
-                    </div>
-                  )}
-                  <span className="text-sm">{session.user?.name}</span>
-                  <svg
-                    className={`h-4 w-4 transition-transform ${showUserMenu ? "rotate-180" : ""}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-
-                {}
-                {showUserMenu && (
-                  <div className="theme-panel animate-in fade-in slide-in-from-top-2 absolute right-0 mt-2 w-52 rounded-xl border p-1 shadow-xl backdrop-blur-lg duration-200">
-                    <div className="space-y-1">
-                      {userProfile?.userHash && (
-                        <Link
-                          href={`/${userProfile.userHash}`}
-                          onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-                        >
-                          <User className="h-4 w-4" />
-                          My Profile
-                        </Link>
-                      )}
-                      <button
-                        onClick={handleSignOut}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-text)]"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link href="/api/auth/signin" className="hidden md:block">
-                <button className="btn-primary transition-all hover:scale-105">
-                  Sign In
-                </button>
-              </Link>
-            )}
             {isAdmin &&
               (isDarkfloorHost ? (
                 <Link
@@ -466,6 +396,76 @@ export default function Header() {
                 </div>
               </Link>
             ) : null}
+            {session ? (
+              <div className="relative hidden md:block" ref={menuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="btn-secondary flex items-center gap-2 transition-all hover:scale-105"
+                  aria-label="User menu"
+                  aria-expanded={showUserMenu}
+                >
+                  {session.user?.image && !imageError ? (
+                    <Image
+                      src={session.user.image}
+                      alt={session.user?.name ?? "User"}
+                      width={24}
+                      height={24}
+                      className="h-6 w-6 rounded-full ring-2 ring-white/10"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(244,178,102,0.4),rgba(88,198,177,0.4))] text-xs font-bold text-[var(--color-text)] shadow-lg shadow-[rgba(244,178,102,0.3)]">
+                      {session.user?.name?.charAt(0).toUpperCase() ?? "U"}
+                    </div>
+                  )}
+                  <span className="text-sm">{session.user?.name}</span>
+                  <svg
+                    className={`h-4 w-4 transition-transform ${showUserMenu ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {}
+                {showUserMenu && (
+                  <div className="theme-panel animate-in fade-in slide-in-from-top-2 absolute right-0 mt-2 w-52 rounded-xl border p-1 shadow-xl backdrop-blur-lg duration-200">
+                    <div className="space-y-1">
+                      {userProfile?.userHash && (
+                        <Link
+                          href={`/${userProfile.userHash}`}
+                          onClick={() => setShowUserMenu(false)}
+                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                        >
+                          <User className="h-4 w-4" />
+                          My Profile
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-text)]"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/api/auth/signin" className="hidden md:block">
+                <button className="btn-primary transition-all hover:scale-105">
+                  Sign In
+                </button>
+              </Link>
+            )}
           </div>
         </div>
       </header>
