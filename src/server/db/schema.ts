@@ -231,6 +231,7 @@ export const userPreferences = createTable(
     queuePanelOpen: d.boolean().default(false).notNull(),
     visualizerType: d.varchar({ length: 30 }).default("flowfield"),
     visualizerEnabled: d.boolean().default(true).notNull(),
+    visualizerMode: d.varchar({ length: 20 }).default("random"),
     compactMode: d.boolean().default(false).notNull(),
     theme: d.varchar({ length: 20 }).default("dark"),
 
