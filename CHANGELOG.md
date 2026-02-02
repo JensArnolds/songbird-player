@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Env cleanup**: Removed remaining `API_URL` usage and standardized on `API_V2_URL` in env schema, scripts, tests, and docs. Locations: [src/env.js](src/env.js), [scripts/server.js](scripts/server.js), [scripts/test-og-images.sh](scripts/test-og-images.sh), [src/test/setup.ts](src/test/setup.ts), [REPOSITORY_ANALYSIS.md](REPOSITORY_ANALYSIS.md), [REPOSITORY_OVERVIEW.md](REPOSITORY_OVERVIEW.md).
 - **Env cleanup**: Dropped `STREAMING_KEY` references from docs since it is no longer used. Location: [CHANGELOG.md](CHANGELOG.md).
+- **Smart queue seeding**: Queue-based seeds now exclude smart tracks and pass new spice-up controls (`maxSeeds`, `sampling`, `queueMode`) to honor full-queue influence. Locations: [src/contexts/AudioPlayerContext.tsx](src/contexts/AudioPlayerContext.tsx), [src/hooks/useAudioPlayer.ts](src/hooks/useAudioPlayer.ts), [src/server/api/routers/music.ts](src/server/api/routers/music.ts).
 
 ## [0.12.8] - 2026-02-02
 

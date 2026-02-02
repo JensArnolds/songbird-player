@@ -1674,6 +1674,10 @@ export const musicRouter = createTRPCRouter({
         useEnhanced: z.boolean().default(true),
         excludeExplicit: z.boolean().optional(),
         recommendationSource: z.enum(["spotify", "unified"]).optional(),
+        maxSeeds: z.number().int().min(1).max(200).optional(),
+        sampling: z.enum(["round-robin", "evenly-spaced", "weighted"]).optional(),
+        seedStride: z.number().int().min(1).optional(),
+        queueMode: z.enum(["useQueueOnly", "blendHistory", "includeHistory"]).optional(),
         seedTracks: z
           .array(
             z.object({
@@ -1780,7 +1784,10 @@ export const musicRouter = createTRPCRouter({
           limit: 50,
         });
 
-        const maxSeeds = 5;
+        const queueMode = input.queueMode ?? "useQueueOnly";
+        const sampling = input.sampling ?? "evenly-spaced";
+        const maxSeeds = input.maxSeeds ?? 30;
+
         const inputSeedTracks = (input.seedTracks ?? [])
           .map((track) => ({
             name: track.name.trim(),
@@ -1789,14 +1796,17 @@ export const musicRouter = createTRPCRouter({
           }))
           .filter((track) => track.name.length > 0);
 
-        const historySeeds = recentHistory
-          .map((entry: { trackData: unknown }) => entry.trackData as Track)
-          .filter((track) => isTrack(track))
-          .map((track) => ({
-            name: track.title,
-            artist: track.artist.name,
-            album: track.album?.title,
-          }));
+        const historySeeds =
+          queueMode === "useQueueOnly"
+            ? []
+            : recentHistory
+                .map((entry: { trackData: unknown }) => entry.trackData as Track)
+                .filter((track) => isTrack(track))
+                .map((track) => ({
+                  name: track.title,
+                  artist: track.artist.name,
+                  album: track.album?.title,
+                }));
 
         const seedCandidates = [
           {
@@ -1827,7 +1837,6 @@ export const musicRouter = createTRPCRouter({
             artist,
             album: candidate.album,
           });
-          if (seedInputs.length >= maxSeeds) break;
         }
 
         if (seedInputs.length === 0) {
@@ -1865,6 +1874,12 @@ export const musicRouter = createTRPCRouter({
                 songs: seedInputs,
                 limit: Math.min(input.limit + 10, 100),
                 mode,
+                maxSeeds,
+                sampling,
+                queueMode,
+                ...(typeof input.seedStride === "number"
+                  ? { seedStride: input.seedStride }
+                  : {}),
                 ...(excludeDeezerIds.length > 0
                   ? { excludeDeezerIds }
                   : {}),

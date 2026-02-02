@@ -160,15 +160,26 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const DEFAULT_MAX_SEEDS = 30;
+  const DEFAULT_SAMPLING = "evenly-spaced";
+  const DEFAULT_QUEUE_MODE = "useQueueOnly";
+
   const buildSeedTracks = (
     currentTrack: Track,
     queue: Track[] | undefined,
     history: Track[] | undefined,
+    options?: { includeHistory?: boolean },
   ): Array<{ name: string; artist?: string; album?: string }> => {
     const maxHistorySeeds = 4;
-    const recentHistory = (history ?? []).slice(-maxHistorySeeds).reverse();
+    const includeHistory = options?.includeHistory ?? true;
+    const recentHistory = includeHistory
+      ? (history ?? []).slice(-maxHistorySeeds).reverse()
+      : [];
     const queueTracks = queue ?? [];
-    const candidates = [currentTrack, ...queueTracks, ...recentHistory];
+    const candidates =
+      queueTracks.length > 0
+        ? [...queueTracks, ...recentHistory]
+        : [currentTrack, ...recentHistory];
     const seen = new Set<number>();
     const seeds: Array<{ name: string; artist?: string; album?: string }> = [];
 
@@ -253,6 +264,11 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           currentTrack,
           context?.seedQueue ?? context?.queue,
           context?.history,
+          { includeHistory: DEFAULT_QUEUE_MODE !== "useQueueOnly" },
+        );
+        const maxSeeds = Math.max(
+          2,
+          Math.min(seedTracks.length, DEFAULT_MAX_SEEDS),
         );
         const excludeIds = buildExcludeIds(
           currentTrack,
@@ -266,6 +282,9 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           similarityLevel,
           excludeExplicit: normalizedSmartQueueSettings?.excludeExplicit,
           recommendationSource,
+          maxSeeds,
+          sampling: DEFAULT_SAMPLING,
+          queueMode: DEFAULT_QUEUE_MODE,
           ...(excludeIds.deezerIds.length > 0
             ? { excludeTrackIds: excludeIds.deezerIds }
             : {}),
@@ -295,6 +314,11 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           currentTrack,
           context?.seedQueue ?? context?.queue,
           context?.history,
+          { includeHistory: DEFAULT_QUEUE_MODE !== "useQueueOnly" },
+        );
+        const maxSeeds = Math.max(
+          2,
+          Math.min(seedTracks.length, DEFAULT_MAX_SEEDS),
         );
         const excludeIds = buildExcludeIds(
           currentTrack,
@@ -308,6 +332,9 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           similarityLevel: options.similarityLevel,
           excludeExplicit: normalizedSmartQueueSettings?.excludeExplicit,
           recommendationSource: "spotify",
+          maxSeeds,
+          sampling: DEFAULT_SAMPLING,
+          queueMode: DEFAULT_QUEUE_MODE,
           ...(excludeIds.deezerIds.length > 0
             ? { excludeTrackIds: excludeIds.deezerIds }
             : {}),
