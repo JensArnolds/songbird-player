@@ -9,16 +9,16 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import {
-  getAlbumTracks,
-  getTrackById,
-  searchTracks,
-  searchTracksByArtist,
+    getAlbumTracks,
+    getTrackById,
+    searchTracks,
+    searchTracksByArtist,
 } from "@/utils/api";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import {
-  springPresets,
-  staggerContainer,
-  staggerItem,
+    springPresets,
+    staggerContainer,
+    staggerItem,
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, Music2, Search, Shuffle, Sparkles } from "lucide-react";
@@ -549,9 +549,6 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                 transition={springPresets.gentle}
                 className="card flex flex-col items-center justify-center py-16 text-center md:py-12"
               >
-                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-[var(--color-muted)] md:mb-3">
-                  Fully migrated to Vercel
-                </p>
                 <motion.div
                   animate={{
                     scale: [1, 1.05, 1],
@@ -688,6 +685,9 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                   </motion.button>
                 </div>
 
+                <p className="mt-8 text-xs font-medium uppercase tracking-wider text-[var(--color-muted)] md:mt-6">
+                  Fully migrated to Vercel
+                </p>
               </motion.div>
             )}
           </AnimatePresence>
