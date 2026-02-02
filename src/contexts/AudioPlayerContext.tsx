@@ -160,16 +160,97 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const buildSeedTracks = (
+    currentTrack: Track,
+    history: Track[] | undefined,
+  ): Array<{ name: string; artist?: string; album?: string }> => {
+    const maxSeeds = 4;
+    const recentHistory = (history ?? []).slice(-maxSeeds).reverse();
+    const candidates = [currentTrack, ...recentHistory];
+    const seen = new Set<number>();
+    const seeds: Array<{ name: string; artist?: string; album?: string }> = [];
+
+    for (const track of candidates) {
+      if (!track || typeof track.id !== "number") continue;
+      if (seen.has(track.id)) continue;
+      if (!track.title || !track.artist?.name) continue;
+
+      seen.add(track.id);
+      seeds.push({
+        name: track.title,
+        artist: track.artist.name,
+        album: track.album?.title,
+      });
+
+      if (seeds.length >= maxSeeds) break;
+    }
+
+    if (seeds.length === 1) {
+      seeds.push({ ...seeds[0] });
+    }
+
+    return seeds;
+  };
+
+  const buildExcludeTrackIds = (
+    currentTrack: Track,
+    queue: Track[] | undefined,
+    history: Track[] | undefined,
+  ): number[] => {
+    const excluded = new Set<number>();
+    const maxExcluded = 150;
+
+    if (typeof currentTrack.id === "number") {
+      excluded.add(currentTrack.id);
+    }
+
+    for (const track of queue ?? []) {
+      if (typeof track?.id === "number") {
+        excluded.add(track.id);
+      }
+      if (excluded.size >= maxExcluded) break;
+    }
+
+    if (excluded.size < maxExcluded) {
+      for (const track of history ?? []) {
+        if (typeof track?.id === "number") {
+          excluded.add(track.id);
+        }
+        if (excluded.size >= maxExcluded) break;
+      }
+    }
+
+    return Array.from(excluded);
+  };
+
   const handleAutoQueueTrigger = useCallback(
-    async (currentTrack: Track, _queueLength: number): Promise<Track[]> => {
+    async (
+      currentTrack: Track,
+      _queueLength: number,
+      context?: { history: Track[]; queue: Track[]; source: "auto" | "manual" },
+    ): Promise<Track[]> => {
       try {
+        const similarityLevel =
+          context?.source === "auto"
+            ? "diverse"
+            : normalizedSmartQueueSettings?.similarityPreference ?? "balanced";
+        const recommendationSource =
+          context?.source === "auto" ? "unified" : "spotify";
+        const seedTracks = buildSeedTracks(currentTrack, context?.history);
+        const excludeTrackIds = buildExcludeTrackIds(
+          currentTrack,
+          context?.queue,
+          context?.history,
+        );
         const result = await utils.music.getSimilarTracks.fetch({
           trackId: currentTrack.id,
           limit: 10,
           useEnhanced: true,
-          similarityLevel:
-            normalizedSmartQueueSettings?.similarityPreference ?? "balanced",
+          similarityLevel,
           excludeExplicit: normalizedSmartQueueSettings?.excludeExplicit,
+          recommendationSource,
+          ...(excludeTrackIds.length > 0 ? { excludeTrackIds } : {}),
+          seedTracks,
         });
 
         return result || [];
@@ -185,14 +266,24 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     async (
       currentTrack: Track,
       options: { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
+      context?: { history: Track[]; queue: Track[] },
     ): Promise<Track[]> => {
       try {
+        const seedTracks = buildSeedTracks(currentTrack, context?.history);
+        const excludeTrackIds = buildExcludeTrackIds(
+          currentTrack,
+          context?.queue,
+          context?.history,
+        );
         const result = await utils.music.getSimilarTracks.fetch({
           trackId: currentTrack.id,
           limit: options.count,
           useEnhanced: true,
           similarityLevel: options.similarityLevel,
           excludeExplicit: normalizedSmartQueueSettings?.excludeExplicit,
+          recommendationSource: "spotify",
+          ...(excludeTrackIds.length > 0 ? { excludeTrackIds } : {}),
+          seedTracks,
         });
 
         return result || [];

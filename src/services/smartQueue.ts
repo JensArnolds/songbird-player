@@ -107,6 +107,100 @@ interface HexMusicTrack {
   deezer_id?: string;
 }
 
+interface SpiceUpTrack {
+  id?: string;
+  name?: string;
+  artists?: Array<{ name?: string }>;
+  album?: { name?: string };
+  deezerId?: string | number | null;
+  deezer_id?: string | number | null;
+  explicit?: boolean;
+  isrc?: string;
+  source?: "spotify" | "lastfm" | "deezer";
+  reason?: string;
+  score?: number;
+}
+
+type SpiceUpSeed =
+  | string
+  | {
+      name?: string;
+      artist?: string;
+      album?: string;
+    };
+
+function normalizeSpiceUpSongs(
+  seeds: SpiceUpSeed[],
+): Array<{ name?: string; artist?: string; album?: string }> {
+  return seeds
+    .map((seed) => (typeof seed === "string" ? { name: seed } : seed))
+    .filter((song) => song.name || song.artist || song.album);
+}
+
+function extractSpiceUpTracks(payload: unknown): SpiceUpTrack[] {
+  if (Array.isArray(payload)) {
+    return payload as SpiceUpTrack[];
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const record = payload as Record<string, unknown>;
+  const tracks = record.tracks ?? record.recommendations;
+
+  return Array.isArray(tracks) ? (tracks as SpiceUpTrack[]) : [];
+}
+
+function normalizeSpiceUpDeezerId(value: unknown): string | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value.toString();
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return normalizeSpiceUpDeezerId(record.deezerId ?? record.deezer_id);
+  }
+  return null;
+}
+
+async function convertSpiceUpTracksToDeezer(
+  spiceTracks: SpiceUpTrack[],
+  limit: number,
+): Promise<Track[]> {
+  const resolved: Track[] = [];
+  const seenIds = new Set<number>();
+
+  for (const track of spiceTracks) {
+    if (resolved.length >= limit) break;
+
+    const deezerId = normalizeSpiceUpDeezerId(track.deezerId ?? track.deezer_id);
+    if (deezerId) {
+      const deezerTrack = await fetchDeezerTrack(deezerId);
+      if (deezerTrack && !seenIds.has(deezerTrack.id)) {
+        resolved.push(deezerTrack);
+        seenIds.add(deezerTrack.id);
+      }
+      continue;
+    }
+
+    const name = track.name?.trim();
+    if (!name) continue;
+    const artist = track.artists?.[0]?.name?.trim();
+    const query = artist ? `${artist} ${name}` : name;
+    const searchResults = await searchDeezerTrack(query);
+    if (searchResults[0] && !seenIds.has(searchResults[0].id)) {
+      resolved.push(searchResults[0]);
+      seenIds.add(searchResults[0].id);
+    }
+  }
+
+  return resolved;
+}
+
 export async function analyzeTrack(
   spotifyTrackId: string,
 ): Promise<TrackAnalysis | null> {
@@ -224,33 +318,54 @@ export async function getPlaylistRecommendations(
 }
 
 export async function getDeezerRecommendations(
-  trackNames: string[],
+  seeds: SpiceUpSeed[],
   count = 10,
+  options?: {
+    excludeDeezerIds?: Array<string | number>;
+    excludeExplicit?: boolean;
+  },
 ): Promise<Track[]> {
-  console.log("[SmartQueue] 🎯 getStarchildRecommendations called", {
-    trackNames,
+  console.log("[SmartQueue] 🎯 getSpiceUpRecommendations called", {
+    seedCount: seeds.length,
     count,
     apiUrl: API_BASE_URL,
   });
 
   try {
 
+    const songs = normalizeSpiceUpSongs(seeds);
+    if (songs.length === 0) {
+      return [];
+    }
+    if (songs.length === 1) {
+      songs.push({ ...songs[0] });
+    }
+
+    const excludeDeezerIds = Array.from(
+      new Set(options?.excludeDeezerIds ?? []),
+    ).filter((id) => id !== undefined && id !== null);
+
     const baseUrl = API_BASE_URL.endsWith("/") ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
     const response = await fetch(
-      `${baseUrl}/hexmusic/recommendations/deezer`,
+      `${baseUrl}/api/spotify/recommendations/spice-up/unified`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          trackNames,
-          n: count,
+          songs,
+          limit: count,
+          mode: "diverse",
+          ...(excludeDeezerIds.length > 0
+            ? { excludeDeezerIds }
+            : {}),
+          ...(options?.excludeExplicit ? { excludeExplicit: true } : {}),
         }),
       },
     );
 
-    console.log("[SmartQueue] 📡 Starchild recommendations API response:", {
+    console.log("[SmartQueue] 📡 Spice-up recommendations API response:", {
       status: response.status,
       statusText: response.statusText,
       ok: response.ok,
@@ -262,16 +377,18 @@ export async function getDeezerRecommendations(
         .catch(() => ({ message: response.statusText }))) as {
         message?: string;
       };
-      console.error("[SmartQueue] ❌ Starchild recommendations API error:", error);
+      console.error(
+        "[SmartQueue] ❌ Spice-up recommendations API error:",
+        error,
+      );
       throw new Error(error.message ?? `API Error: ${response.status}`);
     }
 
     const payload = (await response.json()) as unknown;
-    const tracks = Array.isArray(payload)
-      ? payload.filter((item): item is Track => isTrack(item))
-      : [];
+    const spiceTracks = extractSpiceUpTracks(payload);
+    const tracks = await convertSpiceUpTracksToDeezer(spiceTracks, count);
 
-    console.log("[SmartQueue] ✅ Starchild recommendations received:", {
+    console.log("[SmartQueue] ✅ Spice-up recommendations received:", {
       count: tracks.length,
       sample: tracks.slice(0, 3).map((t) => `${t.title} - ${t.artist.name}`),
     });
@@ -283,7 +400,7 @@ export async function getDeezerRecommendations(
     return tracks.slice(0, count);
   } catch (error) {
     console.error(
-      "[SmartQueue] ❌ Failed to get Starchild recommendations:",
+      "[SmartQueue] ❌ Failed to get spice-up recommendations:",
       error,
     );
     return [];
@@ -389,9 +506,14 @@ export async function getSmartQueueRecommendations(
     console.log(
       "[SmartQueue] 🧠 Attempting intelligent recommendations from HexMusic API...",
     );
-    const trackName = `${currentTrack.artist.name} ${currentTrack.title}`;
     const intelligentTracks = await getDeezerRecommendations(
-      [trackName],
+      [
+        {
+          name: currentTrack.title,
+          artist: currentTrack.artist.name,
+          album: currentTrack.album?.title,
+        },
+      ],
       count * 2,
     );
 

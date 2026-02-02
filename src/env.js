@@ -29,6 +29,7 @@ export const env = createEnv({
       .transform((val) => val === "true"),
   },
   client: {
+    NEXT_PUBLIC_APP_VERSION: z.string().optional(),
     NEXT_PUBLIC_NEXTAUTH_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: z.string().url().optional(),
@@ -36,6 +37,7 @@ export const env = createEnv({
     NEXT_PUBLIC_API_V2_HEALTH_URL: z.string().url().optional(),
   },
   runtimeEnv: {
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,

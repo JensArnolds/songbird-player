@@ -29,10 +29,19 @@ interface UseAudioPlayerOptions {
   onAutoQueueTrigger?: (
     currentTrack: Track,
     currentQueueLength: number,
+    context?: {
+      history: Track[];
+      queue: Track[];
+      source: "auto" | "manual";
+    },
   ) => Promise<Track[]>;
   onCustomSmartTracksFetch?: (
     currentTrack: Track,
     options: { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
+    context?: {
+      history: Track[];
+      queue: Track[];
+    },
   ) => Promise<Track[]>;
   onError?: (error: string, trackId?: number) => void;
   keepPlaybackAlive?: boolean;
@@ -366,6 +375,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           const recommendedTracks = await options.onAutoQueueTrigger!(
             currentTrack,
             queuedTracks.length,
+            { history, queue: queuedTracks.map((qt) => qt.track), source: "auto" },
           );
 
           if (recommendedTracks.length > 0) {
@@ -436,7 +446,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   useEffect(() => {
     const smartQueueSettings = options.smartQueueSettings;
     const onAutoQueueTrigger = options.onAutoQueueTrigger;
-    
+
     const shouldAutoQueue =
       smartQueueSettings?.autoQueueEnabled &&
       onAutoQueueTrigger &&
@@ -471,6 +481,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             const recommendedTracks = await onAutoQueueTrigger(
               currentTrack,
               queuedTracks.length,
+              { history, queue: queuedTracks.map((qt) => qt.track), source: "auto" },
             );
 
             if (recommendedTracks.length > 0) {
@@ -510,10 +521,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       }
     }
   }, [
-    queuedTracks.length,
+    queuedTracks,
     currentTrack,
     isPlaying,
     smartQueueState,
+    history,
     createQueuedTrack,
     options.smartQueueSettings,
     options.onAutoQueueTrigger,
@@ -1856,8 +1868,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       }
 
       const seedTrack = currentQueuedTrack.track;
-      
-            const count = typeof countOrOptions === "number" ? countOrOptions : countOrOptions?.count ?? 5;
+
+      const count =
+        typeof countOrOptions === "number" ? countOrOptions : countOrOptions?.count ?? 5;
       const similarityLevel = typeof countOrOptions === "object" && countOrOptions?.similarityLevel
         ? countOrOptions.similarityLevel
         : undefined;
@@ -1868,20 +1881,25 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         { count, similarityLevel },
       );
 
-            setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
+      setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
 
       try {
         let recommendedTracks: Track[] = [];
 
-                if (similarityLevel && options.onCustomSmartTracksFetch) {
-          recommendedTracks = await options.onCustomSmartTracksFetch(seedTrack, {
-            count,
-            similarityLevel,
-          });
+        if (similarityLevel && options.onCustomSmartTracksFetch) {
+          recommendedTracks = await options.onCustomSmartTracksFetch(
+            seedTrack,
+            {
+              count,
+              similarityLevel,
+            },
+            { history, queue: queuedTracks.map((qt) => qt.track) },
+          );
         } else if (options.onAutoQueueTrigger) {
           const fetchedTracks = await options.onAutoQueueTrigger(
             seedTrack,
             queuedTracks.length,
+            { history, queue: queuedTracks.map((qt) => qt.track), source: "manual" },
           );
           recommendedTracks = fetchedTracks.slice(0, count);
         }
@@ -1911,7 +1929,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         return [];
       }
     },
-    [queuedTracks, createQueuedTrack, options],
+    [queuedTracks, history, createQueuedTrack, options],
   );
 
   const refreshSmartTracks = useCallback(async (): Promise<void> => {
@@ -1935,12 +1953,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       return;
     }
 
-        setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
+    setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
 
     try {
       const recommendedTracks = await options.onAutoQueueTrigger(
         seedTrack,
         baseQueue.length,
+        { history, queue: baseQueue.map((qt) => qt.track), source: "manual" },
       );
 
       const shuffled = [...recommendedTracks];
@@ -1970,7 +1989,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       logger.error("[useAudioPlayer] ❌ Failed to refresh smart tracks:", error);
       setSmartQueueState((prev) => ({ ...prev, isLoading: false }));
     }
-  }, [queuedTracks, options.onAutoQueueTrigger, createQueuedTrack]);
+  }, [queuedTracks, history, options.onAutoQueueTrigger, createQueuedTrack]);
 
   const clearSmartTracks = useCallback(() => {
     logger.debug("[useAudioPlayer] 🧹 Clearing smart tracks");

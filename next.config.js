@@ -1,6 +1,16 @@
 // File: next.config.js
 
+import { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
 import "./src/env.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(
+  readFileSync(join(__dirname, "package.json"), "utf-8"),
+);
+const appVersion = typeof pkg.version === "string" ? pkg.version : "0.0.0";
 
 if (typeof process !== "undefined") {
   const originalEmit = /** @type {(...args: any[]) => any} */ (
@@ -56,6 +66,9 @@ if (typeof process !== "undefined") {
 
 /** @type {import("next").NextConfig} */
 const config = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion,
+  },
   reactStrictMode: true,
 
   output: "standalone",

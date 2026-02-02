@@ -2,26 +2,27 @@
 
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Home,
-  Library,
-  ListMusic,
-  User,
-  Settings,
-  Shield,
-  Info,
-  FileText,
-  LogOut,
-  ChevronRight,
-} from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
-import Image from "next/image";
+import { APP_VERSION } from "@/config/version";
 import { useMenu } from "@/contexts/MenuContext";
+import { api } from "@/trpc/react";
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
-import { api } from "@/trpc/react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+    ChevronRight,
+    FileText,
+    Home,
+    Info,
+    Library,
+    ListMusic,
+    LogOut,
+    Settings,
+    Shield,
+    User,
+} from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
+import Link from "next/link";
 
 interface MenuItem {
   id: string;
@@ -254,7 +255,7 @@ export default function HamburgerMenu() {
             {}
             <div className="border-t border-[var(--color-border)] p-6">
               <p className="text-center text-xs text-[var(--color-muted)]">
-                Starchild Music v1.0
+                Starchild Music v{APP_VERSION}
               </p>
             </div>
           </motion.div>

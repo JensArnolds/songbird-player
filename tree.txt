@@ -9,6 +9,7 @@ songbird-frontend
 ├───.vercelignore
 ├───CHANGELOG.md
 ├───config1.1
+├───CONTEXT.md
 ├───docker-compose.yml
 ├───Dockerfile
 ├───drizzle.config.ts
@@ -26,6 +27,7 @@ songbird-frontend
 ├───postcss.config.js
 ├───prettier.config.js
 ├───README.md
+├───REPOSITORY_ANALYSIS.md
 ├───REPOSITORY_OVERVIEW.md
 ├───rollup.config.mjs
 ├───setup-database.sh
@@ -422,7 +424,8 @@ songbird-frontend
 │   │   ├───constants.ts
 │   │   ├───features.ts
 │   │   ├───player.ts
-│   │   └───storage.ts
+│   │   ├───storage.ts
+│   │   └───version.ts
 │   ├───constants/
 │   │   └───visualizer.ts
 │   ├───contexts/

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.7] - 2026-02-02
+
+### Changed
+
+- **Smart Queue recommendations**: Auto-queue now uses the unified spice-up endpoint for broader variety, while manual smart-track actions prefer Spotify-only for faster, more consistent matches. Multi-seed inputs are always sent and queue/history IDs are excluded to reduce repeats. Locations: [src/contexts/AudioPlayerContext.tsx](src/contexts/AudioPlayerContext.tsx), [src/hooks/useAudioPlayer.ts](src/hooks/useAudioPlayer.ts), [src/server/api/routers/music.ts](src/server/api/routers/music.ts), [src/services/smartQueue.ts](src/services/smartQueue.ts).
+- **Spice-up integration**: Updated to the new envelope response and new request options (exclude Deezer IDs, exclude explicit), resolving Deezer IDs from response metadata when available. Locations: [src/server/api/routers/music.ts](src/server/api/routers/music.ts), [src/services/smartQueue.ts](src/services/smartQueue.ts).
+
 ## [0.12.6] - 2026-02-01
 
 ### Changed

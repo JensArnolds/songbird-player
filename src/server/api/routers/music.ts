@@ -76,7 +76,35 @@ const trackSchema = z.object({
     type: z.literal("album"),
   }),
   type: z.literal("track"),
-  deezer_id: z.union([z.number(), z.string()]).optional(), });
+  deezer_id: z.union([z.number(), z.string()]).optional(),
+});
+
+type SpiceUpTrack = {
+  id?: string;
+  name?: string;
+  artists?: Array<{ name?: string }>;
+  album?: { name?: string };
+  deezerId?: unknown;
+  deezer_id?: unknown;
+  explicit?: boolean;
+  isrc?: string;
+  source?: "spotify" | "lastfm" | "deezer";
+  reason?: string;
+  score?: number;
+};
+
+type SpiceUpResponse = {
+  tracks?: SpiceUpTrack[];
+  recommendations?: SpiceUpTrack[];
+  requestId?: string;
+  warnings?: string[];
+  mode?: string;
+  inputSongs?: number;
+  foundSongs?: number;
+  seeds?: unknown;
+  songResults?: unknown;
+  seedQuality?: unknown;
+};
 
 function getDeezerId(track: z.infer<typeof trackSchema>): number | undefined {
   if (track.deezer_id !== undefined) {
@@ -85,6 +113,140 @@ function getDeezerId(track: z.infer<typeof trackSchema>): number | undefined {
       : track.deezer_id;
   }
       return undefined;
+}
+
+function normalizeDeezerId(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return normalizeDeezerId(record.deezerId ?? record.deezer_id ?? record.id);
+  }
+  return null;
+}
+
+function extractSpiceUpTracks(payload: unknown): SpiceUpTrack[] {
+  if (Array.isArray(payload)) {
+    return payload as SpiceUpTrack[];
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const record = payload as Record<string, unknown>;
+  const tracks = record.tracks ?? record.recommendations;
+
+  return Array.isArray(tracks) ? (tracks as SpiceUpTrack[]) : [];
+}
+
+async function fetchTracksByDeezerIds(
+  ids: number[],
+  options?: {
+    excludeTrackIds?: number[];
+    maxExplicit?: boolean;
+  },
+): Promise<Track[]> {
+  const uniqueIds = Array.from(new Set(ids)).filter((id) => Number.isFinite(id));
+  if (uniqueIds.length === 0) return [];
+
+  const params = new URLSearchParams();
+  params.set("ids", uniqueIds.join(","));
+  const tracksResponse = await songbird.request<unknown>(
+    `/music/tracks/batch?${params.toString()}`,
+  );
+  const tracks = Array.isArray(tracksResponse)
+    ? tracksResponse.filter((item): item is Track => isTrack(item))
+    : [];
+
+  const hydratedTracks = tracks.map((track) => ({
+    ...track,
+    deezer_id: track.deezer_id ?? track.id,
+  }));
+
+  const filtered = options
+    ? filterRecommendations(hydratedTracks, {
+        excludeTrackIds: options.excludeTrackIds,
+        maxExplicit: options.maxExplicit,
+      })
+    : hydratedTracks;
+
+  const trackMap = new Map(filtered.map((track) => [track.id, track]));
+  const ordered = uniqueIds
+    .map((id) => trackMap.get(id))
+    .filter((track): track is Track => Boolean(track));
+
+  return ordered.length > 0 ? ordered : filtered;
+}
+
+async function convertToDeezerIds(
+  tracks: Array<{ name: string; artist?: string }>,
+): Promise<number[]> {
+  if (tracks.length === 0) return [];
+  const conversionResponse = await songbird.request<{
+    tracks?: Array<{ deezerId?: unknown }>;
+  }>("/api/deezer/tracks/convert", {
+    method: "POST",
+    body: JSON.stringify({
+      tracks: tracks.map((track) => ({
+        name: track.name,
+        artist: track.artist,
+      })),
+    }),
+  });
+
+  return Array.from(
+    new Set(
+      (conversionResponse.tracks ?? [])
+        .map((track) => normalizeDeezerId(track.deezerId))
+        .filter((id): id is number => typeof id === "number"),
+    ),
+  );
+}
+
+async function resolveSpiceUpTracksToDeezer(
+  spiceTracks: SpiceUpTrack[],
+): Promise<Track[]> {
+  const orderedIds: number[] = [];
+  const seenIds = new Set<number>();
+  const missingCandidates: Array<{ name: string; artist?: string }> = [];
+
+  for (const track of spiceTracks) {
+    const deezerId = normalizeDeezerId(track.deezerId ?? track.deezer_id);
+    if (deezerId) {
+      if (!seenIds.has(deezerId)) {
+        seenIds.add(deezerId);
+        orderedIds.push(deezerId);
+      }
+      continue;
+    }
+
+    const name = track.name?.trim();
+    if (!name) continue;
+    const artist = track.artists?.[0]?.name?.trim();
+    missingCandidates.push({ name, artist });
+  }
+
+  if (missingCandidates.length > 0) {
+    const convertedIds = await convertToDeezerIds(missingCandidates);
+    for (const id of convertedIds) {
+      if (!seenIds.has(id)) {
+        seenIds.add(id);
+        orderedIds.push(id);
+      }
+    }
+  }
+
+  if (orderedIds.length === 0) {
+    return [];
+  }
+
+  return fetchTracksByDeezerIds(orderedIds);
 }
 
 async function syncAutoFavorites(database: typeof db, userId: string) {
@@ -1383,9 +1545,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const API_URL =
-        process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
-
       try {
 
         const userPrefs = await ctx.db.query.userPreferences.findFirst({
@@ -1394,12 +1553,7 @@ export const musicRouter = createTRPCRouter({
 
         const similarityPreference =
           userPrefs?.similarityPreference ?? "balanced";
-        const mode =
-          similarityPreference === "strict"
-            ? 0
-            : similarityPreference === "diverse"
-              ? 2
-              : 1;
+        const mode = "diverse";
 
         console.log("[IntelligentRecommendations] Using mode:", {
           similarityPreference,
@@ -1407,38 +1561,47 @@ export const musicRouter = createTRPCRouter({
           userId: ctx.session.user.id,
         });
 
-        const apiUrl = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
-        const response = await fetch(
-          `${apiUrl}/hexmusic/recommendations/deezer`,
+        const songs = input.trackNames
+          .map((trackName) => trackName.trim())
+          .filter((trackName) => trackName.length > 0)
+          .map((trackName) => ({ name: trackName }));
+
+        if (songs.length === 0) {
+          return [];
+        }
+        if (songs.length === 1) {
+          songs.push({ ...songs[0] });
+        }
+
+        const payload = await songbird.request<SpiceUpResponse>(
+          "/api/spotify/recommendations/spice-up/unified",
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
             body: JSON.stringify({
-              trackNames: input.trackNames,
-              n: input.count * 2,
+              songs,
+              limit: input.count * 2,
               mode,
+              ...(input.excludeTrackIds && input.excludeTrackIds.length > 0
+                ? { excludeDeezerIds: input.excludeTrackIds }
+                : {}),
             }),
           },
         );
+        const spiceTracks = extractSpiceUpTracks(payload);
+        const tracks = await resolveSpiceUpTracksToDeezer(spiceTracks);
 
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
+        if (payload.warnings && payload.warnings.length > 0) {
+          console.warn(
+            "[IntelligentRecommendations] API warnings:",
+            payload.warnings,
+          );
         }
-
-        const payload = (await response.json()) as unknown;
-        const tracks = Array.isArray(payload)
-          ? payload.filter((item): item is Track => isTrack(item))
-          : [];
 
         if (tracks.length === 0) {
           console.warn(
             "[IntelligentRecommendations] Backend returned no valid tracks",
             {
-              payloadPreview: Array.isArray(payload)
-                ? payload.slice(0, 2)
-                : payload,
+              payloadPreview: spiceTracks.slice(0, 2),
             },
           );
           return [];
@@ -1466,25 +1629,20 @@ export const musicRouter = createTRPCRouter({
           .default("balanced"),
         useEnhanced: z.boolean().default(true),
         excludeExplicit: z.boolean().optional(),
+        recommendationSource: z.enum(["spotify", "unified"]).optional(),
+        seedTracks: z
+          .array(
+            z.object({
+              name: z.string(),
+              artist: z.string().optional(),
+              album: z.string().optional(),
+            }),
+          )
+          .optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       return ctx.db.transaction(async () => {
-
-        const normalizeDeezerId = (value: unknown): number | null => {
-          if (typeof value === "number" && Number.isFinite(value)) {
-            return value;
-          }
-          if (typeof value === "string") {
-            const parsed = Number.parseInt(value, 10);
-            return Number.isFinite(parsed) ? parsed : null;
-          }
-          if (value && typeof value === "object") {
-            const record = value as Record<string, unknown>;
-            return normalizeDeezerId(record.deezerId ?? record.id);
-          }
-          return null;
-        };
 
         const cached = await ctx.db.query.recommendationCache.findFirst({
           where: and(
@@ -1578,40 +1736,124 @@ export const musicRouter = createTRPCRouter({
           limit: 50,
         });
 
-        const seedInputs = [
-          seedTrack,
-          ...recentHistory
-            .map((entry: { trackData: unknown }) => entry.trackData as Track)
-            .filter((track) => isTrack(track)),
-        ]
-          .filter((track, index, self) =>
-            self.findIndex((t) => t.id === track.id) === index,
-          )
-          .slice(0, 3)
+        const maxSeeds = 5;
+        const inputSeedTracks = (input.seedTracks ?? [])
+          .map((track) => ({
+            name: track.name.trim(),
+            artist: track.artist?.trim(),
+            album: track.album?.trim(),
+          }))
+          .filter((track) => track.name.length > 0);
+
+        const historySeeds = recentHistory
+          .map((entry: { trackData: unknown }) => entry.trackData as Track)
+          .filter((track) => isTrack(track))
           .map((track) => ({
             name: track.title,
             artist: track.artist.name,
             album: track.album?.title,
           }));
 
+        const seedCandidates = [
+          {
+            name: seedTrack.title,
+            artist: seedTrack.artist.name,
+            album: seedTrack.album?.title,
+          },
+          ...inputSeedTracks,
+          ...historySeeds,
+        ];
+
+        const seenSeeds = new Set<string>();
+        const seedInputs: Array<{
+          name: string;
+          artist?: string;
+          album?: string;
+        }> = [];
+
+        for (const candidate of seedCandidates) {
+          const name = candidate.name?.trim();
+          if (!name) continue;
+          const artist = candidate.artist?.trim();
+          const key = `${name.toLowerCase()}|${artist?.toLowerCase() ?? ""}`;
+          if (seenSeeds.has(key)) continue;
+          seenSeeds.add(key);
+          seedInputs.push({
+            name,
+            artist,
+            album: candidate.album,
+          });
+          if (seedInputs.length >= maxSeeds) break;
+        }
+
+        if (seedInputs.length === 0) {
+          seedInputs.push({
+            name: seedTrack.title,
+            artist: seedTrack.artist.name,
+            album: seedTrack.album?.title,
+          });
+        }
+
+        if (seedInputs.length === 1) {
+          seedInputs.push({ ...seedInputs[0] });
+        }
+
         try {
-          const fetchTracksByDeezerIds = async (ids: number[]): Promise<Track[]> => {
-            if (ids.length === 0) return [];
-            const params = new URLSearchParams();
-            params.set("ids", ids.join(","));
-            const tracksResponse = await songbird.request<unknown>(
-              `/music/tracks/batch?${params.toString()}`,
+          const mode =
+            input.similarityLevel === "strict"
+              ? "strict"
+              : input.similarityLevel === "diverse"
+                ? "diverse"
+                : "balanced";
+          const excludeDeezerIds = Array.from(
+            new Set([...(input.excludeTrackIds ?? []), input.trackId]),
+          );
+          const recommendationEndpoint =
+            input.recommendationSource === "spotify"
+              ? "/api/spotify/recommendations/spice-up"
+              : "/api/spotify/recommendations/spice-up/unified";
+
+          const recommendationResponse = await songbird.request<SpiceUpResponse>(
+            recommendationEndpoint,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                songs: seedInputs,
+                limit: Math.min(input.limit + 10, 100),
+                mode,
+                ...(excludeDeezerIds.length > 0
+                  ? { excludeDeezerIds }
+                  : {}),
+                ...(input.excludeExplicit ? { excludeExplicit: true } : {}),
+              }),
+            },
+          );
+
+          if (
+            recommendationResponse.warnings &&
+            recommendationResponse.warnings.length > 0
+          ) {
+            console.warn(
+              "[getSimilarTracks] API warnings:",
+              recommendationResponse.warnings,
             );
-            const tracks = Array.isArray(tracksResponse)
-              ? tracksResponse.filter((item): item is Track => isTrack(item))
-              : [];
+          }
 
-            const hydratedTracks = tracks.map((track) => ({
-              ...track,
-              deezer_id: track.deezer_id ?? track.id,
-            }));
+          if (
+            recommendationResponse.foundSongs !== undefined &&
+            recommendationResponse.inputSongs !== undefined &&
+            recommendationResponse.foundSongs < recommendationResponse.inputSongs
+          ) {
+            console.warn(
+              `[getSimilarTracks] Only ${recommendationResponse.foundSongs} of ${recommendationResponse.inputSongs} input songs were found`,
+            );
+          }
 
-            const filtered = filterRecommendations(hydratedTracks, {
+          const spiceTracks = extractSpiceUpTracks(recommendationResponse);
+          const resolvedTracks = await resolveSpiceUpTracksToDeezer(spiceTracks);
+
+          if (resolvedTracks.length > 0) {
+            const filtered = filterRecommendations(resolvedTracks, {
               excludeTrackIds: [
                 ...(input.excludeTrackIds ?? []),
                 input.trackId,
@@ -1619,98 +1861,8 @@ export const musicRouter = createTRPCRouter({
               maxExplicit: input.excludeExplicit ? false : undefined,
             });
 
-            return filtered.slice(0, input.limit);
-          };
-
-          const convertToDeezerIds = async (
-            tracks: Array<{ name: string; artist?: string }>,
-          ): Promise<number[]> => {
-            if (tracks.length === 0) return [];
-            const conversionResponse = await songbird.request<{
-              tracks?: Array<{ deezerId?: unknown }>;
-            }>("/api/deezer/tracks/convert", {
-              method: "POST",
-              body: JSON.stringify({
-                tracks: tracks.map((track) => ({
-                  name: track.name,
-                  artist: track.artist,
-                })),
-              }),
-            });
-
-            return Array.from(
-              new Set(
-                (conversionResponse.tracks ?? [])
-                  .map((track) => normalizeDeezerId(track.deezerId))
-                  .filter((id): id is number => typeof id === "number"),
-              ),
-            );
-          };
-
-                                                            const mode =
-            input.similarityLevel === "strict"
-              ? "strict"
-              : input.similarityLevel === "diverse"
-                ? "diverse"
-                : "balanced"; 
-          const recommendationResponse = await songbird.request<{
-            mode?: string;
-            inputSongs?: number;
-            foundSongs?: number;
-            recommendations?: Array<{
-              name: string;
-              artist: string;
-              deezerId?: unknown;
-            }>;
-            songResults?: Array<{
-              input: { name: string; artist?: string };
-              track?: unknown;
-              confidence?: number;
-              searchMethod?: string;
-              error?: string | null;
-            }>;
-            seedQuality?: {
-              overallScore?: number;
-              uniqueArtists?: number;
-              popularityRange?: { min: number; max: number; average: number };
-              diversityScore?: number;
-              recommendations?: string[];
-            };
-            warnings?: string[];
-          }>("/api/lastfm/recommendations/spice-up-with-deezer", {
-            method: "POST",
-            body: JSON.stringify({
-              songs: seedInputs,
-              limit: Math.min(input.limit + 10, 100),
-              mode,
-              convertToDeezer: true,
-            }),
-          });
-
-                              if (recommendationResponse.warnings && recommendationResponse.warnings.length > 0) {
-            console.warn("[getSimilarTracks] API warnings:", recommendationResponse.warnings);
-          }
-
-                    if (recommendationResponse.foundSongs !== undefined && 
-              recommendationResponse.inputSongs !== undefined &&
-              recommendationResponse.foundSongs < recommendationResponse.inputSongs) {
-            console.warn(
-              `[getSimilarTracks] Only ${recommendationResponse.foundSongs} of ${recommendationResponse.inputSongs} input songs were found`,
-            );
-          }
-
-          const deezerIds = Array.from(
-            new Set(
-              (recommendationResponse.recommendations ?? [])
-                .map((rec) => normalizeDeezerId(rec.deezerId))
-                .filter((id): id is number => typeof id === "number"),
-            ),
-          );
-
-          if (deezerIds.length > 0) {
-            const tracks = await fetchTracksByDeezerIds(deezerIds);
-            if (tracks.length > 0) {
-              return tracks;
+            if (filtered.length > 0) {
+              return filtered.slice(0, input.limit);
             }
           }
 
@@ -1754,7 +1906,13 @@ export const musicRouter = createTRPCRouter({
 
           const similarDeezerIds = await convertToDeezerIds(similarCandidates);
           if (similarDeezerIds.length > 0) {
-            const tracks = await fetchTracksByDeezerIds(similarDeezerIds);
+            const tracks = await fetchTracksByDeezerIds(similarDeezerIds, {
+              excludeTrackIds: [
+                ...(input.excludeTrackIds ?? []),
+                input.trackId,
+              ],
+              maxExplicit: input.excludeExplicit ? false : undefined,
+            });
             if (tracks.length > 0) {
               return tracks;
             }
@@ -1785,7 +1943,13 @@ export const musicRouter = createTRPCRouter({
 
           const spotifyDeezerIds = await convertToDeezerIds(spotifyCandidates);
           if (spotifyDeezerIds.length > 0) {
-            const tracks = await fetchTracksByDeezerIds(spotifyDeezerIds);
+            const tracks = await fetchTracksByDeezerIds(spotifyDeezerIds, {
+              excludeTrackIds: [
+                ...(input.excludeTrackIds ?? []),
+                input.trackId,
+              ],
+              maxExplicit: input.excludeExplicit ? false : undefined,
+            });
             if (tracks.length > 0) {
               return tracks;
             }
@@ -1826,9 +1990,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const API_URL =
-        process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
-
       try {
 
         const seedTracks: Track[] = [];
@@ -1850,12 +2011,7 @@ export const musicRouter = createTRPCRouter({
           throw new Error("Could not fetch any seed tracks");
         }
 
-        const mode =
-          input.diversity === "strict"
-            ? 0
-            : input.diversity === "diverse"
-              ? 2
-              : 1;
+        const mode = "diverse";
 
         console.log("[SmartMix] Generating with mode:", {
           diversity: input.diversity,
@@ -1864,36 +2020,32 @@ export const musicRouter = createTRPCRouter({
           userId: ctx.session.user.id,
         });
 
-        const trackNames = seedTracks.map((t) => `${t.artist.name} ${t.title}`);
+        const songs = seedTracks.map((track) => ({
+          name: track.title,
+          artist: track.artist.name,
+          album: track.album?.title,
+        }));
+        if (songs.length === 1) {
+          songs.push({ ...songs[0] });
+        }
 
-        const apiUrl = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
-        const response = await fetch(
-          `${apiUrl}/hexmusic/recommendations/deezer`,
+        const payload = await songbird.request<SpiceUpResponse>(
+          "/api/spotify/recommendations/spice-up/unified",
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
             body: JSON.stringify({
-              trackNames,
-              n: input.limit * 2,
+              songs,
+              limit: input.limit * 2,
               mode,
+              excludeDeezerIds: input.seedTrackIds,
             }),
           },
         );
-
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
-        }
-
-        const payload = (await response.json()) as unknown;
-        if (!Array.isArray(payload)) {
-          throw new Error("Unexpected recommendation response format");
-        }
-
-        const candidateTracks = payload
-          .filter((item): item is Track => isTrack(item))
-          .filter((track) => !input.seedTrackIds.includes(track.id));
+        const spiceTracks = extractSpiceUpTracks(payload);
+        const resolvedTracks = await resolveSpiceUpTracksToDeezer(spiceTracks);
+        const candidateTracks = resolvedTracks.filter(
+          (track) => !input.seedTrackIds.includes(track.id),
+        );
 
         if (candidateTracks.length === 0) {
           throw new Error("No valid recommendation tracks received");
