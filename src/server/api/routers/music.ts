@@ -77,6 +77,7 @@ const trackSchema = z.object({
   }),
   type: z.literal("track"),
   deezer_id: z.union([z.number(), z.string()]).optional(),
+  spotify_id: z.string().optional(),
 });
 
 type SpiceUpTrack = {
@@ -214,14 +215,23 @@ async function resolveSpiceUpTracksToDeezer(
 ): Promise<Track[]> {
   const orderedIds: number[] = [];
   const seenIds = new Set<number>();
-  const missingCandidates: Array<{ name: string; artist?: string }> = [];
+  const spotifyIdByDeezerId = new Map<number, string>();
+  const missingCandidates: Array<{
+    name: string;
+    artist?: string;
+    spotifyId?: string;
+  }> = [];
 
   for (const track of spiceTracks) {
+    const spotifyId = typeof track.id === "string" ? track.id.trim() : undefined;
     const deezerId = normalizeDeezerId(track.deezerId ?? track.deezer_id);
     if (deezerId) {
       if (!seenIds.has(deezerId)) {
         seenIds.add(deezerId);
         orderedIds.push(deezerId);
+      }
+      if (spotifyId) {
+        spotifyIdByDeezerId.set(deezerId, spotifyId);
       }
       continue;
     }
@@ -229,15 +239,32 @@ async function resolveSpiceUpTracksToDeezer(
     const name = track.name?.trim();
     if (!name) continue;
     const artist = track.artists?.[0]?.name?.trim();
-    missingCandidates.push({ name, artist });
+    missingCandidates.push({ name, artist, spotifyId });
   }
 
   if (missingCandidates.length > 0) {
-    const convertedIds = await convertToDeezerIds(missingCandidates);
-    for (const id of convertedIds) {
-      if (!seenIds.has(id)) {
-        seenIds.add(id);
-        orderedIds.push(id);
+    const conversionResponse = await songbird.request<{
+      tracks?: Array<{ deezerId?: unknown }>;
+    }>("/api/deezer/tracks/convert", {
+      method: "POST",
+      body: JSON.stringify({
+        tracks: missingCandidates.map((track) => ({
+          name: track.name,
+          artist: track.artist,
+        })),
+      }),
+    });
+
+    const converted = conversionResponse.tracks ?? [];
+    for (let i = 0; i < converted.length; i += 1) {
+      const candidate = converted[i];
+      const deezerId = normalizeDeezerId(candidate?.deezerId);
+      if (!deezerId || seenIds.has(deezerId)) continue;
+      seenIds.add(deezerId);
+      orderedIds.push(deezerId);
+      const spotifyId = missingCandidates[i]?.spotifyId;
+      if (spotifyId) {
+        spotifyIdByDeezerId.set(deezerId, spotifyId);
       }
     }
   }
@@ -246,7 +273,11 @@ async function resolveSpiceUpTracksToDeezer(
     return [];
   }
 
-  return fetchTracksByDeezerIds(orderedIds);
+  const tracks = await fetchTracksByDeezerIds(orderedIds);
+  return tracks.map((track) => {
+    const spotifyId = spotifyIdByDeezerId.get(track.id);
+    return spotifyId ? { ...track, spotify_id: spotifyId } : track;
+  });
 }
 
 async function syncAutoFavorites(database: typeof db, userId: string) {
@@ -1542,6 +1573,8 @@ export const musicRouter = createTRPCRouter({
         trackNames: z.array(z.string()).min(1),
         count: z.number().min(1).max(50).default(10),
         excludeTrackIds: z.array(z.number()).optional(),
+        excludeSpotifyTrackIds: z.array(z.string()).optional(),
+        recommendationSource: z.enum(["spotify", "unified"]).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -1554,10 +1587,16 @@ export const musicRouter = createTRPCRouter({
         const similarityPreference =
           userPrefs?.similarityPreference ?? "balanced";
         const mode = "diverse";
+        const recommendationSource = input.recommendationSource ?? "spotify";
+        const recommendationEndpoint =
+          recommendationSource === "unified"
+            ? "/api/spotify/recommendations/spice-up/unified"
+            : "/api/spotify/recommendations/spice-up";
 
         console.log("[IntelligentRecommendations] Using mode:", {
           similarityPreference,
           mode,
+          recommendationSource,
           userId: ctx.session.user.id,
         });
 
@@ -1574,7 +1613,7 @@ export const musicRouter = createTRPCRouter({
         }
 
         const payload = await songbird.request<SpiceUpResponse>(
-          "/api/spotify/recommendations/spice-up/unified",
+          recommendationEndpoint,
           {
             method: "POST",
             body: JSON.stringify({
@@ -1583,6 +1622,10 @@ export const musicRouter = createTRPCRouter({
               mode,
               ...(input.excludeTrackIds && input.excludeTrackIds.length > 0
                 ? { excludeDeezerIds: input.excludeTrackIds }
+                : {}),
+              ...(input.excludeSpotifyTrackIds &&
+              input.excludeSpotifyTrackIds.length > 0
+                ? { excludeTrackIds: input.excludeSpotifyTrackIds }
                 : {}),
             }),
           },
@@ -1624,6 +1667,7 @@ export const musicRouter = createTRPCRouter({
         trackId: z.number(),
         limit: z.number().min(1).max(50).default(5),
         excludeTrackIds: z.array(z.number()).optional(),
+        excludeSpotifyTrackIds: z.array(z.string()).optional(),
         similarityLevel: z
           .enum(["strict", "balanced", "diverse"])
           .default("balanced"),
@@ -1824,6 +1868,10 @@ export const musicRouter = createTRPCRouter({
                 ...(excludeDeezerIds.length > 0
                   ? { excludeDeezerIds }
                   : {}),
+                ...(input.excludeSpotifyTrackIds &&
+                input.excludeSpotifyTrackIds.length > 0
+                  ? { excludeTrackIds: input.excludeSpotifyTrackIds }
+                  : {}),
                 ...(input.excludeExplicit ? { excludeExplicit: true } : {}),
               }),
             },
@@ -1987,6 +2035,8 @@ export const musicRouter = createTRPCRouter({
         diversity: z
           .enum(["strict", "balanced", "diverse"])
           .default("balanced"),
+        excludeSpotifyTrackIds: z.array(z.string()).optional(),
+        recommendationSource: z.enum(["spotify", "unified"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -2012,10 +2062,16 @@ export const musicRouter = createTRPCRouter({
         }
 
         const mode = "diverse";
+        const recommendationSource = input.recommendationSource ?? "unified";
+        const recommendationEndpoint =
+          recommendationSource === "spotify"
+            ? "/api/spotify/recommendations/spice-up"
+            : "/api/spotify/recommendations/spice-up/unified";
 
         console.log("[SmartMix] Generating with mode:", {
           diversity: input.diversity,
           mode,
+          recommendationSource,
           seedCount: seedTracks.length,
           userId: ctx.session.user.id,
         });
@@ -2030,7 +2086,7 @@ export const musicRouter = createTRPCRouter({
         }
 
         const payload = await songbird.request<SpiceUpResponse>(
-          "/api/spotify/recommendations/spice-up/unified",
+          recommendationEndpoint,
           {
             method: "POST",
             body: JSON.stringify({
@@ -2038,6 +2094,10 @@ export const musicRouter = createTRPCRouter({
               limit: input.limit * 2,
               mode,
               excludeDeezerIds: input.seedTrackIds,
+              ...(input.excludeSpotifyTrackIds &&
+              input.excludeSpotifyTrackIds.length > 0
+                ? { excludeTrackIds: input.excludeSpotifyTrackIds }
+                : {}),
             }),
           },
         );

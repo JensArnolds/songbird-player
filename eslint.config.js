@@ -1,21 +1,15 @@
 // File: eslint.config.js
 
-import { FlatCompat } from "@eslint/eslintrc";
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import tseslint from "typescript-eslint";
 // @ts-ignore -- no types for this plugin
 import drizzle from "eslint-plugin-drizzle";
-
-const compat = new FlatCompat({
-  baseDirectory: dirname(fileURLToPath(import.meta.url)),
-});
+import nextConfig from "eslint-config-next/core-web-vitals";
 
 export default tseslint.config(
   {
     ignores: [".next", "node_modules", "dist", "scripts"],
   },
-  ...compat.extends("next/core-web-vitals"),
+  ...nextConfig,
   {
     files: ["**/*.ts", "**/*.tsx"],
     plugins: {

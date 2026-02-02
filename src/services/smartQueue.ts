@@ -177,11 +177,16 @@ async function convertSpiceUpTracksToDeezer(
   for (const track of spiceTracks) {
     if (resolved.length >= limit) break;
 
+    const spotifyId = typeof track.id === "string" ? track.id.trim() : undefined;
     const deezerId = normalizeSpiceUpDeezerId(track.deezerId ?? track.deezer_id);
     if (deezerId) {
       const deezerTrack = await fetchDeezerTrack(deezerId);
       if (deezerTrack && !seenIds.has(deezerTrack.id)) {
-        resolved.push(deezerTrack);
+        resolved.push(
+          spotifyId
+            ? { ...deezerTrack, spotify_id: spotifyId }
+            : deezerTrack,
+        );
         seenIds.add(deezerTrack.id);
       }
       continue;
@@ -193,7 +198,11 @@ async function convertSpiceUpTracksToDeezer(
     const query = artist ? `${artist} ${name}` : name;
     const searchResults = await searchDeezerTrack(query);
     if (searchResults[0] && !seenIds.has(searchResults[0].id)) {
-      resolved.push(searchResults[0]);
+      resolved.push(
+        spotifyId
+          ? { ...searchResults[0], spotify_id: spotifyId }
+          : searchResults[0],
+      );
       seenIds.add(searchResults[0].id);
     }
   }
@@ -322,6 +331,7 @@ export async function getDeezerRecommendations(
   count = 10,
   options?: {
     excludeDeezerIds?: Array<string | number>;
+    excludeTrackIds?: string[];
     excludeExplicit?: boolean;
   },
 ): Promise<Track[]> {
@@ -344,6 +354,9 @@ export async function getDeezerRecommendations(
     const excludeDeezerIds = Array.from(
       new Set(options?.excludeDeezerIds ?? []),
     ).filter((id) => id !== undefined && id !== null);
+    const excludeTrackIds = Array.from(
+      new Set(options?.excludeTrackIds ?? []),
+    ).filter((id) => id !== undefined && id !== null && id !== "");
 
     const baseUrl = API_BASE_URL.endsWith("/") ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
     const response = await fetch(
@@ -360,6 +373,7 @@ export async function getDeezerRecommendations(
           ...(excludeDeezerIds.length > 0
             ? { excludeDeezerIds }
             : {}),
+          ...(excludeTrackIds.length > 0 ? { excludeTrackIds } : {}),
           ...(options?.excludeExplicit ? { excludeExplicit: true } : {}),
         }),
       },

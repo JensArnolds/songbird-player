@@ -50,6 +50,7 @@ export interface Track {
   gain?: number;
   release_date?: string;
   deezer_id?: number | string; // Deezer song ID - critical for sharing and track identification
+  spotify_id?: string; // Spotify track ID when available (for de-duplication)
 }
 
 export type QueueSource =

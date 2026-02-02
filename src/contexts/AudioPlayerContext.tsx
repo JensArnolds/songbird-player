@@ -192,35 +192,48 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     return seeds;
   };
 
-  const buildExcludeTrackIds = (
+  const buildExcludeIds = (
     currentTrack: Track,
     queue: Track[] | undefined,
     history: Track[] | undefined,
-  ): number[] => {
-    const excluded = new Set<number>();
+  ): { deezerIds: number[]; spotifyIds: string[] } => {
+    const deezerIds = new Set<number>();
+    const spotifyIds = new Set<string>();
     const maxExcluded = 150;
 
     if (typeof currentTrack.id === "number") {
-      excluded.add(currentTrack.id);
+      deezerIds.add(currentTrack.id);
+    }
+    if (typeof currentTrack.spotify_id === "string") {
+      spotifyIds.add(currentTrack.spotify_id);
     }
 
     for (const track of queue ?? []) {
       if (typeof track?.id === "number") {
-        excluded.add(track.id);
+        deezerIds.add(track.id);
       }
-      if (excluded.size >= maxExcluded) break;
+      if (typeof track?.spotify_id === "string") {
+        spotifyIds.add(track.spotify_id);
+      }
+      if (deezerIds.size >= maxExcluded) break;
     }
 
-    if (excluded.size < maxExcluded) {
+    if (deezerIds.size < maxExcluded) {
       for (const track of history ?? []) {
         if (typeof track?.id === "number") {
-          excluded.add(track.id);
+          deezerIds.add(track.id);
         }
-        if (excluded.size >= maxExcluded) break;
+        if (typeof track?.spotify_id === "string") {
+          spotifyIds.add(track.spotify_id);
+        }
+        if (deezerIds.size >= maxExcluded) break;
       }
     }
 
-    return Array.from(excluded);
+    return {
+      deezerIds: Array.from(deezerIds),
+      spotifyIds: Array.from(spotifyIds),
+    };
   };
 
   const handleAutoQueueTrigger = useCallback(
@@ -237,7 +250,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         const recommendationSource =
           context?.source === "auto" ? "unified" : "spotify";
         const seedTracks = buildSeedTracks(currentTrack, context?.history);
-        const excludeTrackIds = buildExcludeTrackIds(
+        const excludeIds = buildExcludeIds(
           currentTrack,
           context?.queue,
           context?.history,
@@ -249,7 +262,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           similarityLevel,
           excludeExplicit: normalizedSmartQueueSettings?.excludeExplicit,
           recommendationSource,
-          ...(excludeTrackIds.length > 0 ? { excludeTrackIds } : {}),
+          ...(excludeIds.deezerIds.length > 0
+            ? { excludeTrackIds: excludeIds.deezerIds }
+            : {}),
+          ...(excludeIds.spotifyIds.length > 0
+            ? { excludeSpotifyTrackIds: excludeIds.spotifyIds }
+            : {}),
           seedTracks,
         });
 
@@ -270,7 +288,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     ): Promise<Track[]> => {
       try {
         const seedTracks = buildSeedTracks(currentTrack, context?.history);
-        const excludeTrackIds = buildExcludeTrackIds(
+        const excludeIds = buildExcludeIds(
           currentTrack,
           context?.queue,
           context?.history,
@@ -282,7 +300,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           similarityLevel: options.similarityLevel,
           excludeExplicit: normalizedSmartQueueSettings?.excludeExplicit,
           recommendationSource: "spotify",
-          ...(excludeTrackIds.length > 0 ? { excludeTrackIds } : {}),
+          ...(excludeIds.deezerIds.length > 0
+            ? { excludeTrackIds: excludeIds.deezerIds }
+            : {}),
+          ...(excludeIds.spotifyIds.length > 0
+            ? { excludeSpotifyTrackIds: excludeIds.spotifyIds }
+            : {}),
           seedTracks,
         });
 
