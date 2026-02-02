@@ -8,8 +8,8 @@ echo "🚀 Starting Songbird Frontend..."
 export HOSTNAME="${HOSTNAME:-0.0.0.0}"
 export PORT="${PORT:-3222}"
 
-if [ -z "$AUTH_SECRET" ] || [ -z "$STREAMING_KEY" ]; then
-  echo "⚠️  Warning: AUTH_SECRET or STREAMING_KEY may be unset. The app may exit if env validation fails."
+if [ -z "$AUTH_SECRET" ]; then
+  echo "⚠️  Warning: AUTH_SECRET may be unset. The app may exit if env validation fails."
 fi
 
 if [ "$NODE_ENV" = "production" ]; then

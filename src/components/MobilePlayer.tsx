@@ -138,6 +138,8 @@ function QueueItem({
   const [dragY, setDragY] = useState(0);
   const itemRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef<number>(0);
+  const selectionStartYRef = useRef<number>(0);
+  const isReorderingRef = useRef(false);
   const currentIndexRef = useRef<number>(index);
 
   useEffect(() => {
@@ -156,24 +158,54 @@ function QueueItem({
     ? track.album.title
     : null;
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleItemTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       if (touch) {
-        startYRef.current = touch.clientY;
-        onDragStart();
+        selectionStartYRef.current = touch.clientY;
       }
     }
     onToggleSelect(e);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleItemTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1 && selectionStartYRef.current !== 0) {
+      const touch = e.touches[0];
+      if (touch) {
+        const currentY = touch.clientY;
+        const deltaY = currentY - selectionStartYRef.current;
+        if (Math.abs(deltaY) > 8) {
+          selectionStartYRef.current = 0;
+          onTouchEnd();
+        }
+      }
+    }
+  };
+
+  const handleItemTouchEnd = () => {
+    selectionStartYRef.current = 0;
+    onTouchEnd();
+  };
+
+  const handleReorderTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      if (touch) {
+        startYRef.current = touch.clientY;
+        isReorderingRef.current = true;
+        onDragStart();
+      }
+    }
+  };
+
+  const handleReorderTouchMove = (e: React.TouchEvent) => {
+    if (!isReorderingRef.current) return;
     if (e.touches.length === 1 && startYRef.current !== 0) {
       const touch = e.touches[0];
       if (touch) {
         const currentY = touch.clientY;
         const deltaY = currentY - startYRef.current;
-        
+
         if (Math.abs(deltaY) > 10) {
           setDragY(deltaY);
         }
@@ -181,7 +213,10 @@ function QueueItem({
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleReorderTouchEnd = () => {
+    if (!isReorderingRef.current) {
+      return;
+    }
     if (Math.abs(dragY) > 30) {
       const itemsMoved = dragY > 0 ? 1 : -1;
       const newIndex = index + itemsMoved;
@@ -191,6 +226,7 @@ function QueueItem({
     }
     setDragY(0);
     startYRef.current = 0;
+    isReorderingRef.current = false;
     onDragEnd();
     onTouchEnd();
   };
@@ -203,7 +239,8 @@ function QueueItem({
         y: isDragging ? dragY : 0,
         opacity: isDragging ? 0.7 : 1,
       }}
-      className={`group relative flex items-center gap-3 p-3 transition-colors touch-none ${
+      style={{ touchAction: "pan-y" }}
+      className={`group relative flex items-center gap-3 p-3 transition-colors ${
         isSelected
           ? "bg-[rgba(88,198,177,0.18)] ring-2 ring-[rgba(88,198,177,0.4)]"
           : isActive
@@ -212,9 +249,9 @@ function QueueItem({
               ? "bg-[rgba(88,198,177,0.04)] active:bg-[rgba(88,198,177,0.08)]"
               : "active:bg-[rgba(244,178,102,0.08)]"
       }`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={handleItemTouchStart}
+      onTouchMove={handleItemTouchMove}
+      onTouchEnd={handleItemTouchEnd}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('button')) {
           return;
@@ -230,10 +267,26 @@ function QueueItem({
       {/* Drag handle */}
       <button
         className="flex-shrink-0 text-[var(--color-muted)] transition-colors active:text-[var(--color-text)]"
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
         onTouchStart={(e) => {
           e.stopPropagation();
-          handleTouchStart(e);
+          handleReorderTouchStart(e);
         }}
+        onTouchMove={(e) => {
+          e.stopPropagation();
+          handleReorderTouchMove(e);
+        }}
+        onTouchEnd={(e) => {
+          e.stopPropagation();
+          handleReorderTouchEnd();
+        }}
+        onTouchCancel={(e) => {
+          e.stopPropagation();
+          handleReorderTouchEnd();
+        }}
+        style={{ touchAction: "none" }}
       >
         <GripVertical className="h-5 w-5" />
       </button>
@@ -422,10 +475,23 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [similarityLevel, setSimilarityLevel] = useState<SimilarityPreference>("balanced");
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [queueThumbHeight, setQueueThumbHeight] = useState(0);
+  const [queueScrollbarVisible, setQueueScrollbarVisible] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const artworkRef = useRef<HTMLDivElement>(null);
   const paletteRequestRef = useRef(0);
   const lastPaletteCoverRef = useRef<string | null>(null);
+  const queueScrollRef = useRef<HTMLDivElement>(null);
+  const queueScrollTrackRef = useRef<HTMLDivElement>(null);
+  const queueScrollThumbRef = useRef<HTMLDivElement>(null);
+  const queueScrollRafRef = useRef<number | null>(null);
+  const queueScrollbarVisibleRef = useRef(false);
+  const queueThumbHeightRef = useRef(0);
+  const queueScrollDragRef = useRef<{ active: boolean; startY: number; startScrollTop: number }>({
+    active: false,
+    startY: 0,
+    startScrollTop: 0,
+  });
 
   const { data: playlists, refetch: refetchPlaylists } =
     api.music.getPlaylists.useQuery(undefined, {
@@ -467,6 +533,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const artworkScale = useTransform(dragY, [0, 100], [1, 0.9]);
 
   const seekX = useMotionValue(0);
+  const queueThumbY = useMotionValue(0);
 
   const shouldIgnoreTouch = (target: EventTarget | null) => {
     if (!(target instanceof HTMLElement)) return false;
@@ -477,6 +544,115 @@ export default function MobilePlayer(props: MobilePlayerProps) {
         target.closest("select"),
     );
   };
+
+  const updateQueueScrollbar = useCallback(() => {
+    const container = queueScrollRef.current;
+    if (!container) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const canScroll = scrollHeight > clientHeight + 1;
+
+    if (queueScrollbarVisibleRef.current !== canScroll) {
+      queueScrollbarVisibleRef.current = canScroll;
+      setQueueScrollbarVisible(canScroll);
+    }
+
+    if (!canScroll) {
+      queueThumbY.set(0);
+      return;
+    }
+
+    const thumbHeight = Math.max((clientHeight / scrollHeight) * clientHeight, 36);
+    if (thumbHeight !== queueThumbHeightRef.current) {
+      queueThumbHeightRef.current = thumbHeight;
+      setQueueThumbHeight(thumbHeight);
+    }
+
+    const scrollable = scrollHeight - clientHeight;
+    const maxOffset = Math.max(clientHeight - thumbHeight, 1);
+    const offset = scrollable > 0 ? (scrollTop / scrollable) * maxOffset : 0;
+    queueThumbY.set(offset);
+  }, [queueThumbY]);
+
+  const handleQueueScroll = useCallback(() => {
+    if (queueScrollRafRef.current !== null) return;
+    queueScrollRafRef.current = requestAnimationFrame(() => {
+      queueScrollRafRef.current = null;
+      updateQueueScrollbar();
+    });
+  }, [updateQueueScrollbar]);
+
+  const handleQueueScrollbarPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const container = queueScrollRef.current;
+      const track = queueScrollTrackRef.current;
+      if (!container || !track) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const scrollable = container.scrollHeight - container.clientHeight;
+      if (scrollable <= 0) return;
+
+      const rect = track.getBoundingClientRect();
+      const thumbHeight =
+        queueThumbHeightRef.current ||
+        Math.max((container.clientHeight / container.scrollHeight) * rect.height, 36);
+      const maxOffset = Math.max(rect.height - thumbHeight, 1);
+      const isThumb = Boolean((event.target as HTMLElement)?.closest("[data-queue-scroll-thumb='true']"));
+
+      if (!isThumb) {
+        const clickOffset = event.clientY - rect.top - thumbHeight / 2;
+        const thumbOffset = Math.min(Math.max(clickOffset, 0), maxOffset);
+        container.scrollTop = (thumbOffset / maxOffset) * scrollable;
+      }
+
+      queueScrollDragRef.current = {
+        active: true,
+        startY: event.clientY,
+        startScrollTop: container.scrollTop,
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [],
+  );
+
+  const handleQueueScrollbarPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!queueScrollDragRef.current.active) return;
+
+      const container = queueScrollRef.current;
+      const track = queueScrollTrackRef.current;
+      if (!container || !track) return;
+
+      const scrollable = container.scrollHeight - container.clientHeight;
+      if (scrollable <= 0) return;
+
+      const thumbHeight =
+        queueThumbHeightRef.current ||
+        Math.max((container.clientHeight / container.scrollHeight) * track.clientHeight, 36);
+      const maxOffset = Math.max(track.clientHeight - thumbHeight, 1);
+      const delta = event.clientY - queueScrollDragRef.current.startY;
+      const scrollDelta = (delta / maxOffset) * scrollable;
+      const nextScrollTop = Math.min(
+        Math.max(queueScrollDragRef.current.startScrollTop + scrollDelta, 0),
+        scrollable,
+      );
+
+      container.scrollTop = nextScrollTop;
+    },
+    [],
+  );
+
+  const handleQueueScrollbarPointerUp = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!queueScrollDragRef.current.active) return;
+      queueScrollDragRef.current.active = false;
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    },
+    [],
+  );
 
   const handlePlayPause = useCallback(() => {
     hapticMedium();
@@ -592,6 +768,32 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const filteredSmartTracks = useMemo(() => {
     return filteredQueue.slice(1).filter(entry => entry.isSmartTrack);
   }, [filteredQueue]);
+
+  useEffect(() => {
+    if (!showQueuePanel) return;
+    const container = queueScrollRef.current;
+    if (!container) return;
+
+    updateQueueScrollbar();
+
+    const handleScroll = () => handleQueueScroll();
+    container.addEventListener("scroll", handleScroll, { passive: true });
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => updateQueueScrollbar());
+      resizeObserver.observe(container);
+    }
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      resizeObserver?.disconnect();
+      if (queueScrollRafRef.current !== null) {
+        cancelAnimationFrame(queueScrollRafRef.current);
+        queueScrollRafRef.current = null;
+      }
+    };
+  }, [filteredQueue.length, handleQueueScroll, showQueuePanel, updateQueueScrollbar]);
 
   const totalDuration = useMemo(() => {
     return queue.reduce((acc, track) => acc + track.duration, 0);
@@ -1949,171 +2151,99 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </div>
                       )}
                     </div>
-                    <div className="flex-1 overflow-y-auto overscroll-contain scroll-smooth">
-                      {queue.length === 0 ? (
-                        <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-                          <div className="mb-4 text-6xl">🎵</div>
-                          <p className="mb-2 text-lg font-medium text-[var(--color-text)]">
-                            Queue is empty
-                          </p>
-                          <p className="text-sm text-[var(--color-subtext)]">
-                            Add tracks to start building your queue
-                          </p>
-                        </div>
-                      ) : filteredQueue.length === 0 ? (
-                        <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-                          <Search className="mb-4 h-12 w-12 text-[var(--color-muted)]" />
-                          <p className="mb-2 text-lg font-medium text-[var(--color-text)]">
-                            No results found
-                          </p>
-                          <p className="text-sm text-[var(--color-subtext)]">
-                            Try a different search term
-                          </p>
-                        </div>
-                      ) : (
-                        <div>
-                          {/* Now Playing */}
-                          {filteredNowPlaying && (
-                            <div className="border-b border-[rgba(255,255,255,0.05)]">
-                              <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider bg-[rgba(245,241,232,0.02)]">
-                                Now Playing on
-                              </div>
-                              <QueueItem
-                                track={filteredNowPlaying.track}
-                                index={filteredNowPlaying.index}
-                                isActive={currentTrack?.id === filteredNowPlaying.track.id}
-                                isSelected={selectedQueueIndices.has(filteredNowPlaying.index)}
-                                isSmartTrack={filteredNowPlaying.isSmartTrack}
-                                onPlay={() => {
-                                  hapticLight();
-                                  playFromQueue(filteredNowPlaying.index);
-                                }}
-                                onRemove={() => {
-                                  hapticMedium();
-                                  removeFromQueue(filteredNowPlaying.index);
-                                }}
-                                onToggleSelect={(e) => {
-                                  if (e.type === 'touchstart' && 'touches' in e) {
-                                    const touchEvent = e as React.TouchEvent;
-                                    if (touchEvent.touches.length === 1) {
-                                      const timer = setTimeout(() => {
-                                        hapticMedium();
-                                        handleToggleQueueSelect(filteredNowPlaying.index);
-                                      }, 500);
-                                      setLongPressTimer(timer);
-                                    }
-                                  } else {
-                                    if (longPressTimer) {
-                                      clearTimeout(longPressTimer);
-                                      setLongPressTimer(null);
-                                    }
-                                    handleToggleQueueSelect(filteredNowPlaying.index, e.shiftKey);
-                                  }
-                                }}
-                                onTouchEnd={() => {
-                                  if (longPressTimer) {
-                                    clearTimeout(longPressTimer);
-                                    setLongPressTimer(null);
-                                  }
-                                }}
-                                canRemove={filteredNowPlaying.index !== 0}
-                                onDragStart={() => setDraggedIndex(filteredNowPlaying.index)}
-                                onDragEnd={() => setDraggedIndex(null)}
-                                isDragging={draggedIndex === filteredNowPlaying.index}
-                                onReorder={(newIndex) => {
-                                  if (newIndex !== filteredNowPlaying.index) {
-                                    reorderQueue(filteredNowPlaying.index, newIndex);
-                                    hapticSuccess();
-                                  }
-                                }}
-                              />
-                            </div>
-                          )}
-
-                          {/* User Tracks */}
-                          {filteredUserTracks.length > 0 && (
-                            <div className="border-b border-[rgba(255,255,255,0.05)]">
-                              <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)]">
-                                Next in queue
-                              </div>
-                              <div className="divide-y divide-[rgba(255,255,255,0.05)]">
-                                {filteredUserTracks.map((entry) => (
-                                  <QueueItem
-                                    key={entry.queueId}
-                                    track={entry.track}
-                                    index={entry.index}
-                                    isActive={currentTrack?.id === entry.track.id}
-                                    isSelected={selectedQueueIndices.has(entry.index)}
-                                    isSmartTrack={entry.isSmartTrack}
-                                    onPlay={() => {
-                                      hapticLight();
-                                      playFromQueue(entry.index);
-                                    }}
-                                    onRemove={() => {
-                                      hapticMedium();
-                                      removeFromQueue(entry.index);
-                                    }}
-                                    onToggleSelect={(e) => {
-                                      if (e.type === 'touchstart' && 'touches' in e) {
-                                        const touchEvent = e as React.TouchEvent;
-                                        if (touchEvent.touches.length === 1) {
-                                          const timer = setTimeout(() => {
-                                            hapticMedium();
-                                            handleToggleQueueSelect(entry.index);
-                                          }, 500);
-                                          setLongPressTimer(timer);
-                                        }
-                                      } else {
-                                        if (longPressTimer) {
-                                          clearTimeout(longPressTimer);
-                                          setLongPressTimer(null);
-                                        }
-                                        handleToggleQueueSelect(entry.index, e.shiftKey);
+                    <div className="relative flex-1">
+                      <div
+                        ref={queueScrollRef}
+                        className="scrollbar-hide h-full overflow-y-auto overscroll-contain scroll-smooth pr-6"
+                      >
+                        {queue.length === 0 ? (
+                          <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+                            <div className="mb-4 text-6xl">🎵</div>
+                            <p className="mb-2 text-lg font-medium text-[var(--color-text)]">
+                              Queue is empty
+                            </p>
+                            <p className="text-sm text-[var(--color-subtext)]">
+                              Add tracks to start building your queue
+                            </p>
+                          </div>
+                        ) : filteredQueue.length === 0 ? (
+                          <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+                            <Search className="mb-4 h-12 w-12 text-[var(--color-muted)]" />
+                            <p className="mb-2 text-lg font-medium text-[var(--color-text)]">
+                              No results found
+                            </p>
+                            <p className="text-sm text-[var(--color-subtext)]">
+                              Try a different search term
+                            </p>
+                          </div>
+                        ) : (
+                          <div>
+                            {/* Now Playing */}
+                            {filteredNowPlaying && (
+                              <div className="border-b border-[rgba(255,255,255,0.05)]">
+                                <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider bg-[rgba(245,241,232,0.02)]">
+                                  Now Playing on
+                                </div>
+                                <QueueItem
+                                  track={filteredNowPlaying.track}
+                                  index={filteredNowPlaying.index}
+                                  isActive={currentTrack?.id === filteredNowPlaying.track.id}
+                                  isSelected={selectedQueueIndices.has(filteredNowPlaying.index)}
+                                  isSmartTrack={filteredNowPlaying.isSmartTrack}
+                                  onPlay={() => {
+                                    hapticLight();
+                                    playFromQueue(filteredNowPlaying.index);
+                                  }}
+                                  onRemove={() => {
+                                    hapticMedium();
+                                    removeFromQueue(filteredNowPlaying.index);
+                                  }}
+                                  onToggleSelect={(e) => {
+                                    if (e.type === 'touchstart' && 'touches' in e) {
+                                      const touchEvent = e as React.TouchEvent;
+                                      if (touchEvent.touches.length === 1) {
+                                        const timer = setTimeout(() => {
+                                          hapticMedium();
+                                          handleToggleQueueSelect(filteredNowPlaying.index);
+                                        }, 500);
+                                        setLongPressTimer(timer);
                                       }
-                                    }}
-                                    onTouchEnd={() => {
+                                    } else {
                                       if (longPressTimer) {
                                         clearTimeout(longPressTimer);
                                         setLongPressTimer(null);
                                       }
-                                    }}
-                                    canRemove={entry.index !== 0}
-                                    onDragStart={() => setDraggedIndex(entry.index)}
-                                    onDragEnd={() => setDraggedIndex(null)}
-                                    isDragging={draggedIndex === entry.index}
-                                    onReorder={(newIndex) => {
-                                      if (newIndex !== entry.index) {
-                                        reorderQueue(entry.index, newIndex);
-                                        hapticSuccess();
-                                      }
-                                    }}
-                                  />
-                                ))}
+                                      handleToggleQueueSelect(filteredNowPlaying.index, e.shiftKey);
+                                    }
+                                  }}
+                                  onTouchEnd={() => {
+                                    if (longPressTimer) {
+                                      clearTimeout(longPressTimer);
+                                      setLongPressTimer(null);
+                                    }
+                                  }}
+                                  canRemove={filteredNowPlaying.index !== 0}
+                                  onDragStart={() => setDraggedIndex(filteredNowPlaying.index)}
+                                  onDragEnd={() => setDraggedIndex(null)}
+                                  isDragging={draggedIndex === filteredNowPlaying.index}
+                                  onReorder={(newIndex) => {
+                                    if (newIndex !== filteredNowPlaying.index) {
+                                      reorderQueue(filteredNowPlaying.index, newIndex);
+                                      hapticSuccess();
+                                    }
+                                  }}
+                                />
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {/* Smart Tracks */}
-                          {(filteredSmartTracks.length > 0 || smartQueueState.isLoading) && (
-                            <div className="border-b border-[rgba(255,255,255,0.05)]">
-                              <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)] flex items-center gap-2">
-                                <span>Smart tracks</span>
-                                {smartQueueState.isLoading && (
-                                  <LoadingSpinner size="sm" label="Loading smart tracks" />
-                                )}
-                              </div>
-                              {smartQueueState.isLoading && filteredSmartTracks.length === 0 ? (
-                                <div className="px-3 py-4 flex items-center justify-center">
-                                  <div className="flex flex-col items-center gap-2">
-                                    <LoadingSpinner size="md" label="Loading smart tracks" />
-                                    <p className="text-xs text-[var(--color-subtext)]">
-                                      Finding similar tracks...
-                                    </p>
-                                  </div>
+                            {/* User Tracks */}
+                            {filteredUserTracks.length > 0 && (
+                              <div className="border-b border-[rgba(255,255,255,0.05)]">
+                                <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)]">
+                                  Next in queue
                                 </div>
-                              ) : (
                                 <div className="divide-y divide-[rgba(255,255,255,0.05)]">
-                                  {filteredSmartTracks.map((entry) => (
+                                  {filteredUserTracks.map((entry) => (
                                     <QueueItem
                                       key={entry.queueId}
                                       track={entry.track}
@@ -2166,9 +2296,107 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                     />
                                   ))}
                                 </div>
-                              )}
-                            </div>
-                          )}
+                              </div>
+                            )}
+
+                            {/* Smart Tracks */}
+                            {(filteredSmartTracks.length > 0 || smartQueueState.isLoading) && (
+                              <div className="border-b border-[rgba(255,255,255,0.05)]">
+                                <div className="px-3 py-2 text-xs font-semibold text-[var(--color-subtext)] uppercase tracking-wider border-b border-[rgba(245,241,232,0.05)] flex items-center gap-2">
+                                  <span>Smart tracks</span>
+                                  {smartQueueState.isLoading && (
+                                    <LoadingSpinner size="sm" label="Loading smart tracks" />
+                                  )}
+                                </div>
+                                {smartQueueState.isLoading && filteredSmartTracks.length === 0 ? (
+                                  <div className="px-3 py-4 flex items-center justify-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                      <LoadingSpinner size="md" label="Loading smart tracks" />
+                                      <p className="text-xs text-[var(--color-subtext)]">
+                                        Finding similar tracks...
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="divide-y divide-[rgba(255,255,255,0.05)]">
+                                    {filteredSmartTracks.map((entry) => (
+                                      <QueueItem
+                                        key={entry.queueId}
+                                        track={entry.track}
+                                        index={entry.index}
+                                        isActive={currentTrack?.id === entry.track.id}
+                                        isSelected={selectedQueueIndices.has(entry.index)}
+                                        isSmartTrack={entry.isSmartTrack}
+                                        onPlay={() => {
+                                          hapticLight();
+                                          playFromQueue(entry.index);
+                                        }}
+                                        onRemove={() => {
+                                          hapticMedium();
+                                          removeFromQueue(entry.index);
+                                        }}
+                                        onToggleSelect={(e) => {
+                                          if (e.type === 'touchstart' && 'touches' in e) {
+                                            const touchEvent = e as React.TouchEvent;
+                                            if (touchEvent.touches.length === 1) {
+                                              const timer = setTimeout(() => {
+                                                hapticMedium();
+                                                handleToggleQueueSelect(entry.index);
+                                              }, 500);
+                                              setLongPressTimer(timer);
+                                            }
+                                          } else {
+                                            if (longPressTimer) {
+                                              clearTimeout(longPressTimer);
+                                              setLongPressTimer(null);
+                                            }
+                                            handleToggleQueueSelect(entry.index, e.shiftKey);
+                                          }
+                                        }}
+                                        onTouchEnd={() => {
+                                          if (longPressTimer) {
+                                            clearTimeout(longPressTimer);
+                                            setLongPressTimer(null);
+                                          }
+                                        }}
+                                        canRemove={entry.index !== 0}
+                                        onDragStart={() => setDraggedIndex(entry.index)}
+                                        onDragEnd={() => setDraggedIndex(null)}
+                                        isDragging={draggedIndex === entry.index}
+                                        onReorder={(newIndex) => {
+                                          if (newIndex !== entry.index) {
+                                            reorderQueue(entry.index, newIndex);
+                                            hapticSuccess();
+                                          }
+                                        }}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {queueScrollbarVisible && (
+                        <div
+                          ref={queueScrollTrackRef}
+                          data-drag-exempt="true"
+                          className="absolute right-2 top-3 bottom-3 w-3 touch-none"
+                          onPointerDown={handleQueueScrollbarPointerDown}
+                          onPointerMove={handleQueueScrollbarPointerMove}
+                          onPointerUp={handleQueueScrollbarPointerUp}
+                          onPointerCancel={handleQueueScrollbarPointerUp}
+                          role="presentation"
+                          aria-hidden="true"
+                        >
+                          <div className="absolute inset-0 rounded-full bg-[rgba(255,255,255,0.08)]" />
+                          <motion.div
+                            ref={queueScrollThumbRef}
+                            data-queue-scroll-thumb="true"
+                            className="absolute left-1/2 w-1.5 -translate-x-1/2 rounded-full bg-[rgba(255,255,255,0.5)]"
+                            style={{ height: queueThumbHeight, y: queueThumbY }}
+                          />
                         </div>
                       )}
                     </div>
@@ -2187,7 +2415,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         )}
                         {!queueSearchQuery && selectedQueueIndices.size === 0 && (
                           <div className="mt-2 text-xs text-[var(--color-muted)]">
-                            Tip: Tap to play • Long-press to select • Swipe to reorder
+                            Tip: Tap to play • Long-press to select • Drag handle to reorder
                           </div>
                         )}
                       </div>

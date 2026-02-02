@@ -165,10 +165,8 @@
     DB_SSL_CA=""  # Optional: Path to SSL certificate (PEM format)
 
     # API Configuration
-    NEXT_PUBLIC_API_URL="https://api.darkfloor.art/"  # Darkfloor API for search/streaming
-    STREAMING_KEY="your-secure-stream-key"  # Optional: For authenticated streaming
-    SONGBIRD_API_KEY=""  # Optional: For Songbird API recommendations
-    NEXT_PUBLIC_V2_API_URL="https://songbird.darkfloor.art/"  # Optional: V2 API
+    API_V2_URL="https://songbird.darkfloor.art/"  # V2 API (streaming, search, track metadata)
+    SONGBIRD_API_KEY=""  # For Songbird API (streaming, recommendations)
 
     # Environment
     NODE_ENV="development"
@@ -331,7 +329,7 @@ Primary API for music search and streaming.
 **Endpoints:**
 
 - `GET /music/search?q={query}` - Search for music tracks
-- `GET /music/stream?trackId={id}&kbps={bitrate}` - Stream a music track
+- `GET /music/stream/direct?trackId={id}&kbps={bitrate}` - Stream a music track
 
 **Documentation:**
 
@@ -403,7 +401,7 @@ Frontend → tRPC (music.search) → Backend API (Darkfloor/Songbird) → Respon
 **Streaming Flow:**
 
 ```
-Frontend → getStreamUrlById() → Backend API (/music/stream) → Audio Stream
+Frontend → getStreamUrlById() → Backend API (/music/stream/direct) → Audio Stream
 ```
 
 **Stream URL Generation:**
@@ -412,8 +410,7 @@ Stream URLs are generated via `getStreamUrlById()` function:
 
 ```typescript
 const streamUrl = getStreamUrlById(trackId.toString());
-// Returns: `${NEXT_PUBLIC_API_URL}/music/stream?trackId=${trackId}&kbps=320`
-// Or with key: `${NEXT_PUBLIC_API_URL}/music/stream?key=${STREAMING_KEY}&trackId=${trackId}`
+// Returns: `/api/stream?id=${trackId}&kbps=320` (proxied to V2 API with SONGBIRD_API_KEY)
 ```
 
 **Supported Formats:**
@@ -552,7 +549,7 @@ cp .env.example .env
 # 2. Edit .env with your values (required for build and runtime):
 #    - AUTH_SECRET, AUTH_DISCORD_ID, AUTH_DISCORD_SECRET, NEXTAUTH_URL
 #    - DATABASE_URL (or DB_HOST, DB_PORT, DB_NAME, DB_ADMIN_USER, DB_ADMIN_PASSWORD)
-#    - NEXT_PUBLIC_API_URL, STREAMING_KEY
+#    - API_V2_URL, SONGBIRD_API_KEY
 # Generate AUTH_SECRET: npx auth secret
 
 # 3. Build and start the app (build reads .env and bakes required vars into the image)
@@ -1028,7 +1025,7 @@ This project uses **TailwindCSS v4** with pure CSS Variables (no `@apply` direct
 **Audio Chain:**
 
 ```
-Track → getStreamUrlById() → Darkfloor API (/music/stream) → HTMLAudioElement → Web Audio API → Equalizer → Speakers
+Track → getStreamUrlById() → Darkfloor API (/music/stream/direct) → HTMLAudioElement → Web Audio API → Equalizer → Speakers
                                       ↓
                               Visualizer (canvas/WebGL)
 ```
@@ -1122,8 +1119,8 @@ For a basic search-only interface without authentication:
 ```yaml
 # Required
 AUTH_SECRET="your-secret"  # Still required by NextAuth
-NEXT_PUBLIC_API_URL="https://api.darkfloor.art/"  # Darkfloor API
-STREAMING_KEY="your-stream-key"  # Optional: For authenticated streaming
+API_V2_URL="https://songbird.darkfloor.art/"  # V2 API
+SONGBIRD_API_KEY="your-key"  # For streaming/search
 
 # Database (minimal - for NextAuth sessions)
 DATABASE_URL="postgres://user:pass@host:5432/db?sslmode=require"
@@ -1153,10 +1150,8 @@ DB_NAME="starchild"
 DB_SSL_CA="/path/to/ca.pem"  # Optional: SSL certificate
 
 # API Configuration
-NEXT_PUBLIC_API_URL="https://api.darkfloor.art/"  # Darkfloor API (search & streaming)
-STREAMING_KEY="your-secure-stream-key"  # Optional: For authenticated streaming
-SONGBIRD_API_KEY="optional-songbird-key"  # Optional: For Songbird API features
-NEXT_PUBLIC_V2_API_URL="https://songbird.darkfloor.art/"  # V2 API (recommendations)
+API_V2_URL="https://songbird.darkfloor.art/"  # V2 API (streaming, search, recommendations)
+SONGBIRD_API_KEY="your-songbird-key"  # For Songbird API
 
 # Environment
 NODE_ENV="production"

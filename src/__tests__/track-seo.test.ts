@@ -23,19 +23,19 @@ describe("track SEO metadata", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        API_URL: "https://api.starchildmusic.com",
-        STREAMING_KEY: "streaming-key",
+        API_V2_URL: "https://api.starchildmusic.com/",
+        SONGBIRD_API_KEY: "test-key",
         NEXT_PUBLIC_NEXTAUTH_URL: "https://starchildmusic.com",
         NEXTAUTH_URL: "https://starchildmusic.com",
       },
     }));
     const fetchMock = vi.fn(async (input: RequestInfo) => {
       const url = typeof input === "string" ? input : input.url;
-      if (url.includes("music/track/") || url.includes("api.deezer.com/track/")) {
-        return {
-          ok: true,
-          json: async () => mockTrack,
-        } as Response;
+      if (url.includes("music/tracks/batch")) {
+        return { ok: true, json: async () => [mockTrack] } as Response;
+      }
+      if (url.includes("api.deezer.com/track/")) {
+        return { ok: true, json: async () => mockTrack } as Response;
       }
 
       return {

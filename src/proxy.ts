@@ -71,15 +71,11 @@ export function proxy(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/api/") &&
     !request.nextUrl.pathname.startsWith("/_next/")
   ) {
-    const apiUrl = env.API_URL;
-    const songbirdApiUrl = env.API_V2_URL;
+    const apiUrl = env.API_V2_URL;
 
     const apiDomain = apiUrl ? new URL(apiUrl).origin : "";
-    const songbirdDomain = songbirdApiUrl
-      ? new URL(songbirdApiUrl).origin
-      : "";
-    const songbirdWsDomain = songbirdDomain
-      ? songbirdDomain.replace(/^https?:\/\//, "wss://*.")
+    const apiWsDomain = apiDomain
+      ? apiDomain.replace(/^https?:\/\//, "wss://*.")
       : "";
 
     const cspHeader = `
@@ -88,7 +84,7 @@ export function proxy(request: NextRequest) {
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https://cdn-images.dzcdn.net https://api.deezer.com https://cdn.discordapp.com https://media.discordapp.net https://discord.com https://discordapp.com;
       font-src 'self' data:;
-      connect-src 'self' ${apiDomain} ${songbirdDomain} https://api.starchildmusic.com ${songbirdWsDomain};
+      connect-src 'self' ${apiDomain} https://api.starchildmusic.com ${apiWsDomain};
       media-src 'self' ${apiDomain} blob:;
       worker-src 'self' blob:;
       frame-ancestors 'self';

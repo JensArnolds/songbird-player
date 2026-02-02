@@ -1,10 +1,10 @@
 // File: src/__tests__/og-image-generation.test.ts
 
-import { describe, expect, it, vi, beforeAll } from "vitest";
 import { GET } from "@/app/api/og/route";
+import { mkdir, writeFile } from "fs/promises";
 import type { NextRequest } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
+import { beforeAll, describe, expect, it } from "vitest";
 
 const TEST_TRACKS = [
   {
@@ -20,21 +20,7 @@ const TEST_TRACKS = [
 ];
 
 async function fetchTrackData(trackId: number) {
-  const apiUrl = "https://api.starchildmusic.com";
-  const streamingKey = "avnadminavnadminavnadmin";
-
   try {
-    const url = new URL(`music/track/${trackId}`, apiUrl);
-    url.searchParams.set("key", streamingKey);
-
-    const response = await fetch(url.toString(), {
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (response.ok) {
-      return await response.json();
-    }
-
     const deezerUrl = new URL(`https://api.deezer.com/track/${trackId}`);
     const deezerResponse = await fetch(deezerUrl.toString(), {
       signal: AbortSignal.timeout(10000),

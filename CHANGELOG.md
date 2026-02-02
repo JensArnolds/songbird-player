@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.8] - 2026-02-02
+
+### Changed
+
+- **Streaming proxy**: `/api/stream` now targets `/music/stream/direct` for in-memory streaming on Vercel; docs/tests updated. Locations: [src/app/api/stream/route.ts](src/app/api/stream/route.ts), [src/__tests__/api-stream-v2.test.ts](src/__tests__/api-stream-v2.test.ts), [README.md](README.md), [REPOSITORY_OVERVIEW.md](REPOSITORY_OVERVIEW.md).
+- **API base URL**: Removed `API_URL` usage in favor of `API_V2_URL` across proxying, OG previews, smart-queue requests, and tests/scripts. Locations: [src/proxy.ts](src/proxy.ts), [src/app/api/og/route.tsx](src/app/api/og/route.tsx), [src/services/smartQueue.ts](src/services/smartQueue.ts), [src/test/setup.ts](src/test/setup.ts), [scripts/server.js](scripts/server.js).
+- **Mobile queue scrolling**: Added a dedicated scroll rail and restricted reordering to the handle so swipe scrolling no longer triggers haptic reorders. Location: [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx).
+
 ## [0.12.7] - 2026-02-02
 
 ### Changed
@@ -96,7 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docker**: App runs as PID 1 with `node server.js` (no PM2 in default flow)
   - Entrypoint runs `exec node server.js` so the Next.js standalone server is the container init process and receives all env (HOSTNAME=0.0.0.0, PORT=3222)
   - Restart on crash is handled by Docker `restart: unless-stopped`; PM2 inside the container is redundant for single-process apps
-  - Entrypoint warns if AUTH_SECRET or STREAMING_KEY are unset
+  - Entrypoint warns if AUTH_SECRET is unset
   - Locations: [scripts/docker-entrypoint.sh](scripts/docker-entrypoint.sh), [DOCKER.md](DOCKER.md)
 
 - **API env renames (server-only)**: `NEXT_PUBLIC_API_URL` → `API_URL`, `NEXT_PUBLIC_V2_API_URL` / `V2_API_URL` → `API_V2_URL`
@@ -113,7 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Location: [src/app/api/health/route.ts](src/app/api/health/route.ts)
 
 - **DOCKER.md**: 502 troubleshooting and process management
-  - Explains app runs as PID 1, required env vars (AUTH_SECRET, STREAMING_KEY, etc.), startup delay, and how to check with `curl` and `docker compose logs`
+  - Explains app runs as PID 1, required env vars (AUTH_SECRET, etc.), startup delay, and how to check with `curl` and `docker compose logs`
   - Process management section updated: default is `node server.js`; optional PM2 via ecosystem.docker.cjs noted
   - Location: [DOCKER.md](DOCKER.md)
 

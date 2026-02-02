@@ -57,7 +57,7 @@ describe("Stream API (V2-only)", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const calledUrl = new URL(fetchMock.mock.calls[0]?.[0] as string);
     expect(calledUrl.origin).toBe("https://darkfloor.one");
-    expect(calledUrl.pathname).toBe("/music/stream");
+    expect(calledUrl.pathname).toBe("/music/stream/direct");
     expect(calledUrl.searchParams.get("key")).toBe("test-key");
     expect(calledUrl.searchParams.get("kbps")).toBe("320");
     expect(calledUrl.searchParams.get("q")).toBe("I Disappear");

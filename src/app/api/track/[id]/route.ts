@@ -19,21 +19,19 @@ export async function GET(
     );
   }
 
+  const normalizeTrack = (track: unknown) => {
+    if (!track || typeof track !== "object") return null;
+    const record = track as Record<string, unknown>;
+    if (!("deezer_id" in record) && typeof record.id === "number") {
+      record.deezer_id = record.id;
+    }
+    return record;
+  };
+
+  const songbirdApiUrl = env.API_V2_URL;
+  const songbirdApiKey = env.SONGBIRD_API_KEY;
+
   try {
-    const apiUrl = env.API_URL;
-    const streamingKey = env.STREAMING_KEY;
-    const songbirdApiUrl = env.API_V2_URL;
-    const songbirdApiKey = env.SONGBIRD_API_KEY;
-
-    const normalizeTrack = (track: unknown) => {
-      if (!track || typeof track !== "object") return null;
-      const record = track as Record<string, unknown>;
-      if (!("deezer_id" in record) && typeof record.id === "number") {
-        record.deezer_id = record.id;
-      }
-      return record;
-    };
-
     if (songbirdApiUrl && songbirdApiKey) {
       try {
         const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
@@ -73,77 +71,38 @@ export async function GET(
             songbirdResponse.statusText,
           );
         }
-      } catch (error) {
-        console.warn("[Track API] Songbird V2 request failed:", error);
+      } catch (err) {
+        console.warn("[Track API] Songbird V2 request failed:", err);
       }
     }
 
-    if (!apiUrl) {
-      console.error("[Track API] API_URL not configured");
-      return NextResponse.json(
-        { error: "API URL not configured" },
-        { status: 500 },
-      );
-    }
-
-    if (!streamingKey) {
-      console.error("[Track API] STREAMING_KEY not configured");
-      return NextResponse.json(
-        { error: "Streaming key not configured" },
-        { status: 500 },
-      );
-    }
-
-    const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
-    const url = new URL(`music/track/${id}`, normalizedApiUrl);
-    url.searchParams.set("key", streamingKey);
-
-    console.log("[Track API] Fetching track:", id);
-
-    const response = await fetch(url.toString(), {
+    const deezerUrl = new URL(`https://api.deezer.com/track/${id}`);
+    console.log("[Track API] Falling back to Deezer API:", deezerUrl.toString());
+    const deezerResponse = await fetch(deezerUrl.toString(), {
       signal: AbortSignal.timeout(10000),
     });
-
-    if (!response.ok) {
-      const errorText = await response
-        .text()
-        .catch(() => "Could not read error response");
-      console.error(
-        `[Track API] Failed to fetch track: ${response.status} ${response.statusText}`,
-      );
-      console.error("[Track API] Error details:", errorText);
-
-      if (response.status === 404 || response.status === 400) {
-        const deezerUrl = new URL(`https://api.deezer.com/track/${id}`);
-        console.log("[Track API] Falling back to Deezer API:", deezerUrl.toString());
-        const deezerResponse = await fetch(deezerUrl.toString(), {
-          signal: AbortSignal.timeout(10000),
-        });
-        if (deezerResponse.ok) {
-          const deezerData = (await deezerResponse.json()) as Record<
-            string,
-            unknown
-          >;
-          if (typeof deezerData.id === "number") {
-            deezerData.deezer_id = deezerData.id;
-          }
-          return NextResponse.json(deezerData);
-        }
+    if (deezerResponse.ok) {
+      const deezerData = (await deezerResponse.json()) as Record<
+        string,
+        unknown
+      >;
+      if (typeof deezerData.id === "number") {
+        deezerData.deezer_id = deezerData.id;
       }
-
-      return NextResponse.json(
-        {
-          error: `Failed to fetch track: ${response.statusText}`,
-          message: errorText,
-          status: response.status,
-        },
-        { status: response.status },
-      );
+      return NextResponse.json(deezerData);
     }
 
-    const data = await response.json();
-    const normalized = normalizeTrack(data) ?? data;
-    return NextResponse.json(normalized);
+    const errorText = await deezerResponse
+      .text()
+      .catch(() => "Could not read error response");
+    return NextResponse.json(
+      {
+        error: `Failed to fetch track: ${deezerResponse.statusText}`,
+        message: errorText,
+        status: deezerResponse.status,
+      },
+      { status: deezerResponse.status },
+    );
   } catch (error) {
     console.error("[Track API] Error fetching track:", error);
 
@@ -166,7 +125,7 @@ export async function GET(
         return NextResponse.json(
           {
             error: "Cannot connect to backend",
-            message: `Failed to connect to backend at ${env.API_URL}.`,
+            message: "Failed to connect to backend.",
             type: "connection_error",
           },
           { status: 502 },

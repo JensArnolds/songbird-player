@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     // Fallback: Use backend's query-based preview endpoint
     // This is less reliable but works when frontend search doesn't find a match
-    const backendApiUrl = env.API_URL;
+    const backendApiUrl = env.API_V2_URL;
     if (backendApiUrl) {
       const normalizedUrl = backendApiUrl.replace(/\/+$/, "");
       const encodedQuery = encodeURIComponent(trimmedQuery);
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
         });
       }
     } else {
-      console.warn("[OG Route] API_URL not configured");
+      console.warn("[OG Route] API_V2_URL not configured");
     }
   }
 

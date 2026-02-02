@@ -85,17 +85,15 @@ songbird-frontend/
 - **Library**: Playlists, favorites, listening history, preferences (tRPC + DB).
 - **Recommendations**: Smart queue / similar tracks via Songbird API (and tRPC procedures with multiple fallbacks).
 - **Responsive**: Mobile header + hamburger + mini player + full-screen player; desktop header + bottom player.
-- **SEO & sharing**: `/track/[id]` for metadata; `/api/og` for OG images (V2 preview or V1 fallback).
-- **Health**: `/api/health` (local DB + memory); Header can show API status using `NEXT_PUBLIC_API_HEALTH_URL` and `NEXT_PUBLIC_API_V2_HEALTH_URL`.
+- **SEO & sharing**: `/track/[id]` for metadata; `/api/og` for OG images (V2 preview).
+- **Health**: `/api/health` (local DB + memory); Header can show API V2 status using `NEXT_PUBLIC_API_V2_HEALTH_URL`.
 
 ---
 
 ## Backend APIs (Proxied / Used)
 
 - **V2 (Songbird) – `NEXT_PUBLIC_V2_API_URL` + `SONGBIRD_API_KEY`**  
-  Used for: search (`/music/search`), stream (`/music/stream`), track batch (`/music/tracks/batch`), OG preview (`/api/track/{id}/preview`). Required for search and stream; no Deezer fallback for those.
-- **V1 (Primary) – `NEXT_PUBLIC_API_URL` + `STREAMING_KEY`**  
-  Used for: track metadata fallback (`/music/track/{id}`), OG fallback (`/api/preview?q=...`). Some routes still reference it for fallback.
+  Used for: search (`/music/search`), stream (`/music/stream/direct`), track batch (`/music/tracks/batch`), OG preview (`/api/track/{id}/preview`). Required for search and stream; no Deezer fallback for those.
 - **Deezer**  
   Direct `https://api.deezer.com` for track/album/artist when configured as fallback (e.g. `/api/track/[id]`, track page, album/artist routes that proxy to Deezer).
 
@@ -108,7 +106,7 @@ See **docs/API_ROUTE_USE.md** for the full route table and fallback behavior.
 - **Path alias**: `@/` → `src/`.
 - **Client components**: `"use client"` where needed (player, modals, hooks).
 - **Server data**: tRPC for app data; REST routes in `src/app/api` only as proxies to backends.
-- **Env**: All vars in `src/env.js`; server-only secrets (e.g. `STREAMING_KEY`, `SONGBIRD_API_KEY`) not exposed to client.
+- **Env**: All vars in `src/env.js`; server-only secrets (e.g. `SONGBIRD_API_KEY`) not exposed to client.
 - **Audio**: User gesture required before starting Web Audio (e.g. equalizer); use shared `audioContextManager` where applicable.
 - **Mobile**: `pt-16 pb-24` for content to clear header + player; z-index order: content &lt; header/mini player &lt; menu &lt; modals.
 

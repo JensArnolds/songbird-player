@@ -3,8 +3,8 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
-process.env.API_URL = "http://localhost:3222";
-process.env.NEXT_PUBLIC_API_URL = "http://localhost:3222";
+process.env.API_V2_URL = "http://localhost:3222";
+process.env.NEXT_PUBLIC_V2_API_URL = "http://localhost:3222";
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {};

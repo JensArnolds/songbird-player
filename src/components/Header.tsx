@@ -33,23 +33,23 @@ export default function Header() {
   );
 
   useEffect(() => {
-    setIsElectron(!!window.electron?.isElectron);
-
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname.toLowerCase();
-      const isDarkfloor = hostname.includes("darkfloor");
-      setIsDarkfloorHost(isDarkfloor);
-      setIsVercelDeployment(isDarkfloor);
-    }
+    const id = requestAnimationFrame(() => {
+      setIsElectron(!!window.electron?.isElectron);
+      if (typeof window !== "undefined") {
+        const hostname = window.location.hostname.toLowerCase();
+        const isDarkfloor = hostname.includes("darkfloor");
+        setIsDarkfloorHost(isDarkfloor);
+        setIsVercelDeployment(isDarkfloor);
+      }
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
   useEffect(() => {
-    // Check both API health endpoints
-    const apiHealthUrl = env.NEXT_PUBLIC_API_HEALTH_URL;
     const apiV2HealthUrl = env.NEXT_PUBLIC_API_V2_HEALTH_URL;
 
-    if (!apiHealthUrl || !apiV2HealthUrl) {
-      console.warn("[Header] API health URLs not configured, skipping health check");
+    if (!apiV2HealthUrl) {
+      console.warn("[Header] API V2 health URL not configured, skipping health check");
       return;
     }
 
@@ -57,90 +57,54 @@ export default function Header() {
 
     const checkHealth = async () => {
       try {
-        // Check both APIs in parallel
-        const [apiResponse, apiV2Response] = await Promise.all([
-          fetch(apiHealthUrl, { cache: "no-store", mode: "cors" }),
-          fetch(apiV2HealthUrl, { cache: "no-store", mode: "cors" })
-        ]);
+        const response = await fetch(apiV2HealthUrl, {
+          cache: "no-store",
+          mode: "cors",
+        });
 
         if (!isMounted) return;
 
-        // Check HTTP status codes first
-        const apiHttpError = apiResponse.status >= 400 && apiResponse.status < 600;
-        const apiV2HttpError = apiV2Response.status >= 400 && apiV2Response.status < 600;
-
-        // If either API has HTTP errors, show red (API down)
-        if (apiHttpError || apiV2HttpError) {
-          console.warn("[Header] API HTTP error:", {
-            api: { url: apiHealthUrl, status: apiResponse.status },
-            apiV2: { url: apiV2HealthUrl, status: apiV2Response.status }
+        if (response.status >= 400 && response.status < 600) {
+          console.warn("[Header] API V2 HTTP error:", {
+            url: apiV2HealthUrl,
+            status: response.status,
           });
-          setApiHealthy("down"); // Red
+          setApiHealthy("down");
           return;
         }
 
-        const readStatus = async (response: Response) => {
-          let rawText = "";
+        let rawText = "";
+        try {
+          rawText = await response.text();
+        } catch (error) {
+          console.warn("[Header] Health response read failed:", error);
+        }
+        let payload: unknown = null;
+        if (rawText) {
           try {
-            rawText = await response.text();
-          } catch (error) {
-            console.warn("[Header] Health response read failed:", error);
+            payload = JSON.parse(rawText) as unknown;
+          } catch {
+            payload = null;
           }
-          let payload: unknown = null;
-          if (rawText) {
-            try {
-              payload = JSON.parse(rawText) as unknown;
-            } catch {
-              payload = null;
-            }
-          }
-          return {
-            rawText,
-            status: normalizeHealthStatus(payload, rawText),
-          };
-        };
+        }
+        const status = normalizeHealthStatus(payload, rawText);
 
-        // Parse responses (supports JSON or plain text "ok")
-        const [apiResult, apiV2Result] = await Promise.all([
-          readStatus(apiResponse),
-          readStatus(apiV2Response),
-        ]);
-
-        const apiStatus = apiResult.status;
-        const apiV2Status = apiV2Result.status;
-
-        // Determine overall health status
         let overallStatus: "healthy" | "degraded" | "down";
-
-        if (apiStatus === "ok" && apiV2Status === "ok") {
-          overallStatus = "healthy"; // Green
-        } else if (
-          apiStatus === "degraded" ||
-          apiV2Status === "degraded" ||
-          apiStatus === "unhealthy" ||
-          apiV2Status === "unhealthy"
-        ) {
-          overallStatus = "degraded"; // Yellow
+        if (status === "ok") {
+          overallStatus = "healthy";
+        } else if (status === "degraded" || status === "unhealthy") {
+          overallStatus = "degraded";
         } else {
-          // Unexpected status or missing status field
-          overallStatus = "down"; // Red
+          overallStatus = "down";
         }
 
         if (overallStatus !== "healthy") {
-          console.warn("[Header] API health degraded:", {
-            api: {
-              url: apiHealthUrl,
-              status: apiResponse.status,
-              apiStatus,
-              raw: apiResult.rawText,
-            },
-            apiV2: {
-              url: apiV2HealthUrl,
-              status: apiV2Response.status,
-              apiV2Status,
-              raw: apiV2Result.rawText,
-            },
-            overallStatus
+          console.warn("[Header] API V2 health degraded:", {
+            url: apiV2HealthUrl,
+            status: response.status,
+            parsedStatus: status,
+            raw: rawText,
+            overallStatus,
           });
         }
 
@@ -240,7 +204,7 @@ export default function Header() {
               <div
                 className="api-health-pill hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] md:flex"
                 aria-label="API health status"
-                title="Combined API health status"
+                title="API V2 health status"
               >
                 <span
                   className={`inline-block h-2 w-2 rounded-full ${

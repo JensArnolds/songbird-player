@@ -164,16 +164,11 @@ function printStartupBanner() {
     );
   }
 
-    if (process.env.API_URL) {
-    console.log(chalk.bold("  API Configuration:"));
-  console.log(
-    `    ${chalk.gray("•")} API URL:         ${chalk.white(process.env.API_URL)}`,
-  );
   if (process.env.API_V2_URL) {
+    console.log(chalk.bold("  API Configuration:"));
     console.log(
       `    ${chalk.gray("•")} API V2 URL:      ${chalk.white(process.env.API_V2_URL)}`,
     );
-  }
     console.log("");
   }
 

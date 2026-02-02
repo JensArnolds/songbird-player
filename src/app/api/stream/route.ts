@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
     }
 
     const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-    const url = new URL("music/stream", normalizedSongbirdUrl);
+    const url = new URL("music/stream/direct", normalizedSongbirdUrl);
     url.searchParams.set("key", songbirdApiKey);
     url.searchParams.set(
       "kbps",

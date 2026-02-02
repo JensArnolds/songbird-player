@@ -170,7 +170,7 @@ export async function generateMetadata({
 }
 
 function getApiHostname(): string | undefined {
-  const url = env.API_V2_URL ?? env.API_URL;
+  const url = env.API_V2_URL;
   if (!url) return undefined;
   try {
     return new URL(url).hostname;

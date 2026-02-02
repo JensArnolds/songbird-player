@@ -14,9 +14,10 @@ const TEST_URLS = [
   "https://www.darkfloor.art/track/1913577097",
 ];
 
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
-const STREAMING_KEY =
-  process.env.STREAMING_KEY ?? "avnadminavnadminavnadmin";
+const API_V2_URL =
+  process.env.API_V2_URL ??
+  process.env.NEXT_PUBLIC_V2_API_URL ??
+  "http://localhost:3222";
 
 async function fetchWithTimeout(
   input: RequestInfo | URL,
@@ -40,15 +41,6 @@ async function fetchWithTimeout(
 }
 
 async function fetchTrackById(trackId: number): Promise<Track> {
-  const url = new URL(`music/track/${trackId}`, API_URL);
-  url.searchParams.set("key", STREAMING_KEY);
-
-  const response = await fetchWithTimeout(url.toString(), 10000);
-
-  if (response.ok) {
-    return (await response.json()) as Track;
-  }
-
   const deezerUrl = new URL(`https://api.deezer.com/track/${trackId}`);
   const deezerResponse = await fetchWithTimeout(deezerUrl.toString(), 10000);
 
@@ -60,7 +52,7 @@ async function fetchTrackById(trackId: number): Promise<Track> {
 }
 
 async function fetchTrackBySearch(query: string): Promise<Track> {
-  const url = new URL("music/search", API_URL);
+  const url = new URL("music/search", API_V2_URL);
   url.searchParams.set("q", query);
 
   const response = await fetchWithTimeout(url.toString(), 10000);

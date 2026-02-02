@@ -5,7 +5,7 @@ import { isTrack, type Track } from "@/types";
 
 const API_BASE_URL =
   typeof window === "undefined"
-    ? (env.API_URL ?? "http://localhost:3222")
+    ? (env.API_V2_URL ?? "http://localhost:3222")
     : window.location.origin;
 
 if (typeof window !== "undefined") {

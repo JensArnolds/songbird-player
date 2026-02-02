@@ -4,7 +4,6 @@
 echo "🎨 Testing OG Image Generation..."
 echo ""
 echo "Note: Backend API URLs (from env):"
-echo "  API_URL:           ${API_URL:-"(not set)"}"
 echo "  API_V2_URL:       ${API_V2_URL:-"(not set)"}"
 echo ""
 
