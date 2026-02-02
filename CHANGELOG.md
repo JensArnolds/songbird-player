@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.9] - 2026-02-02
+
+### Changed
+
+- **Env cleanup**: Removed remaining `API_URL` usage and standardized on `API_V2_URL` in env schema, scripts, tests, and docs. Locations: [src/env.js](src/env.js), [scripts/server.js](scripts/server.js), [scripts/test-og-images.sh](scripts/test-og-images.sh), [src/test/setup.ts](src/test/setup.ts), [REPOSITORY_ANALYSIS.md](REPOSITORY_ANALYSIS.md), [REPOSITORY_OVERVIEW.md](REPOSITORY_OVERVIEW.md).
+- **Env cleanup**: Dropped `STREAMING_KEY` references from docs since it is no longer used. Location: [CHANGELOG.md](CHANGELOG.md).
+
 ## [0.12.8] - 2026-02-02
 
 ### Changed
