@@ -32,6 +32,7 @@ interface UseAudioPlayerOptions {
     context?: {
       history: Track[];
       queue: Track[];
+      seedQueue?: Track[];
       source: "auto" | "manual";
     },
   ) => Promise<Track[]>;
@@ -41,6 +42,7 @@ interface UseAudioPlayerOptions {
     context?: {
       history: Track[];
       queue: Track[];
+      seedQueue?: Track[];
     },
   ) => Promise<Track[]>;
   onError?: (error: string, trackId?: number) => void;
@@ -372,10 +374,19 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         try {
 
           // Generate smart tracks based on current track and listening history
+          const queueTracks = queuedTracks.map((qt) => qt.track);
+          const seedQueueTracks = queuedTracks
+            .filter((qt) => qt.queueSource !== "smart")
+            .map((qt) => qt.track);
           const recommendedTracks = await options.onAutoQueueTrigger!(
             currentTrack,
             queuedTracks.length,
-            { history, queue: queuedTracks.map((qt) => qt.track), source: "auto" },
+            {
+              history,
+              queue: queueTracks,
+              seedQueue: seedQueueTracks,
+              source: "auto",
+            },
           );
 
           if (recommendedTracks.length > 0) {
@@ -478,10 +489,19 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           try {
             setSmartQueueState((prev) => ({ ...prev, isLoading: true }));
 
+            const queueTracks = queuedTracks.map((qt) => qt.track);
+            const seedQueueTracks = queuedTracks
+              .filter((qt) => qt.queueSource !== "smart")
+              .map((qt) => qt.track);
             const recommendedTracks = await onAutoQueueTrigger(
               currentTrack,
               queuedTracks.length,
-              { history, queue: queuedTracks.map((qt) => qt.track), source: "auto" },
+              {
+                history,
+                queue: queueTracks,
+                seedQueue: seedQueueTracks,
+                source: "auto",
+              },
             );
 
             if (recommendedTracks.length > 0) {
@@ -1887,19 +1907,32 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         let recommendedTracks: Track[] = [];
 
         if (similarityLevel && options.onCustomSmartTracksFetch) {
+          const queueTracks = queuedTracks.map((qt) => qt.track);
+          const seedQueueTracks = queuedTracks
+            .filter((qt) => qt.queueSource !== "smart")
+            .map((qt) => qt.track);
           recommendedTracks = await options.onCustomSmartTracksFetch(
             seedTrack,
             {
               count,
               similarityLevel,
             },
-            { history, queue: queuedTracks.map((qt) => qt.track) },
+            { history, queue: queueTracks, seedQueue: seedQueueTracks },
           );
         } else if (options.onAutoQueueTrigger) {
+          const queueTracks = queuedTracks.map((qt) => qt.track);
+          const seedQueueTracks = queuedTracks
+            .filter((qt) => qt.queueSource !== "smart")
+            .map((qt) => qt.track);
           const fetchedTracks = await options.onAutoQueueTrigger(
             seedTrack,
             queuedTracks.length,
-            { history, queue: queuedTracks.map((qt) => qt.track), source: "manual" },
+            {
+              history,
+              queue: queueTracks,
+              seedQueue: seedQueueTracks,
+              source: "manual",
+            },
           );
           recommendedTracks = fetchedTracks.slice(0, count);
         }
@@ -1959,7 +1992,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const recommendedTracks = await options.onAutoQueueTrigger(
         seedTrack,
         baseQueue.length,
-        { history, queue: baseQueue.map((qt) => qt.track), source: "manual" },
+        {
+          history,
+          queue: queuedTracks.map((qt) => qt.track),
+          seedQueue: baseQueue.map((qt) => qt.track),
+          source: "manual",
+        },
       );
 
       const shuffled = [...recommendedTracks];

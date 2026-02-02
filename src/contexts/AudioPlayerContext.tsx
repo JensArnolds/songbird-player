@@ -162,11 +162,13 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const buildSeedTracks = (
     currentTrack: Track,
+    queue: Track[] | undefined,
     history: Track[] | undefined,
   ): Array<{ name: string; artist?: string; album?: string }> => {
-    const maxSeeds = 4;
-    const recentHistory = (history ?? []).slice(-maxSeeds).reverse();
-    const candidates = [currentTrack, ...recentHistory];
+    const maxHistorySeeds = 4;
+    const recentHistory = (history ?? []).slice(-maxHistorySeeds).reverse();
+    const queueTracks = queue ?? [];
+    const candidates = [currentTrack, ...queueTracks, ...recentHistory];
     const seen = new Set<number>();
     const seeds: Array<{ name: string; artist?: string; album?: string }> = [];
 
@@ -181,8 +183,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         artist: track.artist.name,
         album: track.album?.title,
       });
-
-      if (seeds.length >= maxSeeds) break;
     }
 
     if (seeds.length === 1) {
@@ -249,7 +249,11 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
             : normalizedSmartQueueSettings?.similarityPreference ?? "balanced";
         const recommendationSource =
           context?.source === "auto" ? "unified" : "spotify";
-        const seedTracks = buildSeedTracks(currentTrack, context?.history);
+        const seedTracks = buildSeedTracks(
+          currentTrack,
+          context?.seedQueue ?? context?.queue,
+          context?.history,
+        );
         const excludeIds = buildExcludeIds(
           currentTrack,
           context?.queue,
@@ -287,7 +291,11 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       context?: { history: Track[]; queue: Track[] },
     ): Promise<Track[]> => {
       try {
-        const seedTracks = buildSeedTracks(currentTrack, context?.history);
+        const seedTracks = buildSeedTracks(
+          currentTrack,
+          context?.seedQueue ?? context?.queue,
+          context?.history,
+        );
         const excludeIds = buildExcludeIds(
           currentTrack,
           context?.queue,
