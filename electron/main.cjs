@@ -138,7 +138,13 @@ const log = (...args) => {
 const getIconPath = () => {
   const candidates = [
     app.isPackaged
-      ? path.join(app.getAppPath(), ".next", "standalone", "public", "icon.png")
+      ? path.join(
+          path.dirname(process.execPath),
+          ".next",
+          "standalone",
+          "public",
+          "icon.png",
+        )
       : undefined,
     process.resourcesPath
       ? path.join(
@@ -316,11 +322,30 @@ const waitForServer = (port, maxAttempts = 30) => {
 const startServer = async () => {
   const serverPort = await findAvailablePort(port);
 
-  // When packaged, standalone lives next to the exe (extraFiles) so NSIS installer
-  // includes it; resources/.next/standalone can omit node_modules in installed app.
-  const standaloneDir = app.isPackaged
-    ? path.join(app.getAppPath(), ".next", "standalone")
-    : path.join(__dirname, "..", ".next", "standalone");
+  let standaloneDir;
+  if (app.isPackaged) {
+    const exeDirStandalone = path.join(
+      path.dirname(process.execPath),
+      ".next",
+      "standalone",
+    );
+    const resourcesStandalone = path.join(
+      process.resourcesPath,
+      ".next",
+      "standalone",
+    );
+    const exeDirServer = path.join(exeDirStandalone, "server.js");
+    const resourcesServer = path.join(resourcesStandalone, "server.js");
+    if (fs.existsSync(exeDirServer)) {
+      standaloneDir = exeDirStandalone;
+    } else if (fs.existsSync(resourcesServer)) {
+      standaloneDir = resourcesStandalone;
+    } else {
+      standaloneDir = exeDirStandalone;
+    }
+  } else {
+    standaloneDir = path.join(__dirname, "..", ".next", "standalone");
+  }
 
   const serverPath = path.join(standaloneDir, "server.js");
 
