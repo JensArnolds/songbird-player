@@ -36,6 +36,7 @@ try {
   const candidateEnvPaths = [
     process.env.STARCHILD_ENV_FILE,
     path.join(path.dirname(process.execPath), ".env.local"),
+    path.join(path.dirname(process.execPath), ".next", "standalone", ".env.local"),
     path.join(process.cwd(), ".env.local"),
     process.resourcesPath
       ? path.join(process.resourcesPath, ".next", "standalone", ".env.local")
