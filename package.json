@@ -85,14 +85,14 @@
     "electron:dev:win": "concurrently \"npm run dev:win\" \"wait-on http://localhost:3222 && cross-env ELECTRON_RUN_AS_NODE= electron .\"",
     "electron:prod": "node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true ELECTRON_PROD=true next build && npm run electron:prepare && cross-env ELECTRON_PROD=true ELECTRON_RUN_AS_NODE= electron .\"",
     "electron:prod:win": "npm run electron:build:win && \".\\dist\\Starchild_setup.exe\"",
-    "electron:sign:setup:win": "powershell -ExecutionPolicy Bypass -File scripts/windows/setup-codesign.ps1 -Trust",
+    "electron:sign:setup:win": "pwsh -ExecutionPolicy Bypass -File scripts/windows/setup-codesign.ps1 -Trust",
     "electron:build:dev:win": "npm run electron:clean:win && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true ELECTRON_DEV_TOOLS=true next build\" && npm run electron:prepare && electron-builder --win --dir",
     "electron:prepare": "node scripts/load-env-build.js \"node electron/prepare-package.js\"",
     "electron:clean": "node -e \"require('fs').rmSync('dist', {recursive: true, force: true})\"",
     "electron:clean:win": "if exist dist rmdir /s /q dist",
     "electron:download-node": "node scripts/download-node.js",
     "electron:build": "npm run electron:clean && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder\"",
-    "electron:build:win": "npm run electron:clean && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder --win\"",
+    "electron:build:win": "npm run electron:clean:win && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder --win\"",
     "electron:build:mac": "npm run electron:clean && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder --mac\"",
     "electron:build:linux": "npm run electron:clean && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder --linux\""
   },
@@ -161,6 +161,7 @@
   "build": {
     "appId": "com.darkfloor.art",
     "productName": "Starchild",
+    "afterPack": "electron/builder/afterPack.cjs",
     "files": [
       "electron/**/*",
       "package.json"

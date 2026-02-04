@@ -318,6 +318,28 @@ const startServer = async () => {
 
   const serverPath = path.join(standaloneDir, "server.js");
 
+  const computeNodePath = () => {
+    const paths = [];
+
+    if (process.resourcesPath) {
+      const unpackedNodeModules = path.join(
+        process.resourcesPath,
+        "app.asar.unpacked",
+        "node_modules",
+      );
+
+      if (fs.existsSync(unpackedNodeModules)) {
+        paths.push(unpackedNodeModules);
+      }
+    }
+
+    if (process.env.NODE_PATH) {
+      paths.push(process.env.NODE_PATH);
+    }
+
+    return paths.filter(Boolean).join(path.delimiter);
+  };
+
   log("Paths:");
   log("  Standalone dir:", standaloneDir);
   log("  Server:", serverPath);
@@ -361,9 +383,17 @@ const startServer = async () => {
 
   return new Promise((resolve, reject) => {
     /** @type {import('child_process').ChildProcess | null} */
+    const nodePath = computeNodePath();
+    if (nodePath) {
+      log("  NODE_PATH (server):", nodePath);
+    } else {
+      log("  NODE_PATH (server): <not set>");
+    }
+
     serverProcess = spawn(nodeExecutable, [serverPath], {
       env: {
         ...process.env,
+        ...(nodePath ? { NODE_PATH: nodePath } : {}),
         PORT: serverPort.toString(),
         HOSTNAME: "localhost",
         NODE_ENV: "production",
