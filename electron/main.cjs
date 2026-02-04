@@ -136,6 +136,9 @@ const log = (...args) => {
 
 const getIconPath = () => {
   const candidates = [
+    app.isPackaged
+      ? path.join(app.getAppPath(), ".next", "standalone", "public", "icon.png")
+      : undefined,
     process.resourcesPath
       ? path.join(
           process.resourcesPath,
@@ -312,8 +315,10 @@ const waitForServer = (port, maxAttempts = 30) => {
 const startServer = async () => {
   const serverPort = await findAvailablePort(port);
 
+  // When packaged, standalone lives next to the exe (extraFiles) so NSIS installer
+  // includes it; resources/.next/standalone can omit node_modules in installed app.
   const standaloneDir = app.isPackaged
-    ? path.join(process.resourcesPath, ".next", "standalone")
+    ? path.join(app.getAppPath(), ".next", "standalone")
     : path.join(__dirname, "..", ".next", "standalone");
 
   const serverPath = path.join(standaloneDir, "server.js");
@@ -360,6 +365,7 @@ const startServer = async () => {
   }
 
   return new Promise((resolve, reject) => {
+    const standaloneNodeModules = path.join(standaloneDir, "node_modules");
     /** @type {import('child_process').ChildProcess | null} */
     serverProcess = spawn(nodeExecutable, [serverPath], {
       env: {
@@ -368,6 +374,7 @@ const startServer = async () => {
         HOSTNAME: "localhost",
         NODE_ENV: "production",
         ELECTRON_BUILD: "true",
+        NODE_PATH: standaloneNodeModules,
       },
       /** @type {string} */
       cwd: standaloneDir,
