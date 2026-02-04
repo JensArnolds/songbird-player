@@ -46,6 +46,24 @@ npm run electron:build:linux
 
 ## Important Notes
 
+### Packaged `.env.local` loading
+
+For packaged builds, `electron/prepare-package.js` copies your root `.env.local` into:
+
+- `resources/.next/standalone/.env.local`
+
+At runtime, `electron/main.cjs` loads env from `process.resourcesPath/.next/standalone/.env.local` so the bundled Next.js standalone server has the required configuration.
+
+### If the EXE “doesn’t start”
+
+If double-clicking the app immediately exits (or prints Node help/version output), check for this environment variable:
+
+- `ELECTRON_RUN_AS_NODE=1`
+
+When set, **Electron runs as Node.js** and won’t launch the desktop UI. Unset it for normal app launches. The `electron:dev` / `electron:prod` npm scripts now explicitly clear it for the Electron process.
+
+Runtime logs are written to `app.getPath("userData")/logs/electron-main.log` (on Windows this is typically under `%APPDATA%`).
+
 ### Static vs Server Mode
 
 Next.js uses `standalone` mode for Electron. `ELECTRON_BUILD` is set automatically: build scripts set it for `next build` (image optimization), and the Electron main process sets it when spawning the Next server (NextAuth cookies).
@@ -66,6 +84,16 @@ Next.js uses `standalone` mode for Electron. `ELECTRON_BUILD` is set automatical
 1. Rebuild your Electron app with the new configuration
 2. Test the .exe - the error should be resolved
 3. If using server features, update the build configuration as noted above
+
+## Windows signing (self-signed)
+
+Electron Builder is configured to sign Windows artifacts using a certificate with subject name `Starchild`.
+
+- Create + trust a local self-signed code signing cert (CurrentUser): `npm run electron:sign:setup:win`
+- Build signed artifacts: `npm run electron:build:win`
+- Verify signature: `Get-AuthenticodeSignature dist\\Starchild.exe`
+
+Note: self-signed certificates are only trusted on machines where you install them into the trust stores, and they don’t grant SmartScreen reputation for public distribution.
 
 ## File Structure
 

@@ -1,6 +1,35 @@
 const path = require("path");
 const fs = require("fs");
 
+const bufferedLogLines = [];
+
+const formatLogArg = (arg) => {
+  if (arg instanceof Error) return arg.stack || arg.message;
+  if (typeof arg === "string") return arg;
+  if (typeof arg === "number" || typeof arg === "boolean" || arg == null) {
+    return String(arg);
+  }
+  try {
+    return JSON.stringify(arg);
+  } catch {
+    return String(arg);
+  }
+};
+
+/**
+ * Log before the file logger is initialized. Buffers output for later flush.
+ * @param  {...any} args
+ */
+const bootLog = (...args) => {
+  const timestamp = new Date().toISOString();
+  const message = args.map(formatLogArg).join(" ");
+  bufferedLogLines.push(`[${timestamp}] [Electron] ${message}`);
+  try {
+    console.log("[Electron]", ...args);
+  } catch {
+        }
+};
+
 try {
   const dotenv = require("dotenv");
 
@@ -19,29 +48,41 @@ try {
   for (const envPath of candidateEnvPaths) {
     if (envPath && fs.existsSync(envPath)) {
       dotenv.config({ path: envPath });
-      console.log(`[Electron] Loaded env from: ${envPath}`);
+      bootLog("Loaded env from:", envPath);
       loaded = true;
       break;
     }
   }
 
   if (!loaded) {
-    console.log(
-      "[Electron] No .env.local found - using system environment variables",
-    );
+    bootLog("No .env.local found - using system environment variables");
   }
 } catch (err) {
-  console.log("[Electron] dotenv not available (using system environment variables)");
+  bootLog("dotenv not available (using system environment variables)", err);
 }
 
-console.log("[Electron] Environment check:");
-console.log("  NODE_ENV:", process.env.NODE_ENV || "not set");
-console.log("  PORT:", process.env.PORT || "not set");
-console.log("  AUTH_SECRET:", process.env.AUTH_SECRET ? "✓ set (" + process.env.AUTH_SECRET.length + " chars)" : "✗ MISSING");
-console.log("  AUTH_DISCORD_ID:", process.env.AUTH_DISCORD_ID ? "✓ set" : "✗ MISSING");
-console.log("  AUTH_DISCORD_SECRET:", process.env.AUTH_DISCORD_SECRET ? "✓ set" : "✗ MISSING");
-console.log("  DATABASE_URL:", process.env.DATABASE_URL ? "✓ set" : "✗ MISSING");
-console.log("  NEXTAUTH_URL:", process.env.NEXTAUTH_URL || "not set (using default)");
+bootLog("Environment check:");
+bootLog("  NODE_ENV:", process.env.NODE_ENV || "not set");
+bootLog("  PORT:", process.env.PORT || "not set");
+bootLog(
+  "  AUTH_SECRET:",
+  process.env.AUTH_SECRET
+    ? "✓ set (" + process.env.AUTH_SECRET.length + " chars)"
+    : "✗ MISSING",
+);
+bootLog(
+  "  AUTH_DISCORD_ID:",
+  process.env.AUTH_DISCORD_ID ? "✓ set" : "✗ MISSING",
+);
+bootLog(
+  "  AUTH_DISCORD_SECRET:",
+  process.env.AUTH_DISCORD_SECRET ? "✓ set" : "✗ MISSING",
+);
+bootLog("  DATABASE_URL:", process.env.DATABASE_URL ? "✓ set" : "✗ MISSING");
+bootLog(
+  "  NEXTAUTH_URL:",
+  process.env.NEXTAUTH_URL || "not set (using default)",
+);
 
 const {
   app,
@@ -49,6 +90,7 @@ const {
   Menu,
   globalShortcut,
   dialog,
+  screen,
   session,
   shell,
 } = require("electron");
@@ -66,11 +108,91 @@ let serverProcess = null;
 
 const windowStateFile = path.join(app.getPath("userData"), "window-state.json");
 
+const logDir = path.join(app.getPath("userData"), "logs");
+const logFile = path.join(logDir, "electron-main.log");
+
+const appendLogLine = (line) => {
+  try {
+    fs.mkdirSync(logDir, { recursive: true });
+    fs.appendFileSync(logFile, `${line}\n`, "utf8");
+  } catch {
+        }
+};
+
+for (const line of bufferedLogLines) {
+  appendLogLine(line);
+}
+bufferedLogLines.length = 0;
+
 /**
  * @param {...any} args
  */
 const log = (...args) => {
+  const timestamp = new Date().toISOString();
+  const message = args.map(formatLogArg).join(" ");
+  appendLogLine(`[${timestamp}] [Electron] ${message}`);
   console.log("[Electron]", ...args);
+};
+
+const getIconPath = () => {
+  const candidates = [
+    process.resourcesPath
+      ? path.join(
+          process.resourcesPath,
+          ".next",
+          "standalone",
+          "public",
+          "icon.png",
+        )
+      : undefined,
+    path.join(__dirname, "..", "public", "icon.png"),
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (candidate && fs.existsSync(candidate)) return candidate;
+  }
+
+  return undefined;
+};
+
+/**
+ * Ensure the restored window bounds are on a visible display.
+ * If the window would be off-screen (e.g. monitor removed), reset position.
+ * @param {{width: number, height: number, x?: number, y?: number, isMaximized: boolean}} state
+ */
+const ensureWindowStateIsVisible = (state) => {
+  if (typeof state.x !== "number" || typeof state.y !== "number") return state;
+
+  try {
+    const bounds = {
+      x: state.x,
+      y: state.y,
+      width: state.width,
+      height: state.height,
+    };
+
+    const isVisible = screen.getAllDisplays().some((display) => {
+      const wa = display.workArea;
+      return (
+        bounds.x < wa.x + wa.width &&
+        bounds.x + bounds.width > wa.x &&
+        bounds.y < wa.y + wa.height &&
+        bounds.y + bounds.height > wa.y
+      );
+    });
+
+    if (isVisible) return state;
+  } catch (err) {
+    log("Failed to validate window bounds:", err);
+    return state;
+  }
+
+  log("Window state was off-screen; resetting position");
+  return {
+    width: state.width,
+    height: state.height,
+    isMaximized: false,
+  };
 };
 
 /**
@@ -311,7 +433,9 @@ const createWindow = async () => {
     }
   }
 
-    const windowState = loadWindowState();
+    const windowState = ensureWindowStateIsVisible(loadWindowState());
+
+  const iconPath = getIconPath();
 
   mainWindow = new BrowserWindow({
     width: windowState.width,
@@ -328,7 +452,7 @@ const createWindow = async () => {
       devTools: enableDevTools,
             partition: "persist:darkfloor-art",
     },
-    icon: path.join(__dirname, "../public/icon.png"),
+    ...(iconPath ? { icon: iconPath } : {}),
     backgroundColor: "#000000",
     show: false,
   });

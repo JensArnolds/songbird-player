@@ -58,8 +58,8 @@ if (allGood) {
   console.log("✅ All required files present! Build looks good.\n");
   console.log("Next steps:");
   console.log("  1. Run: npm run electron:build:win");
-  console.log("  2. Check: dist/win-unpacked/darkfloor.exe");
-  console.log("  3. Run the .exe and check DevTools console for logs\n");
+  console.log("  2. Check: dist/win-unpacked/Starchild.exe");
+  console.log("  3. Runtime logs: app.getPath('userData')/logs/electron-main.log\n");
 } else {
   console.log("❌ Build verification failed!\n");
   console.log("The standalone server was not created. This means:");
