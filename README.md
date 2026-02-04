@@ -46,8 +46,8 @@
 
 **9-Band Equalizer:**
 
-- Frequency bands: 31Hz, 62Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz
-- 8 built-in presets (Rock, Pop, Jazz, Classical, Electronic, Hip-Hop, Vocal, Flat)
+- Frequency bands: 60Hz (low shelf), 170Hz, 310Hz, 600Hz, 1kHz, 3kHz, 6kHz, 12kHz, 14kHz (high shelf)
+- 9 built-in presets (Flat, Rock, Pop, Jazz, Classical, Bass Boost, Treble Boost, Vocal, Electronic)
 - Custom band adjustment with real-time processing
 - Preset persistence for authenticated users
 - Web Audio API integration for hardware-accelerated processing
@@ -109,7 +109,7 @@
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Framework** | Next.js 15 (App Router) | Server-side rendering & routing |
+| **Framework** | Next.js 16 (App Router) | Server-side rendering & routing |
 | **Language** | TypeScript 5.9 | Type-safe development with strict mode |
 | **UI Framework** | React 19 | Component library |
 | **Styling** | TailwindCSS v4 | Utility-first CSS framework |
@@ -140,13 +140,13 @@
 
     ```bash
     git clone https://github.com/soulwax/starchild-music-frontend.git
-    cd darkfloor-art
+    cd songbird-player
     npm install
     ```
 
 2. **Environment Configuration**
 
-    Create a `.env.local` file with required variables:
+    Create a `.env` file with required variables (the dev server loads **only** `.env`):
 
     ```yaml
     # NextAuth Configuration
@@ -320,57 +320,42 @@ Available in `src/styles/globals.css`:
 
 ### Backend APIs
 
-The application uses two backend APIs for music operations:
+The application integrates two upstream services. All calls are made server-side through Next.js proxy routes — API keys never reach the browser.
 
-#### 1. Darkfloor API (`https://api.darkfloor.art/`)
+#### Songbird V2 (primary)
 
-Primary API for music search and streaming.
+Handles search, streaming, track metadata, and recommendations. Configured via `API_V2_URL` (server-only base URL, trailing slash required) and `SONGBIRD_API_KEY`.
 
-**Endpoints:**
+- Search: proxied through `/api/music/search`
+- Streaming: proxied through `/api/stream` (supports `Range` headers for seeking)
+- Track metadata: proxied through `/api/track/[id]` (preferred source)
+- Recommendations / smart queue: called from tRPC `music.getRecommendations`
 
-- `GET /music/search?q={query}` - Search for music tracks
-- `GET /music/stream/direct?trackId={id}&kbps={bitrate}` - Stream a music track
+Full OpenAPI spec is vendored at `docs/API_V2_SWAGGER.yaml`.
 
-**Documentation:**
+#### Deezer (metadata fallback)
 
-- Swagger UI available at [https://api.darkfloor.art/](https://api.darkfloor.art/)
-- OpenAPI specification (JSON/YAML) available for download
+Public API, no auth required. Used as a fallback when Songbird V2 is unavailable or for album/artist detail pages:
 
-#### 2. Songbird API (`https://songbird.darkfloor.art/`)
-
-Advanced API that orchestrates Spotify, Last.fm, and Deezer for comprehensive music discovery, recommendations, playlist experimentation, and streaming.
-
-**Features:**
-
-- Music discovery across multiple sources
-- Intelligent recommendations
-- Playlist experimentation
-- Streaming capabilities
-
-**Documentation:**
-
-- Swagger UI available at [https://songbird.darkfloor.art/](https://songbird.darkfloor.art/)
-- OpenAPI specification (JSON/YAML) available for download
-- Environment: Production
-- Host: `https://songbird.darkfloor.art`
-- Port: `3333`
+- `/api/track/[id]` — falls back to Deezer if V2 fails
+- `/api/album/[id]` and `/api/album/[id]/tracks` — Deezer only
+- `/api/artist/[id]` and `/api/artist/[id]/tracks` — Deezer only
 
 ### tRPC Type-Safe API
 
-The application uses **tRPC** for end-to-end type safety from server to client. All API calls are type-safe with automatic TypeScript inference. The tRPC layer acts as a proxy to the backend APIs.
+The application uses **tRPC** for end-to-end type safety between the client and the local Postgres database. External music APIs are reached through separate proxy routes (see above).
 
 **Main Routers:**
 
-1. **music.ts** - Music operations:
-   - `search` - Search tracks, albums, artists (proxies to Darkfloor/Songbird API)
-   - `getTrackById`, `getAlbumById`, `getArtistById` - Get details
+1. **music.ts** - Music & user-data operations (all backed by Postgres):
    - `createPlaylist`, `addToPlaylist`, `removeFromPlaylist` - Playlist management
    - `getPlaylists`, `getPlaylistById` - Retrieve playlists
    - `addToFavorites`, `removeFromFavorites`, `getFavorites` - Favorites
    - `addToHistory`, `getHistory` - Listening history
-   - `getRecommendations` - Track recommendations (uses Songbird API)
-   - `saveQueueState`, `getQueueState` - Queue persistence
+   - `getRecommendations` - Track recommendations (calls Songbird V2 server-side)
+   - `saveQueueState`, `getQueueState`, `clearQueueState` - Queue persistence
    - `getSmartQueueSettings` - Smart queue configuration
+   - `getUserPreferences` - User preferences
 
 2. **equalizer.ts** - Equalizer presets:
    - `getPresets`, `savePreset`, `deletePreset`, `updatePreset`
@@ -383,10 +368,9 @@ The application uses **tRPC** for end-to-end type safety from server to client. 
 import { api } from "@/trpc/react";
 
 // In a React component
-const { data: tracks } = api.music.search.useQuery({ query: "artist name" });
+const playlists = api.music.getPlaylists.useQuery();
 const addToPlaylist = api.music.addToPlaylist.useMutation();
 
-// Call mutation
 addToPlaylist.mutate({ playlistId: "123", trackId: 456 });
 ```
 
@@ -394,23 +378,23 @@ addToPlaylist.mutate({ playlistId: "123", trackId: 456 });
 
 **Search Flow:**
 
-```
-Frontend → tRPC (music.search) → Backend API (Darkfloor/Songbird) → Response
+```text
+UI (fetch) → /api/music/search (proxy route) → Songbird V2 → Response
 ```
 
 **Streaming Flow:**
 
-```
-Frontend → getStreamUrlById() → Backend API (/music/stream/direct) → Audio Stream
+```text
+HTMLAudioElement → /api/stream (proxy route, Range passthrough) → Songbird V2 → audio/mpeg
 ```
 
 **Stream URL Generation:**
 
-Stream URLs are generated via `getStreamUrlById()` function:
+Stream URLs are generated via `getStreamUrlById()` in `src/utils/api.ts`:
 
 ```typescript
 const streamUrl = getStreamUrlById(trackId.toString());
-// Returns: `/api/stream?id=${trackId}&kbps=320` (proxied to V2 API with SONGBIRD_API_KEY)
+// Returns: `/api/stream?id=${trackId}` (proxy adds SONGBIRD_API_KEY server-side)
 ```
 
 **Supported Formats:**
@@ -447,18 +431,12 @@ This project does **not** include or distribute copyrighted music. It is a front
 
 **Backend APIs in Use:**
 
-The application connects to two production backend APIs:
+The application connects to two upstream services:
 
-1. **Darkfloor API** ([https://api.darkfloor.art/](https://api.darkfloor.art/))
-   - Provides music search and streaming endpoints
-   - Handles track search and audio streaming
+1. **Songbird V2** (configured via `API_V2_URL`) — primary source for search, streaming, metadata, and recommendations. Orchestrates Spotify, Last.fm, and Deezer under the hood.
+2. **Deezer API** (public) — metadata fallback for albums, artists, and tracks.
 
-2. **Songbird API** ([https://songbird.darkfloor.art/](https://songbird.darkfloor.art/))
-   - Orchestrates Spotify, Last.fm, and Deezer APIs
-   - Provides music discovery, recommendations, and playlist features
-   - Handles intelligent recommendations and multi-source data aggregation
-
-Both APIs are production-ready and handle licensing compliance. The frontend communicates with these APIs through the tRPC layer for type-safe integration.
+All upstream calls are made server-side through Next.js proxy routes. The frontend never contacts these APIs directly.
 
 **Do not use this with unauthorized music sources.**
 
@@ -853,11 +831,10 @@ npm run deploy
 
 ### Environment Configuration
 
-The server loads environment variables in this order:
+The custom server (`scripts/server.js`) loads environment variables differently depending on mode:
 
-1. `.env` - Base configuration
-2. `.env.production` or `.env.development` - Environment-specific
-3. `.env.local` - Local overrides (never committed)
+- **Development** (`npm run dev`): loads **only** `.env` (override enabled).
+- **Production** (`npm run start`): loads `.env.local`, then `.env.production`, then `.env` (no override — first value wins).
 
 **Production Environment Variables:**
 
@@ -1024,10 +1001,10 @@ This project uses **TailwindCSS v4** with pure CSS Variables (no `@apply` direct
 
 **Audio Chain:**
 
-```
-Track → getStreamUrlById() → Darkfloor API (/music/stream/direct) → HTMLAudioElement → Web Audio API → Equalizer → Speakers
-                                      ↓
-                              Visualizer (canvas/WebGL)
+```text
+Track → getStreamUrlById() → /api/stream (proxy) → Songbird V2 → HTMLAudioElement → Web Audio API → EQ filters → Speakers
+                                                                                            ↓
+                                                                                    AnalyserNode → Visualizers (canvas)
 ```
 
 **Key Features:**
@@ -1107,7 +1084,6 @@ Planned enhancements:
 - **Offline Mode** - Cache downloaded tracks for offline playback
 - **Social Features** - Share playlists, follow users, collaborative playlists
 - **Advanced Analytics** - Listening insights, genre preferences, time-based stats
-- **Theme System** - Dark/light theme toggle with user preference saving
 - **Mobile App** - Native mobile apps (React Native or PWA enhancements)
 
 ## 📝 Configuration Examples
@@ -1197,13 +1173,14 @@ Built with the **T3 Stack** - a modern, type-safe full-stack framework for Next.
 
 ## 📚 Additional Documentation
 
-- **REPOSITORY_ANALYSIS.md** - Comprehensive codebase analysis
-- **CHANGELOG.md** - Version history and changes
-- **ROADMAP.md** - WebGL migration plan
-- **CLAUDE.md** - Architecture documentation
+- **[docs/](docs/)** - Documentation index (`docs/README.md`) covering architecture, API routes, and external services
+- **[AGENTS.md](AGENTS.md)** - Quick-start for AI coding agents (commands, layout, conventions)
+- **[CLAUDE.md](CLAUDE.md)** - Cross-file architecture details (provider hierarchy, audio stack, queue model)
+- **[CONTEXT.md](CONTEXT.md)** - Short project orientation and key paths
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
 
 ---
 
-## © 2025 soulwax @ GitHub
+## © 2026 soulwax @ GitHub
 
 *All music data, streaming rights, and trademarks remain the property of their respective owners.*

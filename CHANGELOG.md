@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.10] - 2026-02-04
+
+### Added
+
+- **docs/ index**: New [docs/README.md](docs/README.md) lists all files under `docs/` as a single entry-point.
+- **Architecture doc**: [docs/architecture.md](docs/architecture.md) covers the full system layout (web + Electron), runtime entry-points, and sequence diagrams for search, streaming, track-metadata (V2 → Deezer fallback), and auth flows.
+- **API route map**: [docs/API_ROUTE_USE.md](docs/API_ROUTE_USE.md) tabulates every Next.js route handler — method, source file, upstream target, and required env vars — plus notes on the two Songbird V2 auth styles (query-string vs header).
+- **External-API guide**: [docs/API_USE.md](docs/API_USE.md) documents each upstream service (Songbird V2, Deezer, Last.fm), what this app uses from each, and how they're configured.
+- **Agent entry-point**: [AGENTS.md](AGENTS.md) provides a quick-start for AI coding agents — commands, env-loading rules, project layout, and working conventions.
+- **Claude Code guidance**: [CLAUDE.md](CLAUDE.md) documents cross-file architecture that isn't visible from any single file: provider nesting order, the three-layer audio stack, queue-model conventions, tRPC-vs-proxy decision rules, and DB/Electron/test-setup constraints.
+
+### Changed
+
+- **`.env.example` tidied**: Moved `AUTH_SECRET` directly below its generation comment so the file reads top-to-bottom. Location: [.env.example](.env.example).
+
+### Removed
+
+- **`REPOSITORY_OVERVIEW.md` deleted**: Content replaced by the focused docs above (`docs/architecture.md`, `docs/API_ROUTE_USE.md`, `docs/API_USE.md`, `AGENTS.md`).
+
 ## [0.12.9] - 2026-02-02
 
 ### Changed
