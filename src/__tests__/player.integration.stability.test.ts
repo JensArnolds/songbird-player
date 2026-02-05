@@ -1,9 +1,9 @@
 // File: src/__tests__/player.integration.stability.test.ts
 
-import { renderHook, waitFor, act } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import type { Track } from "@/types";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/utils/api", () => ({
   getStreamUrlById: vi.fn().mockResolvedValue("https://example.com/stream.mp3"),
@@ -28,7 +28,7 @@ const createMockTrack = (id: number): Track => ({
 });
 
 describe("Player Integration Stability Tests", () => {
-  let mockAudioElement: Partial<HTMLAudioElement>;
+  let mockAudioElement: (HTMLAudioElement & { preservesPitch?: boolean }) | null;
   let eventListeners: Record<string, ((event: Event) => void)[]>;
   let playPromise: Promise<void>;
   let playResolve: () => void;
@@ -40,42 +40,86 @@ describe("Player Integration Stability Tests", () => {
       playResolve = resolve;
     });
 
-    mockAudioElement = {
-      play: vi.fn().mockReturnValue(playPromise),
-      pause: vi.fn(),
-      load: vi.fn(),
-      addEventListener: vi.fn((event: string, handler: (e: Event) => void) => {
+    const element = document.createElement("audio") as HTMLAudioElement & {
+      preservesPitch?: boolean;
+    };
+
+    element.play = vi.fn().mockReturnValue(playPromise);
+    element.pause = vi.fn();
+    element.load = vi.fn();
+
+    Object.defineProperty(element, "paused", {
+      value: true,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(element, "currentTime", {
+      value: 0,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(element, "duration", {
+      value: 180,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(element, "volume", {
+      value: 0.7,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(element, "muted", {
+      value: false,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(element, "readyState", {
+      value: 4,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(element, "src", {
+      value: "",
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(element, "playbackRate", {
+      value: 1,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(element, "defaultPlaybackRate", {
+      value: 1,
+      writable: true,
+      configurable: true,
+    });
+    element.style.display = "none";
+    element.preservesPitch = true;
+
+    mockAudioElement = element;
+
+    element.addEventListener = vi.fn(
+      (event: string, handler: (e: Event) => void) => {
         if (!eventListeners[event]) {
           eventListeners[event] = [];
         }
-        eventListeners[event]?.push(handler);
-      }),
-      removeEventListener: vi.fn(
-        (event: string, handler: (e: Event) => void) => {
-          if (eventListeners[event]) {
-            eventListeners[event] = eventListeners[event]?.filter(
-              (h) => h !== handler,
-            ) ?? [];
-          }
-        },
-      ),
-      setAttribute: vi.fn(),
-      getAttribute: vi.fn(),
-      paused: true,
-      currentTime: 0,
-      duration: 180,
-      volume: 0.7,
-      muted: false,
-      readyState: 4,
-      src: "",
-      playbackRate: 1,
-      defaultPlaybackRate: 1,
-      style: {} as CSSStyleDeclaration,
-      isConnected: false,
-      preservesPitch: true,
-    };
+        eventListeners[event]!.push(handler);
+      },
+    ) as unknown as typeof element.addEventListener;
 
-    global.Audio = vi.fn().mockImplementation(() => mockAudioElement);
+    element.removeEventListener = vi.fn(
+      (event: string, handler: (e: Event) => void) => {
+        if (eventListeners[event]) {
+          eventListeners[event] = eventListeners[event]!.filter(
+            (h) => h !== handler,
+          );
+        }
+      },
+    ) as unknown as typeof element.removeEventListener;
+
+    global.Audio = vi
+      .fn()
+      .mockImplementation(() => mockAudioElement as HTMLAudioElement);
 
     global.navigator.serviceWorker = {
       ready: Promise.resolve({
