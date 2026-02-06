@@ -22,7 +22,7 @@ import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type NavItem = {
   href: string;
@@ -30,17 +30,9 @@ type NavItem = {
   icon: React.ReactNode;
 };
 
-const useIsElectron = () => {
-  const [isElectron] = useState(
-    () => typeof window !== "undefined" && Boolean(window.electron?.isElectron),
-  );
-  return isElectron;
-};
-
 export function ElectronSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const isElectron = useIsElectron();
   const isAdmin = session?.user?.admin === true;
 
   const [collapsed, setCollapsed] = useState(() => {
@@ -53,6 +45,21 @@ export function ElectronSidebar() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const width = collapsed ? 72 : 260;
+
+  // Set sidebar width CSS variable (used by Header positioning)
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--electron-sidebar-width",
+      `${width}px`,
+    );
+  }, [width]);
+
+  // Clean up CSS variable only on unmount
+  useEffect(() => {
+    return () => {
+      document.documentElement.style.removeProperty("--electron-sidebar-width");
+    };
+  }, []);
 
   const { data: userHash } = api.music.getCurrentUserHash.useQuery(undefined, {
     enabled: !!session,
@@ -105,8 +112,6 @@ export function ElectronSidebar() {
     enabled: !!session,
     refetchOnWindowFocus: false,
   });
-
-  if (!isElectron) return null;
 
   return (
     <>

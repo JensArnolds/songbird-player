@@ -55,6 +55,7 @@
   --electron-header-height: var(--electron-titlebar-height);
   --electron-titlebar-inset-left: 0px;
   --electron-titlebar-inset-right: 0px;
+  --electron-sidebar-width: 0px;
 }
 
 /* ------------------------------------------------------------
@@ -1918,12 +1919,20 @@ html.is-electron .electron-header-drag {
 }
 
 html.is-electron .electron-header-main {
-  min-height: max(0px, calc(var(--electron-titlebar-height) - 6px));
-  padding-left: max(1rem, var(--electron-titlebar-inset-left));
-  padding-right: max(1rem, var(--electron-titlebar-inset-right));
+  padding-left: max(0.75rem, var(--electron-titlebar-inset-left));
+  padding-right: max(0.75rem, var(--electron-titlebar-inset-right));
 }
 
-html.is-electron .electron-header-search {
+.electron-header-main {
+  min-height: 46px;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  align-items: center;
+}
+
+.electron-header-search {
+  width: 100%;
+  min-width: 0;
   border-color: rgba(255, 255, 255, 0.12);
   background: linear-gradient(
     180deg,
@@ -1935,7 +1944,7 @@ html.is-electron .electron-header-search {
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-html.theme-light.is-electron .electron-header-search {
+html.theme-light .electron-header-search {
   border-color: rgba(15, 20, 25, 0.14);
   background: linear-gradient(
     180deg,
@@ -1947,7 +1956,7 @@ html.theme-light.is-electron .electron-header-search {
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-html.is-electron .electron-sidebar {
+.electron-sidebar {
   padding-top: 0;
 }
 
@@ -1956,12 +1965,32 @@ html.is-electron .desktop-shell .theme-chrome-header .container {
   width: 100%;
 }
 
-html.is-electron .desktop-main {
+.electron-header-brand {
+  min-width: 0;
+}
+
+@media (max-width: 1280px) {
+  .electron-header-brand .header-logo-title {
+    display: none;
+  }
+}
+
+@media (max-width: 1080px) {
+  .electron-header-main {
+    grid-template-columns: minmax(0, 1fr) 120px;
+  }
+
+  .electron-header-brand {
+    display: none;
+  }
+}
+
+.desktop-main {
   background: transparent;
   padding-top: var(--electron-header-height);
 }
 
-html.is-electron .desktop-surface {
+.desktop-surface {
   border-color: rgba(255, 255, 255, 0.06);
   background: linear-gradient(
     180deg,
@@ -1972,7 +2001,7 @@ html.is-electron .desktop-surface {
   box-shadow: var(--shadow-lg);
 }
 
-html.theme-light.is-electron .desktop-surface {
+html.theme-light .desktop-surface {
   border-color: rgba(15, 20, 25, 0.08);
   background: linear-gradient(
     180deg,
@@ -1982,22 +2011,22 @@ html.theme-light.is-electron .desktop-surface {
   box-shadow: var(--shadow-md);
 }
 
-html.is-electron .desktop-scroll::-webkit-scrollbar {
+.desktop-scroll::-webkit-scrollbar {
   width: 12px;
 }
 
-html.is-electron .desktop-scroll::-webkit-scrollbar-track {
+.desktop-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-html.is-electron .desktop-scroll::-webkit-scrollbar-thumb {
+.desktop-scroll::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.14);
   border: 3px solid transparent;
   background-clip: content-box;
   border-radius: 999px;
 }
 
-html.theme-light.is-electron .desktop-scroll::-webkit-scrollbar-thumb {
+html.theme-light .desktop-scroll::-webkit-scrollbar-thumb {
   background: rgba(15, 20, 25, 0.16);
   border: 3px solid transparent;
   background-clip: content-box;

@@ -4,17 +4,14 @@
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
 import { ElectronSidebar } from "./ElectronSidebar";
 
 export function DesktopShell({ children }: { children: ReactNode }) {
   const isMobile = useIsMobile();
-  const [isElectron, setIsElectron] = useState(false);
+  const isElectron =
+    typeof window !== "undefined" && Boolean(window.electron?.isElectron);
 
-  useEffect(() => {
-    setIsElectron(Boolean(window.electron?.isElectron));
-  }, []);
-
+  // Only render desktop shell in Electron on non-mobile devices
   if (isMobile || !isElectron) return <>{children}</>;
 
   return (

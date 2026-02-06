@@ -30,7 +30,9 @@ export function ElectronChromeSync() {
     if (!window.electron?.isElectron) return;
     document.documentElement.classList.add("is-electron");
     if (window.electron.platform === "win32") {
-      setRootVar("--electron-titlebar-height", "44px");
+      setRootVar("--electron-titlebar-height", "0px");
+      setRootVar("--electron-titlebar-inset-left", "0px");
+      setRootVar("--electron-titlebar-inset-right", "0px");
     }
     return () => document.documentElement.classList.remove("is-electron");
   }, []);
@@ -39,14 +41,43 @@ export function ElectronChromeSync() {
     if (!window.electron?.isElectron) return;
 
     const overlay = navigator.windowControlsOverlay;
-    if (!overlay?.getTitlebarAreaRect) return;
+    const resetOverlayInsets = () => {
+      setRootVar("--electron-titlebar-height", "0px");
+      setRootVar("--electron-titlebar-inset-left", "0px");
+      setRootVar("--electron-titlebar-inset-right", "0px");
+    };
+
+    if (!overlay?.getTitlebarAreaRect) {
+      resetOverlayInsets();
+      return;
+    }
 
     const update = () => {
+      // Default to true if visible property is not exposed
+      // Only reset if explicitly false
+      const isOverlayVisible =
+        typeof overlay.visible === "boolean" ? overlay.visible : true;
+      if (!isOverlayVisible) {
+        resetOverlayInsets();
+        return;
+      }
+
       const rect = overlay.getTitlebarAreaRect();
-      setRootVar("--electron-titlebar-height", `${Math.max(0, Math.round(rect.height))}px`);
+      if (rect.width <= 0 || rect.height <= 0) {
+        resetOverlayInsets();
+        return;
+      }
+
+      setRootVar(
+        "--electron-titlebar-height",
+        `${Math.max(0, Math.round(rect.height))}px`,
+      );
 
       const leftInset = Math.max(0, Math.round(rect.x));
-      const rightInset = Math.max(0, Math.round(window.innerWidth - (rect.x + rect.width)));
+      const rightInset = Math.max(
+        0,
+        Math.round(window.innerWidth - (rect.x + rect.width)),
+      );
       setRootVar("--electron-titlebar-inset-left", `${leftInset}px`);
       setRootVar("--electron-titlebar-inset-right", `${rightInset}px`);
     };
@@ -80,7 +111,9 @@ export function ElectronChromeSync() {
       theme,
       color,
       symbolColor,
-      ...(Number.isFinite(parsedHeight) && parsedHeight > 0 ? { height: parsedHeight } : {}),
+      ...(Number.isFinite(parsedHeight) && parsedHeight > 0
+        ? { height: parsedHeight }
+        : {}),
     };
 
     window.electron.send?.("toMain", message);

@@ -5,6 +5,15 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.1] - 2026-02-06
+
+### Changed
+
+- **Universal desktop shell (non-mobile)**: Applied the sidebar + framed content architecture to all non-mobile layouts (web and Electron), rather than Electron-only. Location: [src/components/DesktopShell.tsx](src/components/DesktopShell.tsx).
+- **Global desktop header unification**: Replaced split desktop/Electron header variants with one shared non-mobile header layout (left branding/health, centered global search) for consistent spacing and behavior. Location: [src/components/Header.tsx](src/components/Header.tsx).
+- **Desktop spacing sync**: Sidebar width and header height now drive content offsets consistently via CSS variables, preventing crowded/overlapping top layout. Locations: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx), [src/styles/globals.css](src/styles/globals.css).
+- **Desktop chrome styling generalization**: Promoted key Electron-only desktop chrome rules (surface, scroll regions, search/header sizing) to shared desktop rules while preserving Electron titlebar insets where available. Location: [src/styles/globals.css](src/styles/globals.css).
+
 ## [0.13.0] - 2026-02-06
 
 ### Changed
