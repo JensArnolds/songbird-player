@@ -7,6 +7,8 @@ import { Geist } from "next/font/google";
 import { Suspense, type ReactNode } from "react";
 
 import { DynamicTitle } from "@/components/DynamicTitle";
+import { DesktopShell } from "@/components/DesktopShell";
+import { ElectronChromeSync } from "@/components/ElectronChromeSync";
 import { ElectronStorageInit } from "@/components/ElectronStorageInit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import HamburgerMenu from "@/components/HamburgerMenu";
@@ -116,6 +118,7 @@ export default function RootLayout({
           <SessionProvider>
             <TRPCReactProvider>
               <ThemeProvider>
+                <ElectronChromeSync />
                 <ToastProvider>
                   <AudioPlayerProvider>
                   {}
@@ -126,22 +129,24 @@ export default function RootLayout({
                         {}
                         <UIWrapper>
                           {}
-                          <div suppressHydrationWarning>
-                            <Header />
-                          </div>
-                          {}
-                          <Suspense fallback={null}>
-                            <MobileHeader />
-                          </Suspense>
-                          {}
-                          <HamburgerMenu />
-                          {}
-                          <MobileContentWrapper>
-                            {}
-                            <div className="pt-16 pb-36 md:pt-0 md:pb-24">
-                              {children}
+                          <DesktopShell>
+                            <div suppressHydrationWarning>
+                              <Header />
                             </div>
-                          </MobileContentWrapper>
+                            {}
+                            <Suspense fallback={null}>
+                              <MobileHeader />
+                            </Suspense>
+                            {}
+                            <HamburgerMenu />
+                            {}
+                            <MobileContentWrapper>
+                              {}
+                              <div className="pt-16 pb-36 md:pt-0 md:pb-24">
+                                {children}
+                              </div>
+                            </MobileContentWrapper>
+                          </DesktopShell>
                         </UIWrapper>
                         {}
                         <PersistentPlayer />

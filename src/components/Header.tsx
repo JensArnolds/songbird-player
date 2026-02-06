@@ -172,16 +172,22 @@ export default function Header() {
   return (
     <>
       <header
-        className="theme-chrome-header sticky top-0 z-30 border-b backdrop-blur-xl"
+        className="theme-chrome-header sticky top-0 z-30 border-b backdrop-blur-xl relative"
         suppressHydrationWarning
       >
-        <div className="container flex items-center justify-between py-3.5">
+        {isElectron ? (
+          <div
+            className="electron-titlebar-drag-region"
+            aria-hidden="true"
+          />
+        ) : null}
+        <div className="container relative z-10 flex items-center justify-between py-3.5">
           {}
           <div className="flex items-center gap-3">
             <Link
               href="/"
               onClick={handleLogoClick}
-              className="group flex items-center gap-3"
+              className="electron-no-drag group flex items-center gap-3"
             >
               <Image
                 src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
@@ -230,13 +236,13 @@ export default function Header() {
           <nav className="hidden items-center gap-6 md:flex">
             <Link
               href="/"
-              className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+              className="electron-no-drag text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
             >
               Home
             </Link>
             <Link
               href={session ? "/library" : "/api/auth/signin"}
-              className="text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
+              className="electron-no-drag text-sm font-medium text-[var(--color-subtext)] transition-all hover:scale-105 hover:text-[var(--color-text)]"
             >
               Library
             </Link>
