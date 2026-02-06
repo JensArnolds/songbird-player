@@ -1,13 +1,10 @@
 // File: src/server/api/routers/admin.ts
 
 import { TRPCError } from "@trpc/server";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { users } from "@/server/db/schema";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -38,6 +35,7 @@ export const adminRouter = createTRPCRouter({
           image: true,
           userHash: true,
           admin: true,
+          firstAdmin: true,
           banned: true,
           profilePublic: true,
         },
@@ -84,6 +82,19 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
+      // Check if the target user is the firstAdmin
+      const targetUser = await ctx.db.query.users.findFirst({
+        columns: { firstAdmin: true },
+        where: eq(users.id, input.userId),
+      });
+
+      if (targetUser?.firstAdmin && !input.admin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "The first admin cannot be demoted by other admins.",
+        });
+      }
+
       await ctx.db
         .update(users)
         .set({ admin: input.admin })
@@ -91,4 +102,56 @@ export const adminRouter = createTRPCRouter({
 
       return { success: true };
     }),
+
+  deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Check if the user is the firstAdmin
+    const currentUser = await ctx.db.query.users.findFirst({
+      columns: {
+        firstAdmin: true,
+        emailVerified: true,
+      },
+      where: eq(users.id, userId),
+    });
+
+    // If the user is the firstAdmin, transfer the role to the next eligible user
+    if (currentUser?.firstAdmin) {
+      // First, try to find the second-oldest admin (excluding the current user)
+      const nextAdmin = await ctx.db.query.users.findFirst({
+        columns: { id: true },
+        where: and(eq(users.admin, true), ne(users.id, userId)),
+        orderBy: [asc(users.emailVerified)],
+      });
+
+      if (nextAdmin) {
+        // Transfer firstAdmin to the second-oldest admin
+        await ctx.db
+          .update(users)
+          .set({ firstAdmin: true })
+          .where(eq(users.id, nextAdmin.id));
+      } else {
+        // No other admin exists, find the second-oldest user in general
+        const nextUser = await ctx.db.query.users.findFirst({
+          columns: { id: true },
+          where: ne(users.id, userId),
+          orderBy: [asc(users.emailVerified)],
+        });
+
+        if (nextUser) {
+          // Make them admin and firstAdmin
+          await ctx.db
+            .update(users)
+            .set({ admin: true, firstAdmin: true })
+            .where(eq(users.id, nextUser.id));
+        }
+        // If there's no other user at all, no transfer is needed
+      }
+    }
+
+    // Delete the user account (cascades to related data)
+    await ctx.db.delete(users).where(eq(users.id, userId));
+
+    return { success: true };
+  }),
 });
