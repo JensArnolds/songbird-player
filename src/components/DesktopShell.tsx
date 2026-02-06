@@ -8,11 +8,8 @@ import { ElectronSidebar } from "./ElectronSidebar";
 
 export function DesktopShell({ children }: { children: ReactNode }) {
   const isMobile = useIsMobile();
-  const isElectron =
-    typeof window !== "undefined" && Boolean(window.electron?.isElectron);
 
-  // Only render desktop shell in Electron on non-mobile devices
-  if (isMobile || !isElectron) return <>{children}</>;
+  if (isMobile) return <>{children}</>;
 
   return (
     <div className="desktop-shell flex h-screen w-full overflow-hidden">

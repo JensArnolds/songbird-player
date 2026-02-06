@@ -5,6 +5,13 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.2] - 2026-02-06
+
+### Changed
+
+- **Desktop web sidebar restoration**: Desktop shell now renders for all non-mobile environments, so the sidebar is visible again in pure web deployment (not only in Electron). Location: [src/components/DesktopShell.tsx](src/components/DesktopShell.tsx).
+- **Sidebar navigation priority**: Reordered desktop sidebar items to emphasize core routes first (`Home`, `Library`, `Playlists`, `Profile`) with utility routes afterward (`Admin` when eligible, then `Settings`). Location: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx).
+
 ## [0.14.1] - 2026-02-06
 
 ### Changed

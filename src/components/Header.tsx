@@ -190,8 +190,16 @@ export default function Header() {
 
   const isElectronRuntime =
     typeof window !== "undefined" &&
-    typeof (window as any).process === "object" &&
-    !!(window as any).process?.versions?.electron;
+    typeof (
+      window as Window & {
+        process?: { versions?: { electron?: string } };
+      }
+    ).process === "object" &&
+    !!(
+      window as Window & {
+        process?: { versions?: { electron?: string } };
+      }
+    ).process?.versions?.electron;
 
   if (isMobile && isElectronRuntime) {
     return null;

@@ -85,9 +85,9 @@ export function ElectronSidebar() {
         icon: <ListMusic className="h-5 w-5" />,
       },
       {
-        href: session ? "/settings" : "/api/auth/signin",
-        label: "Settings",
-        icon: <Settings className="h-5 w-5" />,
+        href: profileHref,
+        label: "Profile",
+        icon: <User className="h-5 w-5" />,
       },
     ];
 
@@ -100,9 +100,9 @@ export function ElectronSidebar() {
     }
 
     items.push({
-      href: profileHref,
-      label: "Profile",
-      icon: <User className="h-5 w-5" />,
+      href: session ? "/settings" : "/api/auth/signin",
+      label: "Settings",
+      icon: <Settings className="h-5 w-5" />,
     });
 
     return items;
