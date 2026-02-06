@@ -214,7 +214,7 @@ export default function Header() {
     >
       <div className="electron-header-drag electron-header-main relative z-10 grid grid-cols-[minmax(210px,auto)_minmax(0,1fr)_minmax(210px,auto)] gap-3 py-2">
         <div className="electron-no-drag electron-header-brand flex min-w-0 items-center gap-3">
-          <Link
+          {/* <Link
             href="/"
             onClick={handleLogoClick}
             className="group flex min-w-0 items-center gap-2"
@@ -230,7 +230,7 @@ export default function Header() {
             <span className="header-logo-title accent-gradient truncate text-sm font-bold">
               Starchild Music
             </span>
-          </Link>
+          </Link> */}
           {apiHealthy !== null && (
             <div
               className="api-health-pill hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] xl:flex"
