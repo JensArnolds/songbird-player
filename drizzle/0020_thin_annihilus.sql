@@ -1,0 +1,1 @@
+ALTER TABLE "hexmusic-stream_user" ADD COLUMN "firstAdmin" boolean DEFAULT false NOT NULL;

@@ -1,17 +1,17 @@
 // File: src/server/auth/config.ts
 
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
 import { env } from "@/env";
 import { db } from "@/server/db";
 import {
-    accounts,
-    sessions,
-    users,
-    verificationTokens,
+  accounts,
+  sessions,
+  users,
+  verificationTokens,
 } from "@/server/db/schema";
 
 declare module "next-auth" {
@@ -20,19 +20,24 @@ declare module "next-auth" {
       id: string;
       userHash?: string | null;
       admin: boolean;
+      firstAdmin?: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
     userHash?: string | null;
     admin?: boolean;
+    firstAdmin?: boolean;
     banned?: boolean;
   }
 }
 
 console.log("[NextAuth Config] ELECTRON_BUILD:", env.ELECTRON_BUILD);
 console.log("[NextAuth Config] NODE_ENV:", process.env.NODE_ENV);
-console.log("[NextAuth Config] DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing");
+console.log(
+  "[NextAuth Config] DATABASE_URL:",
+  process.env.DATABASE_URL ? "✓ Set" : "✗ Missing",
+);
 
 export const authConfig = {
   trustHost: true,
@@ -42,7 +47,6 @@ export const authConfig = {
     DiscordProvider({
       clientId: env.AUTH_DISCORD_ID,
       clientSecret: env.AUTH_DISCORD_SECRET,
-
     }),
   ],
   adapter: DrizzleAdapter(db, {
@@ -66,8 +70,7 @@ export const authConfig = {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure:
-          process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
+        secure: process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
         maxAge: 30 * 24 * 60 * 60,
       },
     },
@@ -80,8 +83,7 @@ export const authConfig = {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure:
-          process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
+        secure: process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
       },
     },
     callbackUrl: {
@@ -92,13 +94,11 @@ export const authConfig = {
       options: {
         sameSite: "lax",
         path: "/",
-        secure:
-          process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
+        secure: process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
       },
     },
   },
   callbacks: {
-
     async signIn({ user, account, profile }) {
       try {
         console.log("[NextAuth signIn] Callback triggered");
@@ -107,51 +107,92 @@ export const authConfig = {
         console.log("[NextAuth signIn] Profile exists:", !!profile);
 
         if (user?.id) {
-          const [dbUser] = await db
-            .select({ banned: users.banned })
-            .from(users)
-            .where(eq(users.id, user.id))
-            .limit(1);
-          if (dbUser?.banned) {
-            console.log("[NextAuth signIn] User is banned, denying sign in");
-            return "/signin?error=Banned";
+          const userId = user.id;
+          try {
+            const [dbUser] = await db
+              .select({ banned: users.banned })
+              .from(users)
+              .where(eq(users.id, userId))
+              .limit(1);
+            if (dbUser?.banned) {
+              console.log("[NextAuth signIn] User is banned, denying sign in");
+              return "/signin?error=Banned";
+            }
+          } catch (error) {
+            console.error(
+              "[NextAuth signIn] Ban status check failed, denying sign in:",
+              error,
+            );
+            return "/signin?error=AuthFailed";
           }
         }
 
         if (account?.provider === "discord" && profile && user.id) {
-          console.log("[NextAuth signIn] Updating Discord user profile...");
+          try {
+            console.log("[NextAuth signIn] Updating Discord user profile...");
 
-          const updates: { image?: string; name?: string } = {};
+            const updates: { image?: string; name?: string } = {};
 
-          if (profile.image_url) {
-            updates.image = profile.image_url as string;
-          }
+            if (profile.image_url) {
+              updates.image = profile.image_url as string;
+            }
 
-          if (profile.global_name || profile.username) {
-            updates.name = (profile.global_name || profile.username) as string;
-          }
+            if (profile.global_name || profile.username) {
+              updates.name = (profile.global_name ?? profile.username) as string;
+            }
 
-          if (Object.keys(updates).length > 0) {
-            console.log("[NextAuth signIn] Updates to apply:", updates);
-            await db
-              .update(users)
-              .set(updates)
-              .where(eq(users.id, user.id));
-            console.log("[NextAuth signIn] Profile updated successfully");
+            if (Object.keys(updates).length > 0) {
+              console.log("[NextAuth signIn] Updates to apply:", updates);
+              await db.update(users).set(updates).where(eq(users.id, user.id));
+              console.log("[NextAuth signIn] Profile updated successfully");
+            }
+          } catch (error) {
+            console.warn(
+              "[NextAuth signIn] Non-critical profile update failed:",
+              error,
+            );
           }
         }
 
         if (user.id && !user.admin) {
-          const [{ count: userCount } = { count: 0 }] = await db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(users);
+          const userId = user.id;
+          if (!userId) {
+            return true;
+          }
+          try {
+            const promoted = await db.transaction(async (tx) => {
+              await tx.execute(
+                sql`lock table "hexmusic-stream_user" in share row exclusive mode`,
+              );
 
-          if (userCount === 1) {
-            await db
-              .update(users)
-              .set({ admin: true })
-              .where(eq(users.id, user.id));
-            user.admin = true;
+              const updatedRows = await tx
+                .update(users)
+                .set({ admin: true, firstAdmin: true })
+                .where(
+                  and(
+                    eq(users.id, userId),
+                    sql`not exists (
+                      select 1
+                      from "hexmusic-stream_user"
+                      where "hexmusic-stream_user"."firstAdmin" = true
+                    )`,
+                  ),
+                )
+                .returning({ id: users.id });
+
+              return updatedRows.length > 0;
+            });
+
+            if (promoted) {
+              user.admin = true;
+              user.firstAdmin = true;
+            }
+          } catch (error) {
+            console.error(
+              "[NextAuth signIn] First-admin promotion check failed, denying sign in:",
+              error,
+            );
+            return "/signin?error=AuthFailed";
           }
         }
 
@@ -161,11 +202,10 @@ export const authConfig = {
         console.error("[NextAuth signIn] ERROR in callback:");
         console.error(error);
 
-        return true;
+        return "/signin?error=AuthFailed";
       }
     },
     session: ({ session, user }) => {
-
       return {
         expires: session.expires,
         user: {
@@ -175,12 +215,12 @@ export const authConfig = {
           image: user.image ?? null,
           userHash: user.userHash ?? null,
           admin: user.admin ?? false,
+          firstAdmin: user.firstAdmin ?? false,
         },
       };
     },
 
     redirect: ({ url, baseUrl }) => {
-
       if (url.startsWith("/")) {
         return `${baseUrl}${url}`;
       }

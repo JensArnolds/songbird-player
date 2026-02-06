@@ -5,6 +5,14 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-02-06
+
+### Changed
+
+- **Auth fail-closed behavior**: NextAuth `signIn` now denies login with `AuthFailed` when critical DB checks cannot complete (ban check and first-admin promotion), instead of allowing sign-in on callback errors. Non-critical Discord profile sync failures are logged and do not block login. Location: [src/server/auth/config.ts](src/server/auth/config.ts).
+- **Atomic first-admin promotion**: Replaced race-prone first-user promotion logic with a transaction-based conditional update and lock so only one user can become `firstAdmin` under concurrent sign-ins. Location: [src/server/auth/config.ts](src/server/auth/config.ts).
+- **First-admin uniqueness guard**: Added a partial unique index for `firstAdmin = true` in schema and migration to enforce single-first-admin at the database layer. Locations: [src/server/db/schema.ts](src/server/db/schema.ts), [drizzle/0021_unique_first_admin.sql](drizzle/0021_unique_first_admin.sql).
+
 
 ## [0.12.10] - 2026-02-04
 

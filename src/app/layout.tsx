@@ -131,7 +131,9 @@ export default function RootLayout({
                           {}
                           <DesktopShell>
                             <div suppressHydrationWarning>
-                              <Header />
+                              <Suspense fallback={null}>
+                                <Header />
+                              </Suspense>
                             </div>
                             {}
                             <Suspense fallback={null}>

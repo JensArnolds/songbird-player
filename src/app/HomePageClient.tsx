@@ -5,23 +5,25 @@
 import { PullToRefreshWrapper } from "@/components/PullToRefreshWrapper";
 import SwipeableTrackCard from "@/components/SwipeableTrackCard";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useToast } from "@/contexts/ToastContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { useWebShare } from "@/hooks/useWebShare";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import {
-    getAlbumTracks,
-    getTrackById,
-    searchTracks,
-    searchTracksByArtist,
+  getAlbumTracks,
+  getTrackById,
+  searchTracks,
+  searchTracksByArtist,
 } from "@/utils/api";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import {
-    springPresets,
-    staggerContainer,
-    staggerItem,
+  springPresets,
+  staggerContainer,
+  staggerItem,
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Music2, Search, Shuffle, Sparkles } from "lucide-react";
+import { BookOpen, Music2, Search, Share2, Shuffle, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -37,6 +39,8 @@ type HomePageClientProps = {
 
 export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const { data: session } = useSession();
+  const { showToast } = useToast();
+  const { share, isSupported: isShareSupported } = useWebShare();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isMobile = useIsMobile();
@@ -276,6 +280,33 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     updateURL(q);
   };
 
+  const handleShareSearch = useCallback(
+    async (searchQuery: string) => {
+      const shareUrl = `${window.location.origin}/?q=${encodeURIComponent(searchQuery)}`;
+
+      if (isShareSupported) {
+        const success = await share({
+          title: `Starchild search: ${searchQuery}`,
+          text: `Check out search results for "${searchQuery}" on Starchild Music.`,
+          url: shareUrl,
+        });
+
+        if (success) {
+          showToast("Search link shared successfully!", "success");
+        }
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast("Search link copied to clipboard!", "success");
+      } catch {
+        showToast("Failed to share search link", "error");
+      }
+    },
+    [isShareSupported, share, showToast],
+  );
+
   const handleLoadMore = async () => {
     if (!currentQuery.trim() || loadingMore) return;
 
@@ -413,64 +444,6 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const searchContent = (
     <div className="flex min-h-screen flex-col">
       <main className="container mx-auto w-full flex-1 py-6 md:py-5">
-        {!isMobile && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...springPresets.gentle, delay: 0.1 }}
-            className="card mb-4 w-full p-4 shadow-xl md:mb-5 md:p-5"
-          >
-            <div className="flex flex-col gap-3 md:gap-2.5">
-              <div className="flex items-center gap-3 md:flex-row md:gap-2.5">
-                <div className="theme-panel flex flex-1 items-center gap-3 rounded-xl border px-4 py-3 transition-all focus-within:border-[var(--color-accent)] focus-within:shadow-[0_0_0_3px_var(--color-accent)]/20 md:px-3 md:py-2.5 md:gap-2">
-                  <Search className="h-5 w-5 flex-shrink-0 text-[var(--color-muted)] md:h-4 md:w-4" />
-                  <input
-                    className="min-w-0 flex-1 bg-transparent text-base text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none md:text-sm"
-                    placeholder="Search for songs, artists, or albums..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && void handleSearch()}
-                  />
-                </div>
-                <button
-                  className="btn-primary touch-target-lg flex items-center justify-center gap-2 px-8 md:px-5 md:text-sm text-[var(--color-on-accent)]"
-                  onClick={() => void handleSearch()}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <div className="spinner spinner-sm" />
-                      <span>Searching...</span>
-                    </>
-                  ) : (
-                    "Search"
-                  )}
-                </button>
-              </div>
-
-              {session && recentSearches && recentSearches.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 md:gap-1">
-                  <span className="text-xs font-medium text-[var(--color-subtext)]">
-                    Recent:
-                  </span>
-                  {recentSearches.map((search: string) => (
-                    <button
-                      key={search}
-                      onClick={() => {
-                        hapticLight();
-                        void handleSearch(search);
-                      }}
-                      className="touch-active rounded-full bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-text)] ring-1 ring-white/5 transition-all hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-accent-light)] hover:ring-[var(--color-accent)]/30"
-                    >
-                      {search}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-
         <div className="w-full">
           <AnimatePresence mode="wait">
             {results.length > 0 ? (
@@ -568,6 +541,56 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                     ? "Tap to start playing music instantly, or search for something specific."
                     : "Search for songs, artists, albums - anything you want to listen to."}
                 </h3>
+
+                {session && recentSearches && recentSearches.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...springPresets.gentle, delay: 0.1 }}
+                    className="mt-4 w-full max-w-5xl"
+                  >
+                    <div className="mb-1.5 text-left text-[11px] font-semibold tracking-wide text-[var(--color-subtext)] uppercase">
+                      Past Searches
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                      {recentSearches.slice(0, 16).map((search: string, index: number) => (
+                        <motion.div
+                          key={`${search}-${index}`}
+                          whileTap={{ scale: 0.98 }}
+                          className="theme-panel flex items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors hover:bg-[var(--color-surface-hover)]"
+                        >
+                          <button
+                            onClick={() => {
+                              hapticLight();
+                              setQuery(search);
+                              void handleSearch(search);
+                            }}
+                            className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+                          >
+                            <Search className="h-3.5 w-3.5 shrink-0 text-[var(--color-muted)]" />
+                            <span className="truncate text-xs text-[var(--color-text)]">
+                              {search}
+                            </span>
+                          </button>
+
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              hapticLight();
+                              void handleShareSearch(search);
+                            }}
+                            className="electron-no-drag inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-1.5 py-1 text-[11px] font-medium text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                            title="Share search"
+                            aria-label={`Share search: ${search}`}
+                          >
+                            <Share2 className="h-3 w-3" />
+                            Share
+                          </button>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
 
                 {!session && (
                   <motion.div
@@ -685,8 +708,9 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                   </motion.button>
                 </div>
 
-                <p className="mt-8 text-xs font-medium uppercase tracking-wider text-[var(--color-muted)] md:mt-6">
-                  Fully migrated to Vercel
+                <p className="mt-8 text-xs font-medium tracking-wider text-[var(--color-muted)] uppercase md:mt-6">
+                  Copyright &copy; 2026 Starchild Music Player. All rights
+                  reserved.
                 </p>
               </motion.div>
             )}

@@ -12,13 +12,17 @@ import {
   Home,
   Library,
   ListMusic,
+  LogOut,
   Plus,
+  Shield,
   Settings,
+  User,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type NavItem = {
   href: string;
@@ -27,10 +31,9 @@ type NavItem = {
 };
 
 const useIsElectron = () => {
-  const [isElectron, setIsElectron] = useState(false);
-  useEffect(() => {
-    setIsElectron(Boolean(window.electron?.isElectron));
-  }, []);
+  const [isElectron] = useState(
+    () => typeof window !== "undefined" && Boolean(window.electron?.isElectron),
+  );
   return isElectron;
 };
 
@@ -38,23 +41,31 @@ export function ElectronSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isElectron = useIsElectron();
+  const isAdmin = session?.user?.admin === true;
 
-  const [collapsed, setCollapsed] = useState(false);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isElectron) return;
-    const value = localStorage.getOrDefault<boolean>(
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getOrDefault<boolean>(
       STORAGE_KEYS.DESKTOP_SIDEBAR_COLLAPSED,
       false,
     );
-    setCollapsed(value === true);
-  }, [isElectron]);
+  });
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const width = collapsed ? 72 : 260;
 
-  const navItems: NavItem[] = useMemo(
-    () => [
+  const { data: userHash } = api.music.getCurrentUserHash.useQuery(undefined, {
+    enabled: !!session,
+  });
+
+  const profileHref = session
+    ? userHash
+      ? `/${userHash}`
+      : "/settings"
+    : "/api/auth/signin";
+
+  const navItems: NavItem[] = useMemo(() => {
+    const items: NavItem[] = [
       { href: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
       {
         href: session ? "/library" : "/api/auth/signin",
@@ -71,9 +82,24 @@ export function ElectronSidebar() {
         label: "Settings",
         icon: <Settings className="h-5 w-5" />,
       },
-    ],
-    [session],
-  );
+    ];
+
+    if (isAdmin) {
+      items.push({
+        href: "/admin",
+        label: "Admin",
+        icon: <Shield className="h-5 w-5" />,
+      });
+    }
+
+    items.push({
+      href: profileHref,
+      label: "Profile",
+      icon: <User className="h-5 w-5" />,
+    });
+
+    return items;
+  }, [session, profileHref, isAdmin]);
 
   const playlistsQuery = api.music.getPlaylists.useQuery(undefined, {
     enabled: !!session,
@@ -85,44 +111,46 @@ export function ElectronSidebar() {
   return (
     <>
       <aside
-        className="electron-sidebar theme-chrome-sidebar sticky top-0 z-20 hidden h-screen shrink-0 border-r md:flex"
+        className="electron-sidebar theme-chrome-sidebar relative sticky top-0 z-20 hidden h-screen shrink-0 border-r md:flex"
         style={{ width }}
       >
-        <div className="flex h-full min-h-0 w-full flex-col">
-          <div className="px-3 pb-3 pt-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 overflow-hidden">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)]">
-                  S
-                </div>
-                {!collapsed && (
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-bold text-[var(--color-text)]">
-                      Starchild
-                    </div>
-                    <div className="truncate text-xs text-[var(--color-subtext)]">
-                      Desktop
-                    </div>
-                  </div>
-                )}
-              </div>
+        {/* Drawer-style toggle button */}
+        {/* Offset down by 10% */}
+        <button
+          className="electron-no-drag absolute top-[10%] -right-3 flex h-12 w-6 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] opacity-90 shadow-sm transition-opacity hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+          onClick={() => {
+            const next = !collapsed;
+            setCollapsed(next);
+            localStorage.set(STORAGE_KEYS.DESKTOP_SIDEBAR_COLLAPSED, next);
+          }}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? (
+            <ChevronRight className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronLeft className="h-3.5 w-3.5" />
+          )}
+        </button>
 
-              <button
-                className="electron-no-drag flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-                onClick={() => {
-                  const next = !collapsed;
-                  setCollapsed(next);
-                  localStorage.set(STORAGE_KEYS.DESKTOP_SIDEBAR_COLLAPSED, next);
-                }}
-                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              >
-                {collapsed ? (
-                  <ChevronRight className="h-4 w-4" />
-                ) : (
-                  <ChevronLeft className="h-4 w-4" />
-                )}
-              </button>
+        <div className="flex h-full min-h-0 w-full flex-col">
+          <div className="px-3 pt-3 pb-3">
+            <div className="flex items-center justify-center">
+              <Image
+                src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
+                alt="Starchild"
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded-xl shadow-lg ring-2 ring-[rgba(244,178,102,0.3)]"
+                priority
+              />
+              {!collapsed && (
+                <div className="ml-4 min-w-0">
+                  <div className="header-logo-title accent-gradient truncate text-base font-bold">
+                    Starchild
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -145,7 +173,9 @@ export function ElectronSidebar() {
                     title={collapsed ? item.label : undefined}
                   >
                     <span className="shrink-0">{item.icon}</span>
-                    {!collapsed && <span className="truncate">{item.label}</span>}
+                    {!collapsed && (
+                      <span className="truncate">{item.label}</span>
+                    )}
                   </Link>
                 );
               })}
@@ -155,7 +185,7 @@ export function ElectronSidebar() {
           <div className="mt-4 min-h-0 flex-1 px-2 pb-24">
             <div className="flex items-center justify-between px-2">
               {!collapsed ? (
-                <div className="text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                <div className="text-xs font-semibold tracking-wide text-[var(--color-muted)] uppercase">
                   Playlists
                 </div>
               ) : (
@@ -246,7 +276,7 @@ export function ElectronSidebar() {
           </div>
 
           {!collapsed && (
-            <div className="px-3 pb-3">
+            <div className="space-y-2 px-3 pb-3">
               <button
                 className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-2 text-sm font-semibold text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition hover:scale-[1.01] active:scale-[0.99]"
                 onClick={() => setCreateModalOpen(true)}
@@ -254,8 +284,29 @@ export function ElectronSidebar() {
                 <Plus className="h-4 w-4" />
                 New playlist
               </button>
+              {session ? (
+                <button
+                  className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-subtext)] transition hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                  onClick={() => void signOut({ callbackUrl: "/" })}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              ) : null}
             </div>
           )}
+          {collapsed && session ? (
+            <div className="px-2 pb-3">
+              <button
+                className="electron-no-drag flex h-9 w-full items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] transition hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                onClick={() => void signOut({ callbackUrl: "/" })}
+                title="Sign out"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
         </div>
       </aside>
 
@@ -266,4 +317,3 @@ export function ElectronSidebar() {
     </>
   );
 }
-

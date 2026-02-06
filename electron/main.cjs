@@ -1,8 +1,22 @@
 const path = require("path");
 const fs = require("fs");
 
+/**
+ * @typedef {Object} WindowState
+ * @property {number} width
+ * @property {number} height
+ * @property {number} [x]
+ * @property {number} [y]
+ * @property {boolean} isMaximized
+ */
+
+/** @type {string[]} */
 const bufferedLogLines = [];
 
+/**
+ * @param {unknown} arg
+ * @returns {string}
+ */
 const formatLogArg = (arg) => {
   if (arg instanceof Error) return arg.stack || arg.message;
   if (typeof arg === "string") return arg;
@@ -20,14 +34,16 @@ const formatLogArg = (arg) => {
  * Log before the file logger is initialized. Buffers output for later flush.
  * @param  {...any} args
  */
+/**
+ * @param {...unknown} args
+ */
 const bootLog = (...args) => {
   const timestamp = new Date().toISOString();
   const message = args.map(formatLogArg).join(" ");
   bufferedLogLines.push(`[${timestamp}] [Electron] ${message}`);
   try {
     console.log("[Electron]", ...args);
-  } catch {
-        }
+  } catch {}
 };
 
 try {
@@ -36,7 +52,12 @@ try {
   const candidateEnvPaths = [
     process.env.STARCHILD_ENV_FILE,
     path.join(path.dirname(process.execPath), ".env.local"),
-    path.join(path.dirname(process.execPath), ".next", "standalone", ".env.local"),
+    path.join(
+      path.dirname(process.execPath),
+      ".next",
+      "standalone",
+      ".env.local",
+    ),
     path.join(process.cwd(), ".env.local"),
     process.resourcesPath
       ? path.join(process.resourcesPath, ".next", "standalone", ".env.local")
@@ -100,14 +121,31 @@ const {
 const { spawn } = require("child_process");
 const http = require("http");
 
+/** @type {boolean} */
 const isDev = !app.isPackaged && process.env.ELECTRON_PROD !== "true";
+/** @type {boolean} */
 const enableDevTools = isDev || process.env.ELECTRON_DEV_TOOLS === "true";
+/** @type {number} */
 const port = parseInt(process.env.PORT || "3222", 10);
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
 /** @type {import('child_process').ChildProcess | null} */
 let serverProcess = null;
+
+/** @returns {void} */
+const publishWindowState = () => {
+  if (!mainWindow) return;
+
+  try {
+    mainWindow.webContents.send("fromMain", {
+      type: "windowState",
+      isMaximized: mainWindow.isMaximized(),
+    });
+  } catch {
+    // best-effort
+  }
+};
 
 if (process.platform === "win32") {
   try {
@@ -123,17 +161,23 @@ if (!gotSingleInstanceLock) {
   app.quit();
 }
 
+/** @type {string} */
 const windowStateFile = path.join(app.getPath("userData"), "window-state.json");
 
+/** @type {string} */
 const logDir = path.join(app.getPath("userData"), "logs");
+/** @type {string} */
 const logFile = path.join(logDir, "electron-main.log");
 
+/**
+ * @param {string} line
+ * @returns {void}
+ */
 const appendLogLine = (line) => {
   try {
     fs.mkdirSync(logDir, { recursive: true });
     fs.appendFileSync(logFile, `${line}\n`, "utf8");
-  } catch {
-        }
+  } catch {}
 };
 
 for (const line of bufferedLogLines) {
@@ -144,6 +188,10 @@ bufferedLogLines.length = 0;
 /**
  * @param {...any} args
  */
+/**
+ * @param {...unknown} args
+ * @returns {void}
+ */
 const log = (...args) => {
   const timestamp = new Date().toISOString();
   const message = args.map(formatLogArg).join(" ");
@@ -151,6 +199,9 @@ const log = (...args) => {
   console.log("[Electron]", ...args);
 };
 
+/**
+ * @returns {string | undefined}
+ */
 const getIconPath = () => {
   const candidates = [
     app.isPackaged
@@ -184,7 +235,8 @@ const getIconPath = () => {
 /**
  * Ensure the restored window bounds are on a visible display.
  * If the window would be off-screen (e.g. monitor removed), reset position.
- * @param {{width: number, height: number, x?: number, y?: number, isMaximized: boolean}} state
+ * @param {WindowState} state
+ * @returns {WindowState}
  */
 const ensureWindowStateIsVisible = (state) => {
   if (typeof state.x !== "number" || typeof state.y !== "number") return state;
@@ -223,7 +275,7 @@ const ensureWindowStateIsVisible = (state) => {
 
 /**
  * Load saved window state
- * @returns {{width: number, height: number, x?: number, y?: number, isMaximized: boolean}}
+ * @returns {WindowState}
  */
 const loadWindowState = () => {
   try {
@@ -235,7 +287,7 @@ const loadWindowState = () => {
     log("Failed to load window state:", err);
   }
 
-    return {
+  return {
     width: 1200,
     height: 800,
     isMaximized: false,
@@ -267,6 +319,10 @@ const saveWindowState = (window) => {
  * @param {number} startPort
  * @returns {Promise<number>}
  */
+/**
+ * @param {number} startPort
+ * @returns {Promise<number>}
+ */
 const findAvailablePort = (startPort) => {
   return new Promise((resolve) => {
     const server = http.createServer();
@@ -293,6 +349,11 @@ const findAvailablePort = (startPort) => {
  * @param {number} maxAttempts
  * @returns {Promise<boolean>}
  */
+/**
+ * @param {number} port
+ * @param {number} [maxAttempts=30]
+ * @returns {Promise<boolean>}
+ */
 const waitForServer = (port, maxAttempts = 30) => {
   return new Promise((resolve) => {
     let attempts = 0;
@@ -301,14 +362,17 @@ const waitForServer = (port, maxAttempts = 30) => {
         `Checking server on port ${port} (attempt ${attempts + 1}/${maxAttempts})`,
       );
       http
-        .get(`http://localhost:${port}`, (/** @type {import('http').IncomingMessage} */ res) => {
-          log(`Server responded with status: ${res.statusCode}`);
-          if (res.statusCode === 200 || res.statusCode === 304) {
-            resolve(true);
-          } else {
-            retry();
-          }
-        })
+        .get(
+          `http://localhost:${port}`,
+          (/** @type {import('http').IncomingMessage} */ res) => {
+            log(`Server responded with status: ${res.statusCode}`);
+            if (res.statusCode === 200 || res.statusCode === 304) {
+              resolve(true);
+            } else {
+              retry();
+            }
+          },
+        )
         .on(
           "error",
           /**
@@ -335,6 +399,9 @@ const waitForServer = (port, maxAttempts = 30) => {
   });
 };
 
+/**
+ * @returns {Promise<number>}
+ */
 const startServer = async () => {
   const serverPort = await findAvailablePort(port);
 
@@ -382,22 +449,28 @@ const startServer = async () => {
   let nodeExecutable = "node";
 
   if (app.isPackaged) {
-
-    const bundledNodePath = path.join(process.resourcesPath, "node", "node.exe");
+    const bundledNodePath = path.join(
+      process.resourcesPath,
+      "node",
+      "node.exe",
+    );
 
     if (fs.existsSync(bundledNodePath)) {
       nodeExecutable = bundledNodePath;
       log("Using bundled Node.js:", bundledNodePath);
     } else {
-            try {
-        require("child_process").execSync("node --version", { stdio: "ignore" });
+      try {
+        require("child_process").execSync("node --version", {
+          stdio: "ignore",
+        });
         log("Using system Node.js from PATH");
       } catch (err) {
-        const error = "Node.js not found. Please install Node.js from https://nodejs.org/";
+        const error =
+          "Node.js not found. Please install Node.js from https://nodejs.org/";
         log("ERROR:", error);
         dialog.showErrorBox(
           "Node.js Required",
-          "This application requires Node.js to be installed.\n\nPlease download and install Node.js from:\nhttps://nodejs.org/\n\nThen restart the application."
+          "This application requires Node.js to be installed.\n\nPlease download and install Node.js from:\nhttps://nodejs.org/\n\nThen restart the application.",
         );
         throw new Error(error);
       }
@@ -453,6 +526,9 @@ const startServer = async () => {
   });
 };
 
+/**
+ * @returns {Promise<void>}
+ */
 const createWindow = async () => {
   log("Creating window...");
   log(`Mode: ${isDev ? "Development" : "Production"}`);
@@ -482,7 +558,7 @@ const createWindow = async () => {
     }
   }
 
-    const windowState = ensureWindowStateIsVisible(loadWindowState());
+  const windowState = ensureWindowStateIsVisible(loadWindowState());
 
   const iconPath = getIconPath();
 
@@ -499,12 +575,7 @@ const createWindow = async () => {
     minHeight: 600,
     ...(isWindows
       ? {
-          titleBarStyle: "hidden",
-          titleBarOverlay: {
-            color: "#0a1018",
-            symbolColor: "#f5f1e8",
-            height: 44,
-          },
+          frame: true,
         }
       : {}),
     ...(isMac
@@ -519,7 +590,7 @@ const createWindow = async () => {
       contextIsolation: true,
       sandbox: true,
       devTools: enableDevTools,
-            partition: "persist:darkfloor-art",
+      partition: "persist:darkfloor-art",
     },
     ...(iconPath ? { icon: iconPath } : {}),
     backgroundColor: "#0a0a0f",
@@ -528,11 +599,11 @@ const createWindow = async () => {
 
   mainWindow.webContents.setBackgroundThrottling(false);
 
-    if (windowState.isMaximized) {
+  if (windowState.isMaximized) {
     mainWindow.maximize();
   }
 
-    mainWindow.on("resize", () => {
+  mainWindow.on("resize", () => {
     if (mainWindow && !mainWindow.isMaximized()) {
       saveWindowState(mainWindow);
     }
@@ -548,12 +619,14 @@ const createWindow = async () => {
     if (mainWindow) {
       saveWindowState(mainWindow);
     }
+    publishWindowState();
   });
 
   mainWindow.on("unmaximize", () => {
     if (mainWindow) {
       saveWindowState(mainWindow);
     }
+    publishWindowState();
   });
 
   mainWindow.webContents.setWindowOpenHandler(
@@ -563,24 +636,28 @@ const createWindow = async () => {
     ({ url }) => {
       log("Window open handler triggered for URL:", url);
 
-    if (url.includes("discord.com/oauth2") || url.includes("discord.com/api/oauth2")) {
-      log("Opening Discord OAuth in same window");
-      return {
-        action: "allow",
-        overrideBrowserWindowOptions: {
-          webPreferences: {
-            preload: path.join(__dirname, "preload.cjs"),
-            nodeIntegration: false,
-            contextIsolation: true,
-            sandbox: true,
+      if (
+        url.includes("discord.com/oauth2") ||
+        url.includes("discord.com/api/oauth2")
+      ) {
+        log("Opening Discord OAuth in same window");
+        return {
+          action: "allow",
+          overrideBrowserWindowOptions: {
+            webPreferences: {
+              preload: path.join(__dirname, "preload.cjs"),
+              nodeIntegration: false,
+              contextIsolation: true,
+              sandbox: true,
+            },
           },
-        },
-      };
-    }
+        };
+      }
 
-    shell.openExternal(url);
-    return { action: "deny" };
-  });
+      shell.openExternal(url);
+      return { action: "deny" };
+    },
+  );
 
   mainWindow.webContents.on(
     "will-navigate",
@@ -599,7 +676,10 @@ const createWindow = async () => {
         return;
       }
 
-      if (url.includes("discord.com/oauth2") || url.includes("discord.com/api/oauth2")) {
+      if (
+        url.includes("discord.com/oauth2") ||
+        url.includes("discord.com/api/oauth2")
+      ) {
         log("Allowing Discord OAuth navigation");
         return;
       }
@@ -607,14 +687,18 @@ const createWindow = async () => {
       log("Preventing navigation to external site, opening in browser instead");
       event.preventDefault();
       shell.openExternal(url);
-    });
+    },
+  );
 
-  mainWindow.webContents.on("did-navigate", (
-    /** @type {import('electron').Event} */ _event,
-    /** @type {string} */ url,
-  ) => {
-    log("Navigated to:", url);
-  });
+  mainWindow.webContents.on(
+    "did-navigate",
+    (
+      /** @type {import('electron').Event} */ _event,
+      /** @type {string} */ url,
+    ) => {
+      log("Navigated to:", url);
+    },
+  );
 
   mainWindow.webContents.on("did-start-loading", () => {
     log("Page started loading");
@@ -622,6 +706,7 @@ const createWindow = async () => {
 
   mainWindow.webContents.on("did-finish-load", () => {
     log("Page finished loading");
+    publishWindowState();
   });
 
   mainWindow.webContents.on(
@@ -673,15 +758,54 @@ ipcMain.on(
     /** @type {any} */
     const payload = message;
 
+    if (payload.type === "window:minimize") {
+      mainWindow?.minimize();
+      return;
+    }
+
+    if (payload.type === "window:close") {
+      mainWindow?.close();
+      return;
+    }
+
+    if (payload.type === "window:toggleMaximize") {
+      if (!mainWindow) return;
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+      return;
+    }
+
+    if (payload.type === "window:getState") {
+      publishWindowState();
+      return;
+    }
+
     if (payload.type === "titlebarOverlay:set") {
       if (!mainWindow || process.platform !== "win32") return;
 
-      const color = typeof payload.color === "string" ? payload.color : undefined;
+      const color =
+        typeof payload.color === "string" ? payload.color : undefined;
       const symbolColor =
-        typeof payload.symbolColor === "string" ? payload.symbolColor : undefined;
-      const height = Number.isFinite(payload.height) ? payload.height : undefined;
-      const theme = payload.theme === "light" ? "light" : payload.theme === "dark" ? "dark" : undefined;
+        typeof payload.symbolColor === "string"
+          ? payload.symbolColor
+          : undefined;
+      const height = Number.isFinite(payload.height)
+        ? payload.height
+        : undefined;
+      const theme =
+        payload.theme === "light"
+          ? "light"
+          : payload.theme === "dark"
+            ? "dark"
+            : undefined;
 
+      /**
+       * @param {unknown} value
+       * @returns {value is string}
+       */
       const isHexColor = (value) =>
         typeof value === "string" &&
         /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value.trim());
@@ -694,8 +818,12 @@ ipcMain.on(
         if (typeof mainWindow.setTitleBarOverlay === "function") {
           mainWindow.setTitleBarOverlay({
             ...(isHexColor(color) ? { color: color.trim() } : {}),
-            ...(isHexColor(symbolColor) ? { symbolColor: symbolColor.trim() } : {}),
-            ...(typeof height === "number" && height > 0 ? { height: Math.round(height) } : {}),
+            ...(isHexColor(symbolColor)
+              ? { symbolColor: symbolColor.trim() }
+              : {}),
+            ...(typeof height === "number" && height > 0
+              ? { height: Math.round(height) }
+              : {}),
           });
         }
       } catch (err) {
@@ -705,6 +833,7 @@ ipcMain.on(
   },
 );
 
+/** @returns {void} */
 const registerMediaKeys = () => {
   try {
     globalShortcut.register("MediaPlayPause", () => {
@@ -734,16 +863,19 @@ app.whenReady().then(() => {
 
   log("Storage path:", ses.getStoragePath());
 
-  ses.cookies.on("changed", (
-    /** @type {import('electron').Event} */ _event,
-    /** @type {import('electron').Cookie} */ cookie,
-    /** @type {string} */ cause,
-    /** @type {boolean} */ removed,
-  ) => {
-    if (!removed && isDev) {
-      log(`Cookie set: ${cookie.name} (${cause})`);
-    }
-  });
+  ses.cookies.on(
+    "changed",
+    (
+      /** @type {import('electron').Event} */ _event,
+      /** @type {import('electron').Cookie} */ cookie,
+      /** @type {string} */ cause,
+      /** @type {boolean} */ removed,
+    ) => {
+      if (!removed && isDev) {
+        log(`Cookie set: ${cookie.name} (${cause})`);
+      }
+    },
+  );
 
   ses.cookies.flushStore().then(() => {
     log("Session configured with persistent storage");
@@ -775,6 +907,9 @@ app.on("second-instance", () => {
 
 /**
  * Gracefully shutdown the server process
+ * @returns {Promise<void>}
+ */
+/**
  * @returns {Promise<void>}
  */
 const shutdownServer = () => {

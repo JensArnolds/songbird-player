@@ -1,7 +1,13 @@
 // File: src/server/db/schema.ts
 
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey, unique } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgTableCreator,
+  primaryKey,
+  unique,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const createTable = pgTableCreator((name) => `hexmusic-stream_${name}`);
 
@@ -31,33 +37,41 @@ export const posts = createTable(
   ],
 );
 
-export const users = createTable("user", (d) => ({
-  id: d
-    .varchar({ length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: d.varchar({ length: 255 }),
-  email: d.varchar({ length: 255 }).notNull(),
-  emailVerified: d
-    .timestamp({
-      mode: "date",
-      withTimezone: true,
-    })
-    .default(sql`CURRENT_TIMESTAMP`),
-  image: d.varchar({ length: 255 }),
-  userHash: d
-    .varchar({ length: 32 })
-    .unique()
-    .$defaultFn(() => {
-
-      return crypto.randomUUID().replace(/-/g, "").substring(0, 16);
-    }),
-  admin: d.boolean().default(false).notNull(),
-  banned: d.boolean().default(false).notNull(),
-  profilePublic: d.boolean().default(true).notNull(),
-  bio: d.text(),
-}));
+export const users = createTable(
+  "user",
+  (d) => ({
+    id: d
+      .varchar({ length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: d.varchar({ length: 255 }),
+    email: d.varchar({ length: 255 }).notNull(),
+    emailVerified: d
+      .timestamp({
+        mode: "date",
+        withTimezone: true,
+      })
+      .default(sql`CURRENT_TIMESTAMP`),
+    image: d.varchar({ length: 255 }),
+    userHash: d
+      .varchar({ length: 32 })
+      .unique()
+      .$defaultFn(() => {
+        return crypto.randomUUID().replace(/-/g, "").substring(0, 16);
+      }),
+    admin: d.boolean().default(false).notNull(),
+    firstAdmin: d.boolean().default(false).notNull(),
+    banned: d.boolean().default(false).notNull(),
+    profilePublic: d.boolean().default(true).notNull(),
+    bio: d.text(),
+  }),
+  (t) => [
+    uniqueIndex("unique_first_admin")
+      .on(t.firstAdmin)
+      .where(sql`${t.firstAdmin} = true`),
+  ],
+);
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
@@ -565,14 +579,10 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 
 export const recommendationCacheRelations = relations(
   recommendationCache,
-  () => ({
-
-  }),
+  () => ({}),
 );
 
-export const audioFeaturesRelations = relations(audioFeatures, () => ({
-
-}));
+export const audioFeaturesRelations = relations(audioFeatures, () => ({}));
 
 export const recommendationLogsRelations = relations(
   recommendationLogs,

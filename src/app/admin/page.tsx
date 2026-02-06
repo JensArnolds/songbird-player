@@ -197,7 +197,7 @@ export default function AdminPage() {
                       {user.admin && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-[rgba(88,198,177,0.12)] px-2 py-1 text-xs font-semibold text-[var(--color-success)]">
                           <Crown className="h-3 w-3" />
-                          Admin
+                          {user.firstAdmin ? "First Admin" : "Admin"}
                         </span>
                       )}
                       {!user.profilePublic && (
@@ -235,19 +235,20 @@ export default function AdminPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => handleToggleAdmin(user.id, user.admin ?? false)}
-                      disabled={updateAdmin.isPending}
+                      disabled={updateAdmin.isPending || user.firstAdmin}
+                      title={user.firstAdmin ? "The first admin cannot be demoted by other admins" : ""}
                       className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                         user.admin
                           ? "border border-[var(--color-danger)]/70 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
                           : "border border-[var(--color-accent)]/70 text-[var(--color-text)] hover:bg-[var(--color-accent)]/10"
-                      } ${updateAdmin.isPending ? "opacity-50" : ""}`}
+                      } ${updateAdmin.isPending || user.firstAdmin ? "cursor-not-allowed opacity-50" : ""}`}
                     >
                       {updateAdmin.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : user.admin ? (
                         <>
                           <Shield className="h-4 w-4" />
-                          Remove admin
+                          {user.firstAdmin ? "Protected" : "Remove admin"}
                         </>
                       ) : (
                         <>
