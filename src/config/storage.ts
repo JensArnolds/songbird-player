@@ -33,6 +33,8 @@ export const STORAGE_KEYS = {
 
   RECOMMENDATION_CACHE: `${STORAGE_PREFIX}recommendation_cache`,
   SEARCH_HISTORY: `${STORAGE_PREFIX}search_history`,
+
+  DESKTOP_SIDEBAR_COLLAPSED: `${STORAGE_PREFIX}desktop_sidebar_collapsed`,
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

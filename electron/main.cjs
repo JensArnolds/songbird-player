@@ -93,6 +93,8 @@ const {
   dialog,
   screen,
   session,
+  ipcMain,
+  nativeTheme,
   shell,
 } = require("electron");
 const { spawn } = require("child_process");
@@ -106,6 +108,20 @@ const port = parseInt(process.env.PORT || "3222", 10);
 let mainWindow = null;
 /** @type {import('child_process').ChildProcess | null} */
 let serverProcess = null;
+
+if (process.platform === "win32") {
+  try {
+    app.setAppUserModelId("com.darkfloor.art");
+  } catch {
+    // best-effort
+  }
+}
+
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  bootLog("Another instance is already running - exiting");
+  app.quit();
+}
 
 const windowStateFile = path.join(app.getPath("userData"), "window-state.json");
 
@@ -470,13 +486,33 @@ const createWindow = async () => {
 
   const iconPath = getIconPath();
 
+  const isWindows = process.platform === "win32";
+  const isMac = process.platform === "darwin";
+
   mainWindow = new BrowserWindow({
+    title: "Starchild",
     width: windowState.width,
     height: windowState.height,
     x: windowState.x,
     y: windowState.y,
     minWidth: 800,
     minHeight: 600,
+    ...(isWindows
+      ? {
+          titleBarStyle: "hidden",
+          titleBarOverlay: {
+            color: "#0a1018",
+            symbolColor: "#f5f1e8",
+            height: 44,
+          },
+        }
+      : {}),
+    ...(isMac
+      ? {
+          titleBarStyle: "hiddenInset",
+        }
+      : {}),
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       nodeIntegration: false,
@@ -486,9 +522,11 @@ const createWindow = async () => {
             partition: "persist:darkfloor-art",
     },
     ...(iconPath ? { icon: iconPath } : {}),
-    backgroundColor: "#000000",
+    backgroundColor: "#0a0a0f",
     show: false,
   });
+
+  mainWindow.webContents.setBackgroundThrottling(false);
 
     if (windowState.isMaximized) {
     mainWindow.maximize();
@@ -623,6 +661,50 @@ const createWindow = async () => {
   registerMediaKeys();
 };
 
+/**
+ * Handle renderer -> main messages.
+ * Uses the generic `toMain` channel exposed in `electron/preload.cjs`.
+ */
+ipcMain.on(
+  "toMain",
+  /** @param {import("electron").IpcMainEvent} _event */ (_event, message) => {
+    if (!message || typeof message !== "object") return;
+
+    /** @type {any} */
+    const payload = message;
+
+    if (payload.type === "titlebarOverlay:set") {
+      if (!mainWindow || process.platform !== "win32") return;
+
+      const color = typeof payload.color === "string" ? payload.color : undefined;
+      const symbolColor =
+        typeof payload.symbolColor === "string" ? payload.symbolColor : undefined;
+      const height = Number.isFinite(payload.height) ? payload.height : undefined;
+      const theme = payload.theme === "light" ? "light" : payload.theme === "dark" ? "dark" : undefined;
+
+      const isHexColor = (value) =>
+        typeof value === "string" &&
+        /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value.trim());
+
+      try {
+        if (theme) {
+          nativeTheme.themeSource = theme;
+        }
+
+        if (typeof mainWindow.setTitleBarOverlay === "function") {
+          mainWindow.setTitleBarOverlay({
+            ...(isHexColor(color) ? { color: color.trim() } : {}),
+            ...(isHexColor(symbolColor) ? { symbolColor: symbolColor.trim() } : {}),
+            ...(typeof height === "number" && height > 0 ? { height: Math.round(height) } : {}),
+          });
+        }
+      } catch (err) {
+        log("Failed to apply titlebar overlay update:", err);
+      }
+    }
+  },
+);
+
 const registerMediaKeys = () => {
   try {
     globalShortcut.register("MediaPlayPause", () => {
@@ -674,6 +756,21 @@ app.whenReady().then(() => {
       createWindow();
     }
   });
+});
+
+app.on("second-instance", () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.show();
+    mainWindow.focus();
+    return;
+  }
+
+  if (app.isReady()) {
+    void createWindow();
+  }
 });
 
 /**

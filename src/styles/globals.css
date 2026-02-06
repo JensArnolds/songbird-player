@@ -47,6 +47,13 @@
   --audio-treble: 0;
   --audio-hue: 0;
   --audio-strobe: 0;
+
+  /* Electron chrome sync */
+  --color-chrome-solid: #0a1018;
+  --color-chrome-symbol: #f5f1e8;
+  --electron-titlebar-height: 0px;
+  --electron-titlebar-inset-left: 0px;
+  --electron-titlebar-inset-right: 0px;
 }
 
 /* ------------------------------------------------------------
@@ -82,6 +89,10 @@ html.theme-light {
   --glow-ambient: 0 0 24px rgba(61, 168, 138, 0.12);
   --accent-btn-shadow: 0 6px 20px rgba(201, 130, 46, 0.25);
   --accent-btn-shadow-hover: 0 10px 24px rgba(201, 130, 46, 0.32);
+
+  /* Electron chrome sync */
+  --color-chrome-solid: #ffffff;
+  --color-chrome-symbol: #0f1419;
 
   background: #eef1f5;
 }
@@ -1835,6 +1846,97 @@ html.theme-light .theme-chrome-header {
   background: rgba(255, 255, 255, 0.92);
   border-color: var(--color-border);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.theme-chrome-sidebar {
+  background: rgba(10, 16, 24, 0.92);
+  border-color: var(--color-border);
+  box-shadow: 10px 0 40px rgba(5, 10, 18, 0.35);
+}
+
+html.theme-light .theme-chrome-sidebar {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: var(--color-border);
+  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Electron titlebar overlay: reserve a draggable strip that matches theme chrome */
+html.is-electron .theme-chrome-header {
+  padding-top: var(--electron-titlebar-height);
+}
+
+html.is-electron .theme-chrome-header .container {
+  padding-left: calc(var(--electron-titlebar-inset-left) + 1rem);
+  padding-right: calc(var(--electron-titlebar-inset-right) + 1rem);
+}
+
+html.is-electron .electron-sidebar {
+  padding-top: var(--electron-titlebar-height);
+}
+
+html.is-electron .desktop-shell .theme-chrome-header .container {
+  max-width: none !important;
+  width: 100%;
+}
+
+html.is-electron .desktop-main {
+  background: transparent;
+}
+
+html.is-electron .desktop-surface {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: linear-gradient(
+      180deg,
+      rgba(19, 26, 36, 0.72) 0%,
+      rgba(11, 17, 24, 0.6) 70%,
+      rgba(11, 17, 24, 0.55) 100%
+    );
+  box-shadow: var(--shadow-lg);
+}
+
+html.theme-light.is-electron .desktop-surface {
+  border-color: rgba(15, 20, 25, 0.08);
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.86) 100%
+    );
+  box-shadow: var(--shadow-md);
+}
+
+html.is-electron .desktop-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+html.is-electron .desktop-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html.is-electron .desktop-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+html.theme-light.is-electron .desktop-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 20, 25, 0.16);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+html.is-electron .electron-titlebar-drag-region {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--electron-titlebar-height);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+html.is-electron .electron-no-drag {
+  -webkit-app-region: no-drag;
 }
 
 html.theme-light .header-logo-title.accent-gradient {
