@@ -116,7 +116,7 @@ export function ElectronSidebar() {
   return (
     <>
       <aside
-        className="electron-sidebar theme-chrome-sidebar relative sticky top-0 z-20 flex h-screen shrink-0 border-r max-md:hidden"
+        className="electron-sidebar theme-chrome-sidebar relative sticky top-0 z-40 flex h-screen shrink-0 border-r max-md:hidden"
         style={{ width }}
       >
         {/* Drawer-style toggle button */}
