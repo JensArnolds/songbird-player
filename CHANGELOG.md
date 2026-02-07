@@ -5,6 +5,18 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.3] - 2026-02-07
+
+### Changed
+
+- **Spotify-inspired visual system**: Retuned global dark-mode styling toward a Spotify-like experience (deeper neutrals, green-first accent treatment, updated chrome/panel hierarchy, stronger desktop shell contrast, and consistent control states). Locations: [src/styles/globals.css](src/styles/globals.css), [src/components/DesktopShell.tsx](src/components/DesktopShell.tsx).
+- **Desktop header UX refresh**: Restored visible brand identity, upgraded search affordance ("What do you want to play?"), and added compact Home/Library quick-navigation chips with clear active states. Location: [src/components/Header.tsx](src/components/Header.tsx).
+- **Desktop sidebar hierarchy improvements**: Refined sidebar spacing, typography, active indicators, and playlist section framing for a clearer music-library mental model (including polished collapsed/expanded behavior). Location: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx).
+- **Home browse experience update**: Added a desktop discovery hero with contextual greeting/actions, improved search-results header context, and aligned empty-state chips/CTAs with the new accent system. Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx).
+- **Track-row interaction polish**: Converted result cards into denser, hover-led rows with stronger play affordance and cleaner contextual action presentation to better match desktop music-app browsing patterns. Location: [src/components/SwipeableTrackCard.tsx](src/components/SwipeableTrackCard.tsx).
+- **Player control styling sync**: Updated desktop player button sizing and active-state styling to align playback controls with the refreshed accent/chrome language. Location: [src/components/Player.tsx](src/components/Player.tsx).
+- **Typography update**: Replaced the previous global app font with `Manrope` and wired it into the root CSS variable used by global styles. Location: [src/app/layout.tsx](src/app/layout.tsx).
+
 ## [0.14.2] - 2026-02-06
 
 ### Changed
