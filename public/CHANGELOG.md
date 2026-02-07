@@ -5,6 +5,247 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.5] - 2026-02-07
+
+### Changed
+
+- **Desktop sidebar action visibility fix**: Added persistent bottom clearance so sidebar actions (including `New playlist`) stay above the fixed desktop player in web, PWA, and Electron shells. Location: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx).
+- **Desktop right-rail queue controls upgraded**: Enhanced `Up Next` with drag-and-drop reordering, per-track `Play next`, and remove-with-undo recovery to reduce queue-management friction. Location: [src/components/DesktopRightRail.tsx](src/components/DesktopRightRail.tsx).
+
+## [0.14.4] - 2026-02-07
+
+### Changed
+
+- **Home experience upgraded to a real feed**: Added row-based discovery sections on Home (`Continue Listening`, `Recently Played`, `Made for You`, `New Releases`) with direct play/queue behavior from each row. Locations: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx), [src/components/HomeFeedRow.tsx](src/components/HomeFeedRow.tsx).
+- **Search now supports typeahead entity suggestions**: Added shared search suggestions with inline query/artist/album/track results, keyboard navigation on desktop, and tap-first behavior on mobile. Locations: [src/hooks/useSearchSuggestions.ts](src/hooks/useSearchSuggestions.ts), [src/components/SearchSuggestionsList.tsx](src/components/SearchSuggestionsList.tsx), [src/components/Header.tsx](src/components/Header.tsx), [src/components/MobileSearchBar.tsx](src/components/MobileSearchBar.tsx).
+- **Persistent desktop right rail added**: Introduced a dedicated desktop rail with `Now Playing`, `Up Next`, and quick queue actions (play/pause, next, shuffle, clear, save queue, smart-add) without opening modal layers. Locations: [src/components/DesktopRightRail.tsx](src/components/DesktopRightRail.tsx), [src/components/DesktopShell.tsx](src/components/DesktopShell.tsx), [src/components/Header.tsx](src/components/Header.tsx).
+- **Desktop header simplification**: Removed redundant `Starchild Player` logo/title from the main header and tightened layout around search + nav actions. Location: [src/components/Header.tsx](src/components/Header.tsx).
+- **Theme direction corrected**: Rolled back explicit Spotify-like color treatment and restored the original Starchild visual palette while keeping UX improvements. Locations: [src/styles/globals.css](src/styles/globals.css), [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx), [src/components/Header.tsx](src/components/Header.tsx), [src/components/MobileSearchBar.tsx](src/components/MobileSearchBar.tsx), [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx), [src/components/Player.tsx](src/components/Player.tsx), [src/components/SwipeableTrackCard.tsx](src/components/SwipeableTrackCard.tsx).
+
+## [0.14.3] - 2026-02-07
+
+### Changed
+
+- **Spotify-inspired visual system**: Retuned global dark-mode styling toward a Spotify-like experience (deeper neutrals, green-first accent treatment, updated chrome/panel hierarchy, stronger desktop shell contrast, and consistent control states). Locations: [src/styles/globals.css](src/styles/globals.css), [src/components/DesktopShell.tsx](src/components/DesktopShell.tsx).
+- **Desktop header UX refresh**: Restored visible brand identity, upgraded search affordance ("What do you want to play?"), and added compact Home/Library quick-navigation chips with clear active states. Location: [src/components/Header.tsx](src/components/Header.tsx).
+- **Desktop sidebar hierarchy improvements**: Refined sidebar spacing, typography, active indicators, and playlist section framing for a clearer music-library mental model (including polished collapsed/expanded behavior). Location: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx).
+- **Home browse experience update**: Added a desktop discovery hero with contextual greeting/actions, improved search-results header context, and aligned empty-state chips/CTAs with the new accent system. Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx).
+- **Desktop browse grid section**: Added a compact two-column "Album Picks" + "Playlist Grid" module on desktop home empty-state to speed up discovery and shortcut navigation into playlists. Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx).
+- **Mobile Spotify-style shell pass**: Refined mobile header/search/footer spacing and visual hierarchy (cleaner top search chrome, tighter bottom-tab behavior, stronger active/action affordances) for a more Spotify-like mobile navigation feel. Locations: [src/components/MobileHeader.tsx](src/components/MobileHeader.tsx), [src/components/MobileSearchBar.tsx](src/components/MobileSearchBar.tsx), [src/components/MobileFooter.tsx](src/components/MobileFooter.tsx).
+- **Track-row interaction polish**: Converted result cards into denser, hover-led rows with stronger play affordance and cleaner contextual action presentation to better match desktop music-app browsing patterns. Location: [src/components/SwipeableTrackCard.tsx](src/components/SwipeableTrackCard.tsx).
+- **Player control styling sync**: Updated desktop player button sizing and active-state styling to align playback controls with the refreshed accent/chrome language. Location: [src/components/Player.tsx](src/components/Player.tsx).
+- **Typography update**: Replaced the previous global app font with `Manrope` and wired it into the root CSS variable used by global styles. Location: [src/app/layout.tsx](src/app/layout.tsx).
+
+## [0.14.2] - 2026-02-06
+
+### Changed
+
+- **Desktop web sidebar restoration**: Desktop shell now renders for all non-mobile environments, so the sidebar is visible again in pure web deployment (not only in Electron). Location: [src/components/DesktopShell.tsx](src/components/DesktopShell.tsx).
+- **Sidebar navigation priority**: Reordered desktop sidebar items to emphasize core routes first (`Home`, `Library`, `Playlists`, `Profile`) with utility routes afterward (`Admin` when eligible, then `Settings`). Location: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx).
+
+## [0.14.1] - 2026-02-06
+
+### Changed
+
+- **Universal desktop shell (non-mobile)**: Applied the sidebar + framed content architecture to all non-mobile layouts (web and Electron), rather than Electron-only. Location: [src/components/DesktopShell.tsx](src/components/DesktopShell.tsx).
+- **Global desktop header unification**: Replaced split desktop/Electron header variants with one shared non-mobile header layout (left branding/health, centered global search) for consistent spacing and behavior. Location: [src/components/Header.tsx](src/components/Header.tsx).
+- **Desktop spacing sync**: Sidebar width and header height now drive content offsets consistently via CSS variables, preventing crowded/overlapping top layout. Locations: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx), [src/styles/globals.css](src/styles/globals.css).
+- **Desktop chrome styling generalization**: Promoted key Electron-only desktop chrome rules (surface, scroll regions, search/header sizing) to shared desktop rules while preserving Electron titlebar insets where available. Location: [src/styles/globals.css](src/styles/globals.css).
+
+## [0.13.0] - 2026-02-06
+
+### Changed
+
+- **Auth fail-closed behavior**: NextAuth `signIn` now denies login with `AuthFailed` when critical DB checks cannot complete (ban check and first-admin promotion), instead of allowing sign-in on callback errors. Non-critical Discord profile sync failures are logged and do not block login. Location: [src/server/auth/config.ts](src/server/auth/config.ts).
+- **Atomic first-admin promotion**: Replaced race-prone first-user promotion logic with a transaction-based conditional update and lock so only one user can become `firstAdmin` under concurrent sign-ins. Location: [src/server/auth/config.ts](src/server/auth/config.ts).
+- **First-admin uniqueness guard**: Added a partial unique index for `firstAdmin = true` in schema and migration to enforce single-first-admin at the database layer. Locations: [src/server/db/schema.ts](src/server/db/schema.ts), [drizzle/0021_unique_first_admin.sql](drizzle/0021_unique_first_admin.sql).
+
+## [0.12.10] - 2026-02-04
+
+### Added
+
+- **docs/ index**: New [docs/README.md](docs/README.md) lists all files under `docs/` as a single entry-point.
+- **Architecture doc**: [docs/architecture.md](docs/architecture.md) covers the full system layout (web + Electron), runtime entry-points, and sequence diagrams for search, streaming, track-metadata (V2 → Deezer fallback), and auth flows.
+- **API route map**: [docs/API_ROUTE_USE.md](docs/API_ROUTE_USE.md) tabulates every Next.js route handler — method, source file, upstream target, and required env vars — plus notes on the two Songbird V2 auth styles (query-string vs header).
+- **External-API guide**: [docs/API_USE.md](docs/API_USE.md) documents each upstream service (Songbird V2, Deezer, Last.fm), what this app uses from each, and how they're configured.
+- **Agent entry-point**: [AGENTS.md](AGENTS.md) provides a quick-start for AI coding agents — commands, env-loading rules, project layout, and working conventions.
+- **Claude Code guidance**: [CLAUDE.md](CLAUDE.md) documents cross-file architecture that isn't visible from any single file: provider nesting order, the three-layer audio stack, queue-model conventions, tRPC-vs-proxy decision rules, and DB/Electron/test-setup constraints.
+
+### Changed
+
+- **`.env.example` tidied**: Moved `AUTH_SECRET` directly below its generation comment so the file reads top-to-bottom. Location: [.env.example](.env.example).
+
+### Removed
+
+- **`REPOSITORY_OVERVIEW.md` deleted**: Content replaced by the focused docs above (`docs/architecture.md`, `docs/API_ROUTE_USE.md`, `docs/API_USE.md`, `AGENTS.md`).
+
+## [0.12.9] - 2026-02-02
+
+### Changed
+
+- **Env cleanup**: Removed remaining `API_URL` usage and standardized on `API_V2_URL` in env schema, scripts, tests, and docs. Locations: [src/env.js](src/env.js), [scripts/server.js](scripts/server.js), [scripts/test-og-images.sh](scripts/test-og-images.sh), [src/test/setup.ts](src/test/setup.ts), [REPOSITORY_ANALYSIS.md](REPOSITORY_ANALYSIS.md), [REPOSITORY_OVERVIEW.md](REPOSITORY_OVERVIEW.md).
+- **Env cleanup**: Dropped `STREAMING_KEY` references from docs since it is no longer used. Location: [CHANGELOG.md](CHANGELOG.md).
+- **Smart queue seeding**: Queue-based seeds now exclude smart tracks and pass new spice-up controls (`maxSeeds`, `sampling`, `queueMode`) to honor full-queue influence. Locations: [src/contexts/AudioPlayerContext.tsx](src/contexts/AudioPlayerContext.tsx), [src/hooks/useAudioPlayer.ts](src/hooks/useAudioPlayer.ts), [src/server/api/routers/music.ts](src/server/api/routers/music.ts).
+
+## [0.12.8] - 2026-02-02
+
+### Changed
+
+- **Streaming proxy**: `/api/stream` now targets `/music/stream/direct` for in-memory streaming on Vercel; docs/tests updated. Locations: [src/app/api/stream/route.ts](src/app/api/stream/route.ts), [src/**tests**/api-stream-v2.test.ts](src/__tests__/api-stream-v2.test.ts), [README.md](README.md), [REPOSITORY_OVERVIEW.md](REPOSITORY_OVERVIEW.md).
+- **API base URL**: Removed `API_URL` usage in favor of `API_V2_URL` across proxying, OG previews, smart-queue requests, and tests/scripts. Locations: [src/proxy.ts](src/proxy.ts), [src/app/api/og/route.tsx](src/app/api/og/route.tsx), [src/services/smartQueue.ts](src/services/smartQueue.ts), [src/test/setup.ts](src/test/setup.ts), [scripts/server.js](scripts/server.js).
+- **Mobile queue scrolling**: Added a dedicated scroll rail and restricted reordering to the handle so swipe scrolling no longer triggers haptic reorders. Location: [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx).
+
+## [0.12.7] - 2026-02-02
+
+### Changed
+
+- **Smart Queue recommendations**: Auto-queue now uses the unified spice-up endpoint for broader variety, while manual smart-track actions prefer Spotify-only for faster, more consistent matches. Multi-seed inputs are always sent and queue/history IDs are excluded to reduce repeats. Locations: [src/contexts/AudioPlayerContext.tsx](src/contexts/AudioPlayerContext.tsx), [src/hooks/useAudioPlayer.ts](src/hooks/useAudioPlayer.ts), [src/server/api/routers/music.ts](src/server/api/routers/music.ts), [src/services/smartQueue.ts](src/services/smartQueue.ts).
+- **Spice-up integration**: Updated to the new envelope response and new request options (exclude Deezer + Spotify IDs, exclude explicit), resolving Deezer IDs from response metadata when available. Locations: [src/server/api/routers/music.ts](src/server/api/routers/music.ts), [src/services/smartQueue.ts](src/services/smartQueue.ts).
+
+## [0.12.6] - 2026-02-01
+
+### Changed
+
+- **Vercel-only deployment**: Header deployment switcher (server / Vercel icon) commented out; start page "Infrastructure & Architecture" explanation removed. Start page now shows a small disclaimer: "Fully migrated to Vercel". Locations: [src/components/Header.tsx](src/components/Header.tsx), [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx).
+
+## [0.12.5] - 2026-02-01
+
+### Added
+
+- **User banning**: Admins can ban users from the admin page; banned users cannot sign in (login with email or username via Discord is blocked). When a banned user attempts to sign in, they are redirected to the sign-in page with the message "Your account has been banned. If you believe this is an error, please contact support."
+  - **Schema**: `users.banned` column (boolean, default `false`). Migration: [drizzle/0019_user_banned.sql](drizzle/0019_user_banned.sql).
+  - **Auth**: NextAuth `signIn` callback checks `users.banned` before allowing sign-in; returns redirect to `/signin?error=Banned`. Custom sign-in page at `/signin` shows the banned message when `error=Banned`. Locations: [src/server/db/schema.ts](src/server/db/schema.ts), [src/server/auth/config.ts](src/server/auth/config.ts), [src/app/signin/page.tsx](src/app/signin/page.tsx).
+  - **Admin**: `admin.setBanned` mutation (`userId`, `banned`); admin page lists `banned` and has Ban / Unban buttons. Admins cannot ban themselves. Locations: [src/server/api/routers/admin.ts](src/server/api/routers/admin.ts), [src/app/admin/page.tsx](src/app/admin/page.tsx).
+
+## [0.12.4] - 2026-02-01
+
+### Changed
+
+- **Light mode on mobile disabled**: Light theme is no longer available on mobile; effective theme is always dark regardless of stored preference. ThemeContext defaults to mobile (dark) until the media query resolves to avoid a flash of light on load. Settings theme selector on mobile shows only "Dark"; desktop preference (e.g. light) is ignored on mobile and applied again on larger viewports. Locations: [src/contexts/ThemeContext.tsx](src/contexts/ThemeContext.tsx), [src/app/settings/page.tsx](src/app/settings/page.tsx).
+- **Visuals disabled on mobile**: FlowField background visualizer is not rendered on mobile; lightweight particle background is used instead. Full-screen mobile player no longer offers the visualizer: Eye toggle removed, only album artwork is shown, and the reactive background hook is disabled in MobilePlayer. Locations: [src/components/PersistentPlayer.tsx](src/components/PersistentPlayer.tsx), [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx).
+- **Mobile footer visible again**: Mini player was covering the bottom tab bar (both fixed at bottom-0; mini player z-60, footer z-50). Mini player is now positioned above the footer on mobile (`bottom-16`) so both the tab bar (Home, Search, Library, Profile, Create) and the mini player are visible. Location: [src/components/MiniPlayer.tsx](src/components/MiniPlayer.tsx).
+
+### Fixed
+
+- **Mobile queue drawer (dark mode)**: Transparent borders in dark mode for mobile drawer sections and dividers so separator lines do not show as white stripes. Applies to `.mobile-drawer-border`, `.mobile-drawer-section`, `.mobile-drawer-section-header`, `.mobile-drawer-divider` inside the theme chrome drawer. Location: [src/styles/globals.css](src/styles/globals.css).
+
+## [0.12.3] - 2026-02-01
+
+### Changed
+
+- Light theme: further dark-spot fixes and theme-aware styling across components.
+- Sliders: dedicated CSS variables (track/fill/thumb) for both themes so sliders contrast in dark and light.
+- **Light theme gradients**: Orange-to-green gradient (accent → accent-strong) fits light mode; light-theme overrides for `.accent-gradient`, `.btn-primary`, `.badge-accent`, `.text-glow`, `.player-backdrop::before`; CSS vars `--accent-btn-shadow` / `--accent-btn-shadow-hover` for theme-aware button shadows; gradient buttons (Create Playlist, Add to Playlist, Equalizer, Profile avatar, desktop Play) use these; desktop Play button uses same conditional gradient as other primary actions.
+- **Light theme contrast**: Stronger contrast in light mode (darker text `--color-text` / `--color-subtext` / `--color-muted`, darker borders, clearer surface hierarchy, stronger shadows); accent gradients kept lighter (`#d4933d` → `#3da88a`) with `--color-on-accent` for readable text on buttons. Later tuned: light-mode orange slightly darker (`#c9822e` / `#d9933d`) for better contrast; `--ring` and accent shadows use matching orange; `.btn-primary` hover overlay opacity 0.92 so gradient shows through and text stays visible.
+- **Visuals in light mode**: Lightweight particle background no longer hidden; `html.theme-light .lightweight-particle` uses softer orange/teal gradients and lower opacity so particles are visible but subtle in light theme.
+- **Theme toggle**: Settings theme change (Light/Dark) applies instantly: document class and localStorage update immediately; for logged-in users, preferences cache is updated optimistically so ThemeContext reflects the new theme without waiting for the server.
+- **Light mode outlines**: “Starchild Music” header title (`.header-logo-title`) gets a dark per-letter outline in light mode (`-webkit-text-stroke`, `paint-order: stroke fill`); API health pill (`.api-health-pill`) gets a visible border and subtle outer shadow; both outlines strengthened (stroke 1.25px, higher opacity) for clarity.
+- **View on GitHub (light mode)**: “View on GitHub” button (`.btn-github`) in light mode uses gray background (`var(--color-surface-hover)`) and outline (`border: 1px solid var(--color-border)`); hover state slightly darker surface and border.
+
+### Fixed
+
+- **Search button (light theme)**: Home page “Search” button and `.btn-primary` in light theme explicitly use `color: var(--color-on-accent)` so label stays visible on hover (no longer solid orange with invisible text); `.btn-primary > *` inherits color for consistent legibility.
+
+## [0.12.2] - 2026-02-01
+
+### Changed
+
+- **ELECTRON_BUILD no longer required in .env**: App detects Electron context dynamically
+  - Electron main process sets `ELECTRON_BUILD=true` when spawning the Next.js server, so the server no longer needs this in `.env` or `.env.local`
+  - Build scripts (`npm run electron:build:*`) already set `ELECTRON_BUILD=true` for `next build` (image optimization); runtime flag is now injected by Electron when starting the server
+  - Removed `ELECTRON_BUILD` from `.env.example`; removed prepare-package logic that wrote it into standalone `.env.local`
+  - Auth config uses `env.ELECTRON_BUILD` (set by Electron at runtime); Docker and docs no longer reference the env var
+  - Locations: [electron/main.cjs](electron/main.cjs), [electron/prepare-package.js](electron/prepare-package.js), [src/server/auth/config.ts](src/server/auth/config.ts), [.env.example](.env.example), Dockerfile, docker-compose.yml, README, CONTEXT.md, CLAUDE.md, electron/README.md, electron/DISCORD_OAUTH.md, electron/verify-build.js, scripts/server.js
+
+## [0.12.1] - 2026-02-01
+
+### Fixed
+
+- **Mobile visualizer (eye button)**: "Class constructor FlowFieldRenderer cannot be invoked without 'new'" when enabling visuals on mobile
+  - FlowFieldRenderer is a canvas class, not a React component; it was incorrectly used as a component via dynamic import
+  - New React component `FlowFieldCanvas` wraps a canvas and instantiates `new FlowFieldRenderer(canvas)` with ResizeObserver, audio connection, and animation loop
+  - MobilePlayer now dynamically loads and renders `<FlowFieldCanvas />` with same props (audioElement, isPlaying, visualizerMode, visualizerType)
+  - Locations: [src/components/visualizers/FlowFieldCanvas.tsx](src/components/visualizers/FlowFieldCanvas.tsx), [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx)
+
+### Changed
+
+- **Light mode styling (full revamp)**: Light theme no longer mixes dark base with light variables
+  - Dark-only base: html background and arcane overlays (html::before/::after, body::before/::after) apply only under `html:not(.theme-light)` so light mode gets a clean base
+  - Light theme variables: refreshed palette (e.g. bg #f8fafb, surface #ffffff, accent #d4933d, border #e2e8f0), softer shadows/ring, `--color-on-accent` for buttons/badges/selection
+  - Light base: solid background and subtle teal/amber gradients via html.theme-light::before/::after; lightweight particle background hidden in light mode
+  - Component overrides under `html.theme-light`: .btn-secondary, .btn-ghost, .card, .surface-panel, .surface-muted, .chip, .glass, .player-backdrop, .page-shell, .bottom-sheet, .input-text, scrollbar, scroll-shadow-\*, equalizer sliders/labels
+  - Theme-aware chrome: new classes .theme-chrome-header, .theme-chrome-bar, .theme-chrome-drawer, .theme-chrome-backdrop with light variants; Header, MiniPlayer, MobileFooter, BottomSheet, EnhancedQueue, Equalizer, PatternControls use them
+  - Settings and Home: cards/rows use var(--color-border), var(--color-surface), var(--color-surface-hover) instead of white/5; toggle track uses var(--color-border) when unchecked
+  - Locations: [src/styles/globals.css](src/styles/globals.css), [src/components/Header.tsx](src/components/Header.tsx), [src/components/MiniPlayer.tsx](src/components/MiniPlayer.tsx), [src/components/MobileFooter.tsx](src/components/MobileFooter.tsx), [src/components/BottomSheet.tsx](src/components/BottomSheet.tsx), [src/components/EnhancedQueue.tsx](src/components/EnhancedQueue.tsx), [src/components/Equalizer.tsx](src/components/Equalizer.tsx), [src/components/PatternControls.tsx](src/components/PatternControls.tsx), [src/app/settings/page.tsx](src/app/settings/page.tsx), [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx)
+
+## [0.12.0] - 2026-01-28
+
+### Changed
+
+- **Docker**: App runs as PID 1 with `node server.js` (no PM2 in default flow)
+  - Entrypoint runs `exec node server.js` so the Next.js standalone server is the container init process and receives all env (HOSTNAME=0.0.0.0, PORT=3222)
+  - Restart on crash is handled by Docker `restart: unless-stopped`; PM2 inside the container is redundant for single-process apps
+  - Entrypoint warns if AUTH_SECRET is unset
+  - Locations: [scripts/docker-entrypoint.sh](scripts/docker-entrypoint.sh), [DOCKER.md](DOCKER.md)
+
+- **API env renames (server-only)**: `NEXT_PUBLIC_API_URL` → `API_URL`, `NEXT_PUBLIC_V2_API_URL` / `V2_API_URL` → `API_V2_URL`
+  - All server and API code use `env.API_URL` and `env.API_V2_URL`; client no longer reads these (apiHostname passed from server to HomePageClient)
+  - Backward compatibility: runtimeEnv still reads `NEXT_PUBLIC_*` / `V2_API_URL` when new names are unset
+  - Locations: [src/env.js](src/env.js), API routes, [.env.example](.env.example), Dockerfile, docker-compose, scripts, tests
+
+### Improved
+
+- **Health route (`/api/health`)**: Always returns a response (fixes ERR_EMPTY_RESPONSE / 502)
+  - No top-level import of `@/server/db`; db is loaded via dynamic `import()` inside the handler so missing DATABASE_URL does not crash the process before responding
+  - When DATABASE_URL is missing, response is 200 with `checks.database: "skipped"`; when DB is unreachable, 503 with error
+  - Outer try/catch returns 503 JSON on any uncaught error so the connection is never closed without a response
+  - Location: [src/app/api/health/route.ts](src/app/api/health/route.ts)
+
+- **DOCKER.md**: 502 troubleshooting and process management
+  - Explains app runs as PID 1, required env vars (AUTH_SECRET, etc.), startup delay, and how to check with `curl` and `docker compose logs`
+  - Process management section updated: default is `node server.js`; optional PM2 via ecosystem.docker.cjs noted
+  - Location: [DOCKER.md](DOCKER.md)
+
+### Removed
+
+- **Void Ripples pattern**: Removed from FlowFieldRenderer and pattern list (had caused visualizer freezes; pattern was reworked then dropped)
+  - Locations: [src/components/visualizers/FlowFieldRenderer.ts](src/components/visualizers/FlowFieldRenderer.ts), [src/components/visualizers/flowfieldPatterns/patternIds.ts](src/components/visualizers/flowfieldPatterns/patternIds.ts)
+
+## [0.11.4] - 2026-01-28
+
+### Improved
+
+- **README (Docker)**: Detailed Docker instructions and container management
+  - Prerequisites, quick start with `.env.example`, and table of commands (start, stop, restart, logs, shell, db:push, rebuild, status, health)
+  - Notes on when to restart vs rebuild and that db:push runs on startup when DB is configured
+  - Makefile section aligned with actual targets; pointer to DOCKER.md for local PostgreSQL and full guide
+  - Location: [README.md](README.md)
+
+- **Home page (sign-in copy)**: Rephrased optional sign-in / privacy line for clarity and tone
+  - "Your privacy stays fully protected; optional sign-in unlocks custom playlists, a public profile, and your personal music identity—with more features on the way"
+  - Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx)
+
+- **Home page (infrastructure)**: API hostname from env instead of hardcoded URL
+  - Music data source text uses `NEXT_PUBLIC_V2_API_URL` (fallback `NEXT_PUBLIC_API_URL`); displays hostname only
+  - Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx)
+
+## [0.11.3] - 2026-02-01
+
+### Improved
+
+- **Docker build**: Dockerfile mirrors all env.js variables via build args (no hardcoded URLs)
+  - Required and optional vars passed as ARG/ENV in builder stage; docker-compose passes them from `.env` as build args
+  - Ensures env validation runs at build time with values from `.env`
+  - Locations: [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml)
+
+- **Docker build**: `.dockerignore` updated so `CHANGELOG.md` is included in the build context
+  - Enables `copy:changelog` (cp CHANGELOG.md public/CHANGELOG.md) to succeed during `npm run build`
+  - Location: [.dockerignore](.dockerignore)
+
+- **Example Playlist button (home)**: Stronger hover and focus styling
+  - Scale and ring on hover/focus; brightness lift; subtle overlay and icon scale on hover
+  - Theme: `--color-secondary-accent` and `--color-secondary-accent-strong` added in `globals.css` (dark and light) for teal gradient
+  - Locations: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx), [src/styles/globals.css](src/styles/globals.css)
 
 ## [0.11.2] - 2026-02-01
 
@@ -918,7 +1159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Audio Element Reference Stability**: Fixed audio refresh when toggling hideUI button
   - **Root Cause**: AudioPlayerContext value was being recreated on every render, causing audio element reference to change
   - **Impact**: Toggling "Hide UI" button would cause audio-related effects to re-run, potentially interrupting playback
-  - **Fix**: 
+  - **Fix**:
     - Added stable ref (`stableAudioElementRef`) to maintain consistent audio element reference
     - Memoized entire context value object to prevent unnecessary recreations
     - Excluded `audioElement` from dependency array since it's maintained via stable ref
@@ -2191,15 +2432,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Performance & Security Optimizations 🚀🔒
 
 #### Build & Bundle Optimizations
+
 - **SWC Minification**: Default in Next.js 15 (7x faster than Terser)
 - **Deterministic Module IDs**: Improved long-term caching with consistent chunk names
 - **Console Removal**: Production builds remove console.log (keeps error/warn)
 - **Image Optimization**: AVIF and WebP format support with optimized device sizes
-- **Package Tree-Shaking**: Optimized imports for lucide-react, framer-motion, @tanstack/react-query, @trpc/*, @dnd-kit/*
+- **Package Tree-Shaking**: Optimized imports for lucide-react, framer-motion, @tanstack/react-query, @trpc/_, @dnd-kit/_
 - **Webpack Build Worker**: Parallel builds for faster compilation
 - **Bundle Size**: First Load JS shared by all: **102 kB** (exceptional performance - 50% smaller than initial attempt)
 
 #### Security Headers & Middleware
+
 - **Comprehensive HTTP Security Headers**:
   - `Strict-Transport-Security`: Force HTTPS with HSTS preload
   - `X-Frame-Options`: SAMEORIGIN (prevent clickjacking)
@@ -2218,12 +2461,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Memory-efficient with automatic cleanup
 
 #### Progressive Web App (PWA) Support
+
 - **Service Worker** (`public/sw.js`): Offline support with intelligent caching
 - **Web Manifest** (`public/manifest.json`): Installable as standalone app
 - **Apple Web App Support**: iOS home screen installation
 - **Service Worker Registration** (`src/app/register-sw.tsx`): Automatic registration
 
 #### Performance Monitoring
+
 - **Performance Utilities** (`src/utils/performance.ts`):
   - `measurePerformance()`: Sync function performance tracking
   - `measureAsyncPerformance()`: Async operation tracking
@@ -2231,11 +2476,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `getMemoryUsage()`: JavaScript heap usage tracking
 
 ### Improved
+
 - **Code Quality**: Removed all comments from 132 source files (~30-40% bundle size reduction)
 - **Security**: Rate limiting, CSP headers, XSS protection, CSRF protection
 - **Performance**: Near-instant repeat visits with service worker caching
 
 ### Removed
+
 - **AudioVisualizer.tsx** (723 lines): Unused visualizer component
 - **KaleidoscopeRenderer.ts** (520 lines): Unused renderer (1,243 total lines removed)
 - **SSL Certificate Management**: Removed unnecessary custom CA certificate checking (Neon uses standard SSL)
@@ -2246,6 +2493,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cleaned up [.env.example](.env.example) and [.env.vercel.example](.env.vercel.example)
 
 ### Fixed
+
 - **next.config.js**: Removed deprecated `swcMinify` option (default in Next.js 15)
 - **next.config.js**: Converted `require("crypto")` to ES module import for compatibility
 - **next.config.js**: Removed aggressive webpack code splitting (caused runtime errors) - simplified to deterministic module IDs
@@ -2255,6 +2503,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bundle Size**: Improved from 204 kB to 102 kB (50% reduction) by removing counterproductive code splitting
 
 ### Documentation
+
 - **CLAUDE.md**: Added "Performance & Security Optimizations" section with complete implementation guide
 
 ## [0.8.3] - 2026-01-02
@@ -2559,7 +2808,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Queue Refilling After Tab Switch**: Fixed queue being restored after clearing when switching tabs
   - Root cause: `clearQueue` only cleared in-memory state but didn't clear persisted localStorage, causing restoration on remount
-  - Solution: 
+  - Solution:
     - `clearQueue` now immediately clears localStorage when queue becomes empty
     - Added guard in load effect to prevent restoring empty queues (intentionally cleared)
     - `clearQueueAndHistory` also clears persisted state
@@ -2606,29 +2855,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 
 **Search Results Fix:**
+
 - All search functions now call `setResults([])` and `setTotal(0)` immediately when starting
 - Prevents race conditions where previous search responses could arrive after new search starts
 - Ensures clean state for every new search operation
 
 **Audio Player State Management:**
+
 - Operation guards prevent concurrent play/pause operations
 - Event handlers use refs to avoid stale closure issues
 - State sync polling includes debouncing to prevent rapid updates
 - Media session handlers use guarded functions instead of direct audio manipulation
 
 **Queue Persistence Flow:**
+
 1. On mount: Load from database (if logged in) or localStorage (if not logged in)
 2. On change: Save to appropriate storage (debounced for database, immediate for localStorage)
 3. On clear: Remove from both storage locations
 4. On tab switch: Restore only if queue has actual tracks (not empty/cleared)
 
 **Database Migration Required:**
+
 ```sql
-ALTER TABLE "hexmusic-stream_user_preferences" 
+ALTER TABLE "hexmusic-stream_user_preferences"
 ADD COLUMN "queueState" jsonb DEFAULT NULL;
 ```
 
 **Files Modified:**
+
 - Modified: `src/app/HomePageClient.tsx` (search results clearing)
 - Modified: `src/hooks/useAudioPlayer.ts` (pause/unpause guards, queue clearing, initial state support)
 - Modified: `src/contexts/AudioPlayerContext.tsx` (database queue persistence)
@@ -2963,7 +3217,9 @@ The pause function now includes comprehensive error handling:
 ```typescript
 const pause = useCallback(() => {
   if (!audioRef.current) {
-    console.warn("[useAudioPlayer] Cannot pause: audio element not initialized");
+    console.warn(
+      "[useAudioPlayer] Cannot pause: audio element not initialized",
+    );
     setIsPlaying(false);
     return;
   }

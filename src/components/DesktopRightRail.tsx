@@ -112,7 +112,7 @@ export function DesktopRightRail() {
   }, [dragOverIndex, draggingIndex, player]);
 
   return (
-    <aside className="desktop-right-rail hidden h-full w-[320px] shrink-0 p-2 pr-3 xl:block">
+    <aside className="desktop-right-rail block h-full w-[320px] shrink-0 p-2 pr-3 max-xl:hidden">
       <div className="desktop-surface flex h-full min-h-0 flex-col overflow-hidden rounded-[1.25rem] border px-4 py-4">
         <section className="border-b border-[rgba(255,255,255,0.08)] pb-4">
           <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-[var(--color-muted)] uppercase">
