@@ -193,7 +193,7 @@ export default function SwipeableTrackCard({
           className={`flex flex-1 items-center justify-start bg-gradient-to-r px-6 ${
             favoriteData?.isFavorite
               ? "from-[rgba(242,139,130,0.25)] to-transparent"
-              : "from-[rgba(30,215,96,0.28)] to-transparent"
+              : "from-[rgba(244,178,102,0.28)] to-transparent"
           }`}
         >
           <motion.div
@@ -216,7 +216,7 @@ export default function SwipeableTrackCard({
         {}
         <motion.div
           style={{ opacity: leftActionOpacity }}
-          className="flex flex-1 items-center justify-end bg-gradient-to-l from-[rgba(83,182,255,0.25)] to-transparent px-6"
+          className="flex flex-1 items-center justify-end bg-gradient-to-l from-[rgba(88,198,177,0.25)] to-transparent px-6"
         >
           <motion.div
             style={{ scale: leftActionScale }}
@@ -256,7 +256,7 @@ export default function SwipeableTrackCard({
             onClick={handlePlay}
             whileTap={{ scale: 0.9 }}
             transition={springPresets.immediate}
-            className="absolute right-1 bottom-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)] text-[var(--color-on-accent)] shadow-[0_8px_20px_rgba(30,215,96,0.4)] transition-all md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100"
+            className="absolute right-1 bottom-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)] text-[var(--color-on-accent)] shadow-[0_8px_20px_rgba(244,178,102,0.4)] transition-all md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100"
           >
             <Play className="ml-0.5 h-4 w-4 fill-current text-current" />
           </motion.button>
@@ -411,7 +411,7 @@ export default function SwipeableTrackCard({
                           setShowMenu(false);
                           hapticMedium();
                         }}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(30,215,96,0.1)] md:py-2"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(244,178,102,0.1)] md:py-2"
                       >
                         <Play className="h-4 w-4" />
                         <span>Play next</span>
@@ -425,7 +425,7 @@ export default function SwipeableTrackCard({
                       hapticLight();
                       setShowAddToPlaylistModal(true);
                     }}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(30,215,96,0.1)] md:py-2"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(244,178,102,0.1)] md:py-2"
                   >
                     <ListPlus className="h-4 w-4" />
                     <span>Add to Playlist</span>
@@ -451,11 +451,11 @@ export default function SwipeableTrackCard({
           transition={{ delay: 3, duration: 1 }}
           className="pointer-events-none absolute inset-0 flex items-center justify-between px-4"
         >
-          <div className="flex items-center gap-2 rounded-full bg-[rgba(30,215,96,0.2)] px-3 py-1.5 text-xs text-[var(--color-accent)]">
+          <div className="flex items-center gap-2 rounded-full bg-[rgba(244,178,102,0.2)] px-3 py-1.5 text-xs text-[var(--color-accent)]">
             <span>←</span>
             <Heart className="h-3 w-3" />
           </div>
-          <div className="flex items-center gap-2 rounded-full bg-[rgba(83,182,255,0.2)] px-3 py-1.5 text-xs text-[var(--color-secondary-accent)]">
+          <div className="flex items-center gap-2 rounded-full bg-[rgba(88,198,177,0.2)] px-3 py-1.5 text-xs text-[var(--color-secondary-accent)]">
             <ListPlus className="h-3 w-3" />
             <span>→</span>
           </div>

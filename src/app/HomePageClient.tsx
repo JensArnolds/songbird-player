@@ -420,13 +420,13 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
       title: "Mezzanine",
       artist: "Massive Attack",
       query: "Massive Attack Mezzanine",
-      tint: "from-[rgba(30,215,96,0.34)] to-[rgba(14,14,14,0.92)]",
+      tint: "from-[rgba(244,178,102,0.34)] to-[rgba(14,14,14,0.92)]",
     },
     {
       title: "Felt Mountain",
       artist: "Goldfrapp",
       query: "Goldfrapp Felt Mountain",
-      tint: "from-[rgba(83,182,255,0.34)] to-[rgba(14,14,14,0.92)]",
+      tint: "from-[rgba(88,198,177,0.34)] to-[rgba(14,14,14,0.92)]",
     },
     {
       title: "Homogenic",
@@ -438,7 +438,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
       title: "Violator",
       artist: "Depeche Mode",
       query: "Depeche Mode Violator",
-      tint: "from-[rgba(30,215,96,0.26)] to-[rgba(20,20,20,0.94)]",
+      tint: "from-[rgba(244,178,102,0.26)] to-[rgba(20,20,20,0.94)]",
     },
   ];
   const playlistTiles = (userPlaylists ?? []).slice(0, 4);
@@ -496,7 +496,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={springPresets.gentle}
-              className="mb-5 overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(30,215,96,0.36)_0%,rgba(24,24,24,0.94)_52%,rgba(16,16,16,0.98)_100%)] px-5 py-5 md:px-6 md:py-6"
+              className="mb-5 overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(244,178,102,0.36)_0%,rgba(24,24,24,0.94)_52%,rgba(16,16,16,0.98)_100%)] px-5 py-5 md:px-6 md:py-6"
             >
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
@@ -671,7 +671,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                                 hapticLight();
                                 router.push(`/playlists/${playlist.id}`);
                               }}
-                              className="group rounded-xl border border-white/10 bg-[linear-gradient(160deg,rgba(83,182,255,0.24),rgba(14,14,14,0.94))] p-3 text-left transition-all hover:scale-[1.02] hover:border-white/20"
+                              className="group rounded-xl border border-white/10 bg-[linear-gradient(160deg,rgba(88,198,177,0.24),rgba(14,14,14,0.94))] p-3 text-left transition-all hover:scale-[1.02] hover:border-white/20"
                             >
                               <p className="line-clamp-1 text-sm font-semibold text-[var(--color-text)]">
                                 {playlist.name}
@@ -689,7 +689,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                               hapticLight();
                               router.push("/playlists/12");
                             }}
-                            className="w-full rounded-xl border border-white/10 bg-[linear-gradient(160deg,rgba(83,182,255,0.24),rgba(14,14,14,0.94))] px-3 py-3 text-left transition-all hover:border-white/20"
+                            className="w-full rounded-xl border border-white/10 bg-[linear-gradient(160deg,rgba(88,198,177,0.24),rgba(14,14,14,0.94))] px-3 py-3 text-left transition-all hover:border-white/20"
                           >
                             <p className="text-sm font-semibold text-[var(--color-text)]">
                               Example Playlist
@@ -731,7 +731,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                       repeat: Infinity,
                       ease: "easeInOut",
                     }}
-                    className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[rgba(30,215,96,0.18)] to-[rgba(30,215,96,0.08)] ring-2 ring-[var(--color-accent)]/20 md:mb-3 md:h-16 md:w-16"
+                    className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[rgba(244,178,102,0.18)] to-[rgba(244,178,102,0.08)] ring-2 ring-[var(--color-accent)]/20 md:mb-3 md:h-16 md:w-16"
                   >
                     <Music2 className="h-10 w-10 text-[var(--color-accent)] md:h-8 md:w-8" />
                   </motion.div>
@@ -856,7 +856,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                           void handleSearch(suggestion);
                         }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex items-center gap-2 rounded-full bg-[rgba(30,215,96,0.1)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[rgba(30,215,96,0.2)] md:px-3 md:py-1.5 md:text-xs"
+                        className="flex items-center gap-2 rounded-full bg-[rgba(244,178,102,0.1)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[rgba(244,178,102,0.2)] md:px-3 md:py-1.5 md:text-xs"
                       >
                         <Sparkles className="h-3 w-3 md:h-2.5 md:w-2.5" />
                         {suggestion}
@@ -891,7 +891,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                         setIsChangelogOpen(true);
                       }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 rounded-xl bg-[rgba(30,215,96,0.1)] px-5 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 transition-all hover:bg-[rgba(30,215,96,0.2)] hover:ring-[var(--color-accent)]/40 md:px-3 md:py-2 md:text-xs"
+                      className="flex items-center gap-2 rounded-xl bg-[rgba(244,178,102,0.1)] px-5 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 transition-all hover:bg-[rgba(244,178,102,0.2)] hover:ring-[var(--color-accent)]/40 md:px-3 md:py-2 md:text-xs"
                     >
                       <BookOpen className="h-4 w-4 md:h-3.5 md:w-3.5" />
                       <span>Changelog</span>
@@ -903,7 +903,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                         router.push("/playlists/12");
                       }}
                       whileTap={{ scale: 0.95 }}
-                      className="ml-6 flex items-center gap-2 rounded-xl bg-[rgba(83,182,255,0.15)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] ring-1 ring-[var(--color-secondary-accent)]/20 transition-all hover:bg-[rgba(83,182,255,0.25)] hover:ring-[var(--color-secondary-accent)]/40 md:ml-4 md:px-3 md:py-2 md:text-xs"
+                      className="ml-6 flex items-center gap-2 rounded-xl bg-[rgba(88,198,177,0.15)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] ring-1 ring-[var(--color-secondary-accent)]/20 transition-all hover:bg-[rgba(88,198,177,0.25)] hover:ring-[var(--color-secondary-accent)]/40 md:ml-4 md:px-3 md:py-2 md:text-xs"
                     >
                       <Music2 className="h-4 w-4 md:h-3.5 md:w-3.5" />
                       <span>Example Playlist</span>
