@@ -139,7 +139,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.19.30",
     "@types/pg": "^8.16.0",
-    "@types/react": "^19.2.10",
+    "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
     "concurrently": "^9.2.1",
