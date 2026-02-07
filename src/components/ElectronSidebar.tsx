@@ -157,7 +157,7 @@ export function ElectronSidebar() {
                     Starchild
                   </div>
                   <div className="truncate text-[10px] font-medium tracking-[0.16em] text-[var(--color-muted)] uppercase">
-                    Your music hub
+                    You are now listening to...
                   </div>
                 </div>
               )}
