@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 
 import { useToast } from "@/contexts/ToastContext";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
@@ -48,6 +49,7 @@ export function AddToPlaylistModal({
   const [mounted, setMounted] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
+  const { openAuthModal } = useAuthModal();
   const utils = api.useUtils();
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -95,6 +97,7 @@ export function AddToPlaylistModal({
   }, [playlists, searchQuery]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     return () => setMounted(false);
   }, []);
@@ -215,16 +218,17 @@ export function AddToPlaylistModal({
                     <p className="mb-4 text-xs text-[var(--color-subtext)]">
                       Create an account to organize your music
                     </p>
-                    <Link
-                      href="/api/auth/signin"
+                    <button
+                      type="button"
                       onClick={() => {
                         hapticLight();
                         onClose();
+                        openAuthModal({ callbackUrl: "/playlists" });
                       }}
                       className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition-all hover:scale-105 hover:shadow-[var(--accent-btn-shadow-hover)] active:scale-95"
                     >
                       Sign In
-                    </Link>
+                    </button>
                   </div>
                 ) : isLoading ? (
                   <div className="flex items-center justify-center py-12">

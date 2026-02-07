@@ -71,7 +71,7 @@ export default function PlaylistsPage() {
           <p className="mb-4 text-[var(--color-subtext)]">
             Please sign in to view your playlists
           </p>
-          <Link href="/api/auth/signin" className="btn-primary">
+          <Link href="/signin?callbackUrl=%2Fplaylists" className="btn-primary">
             Sign In
           </Link>
         </div>

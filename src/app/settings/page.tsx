@@ -157,7 +157,7 @@ export default function SettingsPage() {
             Please sign in to access settings
           </p>
           <Link
-            href="/api/auth/signin"
+            href="/signin?callbackUrl=%2Fsettings"
             className="touch-target-lg inline-block rounded-xl bg-[var(--color-accent)] px-6 py-3 font-semibold text-[var(--color-on-accent)] transition hover:opacity-90"
           >
             Sign In

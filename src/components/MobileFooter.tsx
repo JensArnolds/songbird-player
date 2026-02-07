@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
 import { hapticLight } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { motion } from "framer-motion";
 import { Home, Library, Plus, Search, User } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -22,6 +23,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const { openAuthModal } = useAuthModal();
   const { data: userHash } = api.music.getCurrentUserHash.useQuery(undefined, {
     enabled: !!session,
   });
@@ -61,7 +63,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
   const handleCreatePlaylist = () => {
     hapticLight();
     if (!session) {
-      router.push("/api/auth/signin");
+      openAuthModal({ callbackUrl: "/playlists" });
       return;
     }
     onCreatePlaylist?.();
@@ -70,7 +72,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
   const handleProfileNavigation = () => {
     hapticLight();
     if (!session) {
-      router.push("/api/auth/signin");
+      openAuthModal({ callbackUrl: "/" });
       return;
     }
     if (!userHash) {
@@ -149,17 +151,17 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
                 : tab.path
                   ? isActive(tab.path, tab.name)
                   : false;
-          const isDisabled =
-            tab.requiresAuth && !session
-              ? true
-              : tab.name === "profile" && session && !userHash
-                ? true
-                : false;
+          const isDisabled = tab.name === "profile" && !!session && !userHash;
 
           return (
             <motion.button
               key={tab.name}
               onClick={() => {
+                if (!tab.onClick && tab.requiresAuth && !session) {
+                  hapticLight();
+                  openAuthModal({ callbackUrl: tab.path ?? "/" });
+                  return;
+                }
                 if (tab.onClick) {
                   tab.onClick();
                 } else if (tab.path) {

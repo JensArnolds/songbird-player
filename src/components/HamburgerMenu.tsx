@@ -3,6 +3,7 @@
 "use client";
 
 import { APP_VERSION } from "@/config/version";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useMenu } from "@/contexts/MenuContext";
 import { api } from "@/trpc/react";
 import { hapticLight, hapticMedium } from "@/utils/haptics";
@@ -36,16 +37,17 @@ interface MenuItem {
 
 export default function HamburgerMenu() {
   const { isMenuOpen, closeMenu } = useMenu();
+  const { openAuthModal } = useAuthModal();
   const { data: session } = useSession();
   const { data: userHash } = api.music.getCurrentUserHash.useQuery(
     undefined,
     { enabled: !!session },
   );
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     hapticMedium();
     closeMenu();
-    await signOut({ callbackUrl: "/" });
+    void signOut({ callbackUrl: "/" });
   };
 
   const menuItems: MenuItem[] = [
@@ -79,7 +81,8 @@ export default function HamburgerMenu() {
           ? `/${userHash}`
           : session
             ? "#" // Placeholder while userHash loads - preventDefault() handles navigation
-            : "/signin",
+            : "/",
+      requiresAuth: true,
       dividerAfter: !session,
     },
     {
@@ -123,9 +126,7 @@ export default function HamburgerMenu() {
     });
   }
 
-  const visibleItems = menuItems.filter(
-    (item) => !item.requiresAuth || session,
-  );
+  const visibleItems = menuItems;
 
   return (
     <AnimatePresence>
@@ -196,6 +197,18 @@ export default function HamburgerMenu() {
                           e.stopPropagation();
                           return;
                         }
+
+                        if (item.requiresAuth && !session) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          hapticLight();
+                          closeMenu();
+                          openAuthModal({
+                            callbackUrl: item.path ?? "/",
+                          });
+                          return;
+                        }
+
                         hapticLight();
                         closeMenu();
                       }}

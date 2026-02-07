@@ -3,6 +3,7 @@
 "use client";
 
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import {
@@ -30,11 +31,13 @@ interface NavTab {
   icon: React.ReactNode;
   activeIcon: React.ReactNode;
   requiresAuth?: boolean;
+  callbackUrl?: string;
 }
 
 export default function MobileNavigation() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { openAuthModal } = useAuthModal();
   const player = useGlobalPlayer();
   const [showQuickActions, setShowQuickActions] = useState(false);
   const dragY = useMotionValue(0);
@@ -68,6 +71,7 @@ export default function MobileNavigation() {
       icon: <Library className="h-5 w-5" strokeWidth={1.5} />,
       activeIcon: <Library className="h-5 w-5" strokeWidth={2.5} />,
       requiresAuth: true,
+      callbackUrl: "/library",
     },
     {
       name: "Playlists",
@@ -75,12 +79,15 @@ export default function MobileNavigation() {
       icon: <ListMusic className="h-5 w-5" strokeWidth={1.5} />,
       activeIcon: <ListMusic className="h-5 w-5" strokeWidth={2.5} />,
       requiresAuth: true,
+      callbackUrl: "/playlists",
     },
     {
       name: session ? "Profile" : "Sign In",
-      path: session ? "/profile" : "/api/auth/signin",
+      path: session ? "/settings" : "/signin",
       icon: <User className="h-5 w-5" strokeWidth={1.5} />,
       activeIcon: <User className="h-5 w-5" strokeWidth={2.5} />,
+      requiresAuth: true,
+      callbackUrl: "/",
     },
   ];
 
@@ -89,7 +96,7 @@ export default function MobileNavigation() {
 
       if (tab.path === "#now-playing" && !player.currentTrack) return false;
 
-      return !tab.requiresAuth || (tab.requiresAuth && session);
+      return true;
     },
   );
 
@@ -109,6 +116,7 @@ export default function MobileNavigation() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowQuickActions(false);
   }, [pathname]);
 
@@ -235,6 +243,14 @@ export default function MobileNavigation() {
                 href={tab.path}
                 onClick={(e) => {
                   hapticLight();
+
+                  if (tab.requiresAuth && !session) {
+                    e.preventDefault();
+                    openAuthModal({
+                      callbackUrl: tab.callbackUrl ?? tab.path,
+                    });
+                    return;
+                  }
 
                   if (tab.path === "#now-playing") {
                     e.preventDefault();

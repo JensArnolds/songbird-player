@@ -908,7 +908,9 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                             onClick={() => {
                               hapticLight();
                               router.push(
-                                session ? "/playlists" : "/api/auth/signin",
+                                session
+                                  ? "/playlists"
+                                  : "/signin?callbackUrl=%2Fplaylists",
                               );
                             }}
                             className="w-full rounded-xl border border-white/10 bg-[rgba(255,255,255,0.04)] px-3 py-3 text-left transition-all hover:border-white/20"

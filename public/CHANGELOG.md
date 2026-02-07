@@ -5,6 +5,15 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.6] - 2026-02-07
+
+### Changed
+
+- **Universal OAuth login popup**: Added a global auth modal system that loads configured OAuth providers dynamically and can be opened from any unauthenticated action without hard-routing first. Locations: [src/components/AuthModal.tsx](src/components/AuthModal.tsx), [src/contexts/AuthModalContext.tsx](src/contexts/AuthModalContext.tsx), [src/app/layout.tsx](src/app/layout.tsx).
+- **Navigation auth flow unification**: Updated desktop sidebar, hamburger menu, and mobile header/footer/navigation to trigger the auth popup for protected actions instead of sending users to mixed sign-in endpoints. Locations: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx), [src/components/HamburgerMenu.tsx](src/components/HamburgerMenu.tsx), [src/components/MobileHeader.tsx](src/components/MobileHeader.tsx), [src/components/MobileFooter.tsx](src/components/MobileFooter.tsx), [src/components/MobileNavigation.tsx](src/components/MobileNavigation.tsx).
+- **Playlist modal auth UX**: Create/Add-to-playlist modals now open the same OAuth popup when unauthenticated, keeping behavior consistent with the rest of the app shell. Locations: [src/components/CreatePlaylistModal.tsx](src/components/CreatePlaylistModal.tsx), [src/components/AddToPlaylistModal.tsx](src/components/AddToPlaylistModal.tsx).
+- **Sign-in fallback and callback routing**: Standardized remaining sign-in links to the app sign-in page and ensured callback URL passthrough is honored. Locations: [src/app/signin/page.tsx](src/app/signin/page.tsx), [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx), [src/app/admin/page.tsx](src/app/admin/page.tsx), [src/app/playlists/page.tsx](src/app/playlists/page.tsx), [src/app/settings/page.tsx](src/app/settings/page.tsx).
+
 ## [0.14.5] - 2026-02-07
 
 ### Changed

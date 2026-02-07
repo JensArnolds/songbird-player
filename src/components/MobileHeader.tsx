@@ -3,6 +3,7 @@
 "use client";
 
 import MobileSearchBar from "@/components/MobileSearchBar";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useMenu } from "@/contexts/MenuContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
@@ -19,6 +20,7 @@ export default function MobileHeader() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const { openAuthModal } = useAuthModal();
   const { openMenu } = useMenu();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -212,9 +214,11 @@ export default function MobileHeader() {
         <motion.button
           onClick={() => {
             hapticLight();
-            router.push(session ? "/library" : "/api/auth/signin", {
-              scroll: false,
-            });
+            if (!session) {
+              openAuthModal({ callbackUrl: "/library" });
+              return;
+            }
+            router.push("/library", { scroll: false });
           }}
           whileTap={{ scale: 0.94 }}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[var(--color-text)]"

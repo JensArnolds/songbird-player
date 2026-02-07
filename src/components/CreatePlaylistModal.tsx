@@ -3,12 +3,12 @@
 "use client";
 
 import { useToast } from "@/contexts/ToastContext";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { api } from "@/trpc/react";
 import { hapticLight } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -20,6 +20,7 @@ interface CreatePlaylistModalProps {
 
 export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProps) {
   const { data: session } = useSession();
+  const { openAuthModal } = useAuthModal();
   const router = useRouter();
   const { showToast } = useToast();
   const [mounted, setMounted] = useState(false);
@@ -48,7 +49,8 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
 
   const handleCreatePlaylist = () => {
     if (!session) {
-      router.push("/api/auth/signin");
+      onClose();
+      openAuthModal({ callbackUrl: "/playlists" });
       return;
     }
 
@@ -65,6 +67,7 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     return () => setMounted(false);
   }, []);
@@ -78,7 +81,8 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
         onClose();
       } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         if (!session) {
-          router.push("/api/auth/signin");
+          onClose();
+          openAuthModal({ callbackUrl: "/playlists" });
           return;
         }
         if (newPlaylistName.trim()) {
@@ -93,7 +97,7 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose, newPlaylistName, session, router, newPlaylistDescription, isPublic, createPlaylist]);
+  }, [isOpen, onClose, newPlaylistName, session, router, newPlaylistDescription, isPublic, createPlaylist, openAuthModal]);
 
   if (!mounted) return null;
 
@@ -136,16 +140,17 @@ export function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProp
                   <p className="mb-4 text-sm text-[var(--color-subtext)]">
                     Sign in to create playlists
                   </p>
-                  <Link
-                    href="/api/auth/signin"
+                  <button
+                    type="button"
                     onClick={() => {
                       hapticLight();
                       onClose();
+                      openAuthModal({ callbackUrl: "/playlists" });
                     }}
                     className="inline-block rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-6 py-3 text-sm font-medium text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition-all hover:scale-105 hover:shadow-[var(--accent-btn-shadow-hover)] active:scale-95"
                   >
                     Sign In
-                  </Link>
+                  </button>
                 </div>
               ) : (
                 <>

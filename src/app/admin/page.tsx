@@ -98,7 +98,7 @@ export default function AdminPage() {
               Return home
             </Link>
             <Link
-              href="/api/auth/signin"
+              href="/signin?callbackUrl=%2Fadmin"
               className="rounded-xl bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-black transition hover:opacity-90"
             >
               Sign in

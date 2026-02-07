@@ -6,6 +6,7 @@ import { STORAGE_KEYS } from "@/config/storage";
 import { CreatePlaylistModal } from "@/components/CreatePlaylistModal";
 import { api } from "@/trpc/react";
 import { localStorage } from "@/services/storage";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,14 +29,15 @@ type NavItem = {
   href: string;
   label: string;
   icon: React.ReactNode;
+  requiresAuth?: boolean;
+  callbackUrl?: string;
 };
 
 export function ElectronSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isAdmin = session?.user?.admin === true;
-  const oauthSignInHref = (callbackUrl: string) =>
-    `/api/auth/signin/discord?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+  const { openAuthModal } = useAuthModal();
 
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -71,25 +73,31 @@ export function ElectronSidebar() {
     ? userHash
       ? `/${userHash}`
       : "/settings"
-    : oauthSignInHref("/");
+    : "/signin";
 
   const navItems: NavItem[] = useMemo(() => {
     const items: NavItem[] = [
       { href: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
       {
-        href: session ? "/library" : oauthSignInHref("/library"),
+        href: "/library",
         label: "Library",
         icon: <Library className="h-5 w-5" />,
+        requiresAuth: true,
+        callbackUrl: "/library",
       },
       {
-        href: session ? "/playlists" : oauthSignInHref("/playlists"),
+        href: "/playlists",
         label: "Playlists",
         icon: <ListMusic className="h-5 w-5" />,
+        requiresAuth: true,
+        callbackUrl: "/playlists",
       },
       {
         href: profileHref,
-        label: "Profile",
+        label: session ? "Profile" : "Sign In",
         icon: <User className="h-5 w-5" />,
+        requiresAuth: true,
+        callbackUrl: "/",
       },
     ];
 
@@ -102,9 +110,11 @@ export function ElectronSidebar() {
     }
 
     items.push({
-      href: session ? "/settings" : oauthSignInHref("/settings"),
+      href: "/settings",
       label: "Settings",
       icon: <Settings className="h-5 w-5" />,
+      requiresAuth: true,
+      callbackUrl: "/settings",
     });
 
     return items;
@@ -183,6 +193,14 @@ export function ElectronSidebar() {
                   <Link
                     key={item.label}
                     href={item.href}
+                    onClick={(event) => {
+                      if (!session && item.requiresAuth) {
+                        event.preventDefault();
+                        openAuthModal({
+                          callbackUrl: item.callbackUrl ?? item.href,
+                        });
+                      }
+                    }}
                     className={`electron-no-drag group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all ${
                       active
                         ? "bg-[rgba(244,178,102,0.16)] text-[var(--color-text)] shadow-[0_6px_18px_rgba(244,178,102,0.16)]"
@@ -231,12 +249,15 @@ export function ElectronSidebar() {
 
             <div className="mt-2 min-h-0 overflow-y-auto pr-1">
               {!session ? (
-                <Link
-                  href={oauthSignInHref("/playlists")}
+                <button
+                  type="button"
+                  onClick={() => {
+                    openAuthModal({ callbackUrl: "/playlists" });
+                  }}
                   className="electron-no-drag block rounded-xl border border-[rgba(255,255,255,0.08)] px-3 py-2 text-sm text-[var(--color-subtext)] hover:border-[rgba(255,255,255,0.18)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                 >
                   {!collapsed ? "Sign in to view playlists" : "Sign in"}
-                </Link>
+                </button>
               ) : playlistsQuery.isLoading ? (
                 <div className="px-3 py-2 text-sm text-[var(--color-subtext)]">
                   {!collapsed ? "Loading..." : "…"}
@@ -292,9 +313,13 @@ export function ElectronSidebar() {
             {!collapsed && (
               <div className="mt-3 px-2">
                 <Link
-                  href={
-                    session ? "/playlists" : oauthSignInHref("/playlists")
-                  }
+                  href="/playlists"
+                  onClick={(event) => {
+                    if (!session) {
+                      event.preventDefault();
+                      openAuthModal({ callbackUrl: "/playlists" });
+                    }
+                  }}
                   className="electron-no-drag inline-flex items-center gap-2 text-xs font-semibold text-[var(--color-subtext)] hover:text-[var(--color-text)]"
                 >
                   <ListMusic className="h-4 w-4" />
