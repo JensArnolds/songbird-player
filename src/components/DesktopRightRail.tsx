@@ -1,12 +1,15 @@
 "use client";
 
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import type { Track } from "@/types";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import {
+  ArrowUp,
   ListMusic,
   Pause,
   Play,
+  RotateCcw,
   Save,
   Shuffle,
   SkipForward,
@@ -15,6 +18,13 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
+
+type RemovedQueueItem = {
+  track: Track;
+  index: number;
+  timerId: number;
+};
 
 export function DesktopRightRail() {
   const player = useGlobalPlayer();
@@ -24,6 +34,82 @@ export function DesktopRightRail() {
     (total, track) => total + (track.duration ?? 0),
     0,
   );
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [lastRemoved, setLastRemoved] = useState<RemovedQueueItem | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (lastRemoved) {
+        window.clearTimeout(lastRemoved.timerId);
+      }
+    };
+  }, [lastRemoved]);
+
+  const handleMoveToNext = useCallback(
+    (queueIndex: number) => {
+      if (queueIndex <= 1) return;
+      player.reorderQueue(queueIndex, 1);
+    },
+    [player],
+  );
+
+  const handleRemoveWithUndo = useCallback(
+    (queueIndex: number) => {
+      const track = player.queue[queueIndex];
+      if (!track) return;
+
+      if (lastRemoved) {
+        window.clearTimeout(lastRemoved.timerId);
+      }
+
+      player.removeFromQueue(queueIndex);
+
+      const timerId = window.setTimeout(() => {
+        setLastRemoved(null);
+      }, 5000);
+
+      setLastRemoved({
+        track,
+        index: queueIndex,
+        timerId,
+      });
+    },
+    [lastRemoved, player],
+  );
+
+  const handleUndoRemove = useCallback(() => {
+    if (!lastRemoved) return;
+
+    window.clearTimeout(lastRemoved.timerId);
+    const restoredIndex = lastRemoved.index;
+
+    player.addToPlayNext(lastRemoved.track);
+
+    if (restoredIndex > 1) {
+      window.setTimeout(() => {
+        player.reorderQueue(1, restoredIndex);
+      }, 0);
+    }
+
+    setLastRemoved(null);
+  }, [lastRemoved, player]);
+
+  const handleDrop = useCallback(() => {
+    if (
+      draggingIndex === null ||
+      dragOverIndex === null ||
+      draggingIndex === dragOverIndex
+    ) {
+      setDraggingIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    player.reorderQueue(draggingIndex, dragOverIndex);
+    setDraggingIndex(null);
+    setDragOverIndex(null);
+  }, [dragOverIndex, draggingIndex, player]);
 
   return (
     <aside className="desktop-right-rail hidden h-full w-[320px] shrink-0 p-2 pr-3 xl:block">
@@ -149,7 +235,29 @@ export function DesktopRightRail() {
                   return (
                     <div
                       key={`${track.id}-${queueIndex}-${track.title}`}
-                      className="group flex items-center gap-2.5 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-2.5 py-2 transition-colors hover:border-[rgba(244,178,102,0.22)] hover:bg-[rgba(244,178,102,0.08)]"
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move";
+                        setDraggingIndex(queueIndex);
+                        setDragOverIndex(queueIndex);
+                      }}
+                      onDragEnd={() => {
+                        setDraggingIndex(null);
+                        setDragOverIndex(null);
+                      }}
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        setDragOverIndex(queueIndex);
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        handleDrop();
+                      }}
+                      className={`group flex cursor-grab items-center gap-2.5 rounded-lg border bg-[rgba(255,255,255,0.02)] px-2.5 py-2 transition-colors active:cursor-grabbing ${
+                        dragOverIndex === queueIndex
+                          ? "border-[rgba(244,178,102,0.35)] bg-[rgba(244,178,102,0.14)]"
+                          : "border-[rgba(255,255,255,0.06)] hover:border-[rgba(244,178,102,0.22)] hover:bg-[rgba(244,178,102,0.08)]"
+                      }`}
                     >
                       <button
                         type="button"
@@ -178,7 +286,17 @@ export function DesktopRightRail() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => player.removeFromQueue(queueIndex)}
+                        onClick={() => handleMoveToNext(queueIndex)}
+                        disabled={queueIndex === 1}
+                        className="rounded-md p-1 text-[var(--color-subtext)] opacity-0 transition-opacity group-hover:opacity-100 hover:bg-[rgba(88,198,177,0.16)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-30"
+                        aria-label={`Move ${track.title} to play next`}
+                        title={queueIndex === 1 ? "Already next" : "Play next"}
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveWithUndo(queueIndex)}
                         className="rounded-md p-1 text-[var(--color-subtext)] opacity-0 transition-opacity group-hover:opacity-100 hover:bg-[rgba(242,139,130,0.16)] hover:text-[var(--color-text)]"
                         aria-label={`Remove ${track.title} from queue`}
                       >
@@ -197,6 +315,21 @@ export function DesktopRightRail() {
             <ListMusic className="h-3 w-3" />
             Queue Controls
           </div>
+          {lastRemoved ? (
+            <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-[rgba(244,178,102,0.22)] bg-[rgba(244,178,102,0.08)] px-2.5 py-2 text-xs text-[var(--color-text)]">
+              <span className="line-clamp-2 min-w-0 flex-1">
+                Removed &quot;{lastRemoved.track.title}&quot;
+              </span>
+              <button
+                type="button"
+                onClick={handleUndoRemove}
+                className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[rgba(88,198,177,0.18)] px-2 py-1 text-[11px] font-semibold text-[var(--color-text)] transition-colors hover:bg-[rgba(88,198,177,0.28)]"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Undo
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </aside>

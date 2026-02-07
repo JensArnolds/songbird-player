@@ -2,14 +2,42 @@
 
 "use client";
 
-import { signIn } from "next-auth/react";
+import { getProviders, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const isBanned = error === "Banned";
+  const [providers, setProviders] = useState<
+    Awaited<ReturnType<typeof getProviders>>
+  >(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void getProviders()
+      .then((nextProviders) => {
+        if (!isMounted) return;
+        setProviders(nextProviders);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setProviders({});
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const oauthProviders = useMemo(() => {
+    if (!providers) return [];
+    return Object.values(providers).filter(
+      (provider) => provider.id === "discord" || provider.id === "spotify",
+    );
+  }, [providers]);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 px-4">
@@ -29,13 +57,33 @@ function SignInContent() {
         )}
 
         <div className="mt-6">
-          <button
-            type="button"
-            onClick={() => signIn("discord", { callbackUrl: "/" })}
-            className="w-full rounded-xl bg-[#5865f2] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-          >
-            Sign in with Discord
-          </button>
+          {providers === null ? (
+            <div className="flex items-center justify-center py-3">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent" />
+            </div>
+          ) : oauthProviders.length > 0 ? (
+            <div className="space-y-3">
+              {oauthProviders.map((provider) => {
+                const isDiscord = provider.id === "discord";
+                return (
+                  <button
+                    key={provider.id}
+                    type="button"
+                    onClick={() => signIn(provider.id, { callbackUrl: "/" })}
+                    className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 ${
+                      isDiscord ? "bg-[#5865f2]" : "bg-[#1db954]"
+                    }`}
+                  >
+                    Sign in with {isDiscord ? "Discord" : "Spotify"}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-sm text-[var(--color-subtext)]">
+              No sign-in providers are currently configured.
+            </p>
+          )}
         </div>
       </div>
     </div>

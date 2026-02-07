@@ -33,6 +33,7 @@ import {
     type PanInfo,
 } from "framer-motion";
 import {
+    ArrowUp,
     ChevronDown,
     GripVertical,
     Heart,
@@ -50,6 +51,7 @@ import {
     SkipForward,
     Sparkles,
     Trash2,
+    RotateCcw,
     X
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -109,10 +111,12 @@ interface QueueItemProps {
   isSelected: boolean;
   isSmartTrack?: boolean;
   onPlay: () => void;
+  onPlayNext?: () => void;
   onRemove: () => void;
   onToggleSelect: (e: React.MouseEvent | React.TouchEvent) => void;
   onTouchEnd: () => void;
   canRemove: boolean;
+  canPlayNext?: boolean;
   onDragStart: () => void;
   onDragEnd: () => void;
   isDragging: boolean;
@@ -126,10 +130,12 @@ function QueueItem({
   isSelected,
   isSmartTrack,
   onPlay,
+  onPlayNext,
   onRemove,
   onToggleSelect,
   onTouchEnd,
   canRemove,
+  canPlayNext = false,
   onDragStart,
   onDragEnd,
   isDragging,
@@ -346,6 +352,27 @@ function QueueItem({
         {formatDuration(track.duration)}
       </span>
 
+      {/* Play-next button */}
+      {canPlayNext && onPlayNext ? (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlayNext();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+          }}
+          className="flex-shrink-0 rounded p-1.5 text-[var(--color-subtext)] transition-colors active:bg-[rgba(88,198,177,0.16)] active:text-[var(--color-text)]"
+          aria-label="Move to play next"
+          title="Play next"
+        >
+          <ArrowUp className="h-4 w-4" />
+        </button>
+      ) : null}
+
       {/* Remove button */}
       {canRemove && (
         <button
@@ -353,10 +380,16 @@ function QueueItem({
             e.stopPropagation();
             onRemove();
           }}
-          className="flex-shrink-0 rounded p-1.5 opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 active:bg-[rgba(244,178,102,0.12)]"
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+          }}
+          className="flex-shrink-0 rounded p-1.5 text-[var(--color-subtext)] transition-colors active:bg-[rgba(244,178,102,0.12)] active:text-[var(--color-text)]"
           aria-label="Remove from queue"
         >
-          <X className="h-4 w-4 text-[var(--color-subtext)] transition-colors active:text-[var(--color-text)]" />
+          <X className="h-4 w-4" />
         </button>
       )}
     </motion.div>
@@ -386,6 +419,12 @@ interface MobilePlayerProps {
   onClose?: () => void;
   forceExpanded?: boolean;
 }
+
+type QueueUndoState = {
+  track: Track;
+  index: number;
+  timerId: number;
+};
 
 export default function MobilePlayer(props: MobilePlayerProps) {
   const {
@@ -419,6 +458,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     smartQueueState,
     queuedTracks,
     playFromQueue,
+    addToPlayNext,
     removeFromQueue,
     reorderQueue,
     saveQueueAsPlaylist,
@@ -475,6 +515,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [similarityLevel, setSimilarityLevel] = useState<SimilarityPreference>("balanced");
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [queueUndoState, setQueueUndoState] = useState<QueueUndoState | null>(null);
   const [queueThumbHeight, setQueueThumbHeight] = useState(0);
   const [queueScrollbarVisible, setQueueScrollbarVisible] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -799,7 +840,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     return queue.reduce((acc, track) => acc + track.duration, 0);
   }, [queue]);
 
-  const handleToggleQueueSelect = useCallback((index: number, shiftKey: boolean = false) => {
+  const handleToggleQueueSelect = useCallback((index: number, shiftKey = false) => {
     setSelectedQueueIndices((prev) => {
       const newSet = new Set(prev);
 
@@ -829,6 +870,57 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }
   }, [lastSelectedQueueIndex]);
 
+  const handleMoveQueueTrackToNext = useCallback(
+    (index: number) => {
+      if (index <= 1) return;
+      reorderQueue(index, 1);
+      hapticSuccess();
+    },
+    [reorderQueue],
+  );
+
+  const handleRemoveQueueItemWithUndo = useCallback(
+    (index: number) => {
+      if (index === 0) return;
+      const track = queue[index];
+      if (!track) return;
+
+      if (queueUndoState) {
+        clearTimeout(queueUndoState.timerId);
+      }
+
+      removeFromQueue(index);
+      hapticMedium();
+
+      const timerId = window.setTimeout(() => {
+        setQueueUndoState(null);
+      }, 5000);
+
+      setQueueUndoState({
+        track,
+        index,
+        timerId,
+      });
+    },
+    [queue, queueUndoState, removeFromQueue],
+  );
+
+  const handleUndoQueueRemove = useCallback(() => {
+    if (!queueUndoState) return;
+
+    clearTimeout(queueUndoState.timerId);
+    addToPlayNext(queueUndoState.track);
+
+    if (queueUndoState.index > 1) {
+      window.setTimeout(() => {
+        reorderQueue(1, queueUndoState.index);
+      }, 0);
+    }
+
+    setQueueUndoState(null);
+    hapticSuccess();
+  }, [addToPlayNext, queueUndoState, reorderQueue]);
+
   const handleRemoveSelectedQueueItems = useCallback(() => {
     if (selectedQueueIndices.size === 0) return;
 
@@ -849,14 +941,26 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     setLastSelectedQueueIndex(null);
   }, []);
 
+  const clearQueueUndoState = useCallback(() => {
+    setQueueUndoState((prev) => {
+      if (prev) {
+        clearTimeout(prev.timerId);
+      }
+      return null;
+    });
+  }, []);
+
   // Cleanup long press timer
   useEffect(() => {
     return () => {
       if (longPressTimer) {
         clearTimeout(longPressTimer);
       }
+      if (queueUndoState) {
+        clearTimeout(queueUndoState.timerId);
+      }
     };
-  }, [longPressTimer]);
+  }, [longPressTimer, queueUndoState]);
 
   const toggleFavorite = () => {
     if (!currentTrack || !isAuthenticated) return;
@@ -1803,7 +1907,13 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         <motion.button
                           onClick={() => {
                             hapticMedium();
-                            setShowQueuePanel(!showQueuePanel);
+                            setShowQueuePanel((prev) => {
+                              const next = !prev;
+                              if (!next) {
+                                clearQueueUndoState();
+                              }
+                              return next;
+                            });
                           }}
                           whileTap={{ scale: 0.9 }}
                           className={`touch-target relative ${
@@ -1983,6 +2093,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     className="theme-chrome-backdrop fixed inset-0 z-[100] backdrop-blur-sm"
                     onClick={() => {
                       hapticLight();
+                      clearQueueUndoState();
                       setShowQueuePanel(false);
                     }}
                   />
@@ -1996,6 +2107,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                     onDragEnd={(_, info) => {
                       if (info.offset.x > 100 || info.velocity.x > 300) {
                         hapticLight();
+                        clearQueueUndoState();
                         setShowQueuePanel(false);
                       }
                     }}
@@ -2013,7 +2125,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                               <motion.button
                                 onClick={() => {
                                   hapticLight();
-                                  handleSmartQueueAction(
+                                  void handleSmartQueueAction(
                                     smartQueueState.isActive ? "refresh" : "add",
                                   );
                                 }}
@@ -2069,6 +2181,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                 hapticMedium();
                                 clearQueue();
                                 handleClearQueueSelection();
+                                clearQueueUndoState();
                                 showToast("Queue cleared", "success");
                               }}
                               whileTap={{ scale: 0.9 }}
@@ -2081,6 +2194,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                           <motion.button
                             onClick={() => {
                               hapticLight();
+                              clearQueueUndoState();
                               setShowQueuePanel(false);
                               handleClearQueueSelection();
                               setQueueSearchQuery("");
@@ -2123,6 +2237,29 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                             className="rounded-lg bg-[rgba(255,255,255,0.1)] px-3 py-1.5 text-sm font-medium transition-colors active:bg-[rgba(255,255,255,0.15)]"
                           >
                             Clear
+                          </motion.button>
+                        </motion.div>
+                      )}
+
+                      {queueUndoState && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="flex items-center gap-2 rounded-lg border border-[rgba(244,178,102,0.25)] bg-[rgba(244,178,102,0.12)] p-3"
+                        >
+                          <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--color-text)]">
+                            Removed &quot;{queueUndoState.track.title}&quot;
+                          </span>
+                          <motion.button
+                            onClick={() => {
+                              handleUndoQueueRemove();
+                            }}
+                            whileTap={{ scale: 0.95 }}
+                            className="inline-flex items-center gap-1 rounded-lg bg-[rgba(88,198,177,0.2)] px-3 py-1.5 text-sm font-medium transition-colors active:bg-[rgba(88,198,177,0.3)]"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                            Undo
                           </motion.button>
                         </motion.div>
                       )}
@@ -2194,14 +2331,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                     hapticLight();
                                     playFromQueue(filteredNowPlaying.index);
                                   }}
+                                  onPlayNext={() => {
+                                    handleMoveQueueTrackToNext(filteredNowPlaying.index);
+                                  }}
                                   onRemove={() => {
-                                    hapticMedium();
-                                    removeFromQueue(filteredNowPlaying.index);
+                                    handleRemoveQueueItemWithUndo(filteredNowPlaying.index);
                                   }}
                                   onToggleSelect={(e) => {
                                     if (e.type === 'touchstart' && 'touches' in e) {
-                                      const touchEvent = e as React.TouchEvent;
-                                      if (touchEvent.touches.length === 1) {
+                                      if (e.touches.length === 1) {
                                         const timer = setTimeout(() => {
                                           hapticMedium();
                                           handleToggleQueueSelect(filteredNowPlaying.index);
@@ -2223,6 +2361,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                     }
                                   }}
                                   canRemove={filteredNowPlaying.index !== 0}
+                                  canPlayNext={filteredNowPlaying.index > 1}
                                   onDragStart={() => setDraggedIndex(filteredNowPlaying.index)}
                                   onDragEnd={() => setDraggedIndex(null)}
                                   isDragging={draggedIndex === filteredNowPlaying.index}
@@ -2255,14 +2394,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                         hapticLight();
                                         playFromQueue(entry.index);
                                       }}
+                                      onPlayNext={() => {
+                                        handleMoveQueueTrackToNext(entry.index);
+                                      }}
                                       onRemove={() => {
-                                        hapticMedium();
-                                        removeFromQueue(entry.index);
+                                        handleRemoveQueueItemWithUndo(entry.index);
                                       }}
                                       onToggleSelect={(e) => {
                                         if (e.type === 'touchstart' && 'touches' in e) {
-                                          const touchEvent = e as React.TouchEvent;
-                                          if (touchEvent.touches.length === 1) {
+                                          if (e.touches.length === 1) {
                                             const timer = setTimeout(() => {
                                               hapticMedium();
                                               handleToggleQueueSelect(entry.index);
@@ -2284,6 +2424,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                         }
                                       }}
                                       canRemove={entry.index !== 0}
+                                      canPlayNext={entry.index > 1}
                                       onDragStart={() => setDraggedIndex(entry.index)}
                                       onDragEnd={() => setDraggedIndex(null)}
                                       isDragging={draggedIndex === entry.index}
@@ -2331,14 +2472,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                           hapticLight();
                                           playFromQueue(entry.index);
                                         }}
+                                        onPlayNext={() => {
+                                          handleMoveQueueTrackToNext(entry.index);
+                                        }}
                                         onRemove={() => {
-                                          hapticMedium();
-                                          removeFromQueue(entry.index);
+                                          handleRemoveQueueItemWithUndo(entry.index);
                                         }}
                                         onToggleSelect={(e) => {
                                           if (e.type === 'touchstart' && 'touches' in e) {
-                                            const touchEvent = e as React.TouchEvent;
-                                            if (touchEvent.touches.length === 1) {
+                                            if (e.touches.length === 1) {
                                               const timer = setTimeout(() => {
                                                 hapticMedium();
                                                 handleToggleQueueSelect(entry.index);
@@ -2360,6 +2502,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                           }
                                         }}
                                         canRemove={entry.index !== 0}
+                                        canPlayNext={entry.index > 1}
                                         onDragStart={() => setDraggedIndex(entry.index)}
                                         onDragEnd={() => setDraggedIndex(null)}
                                         isDragging={draggedIndex === entry.index}

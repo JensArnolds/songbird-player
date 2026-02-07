@@ -5,6 +5,13 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.5] - 2026-02-07
+
+### Changed
+
+- **Desktop sidebar action visibility fix**: Added persistent bottom clearance so sidebar actions (including `New playlist`) stay above the fixed desktop player in web, PWA, and Electron shells. Location: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx).
+- **Desktop right-rail queue controls upgraded**: Enhanced `Up Next` with drag-and-drop reordering, per-track `Play next`, and remove-with-undo recovery to reduce queue-management friction. Location: [src/components/DesktopRightRail.tsx](src/components/DesktopRightRail.tsx).
+
 ## [0.14.4] - 2026-02-07
 
 ### Changed

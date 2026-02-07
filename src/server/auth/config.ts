@@ -4,6 +4,7 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { and, eq, sql } from "drizzle-orm";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import SpotifyProvider from "next-auth/providers/spotify";
 
 import { env } from "@/env";
 import { db } from "@/server/db";
@@ -48,6 +49,14 @@ export const authConfig = {
       clientId: env.AUTH_DISCORD_ID,
       clientSecret: env.AUTH_DISCORD_SECRET,
     }),
+    ...(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET
+      ? [
+          SpotifyProvider({
+            clientId: env.SPOTIFY_CLIENT_ID,
+            clientSecret: env.SPOTIFY_CLIENT_SECRET,
+          }),
+        ]
+      : []),
   ],
   adapter: DrizzleAdapter(db, {
     usersTable: users,
