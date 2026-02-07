@@ -301,7 +301,7 @@ export function ElectronSidebar() {
           </div>
 
           {!collapsed && (
-            <div className="space-y-2 px-3 pb-4">
+            <div className="space-y-2 px-3 pb-[calc(env(safe-area-inset-bottom)+6rem)]">
               <button
                 className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-2.5 text-sm font-semibold text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition hover:scale-[1.01] active:scale-[0.99]"
                 onClick={() => setCreateModalOpen(true)}
@@ -321,7 +321,7 @@ export function ElectronSidebar() {
             </div>
           )}
           {collapsed && session ? (
-            <div className="px-2 pb-3">
+            <div className="px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)]">
               <button
                 className="electron-no-drag flex h-9 w-full items-center justify-center rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.06)] text-[var(--color-subtext)] transition hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                 onClick={() => void signOut({ callbackUrl: "/" })}

@@ -3,6 +3,7 @@
 "use client";
 
 import { PullToRefreshWrapper } from "@/components/PullToRefreshWrapper";
+import { HomeFeedRow } from "@/components/HomeFeedRow";
 import SwipeableTrackCard from "@/components/SwipeableTrackCard";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -36,7 +37,7 @@ import {
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const ChangelogModal = dynamic(() => import("@/components/ChangelogModal"), {
   ssr: false,
@@ -65,11 +66,21 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const [isArtistSearch, setIsArtistSearch] = useState(false);
   const [apiOffset, setApiOffset] = useState(0);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+  const [madeForYouTracks, setMadeForYouTracks] = useState<Track[]>([]);
+  const [newReleaseTracks, setNewReleaseTracks] = useState<Track[]>([]);
+  const [isFeedLoading, setIsFeedLoading] = useState(false);
   const lastUrlQueryRef = useRef<string | null>(null);
   const lastTrackIdRef = useRef<string | null>(null);
   const shouldAutoPlayRef = useRef(false);
 
   const player = useGlobalPlayer();
+  const hasActiveRouteQuery = [
+    searchParams.get("q"),
+    searchParams.get("album"),
+    searchParams.get("track"),
+  ].some((value) => (value ?? "").trim().length > 0);
+  const homeFeedEnabled =
+    mounted && !hasActiveRouteQuery && results.length === 0;
   const visibleResults = results.filter(
     (track) => !player.failedTrackIds.has(track.id),
   );
@@ -77,18 +88,6 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!mounted || !isMobile || !session) return;
-
-    const urlQuery = searchParams.get("q");
-    const albumId = searchParams.get("album");
-    const trackId = searchParams.get("track");
-
-    if (!urlQuery && !albumId && !trackId && session.user?.userHash) {
-      router.replace(`/${session.user.userHash}`);
-    }
-  }, [mounted, isMobile, session, searchParams, router]);
 
   const addSearchQuery = api.music.addSearchQuery.useMutation();
   const { data: recentSearches } = api.music.getRecentSearches.useQuery(
@@ -99,6 +98,22 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     enabled: !!session && !isMobile,
     refetchOnWindowFocus: false,
   });
+  const { data: historyItems, isLoading: historyLoading } =
+    api.music.getHistory.useQuery(
+      { limit: 80, offset: 0 },
+      {
+        enabled: !!session && homeFeedEnabled,
+        refetchOnWindowFocus: false,
+      },
+    );
+  const { data: favoriteItems, isLoading: favoritesLoading } =
+    api.music.getFavorites.useQuery(
+      { limit: 40, offset: 0 },
+      {
+        enabled: !!session && homeFeedEnabled,
+        refetchOnWindowFocus: false,
+      },
+    );
 
   const performSearch = useCallback(
     async (searchQuery: string, force = false) => {
@@ -414,6 +429,126 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     [session, addSearchQuery, router],
   );
 
+  const dedupeTracks = useCallback((tracks: Track[]) => {
+    const seen = new Set<number>();
+    const output: Track[] = [];
+
+    for (const track of tracks) {
+      if (!track || seen.has(track.id)) continue;
+      seen.add(track.id);
+      output.push(track);
+    }
+
+    return output;
+  }, []);
+
+  const historyTracks = useMemo(
+    () => dedupeTracks((historyItems ?? []).map((item) => item.track)),
+    [dedupeTracks, historyItems],
+  );
+
+  const favoriteTracks = useMemo(
+    () => dedupeTracks((favoriteItems ?? []).map((item) => item.track)),
+    [dedupeTracks, favoriteItems],
+  );
+
+  const continueListeningTracks = useMemo(
+    () => dedupeTracks([...player.queue, ...historyTracks]).slice(0, 14),
+    [dedupeTracks, historyTracks, player.queue],
+  );
+
+  const recentlyPlayedTracks = useMemo(
+    () => historyTracks.slice(0, 14),
+    [historyTracks],
+  );
+
+  const madeForYouRowTracks = useMemo(
+    () => dedupeTracks([...favoriteTracks, ...madeForYouTracks]).slice(0, 14),
+    [dedupeTracks, favoriteTracks, madeForYouTracks],
+  );
+
+  const newReleaseRowTracks = useMemo(
+    () => dedupeTracks(newReleaseTracks).slice(0, 14),
+    [dedupeTracks, newReleaseTracks],
+  );
+
+  useEffect(() => {
+    if (!homeFeedEnabled) return;
+
+    let cancelled = false;
+
+    const loadFeedRows = async () => {
+      setIsFeedLoading(true);
+
+      try {
+        const seedArtists = Array.from(
+          new Set(
+            [...favoriteTracks, ...historyTracks]
+              .map((track) => track.artist.name.trim())
+              .filter((name) => name.length > 0),
+          ),
+        ).slice(0, 3);
+
+        const madeForYouQueries =
+          seedArtists.length > 0
+            ? seedArtists.map((artist) => `${artist} essentials`)
+            : [
+                "electronic essentials",
+                "trip hop essentials",
+                "indie alternative essentials",
+              ];
+
+        const newReleaseQueries = [
+          "new releases 2026",
+          "latest music releases",
+          "fresh tracks 2026",
+        ];
+
+        const [madeForYouResults, newReleaseResults] = await Promise.all([
+          Promise.all(
+            madeForYouQueries.map(async (query) => {
+              try {
+                const response = await searchTracks(query, 0);
+                return response.data.slice(0, 8);
+              } catch {
+                return [] as Track[];
+              }
+            }),
+          ),
+          Promise.all(
+            newReleaseQueries.map(async (query) => {
+              try {
+                const response = await searchTracks(query, 0);
+                return response.data.slice(0, 8);
+              } catch {
+                return [] as Track[];
+              }
+            }),
+          ),
+        ]);
+
+        if (cancelled) return;
+
+        setMadeForYouTracks(
+          dedupeTracks(madeForYouResults.flat()).slice(0, 24),
+        );
+        setNewReleaseTracks(
+          dedupeTracks(newReleaseResults.flat()).slice(0, 24),
+        );
+      } finally {
+        if (!cancelled) {
+          setIsFeedLoading(false);
+        }
+      }
+    };
+
+    void loadFeedRows();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dedupeTracks, favoriteTracks, historyTracks, homeFeedEnabled]);
+
   const hasMore = results.length < total;
   const featuredAlbums = [
     {
@@ -482,6 +617,19 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
       setLoading(false);
     }
   }, [player]);
+
+  const handleFeedTrackSelect = useCallback(
+    (track: Track, rowTracks: Track[]) => {
+      hapticSuccess();
+      player.playTrack(track);
+
+      const remainingTracks = rowTracks.filter((item) => item.id !== track.id);
+      if (remainingTracks.length > 0) {
+        player.addToQueue(remainingTracks.slice(0, 12), false);
+      }
+    },
+    [player],
+  );
 
   if (!mounted) {
     return null;
@@ -624,6 +772,64 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                 transition={springPresets.gentle}
                 className="space-y-4"
               >
+                {homeFeedEnabled && (
+                  <div className="space-y-4">
+                    <HomeFeedRow
+                      title="Continue Listening"
+                      subtitle="Pick up where you left off"
+                      tracks={continueListeningTracks}
+                      onTrackSelect={(track) =>
+                        handleFeedTrackSelect(track, continueListeningTracks)
+                      }
+                      isLoading={
+                        !!session &&
+                        historyLoading &&
+                        continueListeningTracks.length === 0
+                      }
+                      emptyLabel="Play something to build your continue list."
+                    />
+                    <HomeFeedRow
+                      title="Recently Played"
+                      subtitle="Your latest listening history"
+                      tracks={recentlyPlayedTracks}
+                      onTrackSelect={(track) =>
+                        handleFeedTrackSelect(track, recentlyPlayedTracks)
+                      }
+                      isLoading={
+                        !!session &&
+                        historyLoading &&
+                        recentlyPlayedTracks.length === 0
+                      }
+                      emptyLabel="Recent plays appear here after playback."
+                    />
+                    <HomeFeedRow
+                      title="Made for You"
+                      subtitle="Built from your favorites and listening patterns"
+                      tracks={madeForYouRowTracks}
+                      onTrackSelect={(track) =>
+                        handleFeedTrackSelect(track, madeForYouRowTracks)
+                      }
+                      isLoading={
+                        (favoritesLoading || isFeedLoading) &&
+                        madeForYouRowTracks.length === 0
+                      }
+                      emptyLabel="We are building personalized picks for you."
+                    />
+                    <HomeFeedRow
+                      title="New Releases"
+                      subtitle="Fresh tracks discovered right now"
+                      tracks={newReleaseRowTracks}
+                      onTrackSelect={(track) =>
+                        handleFeedTrackSelect(track, newReleaseRowTracks)
+                      }
+                      isLoading={
+                        isFeedLoading && newReleaseRowTracks.length === 0
+                      }
+                      emptyLabel="No fresh releases found yet. Try again in a moment."
+                    />
+                  </div>
+                )}
+
                 {!isMobile && (
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <section className="card p-4 text-left md:p-5">

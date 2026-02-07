@@ -143,7 +143,10 @@ export function useSearchSuggestions(
 
           setSuggestions(combined);
         } catch (error) {
-          console.error("[useSearchSuggestions] Failed to load suggestions:", error);
+          console.error(
+            "[useSearchSuggestions] Failed to load suggestions:",
+            error,
+          );
           if (!cancelled) {
             setSuggestions(querySuggestions.slice(0, limit));
           }

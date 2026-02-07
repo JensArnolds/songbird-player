@@ -2,7 +2,10 @@
 
 "use client";
 
+import { SearchSuggestionsList } from "@/components/SearchSuggestionsList";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import type { SearchSuggestionItem } from "@/types/searchSuggestions";
 import {
   hapticError,
   hapticLight,
@@ -87,6 +90,7 @@ export default function MobileSearchBar({
   const [isListening, setIsListening] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState("");
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
@@ -191,12 +195,23 @@ export default function MobileSearchBar({
   };
 
   const handleBlur = () => {
+    setActiveSuggestionIndex(-1);
     setTimeout(() => setIsFocused(false), 150);
   };
 
   const displayValue = isListening ? interimTranscript || value : value;
   const showClear = value.length > 0 && !isLoading;
-  const showRecentSearches = isFocused && !value && recentSearches.length > 0;
+  const { suggestions } = useSearchSuggestions(value, recentSearches, {
+    enabled: isFocused,
+    limit: 8,
+  });
+  const showTypeahead =
+    isFocused &&
+    !isListening &&
+    value.trim().length > 0 &&
+    suggestions.length > 0;
+  const showRecentSearches =
+    isFocused && !value && recentSearches.length > 0 && !showTypeahead;
   const showAutoSearch =
     showAutoSearchIndicator &&
     value.trim().length > 0 &&
@@ -210,6 +225,49 @@ export default function MobileSearchBar({
     0,
     Math.min(100, (1 - autoSearchCountdown / 2000) * 100),
   );
+
+  const selectSuggestion = (suggestion: SearchSuggestionItem) => {
+    hapticLight();
+    onChange(suggestion.query);
+    onSearch(suggestion.query);
+    setActiveSuggestionIndex(-1);
+    inputRef.current?.blur();
+  };
+
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showTypeahead) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) =>
+        prev < suggestions.length - 1 ? prev + 1 : 0,
+      );
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) =>
+        prev <= 0 ? suggestions.length - 1 : prev - 1,
+      );
+      return;
+    }
+
+    if (event.key === "Enter" && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      const suggestion = suggestions[activeSuggestionIndex];
+      if (suggestion) {
+        selectSuggestion(suggestion);
+      }
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setActiveSuggestionIndex(-1);
+      inputRef.current?.blur();
+    }
+  };
 
   return (
     <div className="relative w-full">
@@ -313,9 +371,13 @@ export default function MobileSearchBar({
               ref={inputRef}
               type="text"
               value={displayValue}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e) => {
+                setActiveSuggestionIndex(-1);
+                onChange(e.target.value);
+              }}
               onFocus={handleFocus}
               onBlur={handleBlur}
+              onKeyDown={handleInputKeyDown}
               placeholder={isListening ? "Listening..." : placeholder}
               autoFocus={autoFocus}
               className={`w-full bg-transparent text-base text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none ${
@@ -431,7 +493,26 @@ export default function MobileSearchBar({
 
       {}
       <AnimatePresence>
-        {showRecentSearches && onRecentSearchClick && (
+        {showTypeahead && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={springPresets.snappy}
+            className="absolute top-full right-0 left-0 z-50 mt-2"
+          >
+            <SearchSuggestionsList
+              suggestions={suggestions}
+              activeIndex={activeSuggestionIndex}
+              onActiveIndexChange={setActiveSuggestionIndex}
+              onSelect={selectSuggestion}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showRecentSearches && onRecentSearchClick && !showTypeahead && (
           <motion.div
             initial={{ opacity: 0, y: -10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -450,6 +531,7 @@ export default function MobileSearchBar({
                   key={search}
                   onClick={() => {
                     hapticLight();
+                    setActiveSuggestionIndex(-1);
                     onRecentSearchClick(search);
                   }}
                   initial={{ opacity: 0, x: -10 }}

@@ -3,11 +3,41 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
+import { DesktopRightRail } from "./DesktopRightRail";
 import { ElectronSidebar } from "./ElectronSidebar";
 
 export function DesktopShell({ children }: { children: ReactNode }) {
   const isMobile = useIsMobile();
+  const rightRailWidth = 320;
+
+  useEffect(() => {
+    if (isMobile) {
+      document.documentElement.style.removeProperty(
+        "--desktop-right-rail-width",
+      );
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 1280px)");
+    const applyRightRailWidth = () => {
+      document.documentElement.style.setProperty(
+        "--desktop-right-rail-width",
+        mediaQuery.matches ? `${rightRailWidth}px` : "0px",
+      );
+    };
+
+    applyRightRailWidth();
+    mediaQuery.addEventListener("change", applyRightRailWidth);
+
+    return () => {
+      mediaQuery.removeEventListener("change", applyRightRailWidth);
+      document.documentElement.style.removeProperty(
+        "--desktop-right-rail-width",
+      );
+    };
+  }, [isMobile]);
 
   if (isMobile) return <>{children}</>;
 
@@ -21,6 +51,7 @@ export function DesktopShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </div>
+      <DesktopRightRail />
     </div>
   );
 }

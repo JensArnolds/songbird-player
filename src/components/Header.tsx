@@ -2,11 +2,15 @@
 
 "use client";
 
+import { SearchSuggestionsList } from "@/components/SearchSuggestionsList";
 import { env } from "@/env";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { api } from "@/trpc/react";
+import type { SearchSuggestionItem } from "@/types/searchSuggestions";
 import { normalizeHealthStatus } from "@/utils/healthStatus";
 import { Home, Library, Search } from "lucide-react";
-import Image from "next/image";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -16,12 +20,17 @@ export default function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isMobile = useIsMobile();
+  const { data: session } = useSession();
   const [apiHealthy, setApiHealthy] = useState<
     "healthy" | "degraded" | "down" | null
   >(null);
+  const [searchText, setSearchText] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const lastHealthErrorLogRef = useRef(0);
   const headerSearchInputRef = useRef<HTMLInputElement>(null);
   const desktopHeaderRef = useRef<HTMLElement>(null);
+  const searchBlurTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const apiV2HealthUrl = env.NEXT_PUBLIC_API_V2_HEALTH_URL;
@@ -163,20 +172,19 @@ export default function Header() {
     };
   }, [isMobile]);
 
-  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-
-    if (pathname === "/") {
-      router.push("/");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      router.push("/");
-    }
-  };
-
   const headerSearchQuery = searchParams.get("q") ?? "";
   const isHomeActive = pathname === "/";
   const isLibraryActive = pathname.startsWith("/library");
+
+  const { data: recentSearches = [] } = api.music.getRecentSearches.useQuery(
+    { limit: 12 },
+    { enabled: !!session },
+  );
+
+  const { suggestions } = useSearchSuggestions(searchText, recentSearches, {
+    enabled: isSearchFocused,
+    limit: 10,
+  });
 
   const submitHeaderSearch = (rawQuery: string) => {
     const query = rawQuery.trim();
@@ -188,6 +196,73 @@ export default function Header() {
     const params = new URLSearchParams();
     params.set("q", query);
     router.push(`/?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSearchText(headerSearchQuery);
+    setActiveSuggestionIndex(-1);
+  }, [headerSearchQuery]);
+
+  useEffect(() => {
+    return () => {
+      if (searchBlurTimerRef.current !== null) {
+        window.clearTimeout(searchBlurTimerRef.current);
+      }
+    };
+  }, []);
+
+  const showSuggestions =
+    isSearchFocused && searchText.trim().length > 0 && suggestions.length > 0;
+
+  const selectSuggestion = (suggestion: SearchSuggestionItem) => {
+    setSearchText(suggestion.query);
+    setIsSearchFocused(false);
+    setActiveSuggestionIndex(-1);
+    submitHeaderSearch(suggestion.query);
+  };
+
+  const handleSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (!showSuggestions) {
+      if (event.key === "Escape") {
+        setIsSearchFocused(false);
+        setActiveSuggestionIndex(-1);
+      }
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) =>
+        prev < suggestions.length - 1 ? prev + 1 : 0,
+      );
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) =>
+        prev <= 0 ? suggestions.length - 1 : prev - 1,
+      );
+      return;
+    }
+
+    if (event.key === "Enter" && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      const suggestion = suggestions[activeSuggestionIndex];
+      if (suggestion) {
+        selectSuggestion(suggestion);
+      }
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setIsSearchFocused(false);
+      setActiveSuggestionIndex(-1);
+    }
   };
 
   const isElectronRuntime =
@@ -211,57 +286,68 @@ export default function Header() {
     <header
       ref={desktopHeaderRef}
       className="electron-app-header electron-header-drag theme-chrome-header fixed top-0 right-0 z-30 hidden border-b backdrop-blur-xl md:block"
-      style={{ left: "var(--electron-sidebar-width, 0px)" }}
+      style={{
+        left: "var(--electron-sidebar-width, 0px)",
+        right: "var(--desktop-right-rail-width, 0px)",
+      }}
       suppressHydrationWarning
     >
-      <div className="electron-header-drag electron-header-main relative z-10 grid grid-cols-[minmax(210px,auto)_minmax(0,1fr)_minmax(210px,auto)] gap-3 py-2">
-        <div className="electron-no-drag electron-header-brand flex min-w-0 items-center gap-3">
-          <Link
-            href="/"
-            onClick={handleLogoClick}
-            className="group flex min-w-0 items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-white/5"
+      <div className="electron-header-drag electron-header-main relative z-10 grid grid-cols-[minmax(0,1fr)_minmax(210px,auto)] gap-3 py-2">
+        <div className="electron-no-drag relative">
+          <form
+            className="electron-header-search flex h-11 w-full items-center gap-2 rounded-full border px-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitHeaderSearch(searchText);
+              setIsSearchFocused(false);
+              setActiveSuggestionIndex(-1);
+            }}
           >
-            <Image
-              src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
-              alt="Starchild Music"
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded-lg shadow-lg ring-1 ring-white/20 transition-all group-hover:scale-105"
-              priority
+            <Search className="h-4 w-4 shrink-0 text-[var(--color-muted)]" />
+            <input
+              ref={headerSearchInputRef}
+              value={searchText}
+              onChange={(event) => {
+                setSearchText(event.target.value);
+                setActiveSuggestionIndex(-1);
+              }}
+              onFocus={() => {
+                if (searchBlurTimerRef.current !== null) {
+                  window.clearTimeout(searchBlurTimerRef.current);
+                  searchBlurTimerRef.current = null;
+                }
+                setIsSearchFocused(true);
+              }}
+              onBlur={() => {
+                searchBlurTimerRef.current = window.setTimeout(() => {
+                  setIsSearchFocused(false);
+                  setActiveSuggestionIndex(-1);
+                }, 120);
+              }}
+              onKeyDown={handleSearchKeyDown}
+              className="w-full bg-transparent text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none"
+              placeholder="Search for songs, artists, or albums..."
+              aria-label="Search music"
+              autoComplete="off"
             />
-            <span className="header-logo-title accent-gradient truncate text-sm font-extrabold tracking-wide">
-              Starchild
-            </span>
-            <span className="hidden text-[10px] font-medium tracking-[0.12em] text-[var(--color-muted)] uppercase xl:inline">
-              Player
-            </span>
-          </Link>
+            <button
+              type="submit"
+              className="flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-1.5 text-xs font-bold text-[var(--color-on-accent)] transition-all hover:brightness-110 active:scale-[0.98]"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="hidden lg:inline">Search</span>
+            </button>
+          </form>
+          {showSuggestions && (
+            <SearchSuggestionsList
+              suggestions={suggestions}
+              activeIndex={activeSuggestionIndex}
+              onActiveIndexChange={setActiveSuggestionIndex}
+              onSelect={selectSuggestion}
+              className="absolute top-[calc(100%+0.4rem)] right-0 left-0 z-40"
+            />
+          )}
         </div>
-
-        <form
-          className="electron-no-drag electron-header-search flex h-11 w-full items-center gap-2 rounded-full border px-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            submitHeaderSearch(headerSearchInputRef.current?.value ?? "");
-          }}
-        >
-          <Search className="h-4 w-4 shrink-0 text-[var(--color-muted)]" />
-          <input
-            ref={headerSearchInputRef}
-            key={headerSearchQuery || "__empty"}
-            defaultValue={headerSearchQuery}
-            className="w-full bg-transparent text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none"
-            placeholder="Search for songs, artists, or albums..."
-            aria-label="Search music"
-          />
-          <button
-            type="submit"
-            className="flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-1.5 text-xs font-bold text-[var(--color-on-accent)] transition-all hover:brightness-110 active:scale-[0.98]"
-          >
-            <Search className="h-3.5 w-3.5" />
-            <span className="hidden lg:inline">Search</span>
-          </button>
-        </form>
 
         <div className="electron-no-drag flex min-w-0 items-center justify-end gap-2">
           <Link

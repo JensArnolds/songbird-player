@@ -5,6 +5,16 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.4] - 2026-02-07
+
+### Changed
+
+- **Home experience upgraded to a real feed**: Added row-based discovery sections on Home (`Continue Listening`, `Recently Played`, `Made for You`, `New Releases`) with direct play/queue behavior from each row. Locations: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx), [src/components/HomeFeedRow.tsx](src/components/HomeFeedRow.tsx).
+- **Search now supports typeahead entity suggestions**: Added shared search suggestions with inline query/artist/album/track results, keyboard navigation on desktop, and tap-first behavior on mobile. Locations: [src/hooks/useSearchSuggestions.ts](src/hooks/useSearchSuggestions.ts), [src/components/SearchSuggestionsList.tsx](src/components/SearchSuggestionsList.tsx), [src/components/Header.tsx](src/components/Header.tsx), [src/components/MobileSearchBar.tsx](src/components/MobileSearchBar.tsx).
+- **Persistent desktop right rail added**: Introduced a dedicated desktop rail with `Now Playing`, `Up Next`, and quick queue actions (play/pause, next, shuffle, clear, save queue, smart-add) without opening modal layers. Locations: [src/components/DesktopRightRail.tsx](src/components/DesktopRightRail.tsx), [src/components/DesktopShell.tsx](src/components/DesktopShell.tsx), [src/components/Header.tsx](src/components/Header.tsx).
+- **Desktop header simplification**: Removed redundant `Starchild Player` logo/title from the main header and tightened layout around search + nav actions. Location: [src/components/Header.tsx](src/components/Header.tsx).
+- **Theme direction corrected**: Rolled back explicit Spotify-like color treatment and restored the original Starchild visual palette while keeping UX improvements. Locations: [src/styles/globals.css](src/styles/globals.css), [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx), [src/components/Header.tsx](src/components/Header.tsx), [src/components/MobileSearchBar.tsx](src/components/MobileSearchBar.tsx), [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx), [src/components/Player.tsx](src/components/Player.tsx), [src/components/SwipeableTrackCard.tsx](src/components/SwipeableTrackCard.tsx).
+
 ## [0.14.3] - 2026-02-07
 
 ### Changed
