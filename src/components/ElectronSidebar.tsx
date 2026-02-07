@@ -34,6 +34,8 @@ export function ElectronSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isAdmin = session?.user?.admin === true;
+  const oauthSignInHref = (callbackUrl: string) =>
+    `/api/auth/signin/discord?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -69,18 +71,18 @@ export function ElectronSidebar() {
     ? userHash
       ? `/${userHash}`
       : "/settings"
-    : "/signin";
+    : oauthSignInHref("/");
 
   const navItems: NavItem[] = useMemo(() => {
     const items: NavItem[] = [
       { href: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
       {
-        href: session ? "/library" : "/signin",
+        href: session ? "/library" : oauthSignInHref("/library"),
         label: "Library",
         icon: <Library className="h-5 w-5" />,
       },
       {
-        href: session ? "/playlists" : "/signin",
+        href: session ? "/playlists" : oauthSignInHref("/playlists"),
         label: "Playlists",
         icon: <ListMusic className="h-5 w-5" />,
       },
@@ -100,7 +102,7 @@ export function ElectronSidebar() {
     }
 
     items.push({
-      href: session ? "/settings" : "/signin",
+      href: session ? "/settings" : oauthSignInHref("/settings"),
       label: "Settings",
       icon: <Settings className="h-5 w-5" />,
     });
@@ -230,7 +232,7 @@ export function ElectronSidebar() {
             <div className="mt-2 min-h-0 overflow-y-auto pr-1">
               {!session ? (
                 <Link
-                  href="/signin"
+                  href={oauthSignInHref("/playlists")}
                   className="electron-no-drag block rounded-xl border border-[rgba(255,255,255,0.08)] px-3 py-2 text-sm text-[var(--color-subtext)] hover:border-[rgba(255,255,255,0.18)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                 >
                   {!collapsed ? "Sign in to view playlists" : "Sign in"}
@@ -290,7 +292,9 @@ export function ElectronSidebar() {
             {!collapsed && (
               <div className="mt-3 px-2">
                 <Link
-                  href={session ? "/playlists" : "/signin"}
+                  href={
+                    session ? "/playlists" : oauthSignInHref("/playlists")
+                  }
                   className="electron-no-drag inline-flex items-center gap-2 text-xs font-semibold text-[var(--color-subtext)] hover:text-[var(--color-text)]"
                 >
                   <ListMusic className="h-4 w-4" />
