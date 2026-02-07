@@ -23,7 +23,14 @@ import {
   staggerItem,
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Music2, Search, Share2, Shuffle, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  Music2,
+  Search,
+  Share2,
+  Shuffle,
+  Sparkles,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -402,6 +409,12 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   );
 
   const hasMore = results.length < total;
+  const greeting =
+    new Date().getHours() < 12
+      ? "Good morning"
+      : new Date().getHours() < 18
+        ? "Good afternoon"
+        : "Good evening";
 
   const handleShufflePlay = useCallback(async () => {
     hapticSuccess();
@@ -445,6 +458,49 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     <div className="flex min-h-screen flex-col">
       <main className="container mx-auto w-full flex-1 py-6 md:py-5">
         <div className="w-full">
+          {!isMobile && (
+            <motion.section
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={springPresets.gentle}
+              className="mb-5 overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(30,215,96,0.36)_0%,rgba(24,24,24,0.94)_52%,rgba(16,16,16,0.98)_100%)] px-5 py-5 md:px-6 md:py-6"
+            >
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-semibold tracking-[0.16em] text-white/75 uppercase">
+                    Discover
+                  </p>
+                  <h1 className="mt-1 text-2xl font-extrabold text-[var(--color-text)] md:text-3xl">
+                    {greeting}
+                  </h1>
+                  <p className="mt-1 text-sm text-[var(--color-subtext)]">
+                    Find tracks instantly, then keep playback going with queue
+                    and smart mix.
+                    {apiHostname ? ` Powered by ${apiHostname}.` : ""}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => void handleShufflePlay()}
+                    className="btn-primary inline-flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-wide uppercase"
+                  >
+                    <Shuffle className="h-3.5 w-3.5" />
+                    Shuffle Play
+                  </button>
+                  {currentQuery && (
+                    <button
+                      onClick={() => void handleShareSearch(currentQuery)}
+                      className="btn-secondary inline-flex items-center gap-2 px-4 py-2 text-xs font-bold tracking-wide uppercase"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      Share Query
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.section>
+          )}
+
           <AnimatePresence mode="wait">
             {results.length > 0 ? (
               <motion.div
@@ -454,10 +510,14 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="mb-4 flex items-center justify-between md:mb-3">
+                <div className="mb-4 flex items-center justify-between gap-4 md:mb-3">
                   <div>
                     <h2 className="text-lg font-bold text-[var(--color-text)] md:text-xl">
-                      Search Results
+                      {isArtistSearch
+                        ? `Artist Radio: ${currentQuery}`
+                        : currentQuery
+                          ? `Results for "${currentQuery}"`
+                          : "Search Results"}
                     </h2>
                     <p className="mt-0.5 text-xs text-[var(--color-subtext)] md:mt-0.5 md:text-xs">
                       {visibleResults.length.toLocaleString()}
@@ -467,6 +527,15 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                       tracks found
                     </p>
                   </div>
+                  {currentQuery && (
+                    <button
+                      onClick={() => void handleShareSearch(currentQuery)}
+                      className="btn-secondary hidden items-center gap-1 px-3 py-1.5 text-xs font-semibold md:inline-flex"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      Share
+                    </button>
+                  )}
                 </div>
 
                 <motion.div
@@ -520,7 +589,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={springPresets.gentle}
-                className="card flex flex-col items-center justify-center py-16 text-center md:py-12"
+                className="card flex flex-col items-center justify-center py-14 text-center md:py-12"
               >
                 <motion.div
                   animate={{
@@ -532,14 +601,14 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[rgba(244,178,102,0.15)] to-[rgba(88,198,177,0.15)] ring-2 ring-[var(--color-accent)]/20 md:mb-3 md:h-16 md:w-16"
+                  className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[rgba(30,215,96,0.18)] to-[rgba(30,215,96,0.08)] ring-2 ring-[var(--color-accent)]/20 md:mb-3 md:h-16 md:w-16"
                 >
                   <Music2 className="h-10 w-10 text-[var(--color-accent)] md:h-8 md:w-8" />
                 </motion.div>
                 <h3 className="mb-2 text-lg font-bold text-[var(--color-text)] md:mb-1.5 md:text-base">
                   {isMobile
-                    ? "Tap to start playing music instantly, or search for something specific."
-                    : "Search for songs, artists, albums - anything you want to listen to."}
+                    ? "Tap Shuffle to start instantly, or search for something specific."
+                    : "Search songs, artists, and albums to build your listening flow."}
                 </h3>
 
                 {session && recentSearches && recentSearches.length > 0 && (
@@ -553,41 +622,43 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                       Past Searches
                     </div>
                     <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-                      {recentSearches.slice(0, 16).map((search: string, index: number) => (
-                        <motion.div
-                          key={`${search}-${index}`}
-                          whileTap={{ scale: 0.98 }}
-                          className="theme-panel flex items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors hover:bg-[var(--color-surface-hover)]"
-                        >
-                          <button
-                            onClick={() => {
-                              hapticLight();
-                              setQuery(search);
-                              void handleSearch(search);
-                            }}
-                            className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+                      {recentSearches
+                        .slice(0, 16)
+                        .map((search: string, index: number) => (
+                          <motion.div
+                            key={`${search}-${index}`}
+                            whileTap={{ scale: 0.98 }}
+                            className="theme-panel flex items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors hover:bg-[var(--color-surface-hover)]"
                           >
-                            <Search className="h-3.5 w-3.5 shrink-0 text-[var(--color-muted)]" />
-                            <span className="truncate text-xs text-[var(--color-text)]">
-                              {search}
-                            </span>
-                          </button>
+                            <button
+                              onClick={() => {
+                                hapticLight();
+                                setQuery(search);
+                                void handleSearch(search);
+                              }}
+                              className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+                            >
+                              <Search className="h-3.5 w-3.5 shrink-0 text-[var(--color-muted)]" />
+                              <span className="truncate text-xs text-[var(--color-text)]">
+                                {search}
+                              </span>
+                            </button>
 
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              hapticLight();
-                              void handleShareSearch(search);
-                            }}
-                            className="electron-no-drag inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-1.5 py-1 text-[11px] font-medium text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-                            title="Share search"
-                            aria-label={`Share search: ${search}`}
-                          >
-                            <Share2 className="h-3 w-3" />
-                            Share
-                          </button>
-                        </motion.div>
-                      ))}
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                hapticLight();
+                                void handleShareSearch(search);
+                              }}
+                              className="electron-no-drag inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-1.5 py-1 text-[11px] font-medium text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                              title="Share search"
+                              aria-label={`Share search: ${search}`}
+                            >
+                              <Share2 className="h-3 w-3" />
+                              Share
+                            </button>
+                          </motion.div>
+                        ))}
                     </div>
                   </motion.div>
                 )}
@@ -654,7 +725,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                         void handleSearch(suggestion);
                       }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 rounded-full bg-[rgba(244,178,102,0.1)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[rgba(244,178,102,0.2)] md:px-3 md:py-1.5 md:text-xs"
+                      className="flex items-center gap-2 rounded-full bg-[rgba(30,215,96,0.1)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[rgba(30,215,96,0.2)] md:px-3 md:py-1.5 md:text-xs"
                     >
                       <Sparkles className="h-3 w-3 md:h-2.5 md:w-2.5" />
                       {suggestion}
@@ -689,7 +760,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                       setIsChangelogOpen(true);
                     }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 rounded-xl bg-[rgba(244,178,102,0.1)] px-5 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 transition-all hover:bg-[rgba(244,178,102,0.2)] hover:ring-[var(--color-accent)]/40 md:px-3 md:py-2 md:text-xs"
+                    className="flex items-center gap-2 rounded-xl bg-[rgba(30,215,96,0.1)] px-5 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 transition-all hover:bg-[rgba(30,215,96,0.2)] hover:ring-[var(--color-accent)]/40 md:px-3 md:py-2 md:text-xs"
                   >
                     <BookOpen className="h-4 w-4 md:h-3.5 md:w-3.5" />
                     <span>Changelog</span>
@@ -701,7 +772,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                       router.push("/playlists/12");
                     }}
                     whileTap={{ scale: 0.95 }}
-                    className="ml-6 flex items-center gap-2 rounded-xl bg-[rgba(88,198,177,0.15)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] ring-1 ring-[var(--color-secondary-accent)]/20 transition-all hover:bg-[rgba(88,198,177,0.25)] hover:ring-[var(--color-secondary-accent)]/40 md:ml-4 md:px-3 md:py-2 md:text-xs"
+                    className="ml-6 flex items-center gap-2 rounded-xl bg-[rgba(83,182,255,0.15)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] ring-1 ring-[var(--color-secondary-accent)]/20 transition-all hover:bg-[rgba(83,182,255,0.25)] hover:ring-[var(--color-secondary-accent)]/40 md:ml-4 md:px-3 md:py-2 md:text-xs"
                   >
                     <Music2 className="h-4 w-4 md:h-3.5 md:w-3.5" />
                     <span>Example Playlist</span>

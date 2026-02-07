@@ -217,7 +217,7 @@ export default function MaturePlayer({
                 quality={75}
               />
             ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[rgba(244,178,102,0.08)] text-[var(--color-muted)]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[rgba(30,215,96,0.12)] text-[var(--color-muted)]">
                 🎵
               </div>
             )}
@@ -259,7 +259,11 @@ export default function MaturePlayer({
                 ? "text-red-500 hover:text-red-400"
                 : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
             } ${addFavorite.isPending || removeFavorite.isPending ? "opacity-50" : ""}`}
-            title={favoriteData?.isFavorite ? "Remove from favorites" : "Add to favorites"}
+            title={
+              favoriteData?.isFavorite
+                ? "Remove from favorites"
+                : "Add to favorites"
+            }
           >
             <Heart
               className={`h-5 w-5 transition-transform ${
@@ -276,9 +280,9 @@ export default function MaturePlayer({
             <button
               type="button"
               onClick={handleToggleShuffle}
-              className={`rounded p-2 transition ${
+              className={`rounded-full p-2 transition ${
                 isShuffled
-                  ? "bg-[rgba(244,178,102,0.16)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.2)]"
+                  ? "bg-[rgba(30,215,96,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(30,215,96,0.3)]"
                   : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
               }`}
               title="Shuffle (S)"
@@ -330,7 +334,7 @@ export default function MaturePlayer({
             <button
               type="button"
               onClick={handlePlayPause}
-              className="desktop-play-btn flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow-hover)] transition hover:scale-105 active:scale-95"
+              className="desktop-play-btn flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow-hover)] transition hover:scale-105 active:scale-95"
               title="Play/Pause (Space)"
             >
               {isPlaying ? (
@@ -399,9 +403,9 @@ export default function MaturePlayer({
             <button
               type="button"
               onClick={handleCycleRepeat}
-              className={`rounded p-2 transition ${
+              className={`rounded-full p-2 transition ${
                 repeatMode !== "none"
-                  ? "bg-[rgba(244,178,102,0.16)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.2)]"
+                  ? "bg-[rgba(30,215,96,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(30,215,96,0.3)]"
                   : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
               }`}
               title={`Repeat: ${repeatMode} (R)`}
@@ -578,9 +582,9 @@ export default function MaturePlayer({
             <button
               type="button"
               onClick={onToggleVisualizer}
-              className={`rounded p-2 transition ${
+              className={`rounded-full p-2 transition ${
                 visualizerEnabled
-                  ? "bg-[rgba(244,178,102,0.16)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.2)]"
+                  ? "bg-[rgba(30,215,96,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(30,215,96,0.3)]"
                   : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
               }`}
               title={
@@ -630,9 +634,9 @@ export default function MaturePlayer({
               hapticLight();
               setHideUI(!hideUI);
             }}
-            className={`rounded p-2 transition ${
+            className={`rounded-full p-2 transition ${
               hideUI
-                ? "bg-[rgba(244,178,102,0.16)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.2)]"
+                ? "bg-[rgba(30,215,96,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(30,215,96,0.3)]"
                 : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
             }`}
             title={hideUI ? "Show UI" : "Hide UI to enjoy visuals"}
