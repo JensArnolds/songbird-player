@@ -176,7 +176,7 @@ export default function MobileHeader() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={springPresets.gentle}
-      className="theme-chrome-header safe-top fixed top-0 right-0 left-0 z-50 border-b border-white/10 bg-[rgba(8,8,8,0.96)] shadow-lg backdrop-blur-xl"
+      className="theme-chrome-header safe-top fixed top-0 right-0 left-0 z-50 border-b shadow-lg backdrop-blur-xl"
     >
       <div className="flex items-center gap-2 px-4 py-2.5">
         <motion.button

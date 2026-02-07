@@ -136,7 +136,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={springPresets.gentle}
-      className="theme-chrome-bar safe-bottom fixed right-0 bottom-0 left-0 z-50 border-t border-white/10 bg-[rgba(8,8,8,0.97)] backdrop-blur-2xl"
+      className="theme-chrome-bar safe-bottom fixed right-0 bottom-0 left-0 z-50 border-t backdrop-blur-2xl"
     >
       <div className="grid grid-cols-5 gap-0.5 px-1.5 py-1.5">
         {tabs.map((tab) => {
@@ -183,7 +183,7 @@ export default function MobileFooter({ onCreatePlaylist }: MobileFooterProps) {
             >
               {tab.name === "create" ? (
                 <div
-                  className={`mb-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-[var(--color-on-accent)] shadow-[0_8px_18px_rgba(30,215,96,0.34)] transition-all ${
+                  className={`mb-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] text-[var(--color-on-accent)] shadow-[0_8px_18px_rgba(244,178,102,0.34)] transition-all ${
                     isDisabled ? "opacity-45" : "opacity-100"
                   }`}
                 >

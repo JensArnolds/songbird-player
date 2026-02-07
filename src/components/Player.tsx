@@ -217,7 +217,7 @@ export default function MaturePlayer({
                 quality={75}
               />
             ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[rgba(30,215,96,0.12)] text-[var(--color-muted)]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[rgba(244,178,102,0.12)] text-[var(--color-muted)]">
                 🎵
               </div>
             )}
@@ -282,7 +282,7 @@ export default function MaturePlayer({
               onClick={handleToggleShuffle}
               className={`rounded-full p-2 transition ${
                 isShuffled
-                  ? "bg-[rgba(30,215,96,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(30,215,96,0.3)]"
+                  ? "bg-[rgba(244,178,102,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.3)]"
                   : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
               }`}
               title="Shuffle (S)"
@@ -405,7 +405,7 @@ export default function MaturePlayer({
               onClick={handleCycleRepeat}
               className={`rounded-full p-2 transition ${
                 repeatMode !== "none"
-                  ? "bg-[rgba(30,215,96,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(30,215,96,0.3)]"
+                  ? "bg-[rgba(244,178,102,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.3)]"
                   : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
               }`}
               title={`Repeat: ${repeatMode} (R)`}
@@ -584,7 +584,7 @@ export default function MaturePlayer({
               onClick={onToggleVisualizer}
               className={`rounded-full p-2 transition ${
                 visualizerEnabled
-                  ? "bg-[rgba(30,215,96,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(30,215,96,0.3)]"
+                  ? "bg-[rgba(244,178,102,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.3)]"
                   : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
               }`}
               title={
@@ -636,7 +636,7 @@ export default function MaturePlayer({
             }}
             className={`rounded-full p-2 transition ${
               hideUI
-                ? "bg-[rgba(30,215,96,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(30,215,96,0.3)]"
+                ? "bg-[rgba(244,178,102,0.18)] text-[var(--color-accent)] shadow-[0_0_16px_rgba(244,178,102,0.3)]"
                 : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
             }`}
             title={hideUI ? "Show UI" : "Hide UI to enjoy visuals"}

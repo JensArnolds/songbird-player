@@ -219,7 +219,7 @@ export default function MobileSearchBar({
           animate={{
             scale: isFocused ? 1.01 : 1,
             boxShadow: isFocused
-              ? "0 10px 26px rgba(30,215,96,0.18), 0 0 0 2px rgba(30,215,96,0.35)"
+              ? "0 10px 26px rgba(244,178,102,0.18), 0 0 0 2px rgba(244,178,102,0.35)"
               : "0 8px 18px rgba(0, 0, 0, 0.28)",
           }}
           transition={springPresets.snappy}
@@ -277,7 +277,7 @@ export default function MobileSearchBar({
                       cx="10"
                       cy="10"
                       r="8"
-                      stroke="rgba(30,215,96,0.2)"
+                      stroke="rgba(244,178,102,0.2)"
                       strokeWidth="2"
                       fill="none"
                     />
@@ -455,7 +455,7 @@ export default function MobileSearchBar({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[rgba(30,215,96,0.08)]"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[rgba(244,178,102,0.08)]"
                 >
                   <Search className="h-4 w-4 text-[var(--color-muted)]" />
                   <span className="flex-1 truncate text-sm text-[var(--color-text)]">

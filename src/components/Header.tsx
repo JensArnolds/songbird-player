@@ -251,7 +251,7 @@ export default function Header() {
             key={headerSearchQuery || "__empty"}
             defaultValue={headerSearchQuery}
             className="w-full bg-transparent text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none"
-            placeholder="What do you want to play?"
+            placeholder="Search for songs, artists, or albums..."
             aria-label="Search music"
           />
           <button
@@ -268,7 +268,7 @@ export default function Header() {
             href="/"
             className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
               isHomeActive
-                ? "border-[rgba(30,215,96,0.4)] bg-[rgba(30,215,96,0.18)] text-[var(--color-text)]"
+                ? "border-[rgba(244,178,102,0.4)] bg-[rgba(244,178,102,0.18)] text-[var(--color-text)]"
                 : "border-[rgba(255,255,255,0.12)] text-[var(--color-subtext)] hover:border-[rgba(255,255,255,0.2)] hover:text-[var(--color-text)]"
             }`}
           >
@@ -279,7 +279,7 @@ export default function Header() {
             href="/library"
             className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
               isLibraryActive
-                ? "border-[rgba(30,215,96,0.4)] bg-[rgba(30,215,96,0.18)] text-[var(--color-text)]"
+                ? "border-[rgba(244,178,102,0.4)] bg-[rgba(244,178,102,0.18)] text-[var(--color-text)]"
                 : "border-[rgba(255,255,255,0.12)] text-[var(--color-subtext)] hover:border-[rgba(255,255,255,0.2)] hover:text-[var(--color-text)]"
             }`}
           >
