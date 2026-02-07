@@ -79,7 +79,7 @@ export default function HamburgerMenu() {
           ? `/${userHash}`
           : session
             ? "#" // Placeholder while userHash loads - preventDefault() handles navigation
-            : "/api/auth/signin",
+            : "/signin",
       dividerAfter: !session,
     },
     {
