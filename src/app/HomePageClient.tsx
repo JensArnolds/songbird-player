@@ -24,7 +24,9 @@ import {
 } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Disc3,
   BookOpen,
+  ListMusic,
   Music2,
   Search,
   Share2,
@@ -93,6 +95,10 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     { limit: 50 },
     { enabled: !!session },
   );
+  const { data: userPlaylists } = api.music.getPlaylists.useQuery(undefined, {
+    enabled: !!session && !isMobile,
+    refetchOnWindowFocus: false,
+  });
 
   const performSearch = useCallback(
     async (searchQuery: string, force = false) => {
@@ -409,6 +415,33 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   );
 
   const hasMore = results.length < total;
+  const featuredAlbums = [
+    {
+      title: "Mezzanine",
+      artist: "Massive Attack",
+      query: "Massive Attack Mezzanine",
+      tint: "from-[rgba(30,215,96,0.34)] to-[rgba(14,14,14,0.92)]",
+    },
+    {
+      title: "Felt Mountain",
+      artist: "Goldfrapp",
+      query: "Goldfrapp Felt Mountain",
+      tint: "from-[rgba(83,182,255,0.34)] to-[rgba(14,14,14,0.92)]",
+    },
+    {
+      title: "Homogenic",
+      artist: "Björk",
+      query: "Björk Homogenic",
+      tint: "from-[rgba(255,255,255,0.22)] to-[rgba(14,14,14,0.92)]",
+    },
+    {
+      title: "Violator",
+      artist: "Depeche Mode",
+      query: "Depeche Mode Violator",
+      tint: "from-[rgba(30,215,96,0.26)] to-[rgba(20,20,20,0.94)]",
+    },
+  ];
+  const playlistTiles = (userPlaylists ?? []).slice(0, 4);
   const greeting =
     new Date().getHours() < 12
       ? "Good morning"
@@ -589,200 +622,299 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={springPresets.gentle}
-                className="card flex flex-col items-center justify-center py-14 text-center md:py-12"
+                className="space-y-4"
               >
-                <motion.div
-                  animate={{
-                    scale: [1, 1.05, 1],
-                    rotate: [0, 5, -5, 0],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[rgba(30,215,96,0.18)] to-[rgba(30,215,96,0.08)] ring-2 ring-[var(--color-accent)]/20 md:mb-3 md:h-16 md:w-16"
-                >
-                  <Music2 className="h-10 w-10 text-[var(--color-accent)] md:h-8 md:w-8" />
-                </motion.div>
-                <h3 className="mb-2 text-lg font-bold text-[var(--color-text)] md:mb-1.5 md:text-base">
-                  {isMobile
-                    ? "Tap Shuffle to start instantly, or search for something specific."
-                    : "Search songs, artists, and albums to build your listening flow."}
-                </h3>
-
-                {session && recentSearches && recentSearches.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ ...springPresets.gentle, delay: 0.1 }}
-                    className="mt-4 w-full max-w-5xl"
-                  >
-                    <div className="mb-1.5 text-left text-[11px] font-semibold tracking-wide text-[var(--color-subtext)] uppercase">
-                      Past Searches
-                    </div>
-                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-                      {recentSearches
-                        .slice(0, 16)
-                        .map((search: string, index: number) => (
-                          <motion.div
-                            key={`${search}-${index}`}
-                            whileTap={{ scale: 0.98 }}
-                            className="theme-panel flex items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors hover:bg-[var(--color-surface-hover)]"
+                {!isMobile && (
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <section className="card p-4 text-left md:p-5">
+                      <div className="mb-3 flex items-center gap-2">
+                        <Disc3 className="h-4 w-4 text-[var(--color-accent)]" />
+                        <h4 className="text-sm font-bold tracking-wide text-[var(--color-text)] uppercase">
+                          Album Picks
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {featuredAlbums.map((album) => (
+                          <button
+                            key={`${album.artist}-${album.title}`}
+                            onClick={() => {
+                              hapticLight();
+                              setQuery(album.query);
+                              void handleSearch(album.query);
+                            }}
+                            className={`group rounded-xl border border-white/10 bg-gradient-to-br p-3 text-left transition-all hover:scale-[1.02] hover:border-white/20 ${album.tint}`}
                           >
+                            <p className="line-clamp-1 text-sm font-semibold text-[var(--color-text)]">
+                              {album.title}
+                            </p>
+                            <p className="mt-1 line-clamp-1 text-xs text-[var(--color-subtext)]">
+                              {album.artist}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section className="card p-4 text-left md:p-5">
+                      <div className="mb-3 flex items-center gap-2">
+                        <ListMusic className="h-4 w-4 text-[var(--color-secondary-accent)]" />
+                        <h4 className="text-sm font-bold tracking-wide text-[var(--color-text)] uppercase">
+                          Playlist Grid
+                        </h4>
+                      </div>
+                      {playlistTiles.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          {playlistTiles.map((playlist) => (
                             <button
+                              key={playlist.id}
                               onClick={() => {
                                 hapticLight();
-                                setQuery(search);
-                                void handleSearch(search);
+                                router.push(`/playlists/${playlist.id}`);
                               }}
-                              className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+                              className="group rounded-xl border border-white/10 bg-[linear-gradient(160deg,rgba(83,182,255,0.24),rgba(14,14,14,0.94))] p-3 text-left transition-all hover:scale-[1.02] hover:border-white/20"
                             >
-                              <Search className="h-3.5 w-3.5 shrink-0 text-[var(--color-muted)]" />
-                              <span className="truncate text-xs text-[var(--color-text)]">
-                                {search}
-                              </span>
+                              <p className="line-clamp-1 text-sm font-semibold text-[var(--color-text)]">
+                                {playlist.name}
+                              </p>
+                              <p className="mt-1 line-clamp-1 text-xs text-[var(--color-subtext)]">
+                                {(playlist.trackCount ?? 0).toString()} tracks
+                              </p>
                             </button>
-
-                            <button
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                hapticLight();
-                                void handleShareSearch(search);
-                              }}
-                              className="electron-no-drag inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-1.5 py-1 text-[11px] font-medium text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-                              title="Share search"
-                              aria-label={`Share search: ${search}`}
-                            >
-                              <Share2 className="h-3 w-3" />
-                              Share
-                            </button>
-                          </motion.div>
-                        ))}
-                    </div>
-                  </motion.div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => {
+                              hapticLight();
+                              router.push("/playlists/12");
+                            }}
+                            className="w-full rounded-xl border border-white/10 bg-[linear-gradient(160deg,rgba(83,182,255,0.24),rgba(14,14,14,0.94))] px-3 py-3 text-left transition-all hover:border-white/20"
+                          >
+                            <p className="text-sm font-semibold text-[var(--color-text)]">
+                              Example Playlist
+                            </p>
+                            <p className="text-xs text-[var(--color-subtext)]">
+                              curated starter selection
+                            </p>
+                          </button>
+                          <button
+                            onClick={() => {
+                              hapticLight();
+                              router.push(
+                                session ? "/playlists" : "/api/auth/signin",
+                              );
+                            }}
+                            className="w-full rounded-xl border border-white/10 bg-[rgba(255,255,255,0.04)] px-3 py-3 text-left transition-all hover:border-white/20"
+                          >
+                            <p className="text-sm font-semibold text-[var(--color-text)]">
+                              Your Playlists
+                            </p>
+                            <p className="text-xs text-[var(--color-subtext)]">
+                              open library and create your own
+                            </p>
+                          </button>
+                        </div>
+                      )}
+                    </section>
+                  </div>
                 )}
 
-                {!session && (
+                <div className="card flex flex-col items-center justify-center py-14 text-center md:py-12">
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ ...springPresets.gentle, delay: 0.2 }}
-                    className="mt-4 max-w-md rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 md:mt-3 md:px-4 md:py-3"
+                    animate={{
+                      scale: [1, 1.05, 1],
+                      rotate: [0, 5, -5, 0],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[rgba(30,215,96,0.18)] to-[rgba(30,215,96,0.08)] ring-2 ring-[var(--color-accent)]/20 md:mb-3 md:h-16 md:w-16"
                   >
-                    <p className="mb-2 text-sm font-semibold text-[var(--color-text)] md:mb-1.5 md:text-xs">
-                      Sign in is optional, but it unlocks a few features you may
-                      like:
-                    </p>
-                    <ul className="space-y-1.5 text-xs text-[var(--color-subtext)] md:space-y-1">
-                      <li className="flex items-start">
-                        <span>
-                          Your privacy stays fully protected; optional sign-in
-                          unlocks custom playlists, a public profile, and your
-                          personal music identity—with more features on the way
-                        </span>
-                      </li>
-                    </ul>
+                    <Music2 className="h-10 w-10 text-[var(--color-accent)] md:h-8 md:w-8" />
                   </motion.div>
-                )}
+                  <h3 className="mb-2 text-lg font-bold text-[var(--color-text)] md:mb-1.5 md:text-base">
+                    {isMobile
+                      ? "Tap Shuffle to start instantly, or search for something specific."
+                      : "Search songs, artists, and albums to build your listening flow."}
+                  </h3>
 
-                {isMobile && (
-                  <motion.button
-                    onClick={handleShufflePlay}
-                    disabled={loading}
-                    whileTap={{ scale: 0.95 }}
-                    className="mt-6 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] px-8 py-4 text-lg font-bold text-[var(--color-on-accent)] shadow-[var(--color-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-accent)]/40 hover:shadow-xl disabled:opacity-50"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="spinner spinner-sm border-white" />
-                        <span>Loading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Shuffle className="h-6 w-6" />
-                        <span>Shuffle & Play</span>
-                      </>
-                    )}
-                  </motion.button>
-                )}
+                  {session && recentSearches && recentSearches.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ ...springPresets.gentle, delay: 0.1 }}
+                      className="mt-4 w-full max-w-5xl"
+                    >
+                      <div className="mb-1.5 text-left text-[11px] font-semibold tracking-wide text-[var(--color-subtext)] uppercase">
+                        Past Searches
+                      </div>
+                      <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                        {recentSearches
+                          .slice(0, 16)
+                          .map((search: string, index: number) => (
+                            <motion.div
+                              key={`${search}-${index}`}
+                              whileTap={{ scale: 0.98 }}
+                              className="theme-panel flex items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors hover:bg-[var(--color-surface-hover)]"
+                            >
+                              <button
+                                onClick={() => {
+                                  hapticLight();
+                                  setQuery(search);
+                                  void handleSearch(search);
+                                }}
+                                className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+                              >
+                                <Search className="h-3.5 w-3.5 shrink-0 text-[var(--color-muted)]" />
+                                <span className="truncate text-xs text-[var(--color-text)]">
+                                  {search}
+                                </span>
+                              </button>
 
-                <div className="mt-6 flex flex-wrap justify-center gap-2 md:mt-4 md:gap-1.5">
-                  {[
-                    "Lamb",
-                    "Depeche Mode",
-                    "The Knife",
-                    "Goldfrapp",
-                    "GusGus",
-                    "Soulwax",
-                    "Massive Attack",
-                  ].map((suggestion) => (
+                              <button
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  hapticLight();
+                                  void handleShareSearch(search);
+                                }}
+                                className="electron-no-drag inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-1.5 py-1 text-[11px] font-medium text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                                title="Share search"
+                                aria-label={`Share search: ${search}`}
+                              >
+                                <Share2 className="h-3 w-3" />
+                                Share
+                              </button>
+                            </motion.div>
+                          ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {!session && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ ...springPresets.gentle, delay: 0.2 }}
+                      className="mt-4 max-w-md rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 md:mt-3 md:px-4 md:py-3"
+                    >
+                      <p className="mb-2 text-sm font-semibold text-[var(--color-text)] md:mb-1.5 md:text-xs">
+                        Sign in is optional, but it unlocks a few features you
+                        may like:
+                      </p>
+                      <ul className="space-y-1.5 text-xs text-[var(--color-subtext)] md:space-y-1">
+                        <li className="flex items-start">
+                          <span>
+                            Your privacy stays fully protected; optional sign-in
+                            unlocks custom playlists, a public profile, and your
+                            personal music identity—with more features on the
+                            way
+                          </span>
+                        </li>
+                      </ul>
+                    </motion.div>
+                  )}
+
+                  {isMobile && (
                     <motion.button
-                      key={suggestion}
+                      onClick={handleShufflePlay}
+                      disabled={loading}
+                      whileTap={{ scale: 0.95 }}
+                      className="mt-6 flex w-full max-w-xs items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] px-8 py-4 text-lg font-bold text-[var(--color-on-accent)] shadow-[var(--color-accent)]/25 shadow-lg transition-all hover:shadow-[var(--color-accent)]/40 hover:shadow-xl disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="spinner spinner-sm border-white" />
+                          <span>Loading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Shuffle className="h-6 w-6" />
+                          <span>Shuffle & Play</span>
+                        </>
+                      )}
+                    </motion.button>
+                  )}
+
+                  <div className="mt-6 flex flex-wrap justify-center gap-2 md:mt-4 md:gap-1.5">
+                    {[
+                      "Lamb",
+                      "Depeche Mode",
+                      "The Knife",
+                      "Goldfrapp",
+                      "GusGus",
+                      "Soulwax",
+                      "Massive Attack",
+                    ].map((suggestion) => (
+                      <motion.button
+                        key={suggestion}
+                        onClick={() => {
+                          hapticLight();
+                          setQuery(suggestion);
+                          void handleSearch(suggestion);
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-2 rounded-full bg-[rgba(30,215,96,0.1)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[rgba(30,215,96,0.2)] md:px-3 md:py-1.5 md:text-xs"
+                      >
+                        <Sparkles className="h-3 w-3 md:h-2.5 md:w-2.5" />
+                        {suggestion}
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:mt-5 md:gap-2">
+                    <motion.a
+                      href="https://github.com/soulwax/songbird-player"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileTap={{ scale: 0.95 }}
+                      className="btn-github flex items-center gap-2 rounded-xl bg-[rgba(255,255,255,0.05)] px-5 py-3 text-sm font-medium text-[var(--color-text)] ring-1 ring-white/10 transition-all hover:bg-[rgba(255,255,255,0.1)] hover:ring-[var(--color-accent)]/30 md:px-3 md:py-2 md:text-xs"
+                    >
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 flex-shrink-0 md:h-4 md:w-4"
+                      >
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                      </svg>
+                      <span>View on GitHub</span>
+                    </motion.a>
+
+                    <motion.button
                       onClick={() => {
                         hapticLight();
-                        setQuery(suggestion);
-                        void handleSearch(suggestion);
+                        setIsChangelogOpen(true);
                       }}
                       whileTap={{ scale: 0.95 }}
-                      className="flex items-center gap-2 rounded-full bg-[rgba(30,215,96,0.1)] px-4 py-2 text-sm text-[var(--color-accent)] transition-colors hover:bg-[rgba(30,215,96,0.2)] md:px-3 md:py-1.5 md:text-xs"
+                      className="flex items-center gap-2 rounded-xl bg-[rgba(30,215,96,0.1)] px-5 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 transition-all hover:bg-[rgba(30,215,96,0.2)] hover:ring-[var(--color-accent)]/40 md:px-3 md:py-2 md:text-xs"
                     >
-                      <Sparkles className="h-3 w-3 md:h-2.5 md:w-2.5" />
-                      {suggestion}
+                      <BookOpen className="h-4 w-4 md:h-3.5 md:w-3.5" />
+                      <span>Changelog</span>
                     </motion.button>
-                  ))}
-                </div>
 
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:mt-5 md:gap-2">
-                  <motion.a
-                    href="https://github.com/soulwax/songbird-player"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileTap={{ scale: 0.95 }}
-                    className="btn-github flex items-center gap-2 rounded-xl bg-[rgba(255,255,255,0.05)] px-5 py-3 text-sm font-medium text-[var(--color-text)] ring-1 ring-white/10 transition-all hover:bg-[rgba(255,255,255,0.1)] hover:ring-[var(--color-accent)]/30 md:px-3 md:py-2 md:text-xs"
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 flex-shrink-0 md:h-4 md:w-4"
+                    <motion.button
+                      onClick={() => {
+                        hapticLight();
+                        router.push("/playlists/12");
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      className="ml-6 flex items-center gap-2 rounded-xl bg-[rgba(83,182,255,0.15)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] ring-1 ring-[var(--color-secondary-accent)]/20 transition-all hover:bg-[rgba(83,182,255,0.25)] hover:ring-[var(--color-secondary-accent)]/40 md:ml-4 md:px-3 md:py-2 md:text-xs"
                     >
-                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                    </svg>
-                    <span>View on GitHub</span>
-                  </motion.a>
+                      <Music2 className="h-4 w-4 md:h-3.5 md:w-3.5" />
+                      <span>Example Playlist</span>
+                    </motion.button>
+                  </div>
 
-                  <motion.button
-                    onClick={() => {
-                      hapticLight();
-                      setIsChangelogOpen(true);
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 rounded-xl bg-[rgba(30,215,96,0.1)] px-5 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20 transition-all hover:bg-[rgba(30,215,96,0.2)] hover:ring-[var(--color-accent)]/40 md:px-3 md:py-2 md:text-xs"
-                  >
-                    <BookOpen className="h-4 w-4 md:h-3.5 md:w-3.5" />
-                    <span>Changelog</span>
-                  </motion.button>
-
-                  <motion.button
-                    onClick={() => {
-                      hapticLight();
-                      router.push("/playlists/12");
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    className="ml-6 flex items-center gap-2 rounded-xl bg-[rgba(83,182,255,0.15)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] ring-1 ring-[var(--color-secondary-accent)]/20 transition-all hover:bg-[rgba(83,182,255,0.25)] hover:ring-[var(--color-secondary-accent)]/40 md:ml-4 md:px-3 md:py-2 md:text-xs"
-                  >
-                    <Music2 className="h-4 w-4 md:h-3.5 md:w-3.5" />
-                    <span>Example Playlist</span>
-                  </motion.button>
+                  <p className="mt-8 text-xs font-medium tracking-wider text-[var(--color-muted)] uppercase md:mt-6">
+                    Copyright &copy; 2026 Starchild Music Player. All rights
+                    reserved.
+                  </p>
                 </div>
-
-                <p className="mt-8 text-xs font-medium tracking-wider text-[var(--color-muted)] uppercase md:mt-6">
-                  Copyright &copy; 2026 Starchild Music Player. All rights
-                  reserved.
-                </p>
               </motion.div>
             )}
           </AnimatePresence>

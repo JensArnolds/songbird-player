@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Desktop header UX refresh**: Restored visible brand identity, upgraded search affordance ("What do you want to play?"), and added compact Home/Library quick-navigation chips with clear active states. Location: [src/components/Header.tsx](src/components/Header.tsx).
 - **Desktop sidebar hierarchy improvements**: Refined sidebar spacing, typography, active indicators, and playlist section framing for a clearer music-library mental model (including polished collapsed/expanded behavior). Location: [src/components/ElectronSidebar.tsx](src/components/ElectronSidebar.tsx).
 - **Home browse experience update**: Added a desktop discovery hero with contextual greeting/actions, improved search-results header context, and aligned empty-state chips/CTAs with the new accent system. Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx).
+- **Desktop browse grid section**: Added a compact two-column "Album Picks" + "Playlist Grid" module on desktop home empty-state to speed up discovery and shortcut navigation into playlists. Location: [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx).
+- **Mobile Spotify-style shell pass**: Refined mobile header/search/footer spacing and visual hierarchy (cleaner top search chrome, tighter bottom-tab behavior, stronger active/action affordances) for a more Spotify-like mobile navigation feel. Locations: [src/components/MobileHeader.tsx](src/components/MobileHeader.tsx), [src/components/MobileSearchBar.tsx](src/components/MobileSearchBar.tsx), [src/components/MobileFooter.tsx](src/components/MobileFooter.tsx).
 - **Track-row interaction polish**: Converted result cards into denser, hover-led rows with stronger play affordance and cleaner contextual action presentation to better match desktop music-app browsing patterns. Location: [src/components/SwipeableTrackCard.tsx](src/components/SwipeableTrackCard.tsx).
 - **Player control styling sync**: Updated desktop player button sizing and active-state styling to align playback controls with the refreshed accent/chrome language. Location: [src/components/Player.tsx](src/components/Player.tsx).
 - **Typography update**: Replaced the previous global app font with `Manrope` and wired it into the root CSS variable used by global styles. Location: [src/app/layout.tsx](src/app/layout.tsx).
@@ -40,7 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Auth fail-closed behavior**: NextAuth `signIn` now denies login with `AuthFailed` when critical DB checks cannot complete (ban check and first-admin promotion), instead of allowing sign-in on callback errors. Non-critical Discord profile sync failures are logged and do not block login. Location: [src/server/auth/config.ts](src/server/auth/config.ts).
 - **Atomic first-admin promotion**: Replaced race-prone first-user promotion logic with a transaction-based conditional update and lock so only one user can become `firstAdmin` under concurrent sign-ins. Location: [src/server/auth/config.ts](src/server/auth/config.ts).
 - **First-admin uniqueness guard**: Added a partial unique index for `firstAdmin = true` in schema and migration to enforce single-first-admin at the database layer. Locations: [src/server/db/schema.ts](src/server/db/schema.ts), [drizzle/0021_unique_first_admin.sql](drizzle/0021_unique_first_admin.sql).
-
 
 ## [0.12.10] - 2026-02-04
 
@@ -73,7 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Streaming proxy**: `/api/stream` now targets `/music/stream/direct` for in-memory streaming on Vercel; docs/tests updated. Locations: [src/app/api/stream/route.ts](src/app/api/stream/route.ts), [src/__tests__/api-stream-v2.test.ts](src/__tests__/api-stream-v2.test.ts), [README.md](README.md), [REPOSITORY_OVERVIEW.md](REPOSITORY_OVERVIEW.md).
+- **Streaming proxy**: `/api/stream` now targets `/music/stream/direct` for in-memory streaming on Vercel; docs/tests updated. Locations: [src/app/api/stream/route.ts](src/app/api/stream/route.ts), [src/**tests**/api-stream-v2.test.ts](src/__tests__/api-stream-v2.test.ts), [README.md](README.md), [REPOSITORY_OVERVIEW.md](REPOSITORY_OVERVIEW.md).
 - **API base URL**: Removed `API_URL` usage in favor of `API_V2_URL` across proxying, OG previews, smart-queue requests, and tests/scripts. Locations: [src/proxy.ts](src/proxy.ts), [src/app/api/og/route.tsx](src/app/api/og/route.tsx), [src/services/smartQueue.ts](src/services/smartQueue.ts), [src/test/setup.ts](src/test/setup.ts), [scripts/server.js](scripts/server.js).
 - **Mobile queue scrolling**: Added a dedicated scroll rail and restricted reordering to the handle so swipe scrolling no longer triggers haptic reorders. Location: [src/components/MobilePlayer.tsx](src/components/MobilePlayer.tsx).
 
@@ -155,7 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dark-only base: html background and arcane overlays (html::before/::after, body::before/::after) apply only under `html:not(.theme-light)` so light mode gets a clean base
   - Light theme variables: refreshed palette (e.g. bg #f8fafb, surface #ffffff, accent #d4933d, border #e2e8f0), softer shadows/ring, `--color-on-accent` for buttons/badges/selection
   - Light base: solid background and subtle teal/amber gradients via html.theme-light::before/::after; lightweight particle background hidden in light mode
-  - Component overrides under `html.theme-light`: .btn-secondary, .btn-ghost, .card, .surface-panel, .surface-muted, .chip, .glass, .player-backdrop, .page-shell, .bottom-sheet, .input-text, scrollbar, scroll-shadow-*, equalizer sliders/labels
+  - Component overrides under `html.theme-light`: .btn-secondary, .btn-ghost, .card, .surface-panel, .surface-muted, .chip, .glass, .player-backdrop, .page-shell, .bottom-sheet, .input-text, scrollbar, scroll-shadow-\*, equalizer sliders/labels
   - Theme-aware chrome: new classes .theme-chrome-header, .theme-chrome-bar, .theme-chrome-drawer, .theme-chrome-backdrop with light variants; Header, MiniPlayer, MobileFooter, BottomSheet, EnhancedQueue, Equalizer, PatternControls use them
   - Settings and Home: cards/rows use var(--color-border), var(--color-surface), var(--color-surface-hover) instead of white/5; toggle track uses var(--color-border) when unchecked
   - Locations: [src/styles/globals.css](src/styles/globals.css), [src/components/Header.tsx](src/components/Header.tsx), [src/components/MiniPlayer.tsx](src/components/MiniPlayer.tsx), [src/components/MobileFooter.tsx](src/components/MobileFooter.tsx), [src/components/BottomSheet.tsx](src/components/BottomSheet.tsx), [src/components/EnhancedQueue.tsx](src/components/EnhancedQueue.tsx), [src/components/Equalizer.tsx](src/components/Equalizer.tsx), [src/components/PatternControls.tsx](src/components/PatternControls.tsx), [src/app/settings/page.tsx](src/app/settings/page.tsx), [src/app/HomePageClient.tsx](src/app/HomePageClient.tsx)
@@ -1141,7 +1142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Audio Element Reference Stability**: Fixed audio refresh when toggling hideUI button
   - **Root Cause**: AudioPlayerContext value was being recreated on every render, causing audio element reference to change
   - **Impact**: Toggling "Hide UI" button would cause audio-related effects to re-run, potentially interrupting playback
-  - **Fix**: 
+  - **Fix**:
     - Added stable ref (`stableAudioElementRef`) to maintain consistent audio element reference
     - Memoized entire context value object to prevent unnecessary recreations
     - Excluded `audioElement` from dependency array since it's maintained via stable ref
@@ -2414,15 +2415,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Performance & Security Optimizations 🚀🔒
 
 #### Build & Bundle Optimizations
+
 - **SWC Minification**: Default in Next.js 15 (7x faster than Terser)
 - **Deterministic Module IDs**: Improved long-term caching with consistent chunk names
 - **Console Removal**: Production builds remove console.log (keeps error/warn)
 - **Image Optimization**: AVIF and WebP format support with optimized device sizes
-- **Package Tree-Shaking**: Optimized imports for lucide-react, framer-motion, @tanstack/react-query, @trpc/*, @dnd-kit/*
+- **Package Tree-Shaking**: Optimized imports for lucide-react, framer-motion, @tanstack/react-query, @trpc/_, @dnd-kit/_
 - **Webpack Build Worker**: Parallel builds for faster compilation
 - **Bundle Size**: First Load JS shared by all: **102 kB** (exceptional performance - 50% smaller than initial attempt)
 
 #### Security Headers & Middleware
+
 - **Comprehensive HTTP Security Headers**:
   - `Strict-Transport-Security`: Force HTTPS with HSTS preload
   - `X-Frame-Options`: SAMEORIGIN (prevent clickjacking)
@@ -2441,12 +2444,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Memory-efficient with automatic cleanup
 
 #### Progressive Web App (PWA) Support
+
 - **Service Worker** (`public/sw.js`): Offline support with intelligent caching
 - **Web Manifest** (`public/manifest.json`): Installable as standalone app
 - **Apple Web App Support**: iOS home screen installation
 - **Service Worker Registration** (`src/app/register-sw.tsx`): Automatic registration
 
 #### Performance Monitoring
+
 - **Performance Utilities** (`src/utils/performance.ts`):
   - `measurePerformance()`: Sync function performance tracking
   - `measureAsyncPerformance()`: Async operation tracking
@@ -2454,11 +2459,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `getMemoryUsage()`: JavaScript heap usage tracking
 
 ### Improved
+
 - **Code Quality**: Removed all comments from 132 source files (~30-40% bundle size reduction)
 - **Security**: Rate limiting, CSP headers, XSS protection, CSRF protection
 - **Performance**: Near-instant repeat visits with service worker caching
 
 ### Removed
+
 - **AudioVisualizer.tsx** (723 lines): Unused visualizer component
 - **KaleidoscopeRenderer.ts** (520 lines): Unused renderer (1,243 total lines removed)
 - **SSL Certificate Management**: Removed unnecessary custom CA certificate checking (Neon uses standard SSL)
@@ -2469,6 +2476,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cleaned up [.env.example](.env.example) and [.env.vercel.example](.env.vercel.example)
 
 ### Fixed
+
 - **next.config.js**: Removed deprecated `swcMinify` option (default in Next.js 15)
 - **next.config.js**: Converted `require("crypto")` to ES module import for compatibility
 - **next.config.js**: Removed aggressive webpack code splitting (caused runtime errors) - simplified to deterministic module IDs
@@ -2478,6 +2486,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bundle Size**: Improved from 204 kB to 102 kB (50% reduction) by removing counterproductive code splitting
 
 ### Documentation
+
 - **CLAUDE.md**: Added "Performance & Security Optimizations" section with complete implementation guide
 
 ## [0.8.3] - 2026-01-02
@@ -2782,7 +2791,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Queue Refilling After Tab Switch**: Fixed queue being restored after clearing when switching tabs
   - Root cause: `clearQueue` only cleared in-memory state but didn't clear persisted localStorage, causing restoration on remount
-  - Solution: 
+  - Solution:
     - `clearQueue` now immediately clears localStorage when queue becomes empty
     - Added guard in load effect to prevent restoring empty queues (intentionally cleared)
     - `clearQueueAndHistory` also clears persisted state
@@ -2829,29 +2838,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 
 **Search Results Fix:**
+
 - All search functions now call `setResults([])` and `setTotal(0)` immediately when starting
 - Prevents race conditions where previous search responses could arrive after new search starts
 - Ensures clean state for every new search operation
 
 **Audio Player State Management:**
+
 - Operation guards prevent concurrent play/pause operations
 - Event handlers use refs to avoid stale closure issues
 - State sync polling includes debouncing to prevent rapid updates
 - Media session handlers use guarded functions instead of direct audio manipulation
 
 **Queue Persistence Flow:**
+
 1. On mount: Load from database (if logged in) or localStorage (if not logged in)
 2. On change: Save to appropriate storage (debounced for database, immediate for localStorage)
 3. On clear: Remove from both storage locations
 4. On tab switch: Restore only if queue has actual tracks (not empty/cleared)
 
 **Database Migration Required:**
+
 ```sql
-ALTER TABLE "hexmusic-stream_user_preferences" 
+ALTER TABLE "hexmusic-stream_user_preferences"
 ADD COLUMN "queueState" jsonb DEFAULT NULL;
 ```
 
 **Files Modified:**
+
 - Modified: `src/app/HomePageClient.tsx` (search results clearing)
 - Modified: `src/hooks/useAudioPlayer.ts` (pause/unpause guards, queue clearing, initial state support)
 - Modified: `src/contexts/AudioPlayerContext.tsx` (database queue persistence)
@@ -3186,7 +3200,9 @@ The pause function now includes comprehensive error handling:
 ```typescript
 const pause = useCallback(() => {
   if (!audioRef.current) {
-    console.warn("[useAudioPlayer] Cannot pause: audio element not initialized");
+    console.warn(
+      "[useAudioPlayer] Cannot pause: audio element not initialized",
+    );
     setIsPlaying(false);
     return;
   }

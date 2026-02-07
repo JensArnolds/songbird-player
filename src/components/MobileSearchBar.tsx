@@ -4,10 +4,10 @@
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import {
-    hapticError,
-    hapticLight,
-    hapticMedium,
-    hapticSuccess,
+  hapticError,
+  hapticLight,
+  hapticMedium,
+  hapticSuccess,
 } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";
@@ -92,6 +92,7 @@ export default function MobileSearchBar({
   useEffect(() => {
     const SpeechRecognitionAPI =
       window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVoiceSupported(!!SpeechRecognitionAPI);
   }, []);
 
@@ -190,16 +191,25 @@ export default function MobileSearchBar({
   };
 
   const handleBlur = () => {
-
     setTimeout(() => setIsFocused(false), 150);
   };
 
   const displayValue = isListening ? interimTranscript || value : value;
   const showClear = value.length > 0 && !isLoading;
   const showRecentSearches = isFocused && !value && recentSearches.length > 0;
-  const showAutoSearch = showAutoSearchIndicator && value.trim().length > 0 && !isLoading && !isListening;
-    const countdownProgress = Math.max(0, Math.min(100, (autoSearchCountdown / 2000) * 100));
-    const elapsedProgress = Math.max(0, Math.min(100, (1 - autoSearchCountdown / 2000) * 100));
+  const showAutoSearch =
+    showAutoSearchIndicator &&
+    value.trim().length > 0 &&
+    !isLoading &&
+    !isListening;
+  const countdownProgress = Math.max(
+    0,
+    Math.min(100, (autoSearchCountdown / 2000) * 100),
+  );
+  const elapsedProgress = Math.max(
+    0,
+    Math.min(100, (1 - autoSearchCountdown / 2000) * 100),
+  );
 
   return (
     <div className="relative w-full">
@@ -207,15 +217,15 @@ export default function MobileSearchBar({
       <form onSubmit={handleSubmit} className="relative">
         <motion.div
           animate={{
-            scale: isFocused ? 1.02 : 1,
+            scale: isFocused ? 1.01 : 1,
             boxShadow: isFocused
-              ? "0 8px 32px rgba(244, 178, 102, 0.15), 0 0 0 2px rgba(244, 178, 102, 0.3)"
-              : "0 4px 16px rgba(0, 0, 0, 0.2)",
+              ? "0 10px 26px rgba(30,215,96,0.18), 0 0 0 2px rgba(30,215,96,0.35)"
+              : "0 8px 18px rgba(0, 0, 0, 0.28)",
           }}
           transition={springPresets.snappy}
-          className={`theme-panel relative flex items-center gap-3 rounded-2xl border px-4 py-3 backdrop-blur-xl transition-colors ${
+          className={`theme-panel relative flex items-center gap-2.5 rounded-full border border-white/10 bg-[rgba(24,24,24,0.95)] px-4 py-2.5 backdrop-blur-xl transition-colors ${
             isFocused
-              ? "border-[var(--color-accent)]"
+              ? "border-[var(--color-accent)]/60"
               : "border-[var(--color-border)]"
           } ${showAutoSearch ? "pb-6" : ""}`}
         >
@@ -259,12 +269,15 @@ export default function MobileSearchBar({
                 className="absolute left-4"
               >
                 <div className="relative h-5 w-5">
-                  <svg className="h-5 w-5 -rotate-90 transform" viewBox="0 0 20 20">
+                  <svg
+                    className="h-5 w-5 -rotate-90 transform"
+                    viewBox="0 0 20 20"
+                  >
                     <circle
                       cx="10"
                       cy="10"
                       r="8"
-                      stroke="rgba(244,178,102,0.2)"
+                      stroke="rgba(30,215,96,0.2)"
                       strokeWidth="2"
                       fill="none"
                     />
@@ -278,7 +291,8 @@ export default function MobileSearchBar({
                       strokeDasharray={2 * Math.PI * 8}
                       strokeLinecap="round"
                       animate={{
-                        strokeDashoffset: 2 * Math.PI * 8 * (1 - countdownProgress / 100),
+                        strokeDashoffset:
+                          2 * Math.PI * 8 * (1 - countdownProgress / 100),
                       }}
                       transition={{ duration: 0.1, ease: "linear" }}
                     />
@@ -292,7 +306,9 @@ export default function MobileSearchBar({
           </AnimatePresence>
 
           {}
-          <div className={`min-w-0 flex-1 relative ${isLoading || showAutoSearch ? "pl-8" : ""}`}>
+          <div
+            className={`relative min-w-0 flex-1 ${isLoading || showAutoSearch ? "pl-8" : ""}`}
+          >
             <input
               ref={inputRef}
               type="text"
@@ -315,19 +331,19 @@ export default function MobileSearchBar({
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="absolute -bottom-5 left-0 right-0"
+                className="absolute right-0 -bottom-5 left-0"
               >
                 <div className="flex items-center gap-1.5 text-[10px] text-[var(--color-subtext)]">
-                  <div className="slider-track h-1 flex-1 rounded-full overflow-hidden">
+                  <div className="slider-track h-1 flex-1 overflow-hidden rounded-full">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] rounded-full"
+                      className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)]"
                       initial={{ width: "0%" }}
                       animate={{ width: `${elapsedProgress}%` }}
                       transition={{ duration: 0.1, ease: "linear" }}
                     />
                   </div>
-                  <span className="whitespace-nowrap font-medium text-[var(--color-accent)]">
-                    {autoSearchCountdown > 0 
+                  <span className="font-medium whitespace-nowrap text-[var(--color-accent)]">
+                    {autoSearchCountdown > 0
                       ? `Searching in ${Math.ceil(autoSearchCountdown / 1000)}s`
                       : "Searching now..."}
                   </span>
@@ -439,7 +455,7 @@ export default function MobileSearchBar({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[rgba(244,178,102,0.08)]"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[rgba(30,215,96,0.08)]"
                 >
                   <Search className="h-4 w-4 text-[var(--color-muted)]" />
                   <span className="flex-1 truncate text-sm text-[var(--color-text)]">
