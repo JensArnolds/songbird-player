@@ -5,7 +5,7 @@
 import { env } from "@/env";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { normalizeHealthStatus } from "@/utils/healthStatus";
-import { Search } from "lucide-react";
+import { Home, Library, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -175,6 +175,8 @@ export default function Header() {
   };
 
   const headerSearchQuery = searchParams.get("q") ?? "";
+  const isHomeActive = pathname === "/";
+  const isLibraryActive = pathname.startsWith("/library");
 
   const submitHeaderSearch = (rawQuery: string) => {
     const query = rawQuery.trim();
@@ -214,26 +216,79 @@ export default function Header() {
     >
       <div className="electron-header-drag electron-header-main relative z-10 grid grid-cols-[minmax(210px,auto)_minmax(0,1fr)_minmax(210px,auto)] gap-3 py-2">
         <div className="electron-no-drag electron-header-brand flex min-w-0 items-center gap-3">
-          {/* <Link
+          <Link
             href="/"
             onClick={handleLogoClick}
-            className="group flex min-w-0 items-center gap-2"
+            className="group flex min-w-0 items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-white/5"
           >
             <Image
               src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
               alt="Starchild Music"
-              width={30}
-              height={30}
-              className="h-7 w-7 rounded-lg shadow-lg ring-1 ring-[rgba(244,178,102,0.35)] transition-all group-hover:scale-105"
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-lg shadow-lg ring-1 ring-white/20 transition-all group-hover:scale-105"
               priority
             />
-            <span className="header-logo-title accent-gradient truncate text-sm font-bold">
-              Starchild Music
+            <span className="header-logo-title accent-gradient truncate text-sm font-extrabold tracking-wide">
+              Starchild
             </span>
-          </Link> */}
+            <span className="hidden text-[10px] font-medium tracking-[0.12em] text-[var(--color-muted)] uppercase xl:inline">
+              Player
+            </span>
+          </Link>
+        </div>
+
+        <form
+          className="electron-no-drag electron-header-search flex h-11 w-full items-center gap-2 rounded-full border px-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submitHeaderSearch(headerSearchInputRef.current?.value ?? "");
+          }}
+        >
+          <Search className="h-4 w-4 shrink-0 text-[var(--color-muted)]" />
+          <input
+            ref={headerSearchInputRef}
+            key={headerSearchQuery || "__empty"}
+            defaultValue={headerSearchQuery}
+            className="w-full bg-transparent text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none"
+            placeholder="What do you want to play?"
+            aria-label="Search music"
+          />
+          <button
+            type="submit"
+            className="flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-1.5 text-xs font-bold text-[var(--color-on-accent)] transition-all hover:brightness-110 active:scale-[0.98]"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span className="hidden lg:inline">Search</span>
+          </button>
+        </form>
+
+        <div className="electron-no-drag flex min-w-0 items-center justify-end gap-2">
+          <Link
+            href="/"
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+              isHomeActive
+                ? "border-[rgba(30,215,96,0.4)] bg-[rgba(30,215,96,0.18)] text-[var(--color-text)]"
+                : "border-[rgba(255,255,255,0.12)] text-[var(--color-subtext)] hover:border-[rgba(255,255,255,0.2)] hover:text-[var(--color-text)]"
+            }`}
+          >
+            <Home className="h-3.5 w-3.5" />
+            <span className="hidden xl:inline">Home</span>
+          </Link>
+          <Link
+            href="/library"
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+              isLibraryActive
+                ? "border-[rgba(30,215,96,0.4)] bg-[rgba(30,215,96,0.18)] text-[var(--color-text)]"
+                : "border-[rgba(255,255,255,0.12)] text-[var(--color-subtext)] hover:border-[rgba(255,255,255,0.2)] hover:text-[var(--color-text)]"
+            }`}
+          >
+            <Library className="h-3.5 w-3.5" />
+            <span className="hidden xl:inline">Library</span>
+          </Link>
           {apiHealthy !== null && (
             <div
-              className="api-health-pill hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-2 py-0.5 text-xs text-[var(--color-subtext)] xl:flex"
+              className="api-health-pill hidden items-center gap-1 rounded-full border border-[rgba(255,255,255,0.1)] px-2 py-0.5 text-xs text-[var(--color-subtext)] 2xl:flex"
               aria-label="API health status"
               title="API V2 health status"
             >
@@ -256,35 +311,6 @@ export default function Header() {
             </div>
           )}
         </div>
-
-        <form
-          className="electron-no-drag electron-header-search flex h-10 w-full items-center gap-2 rounded-xl border px-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            submitHeaderSearch(headerSearchInputRef.current?.value ?? "");
-          }}
-        >
-          <Search className="h-4 w-4 shrink-0 text-[var(--color-muted)]" />
-          <input
-            ref={headerSearchInputRef}
-            key={headerSearchQuery || "__empty"}
-            defaultValue={headerSearchQuery}
-            className="w-full bg-transparent text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none"
-            placeholder="Search for songs, artists, or albums..."
-            aria-label="Search music"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-1.5 text-xs font-semibold text-[var(--color-on-accent)] transition-all hover:brightness-110 active:scale-[0.98]"
-          >
-            Search
-          </button>
-        </form>
-
-        <div
-          className="electron-header-drag h-full w-full"
-          aria-hidden="true"
-        />
       </div>
     </header>
   );

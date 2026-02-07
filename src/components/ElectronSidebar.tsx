@@ -44,7 +44,7 @@ export function ElectronSidebar() {
   });
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
-  const width = collapsed ? 72 : 260;
+  const width = collapsed ? 76 : 272;
 
   // Set sidebar width CSS variable (used by Header positioning)
   useEffect(() => {
@@ -122,7 +122,7 @@ export function ElectronSidebar() {
         {/* Drawer-style toggle button */}
         {/* Offset down by 10% */}
         <button
-          className="electron-no-drag absolute top-[10%] -right-3 flex h-12 w-6 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] opacity-90 shadow-sm transition-opacity hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+          className="electron-no-drag absolute top-[9%] -right-3 flex h-11 w-6 items-center justify-center rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(30,30,30,0.95)] text-[var(--color-subtext)] opacity-95 shadow-sm transition-all hover:border-[rgba(30,215,96,0.35)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
           onClick={() => {
             const next = !collapsed;
             setCollapsed(next);
@@ -138,28 +138,39 @@ export function ElectronSidebar() {
           )}
         </button>
 
-        <div className="flex h-full min-h-0 w-full flex-col">
-          <div className="px-3 pt-3 pb-3">
-            <div className="flex items-center justify-center">
+        <div className="flex h-full min-h-0 w-full flex-col bg-[linear-gradient(180deg,rgba(22,22,22,0.98),rgba(10,10,10,0.98))]">
+          <div className="px-3 pt-4 pb-3">
+            <div
+              className={`flex items-center ${collapsed ? "justify-center" : "justify-start"} rounded-xl px-2 py-1.5`}
+            >
               <Image
                 src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
                 alt="Starchild"
                 width={36}
                 height={36}
-                className="h-9 w-9 rounded-xl shadow-lg ring-2 ring-[rgba(244,178,102,0.3)]"
+                className="h-9 w-9 rounded-xl shadow-lg ring-2 ring-[rgba(30,215,96,0.35)]"
                 priority
               />
               {!collapsed && (
                 <div className="ml-4 min-w-0">
-                  <div className="header-logo-title accent-gradient truncate text-base font-bold">
+                  <div className="header-logo-title accent-gradient truncate text-base font-bold tracking-wide">
                     Starchild
+                  </div>
+                  <div className="truncate text-[10px] font-medium tracking-[0.16em] text-[var(--color-muted)] uppercase">
+                    Your music hub
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          <nav className="px-2">
+          {!collapsed && (
+            <div className="px-4 pb-1 text-[10px] font-semibold tracking-[0.16em] text-[var(--color-muted)] uppercase">
+              Menu
+            </div>
+          )}
+
+          <nav className="px-2 pb-2">
             <div className="space-y-1">
               {navItems.map((item) => {
                 const active =
@@ -170,16 +181,25 @@ export function ElectronSidebar() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className={`electron-no-drag flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    className={`electron-no-drag group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all ${
                       active
-                        ? "bg-[var(--color-surface-hover)] text-[var(--color-text)]"
-                        : "text-[var(--color-subtext)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                        ? "bg-[rgba(30,215,96,0.16)] text-[var(--color-text)] shadow-[0_6px_18px_rgba(30,215,96,0.16)]"
+                        : "text-[var(--color-subtext)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--color-text)]"
                     }`}
                     title={collapsed ? item.label : undefined}
                   >
+                    {!collapsed && (
+                      <span
+                        className={`absolute top-2 bottom-2 left-0 w-1 rounded-r-full transition-opacity ${
+                          active
+                            ? "bg-[var(--color-accent)] opacity-100"
+                            : "opacity-0 group-hover:bg-white/40 group-hover:opacity-100"
+                        }`}
+                      />
+                    )}
                     <span className="shrink-0">{item.icon}</span>
                     {!collapsed && (
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate font-medium">{item.label}</span>
                     )}
                   </Link>
                 );
@@ -187,18 +207,18 @@ export function ElectronSidebar() {
             </div>
           </nav>
 
-          <div className="mt-4 min-h-0 flex-1 px-2 pb-24">
+          <div className="mt-2 min-h-0 flex-1 px-2 pb-24">
             <div className="flex items-center justify-between px-2">
               {!collapsed ? (
-                <div className="text-xs font-semibold tracking-wide text-[var(--color-muted)] uppercase">
-                  Playlists
+                <div className="text-[10px] font-semibold tracking-[0.16em] text-[var(--color-muted)] uppercase">
+                  Your Library
                 </div>
               ) : (
                 <div className="h-3" />
               )}
 
               <button
-                className="electron-no-drag flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                className="electron-no-drag flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] text-[var(--color-subtext)] transition-colors hover:border-[rgba(30,215,96,0.35)] hover:bg-[rgba(30,215,96,0.12)] hover:text-[var(--color-text)]"
                 onClick={() => setCreateModalOpen(true)}
                 aria-label="Create playlist"
                 title="Create playlist"
@@ -211,7 +231,7 @@ export function ElectronSidebar() {
               {!session ? (
                 <Link
                   href="/api/auth/signin"
-                  className="electron-no-drag block rounded-lg px-3 py-2 text-sm text-[var(--color-subtext)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                  className="electron-no-drag block rounded-xl border border-[rgba(255,255,255,0.08)] px-3 py-2 text-sm text-[var(--color-subtext)] hover:border-[rgba(255,255,255,0.18)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                 >
                   {!collapsed ? "Sign in to view playlists" : "Sign in"}
                 </Link>
@@ -228,14 +248,14 @@ export function ElectronSidebar() {
                       <Link
                         key={playlist.id}
                         href={href}
-                        className={`electron-no-drag flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                        className={`electron-no-drag flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all ${
                           active
-                            ? "bg-[var(--color-surface-hover)] text-[var(--color-text)]"
-                            : "text-[var(--color-subtext)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                            ? "bg-[rgba(255,255,255,0.14)] text-[var(--color-text)]"
+                            : "text-[var(--color-subtext)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--color-text)]"
                         }`}
                         title={collapsed ? playlist.name : undefined}
                       >
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface-hover)] text-xs font-bold text-[var(--color-text)]">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.1)] text-xs font-bold text-[var(--color-text)]">
                           {playlist.name?.charAt(0)?.toUpperCase() ?? "P"}
                         </div>
                         {!collapsed && (
@@ -254,7 +274,7 @@ export function ElectronSidebar() {
                 <div className="px-3 py-2 text-sm text-[var(--color-subtext)]">
                   {!collapsed ? (
                     <button
-                      className="electron-no-drag inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface-hover)]"
+                      className="electron-no-drag inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[var(--color-text)] hover:border-[rgba(30,215,96,0.35)] hover:bg-[rgba(30,215,96,0.1)]"
                       onClick={() => setCreateModalOpen(true)}
                     >
                       <Plus className="h-4 w-4" />
@@ -271,19 +291,19 @@ export function ElectronSidebar() {
               <div className="mt-3 px-2">
                 <Link
                   href="/playlists"
-                  className="electron-no-drag inline-flex items-center gap-2 text-xs font-medium text-[var(--color-subtext)] hover:text-[var(--color-text)]"
+                  className="electron-no-drag inline-flex items-center gap-2 text-xs font-semibold text-[var(--color-subtext)] hover:text-[var(--color-text)]"
                 >
                   <ListMusic className="h-4 w-4" />
-                  All playlists
+                  See all playlists
                 </Link>
               </div>
             )}
           </div>
 
           {!collapsed && (
-            <div className="space-y-2 px-3 pb-3">
+            <div className="space-y-2 px-3 pb-4">
               <button
-                className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-lg bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-2 text-sm font-semibold text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition hover:scale-[1.01] active:scale-[0.99]"
+                className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-2.5 text-sm font-semibold text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition hover:scale-[1.01] active:scale-[0.99]"
                 onClick={() => setCreateModalOpen(true)}
               >
                 <Plus className="h-4 w-4" />
@@ -291,7 +311,7 @@ export function ElectronSidebar() {
               </button>
               {session ? (
                 <button
-                  className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-subtext)] transition hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                  className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm font-semibold text-[var(--color-subtext)] transition hover:border-[rgba(255,255,255,0.24)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                   onClick={() => void signOut({ callbackUrl: "/" })}
                 >
                   <LogOut className="h-4 w-4" />
@@ -303,7 +323,7 @@ export function ElectronSidebar() {
           {collapsed && session ? (
             <div className="px-2 pb-3">
               <button
-                className="electron-no-drag flex h-9 w-full items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] transition hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+                className="electron-no-drag flex h-9 w-full items-center justify-center rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.06)] text-[var(--color-subtext)] transition hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                 onClick={() => void signOut({ callbackUrl: "/" })}
                 title="Sign out"
                 aria-label="Sign out"

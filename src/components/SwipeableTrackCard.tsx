@@ -53,7 +53,7 @@ export default function SwipeableTrackCard({
 
   const utils = api.useUtils();
   const { showToast } = useToast();
-  const { share, isSupported: isShareSupported } = useWebShare();
+  const { share } = useWebShare();
   const { openMenu } = useTrackContextMenu();
 
   const x = useMotionValue(0);
@@ -166,13 +166,11 @@ export default function SwipeableTrackCard({
       offset < -SWIPE_CONFIRM_THRESHOLD ||
       (offset < -SWIPE_THRESHOLD && velocity < -500)
     ) {
-
       handleAddToQueue();
     } else if (
       offset > SWIPE_CONFIRM_THRESHOLD ||
       (offset > SWIPE_THRESHOLD && velocity > 500)
     ) {
-
       toggleFavorite();
     }
   };
@@ -182,20 +180,20 @@ export default function SwipeableTrackCard({
   return (
     <motion.div
       ref={constraintsRef}
-      className="relative !overflow-visible rounded-xl"
+      className="relative !overflow-visible rounded-2xl"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...springPresets.smooth, delay: index * 0.03 }}
     >
       {}
-      <div className="absolute inset-0 flex overflow-hidden rounded-xl">
+      <div className="absolute inset-0 flex overflow-hidden rounded-2xl">
         {}
         <motion.div
           style={{ opacity: rightActionOpacity }}
           className={`flex flex-1 items-center justify-start bg-gradient-to-r px-6 ${
             favoriteData?.isFavorite
               ? "from-[rgba(242,139,130,0.25)] to-transparent"
-              : "from-[rgba(244,178,102,0.25)] to-transparent"
+              : "from-[rgba(30,215,96,0.28)] to-transparent"
           }`}
         >
           <motion.div
@@ -218,7 +216,7 @@ export default function SwipeableTrackCard({
         {}
         <motion.div
           style={{ opacity: leftActionOpacity }}
-          className="flex flex-1 items-center justify-end bg-gradient-to-l from-[rgba(88,198,177,0.25)] to-transparent px-6"
+          className="flex flex-1 items-center justify-end bg-gradient-to-l from-[rgba(83,182,255,0.25)] to-transparent px-6"
         >
           <motion.div
             style={{ scale: leftActionScale }}
@@ -241,16 +239,16 @@ export default function SwipeableTrackCard({
         onDragEnd={handleDragEnd}
         onContextMenu={handleContextMenu}
         whileTap={{ cursor: "grabbing" }}
-        className="theme-panel relative flex items-center gap-4 rounded-xl p-4 transition-shadow md:gap-5"
+        className="theme-panel group relative flex items-center gap-3 rounded-xl border border-[rgba(255,255,255,0.08)] p-3 transition-all hover:border-[rgba(255,255,255,0.18)] hover:bg-[rgba(255,255,255,0.06)] md:gap-4 md:p-3.5"
       >
         {}
         <div className="relative flex-shrink-0">
           <Image
             src={coverImage}
             alt={track.title}
-            width={80}
-            height={80}
-            className="h-16 w-16 rounded-xl shadow-md ring-1 ring-white/10 transition-all md:h-20 md:w-20"
+            width={64}
+            height={64}
+            className="h-14 w-14 rounded-lg shadow-md ring-1 ring-white/15 transition-all md:h-16 md:w-16"
             loading="lazy"
             quality={75}
           />
@@ -258,9 +256,9 @@ export default function SwipeableTrackCard({
             onClick={handlePlay}
             whileTap={{ scale: 0.9 }}
             transition={springPresets.immediate}
-            className="theme-card-overlay absolute inset-0 flex items-center justify-center rounded-xl opacity-80 backdrop-blur-sm transition-opacity md:opacity-0 md:hover:opacity-100"
+            className="absolute right-1 bottom-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)] text-[var(--color-on-accent)] shadow-[0_8px_20px_rgba(30,215,96,0.4)] transition-all md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100"
           >
-            <Play className="h-8 w-8 fill-white text-white drop-shadow-lg" />
+            <Play className="ml-0.5 h-4 w-4 fill-current text-current" />
           </motion.button>
         </div>
 
@@ -270,7 +268,7 @@ export default function SwipeableTrackCard({
           onClick={!onArtistClick && !onAlbumClick ? handlePlay : undefined}
         >
           <h3
-            className="line-clamp-2 cursor-pointer text-base leading-tight font-semibold text-[var(--color-text)] transition-colors hover:text-[var(--color-accent-light)] md:text-lg"
+            className="line-clamp-1 cursor-pointer text-sm leading-tight font-semibold text-[var(--color-text)] transition-colors hover:text-[var(--color-accent-light)] md:text-base"
             onClick={handlePlay}
           >
             {track.title}
@@ -282,16 +280,16 @@ export default function SwipeableTrackCard({
                 hapticLight();
                 onArtistClick(track.artist.name);
               }}
-              className="line-clamp-1 text-left text-sm text-[var(--color-subtext)] transition-colors hover:text-[var(--color-accent-light)] hover:underline"
+              className="line-clamp-1 text-left text-xs text-[var(--color-subtext)] transition-colors hover:text-[var(--color-accent-light)] hover:underline md:text-sm"
             >
               {track.artist.name}
             </button>
           ) : (
-            <p className="line-clamp-1 cursor-pointer text-sm text-[var(--color-subtext)]">
+            <p className="line-clamp-1 cursor-pointer text-xs text-[var(--color-subtext)] md:text-sm">
               {track.artist.name}
             </p>
           )}
-          <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
+          <div className="flex items-center gap-2 text-[11px] text-[var(--color-muted)] md:text-xs">
             {track.album ? (
               onAlbumClick ? (
                 <button
@@ -322,7 +320,7 @@ export default function SwipeableTrackCard({
         </div>
 
         {}
-        <div className="flex flex-shrink-0 items-center gap-0.5 md:gap-1">
+        <div className="flex flex-shrink-0 items-center gap-0.5 transition-opacity md:gap-1 md:opacity-0 md:group-hover:opacity-100">
           {}
           {showActions && (
             <motion.button
@@ -376,63 +374,66 @@ export default function SwipeableTrackCard({
 
           {}
           <div className="relative">
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMenu(!showMenu);
-                }}
-                whileTap={{ scale: 0.85 }}
-                transition={springPresets.immediate}
-                className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
-              >
-                <MoreHorizontal className="h-5 w-5 md:h-[18px] md:w-[18px]" />
-              </motion.button>
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+              whileTap={{ scale: 0.85 }}
+              transition={springPresets.immediate}
+              className="touch-target rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
+            >
+              <MoreHorizontal className="h-5 w-5 md:h-[18px] md:w-[18px]" />
+            </motion.button>
 
-              {showMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowMenu(false)}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    transition={springPresets.snappy}
-                    className="theme-panel absolute right-0 z-20 mt-2 w-56 rounded-xl border py-2 shadow-xl backdrop-blur-xl md:w-48"
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowMenu(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  transition={springPresets.snappy}
+                  className="theme-panel absolute right-0 z-20 mt-2 w-56 rounded-xl border py-2 shadow-xl backdrop-blur-xl md:w-48"
+                >
+                  {onAddToPlayNext && (
+                    <>
+                      <button
+                        onClick={() => {
+                          onAddToPlayNext(track);
+                          showToast(
+                            `"${track.title}" will play next`,
+                            "success",
+                          );
+                          setShowMenu(false);
+                          hapticMedium();
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(30,215,96,0.1)] md:py-2"
+                      >
+                        <Play className="h-4 w-4" />
+                        <span>Play next</span>
+                      </button>
+                      <div className="mx-3 my-1 border-t border-[rgba(245,241,232,0.08)]" />
+                    </>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      hapticLight();
+                      setShowAddToPlaylistModal(true);
+                    }}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(30,215,96,0.1)] md:py-2"
                   >
-                    {onAddToPlayNext && (
-                      <>
-                        <button
-                          onClick={() => {
-                            onAddToPlayNext(track);
-                            showToast(`"${track.title}" will play next`, "success");
-                            setShowMenu(false);
-                            hapticMedium();
-                          }}
-                          className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(244,178,102,0.1)] md:py-2 flex items-center gap-3"
-                        >
-                          <Play className="h-4 w-4" />
-                          <span>Play next</span>
-                        </button>
-                        <div className="mx-3 my-1 border-t border-[rgba(245,241,232,0.08)]" />
-                      </>
-                    )}
-                    <button
-                      onClick={() => {
-                        setShowMenu(false);
-                        hapticLight();
-                        setShowAddToPlaylistModal(true);
-                      }}
-                      className="w-full px-4 py-3 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[rgba(244,178,102,0.1)] md:py-2 flex items-center gap-3"
-                    >
-                      <ListPlus className="h-4 w-4" />
-                      <span>Add to Playlist</span>
-                    </button>
-                  </motion.div>
-                </>
-              )}
-            </div>
+                    <ListPlus className="h-4 w-4" />
+                    <span>Add to Playlist</span>
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </div>
         </div>
 
         <AddToPlaylistModal
@@ -450,11 +451,11 @@ export default function SwipeableTrackCard({
           transition={{ delay: 3, duration: 1 }}
           className="pointer-events-none absolute inset-0 flex items-center justify-between px-4"
         >
-          <div className="flex items-center gap-2 rounded-full bg-[rgba(244,178,102,0.2)] px-3 py-1.5 text-xs text-[var(--color-accent)]">
+          <div className="flex items-center gap-2 rounded-full bg-[rgba(30,215,96,0.2)] px-3 py-1.5 text-xs text-[var(--color-accent)]">
             <span>←</span>
             <Heart className="h-3 w-3" />
           </div>
-          <div className="flex items-center gap-2 rounded-full bg-[rgba(88,198,177,0.2)] px-3 py-1.5 text-xs text-[var(--color-accent-strong)]">
+          <div className="flex items-center gap-2 rounded-full bg-[rgba(83,182,255,0.2)] px-3 py-1.5 text-xs text-[var(--color-secondary-accent)]">
             <ListPlus className="h-3 w-3" />
             <span>→</span>
           </div>
