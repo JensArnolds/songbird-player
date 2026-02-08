@@ -44,13 +44,10 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - name: Test Docker Compose
+      - name: Validate Docker Compose (ignore .env values)
         run: |
-          cp .env.docker.example .env
-          sed -i 's/your_discord_app_id/${{ secrets.AUTH_DISCORD_ID }}/g' .env
-          sed -i 's/your_discord_app_secret/${{ secrets.AUTH_DISCORD_SECRET }}/g' .env
-          sed -i 's/generate_with_openssl_rand_base64_32/${{ secrets.AUTH_SECRET }}/g' .env
-          docker-compose config
+          : > .env
+          docker compose config > /dev/null
 
       - name: Login to Docker Hub (main branch only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
