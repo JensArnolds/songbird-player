@@ -499,7 +499,7 @@ export default function SettingsPage() {
               </h2>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg backdrop-blur-sm">
+            <div className="overflow-visible rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg backdrop-blur-sm">
               {section.items.map((item, itemIndex) => (
                 <SettingsItemComponent
                   key={item.id}

@@ -135,9 +135,9 @@ export default function AlbumPage({
   }
 
   const coverUrl =
-    album.cover_xl ||
-    album.cover_big ||
-    album.cover_medium ||
+    album.cover_xl ??
+    album.cover_big ??
+    album.cover_medium ??
     "/placeholder.png";
 
   return (

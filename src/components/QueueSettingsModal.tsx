@@ -35,12 +35,33 @@ export function QueueSettingsModal({
 
   // Reset to initial values when modal opens - intentional sync pattern
   useEffect(() => {
-    if (isOpen) {
-      /* eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync props to state on open */
+    if (!isOpen) return;
+
+    let frame: number | undefined;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    const resetState = () => {
       setCount(initialCount);
-      /* eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync props to state on open */
       setSimilarityLevel(initialSimilarityLevel);
+    };
+
+    if (typeof globalThis.requestAnimationFrame === "function") {
+      frame = requestAnimationFrame(resetState);
+    } else {
+      timeout = setTimeout(resetState, 0);
     }
+
+    return () => {
+      if (
+        typeof frame === "number" &&
+        typeof globalThis.cancelAnimationFrame === "function"
+      ) {
+        cancelAnimationFrame(frame);
+      }
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
   }, [isOpen, initialCount, initialSimilarityLevel]);
 
   const handleApply = () => {

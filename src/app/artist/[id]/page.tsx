@@ -162,9 +162,9 @@ export default function ArtistPage({
   }
 
   const pictureUrl =
-    artist.picture_xl ||
-    artist.picture_big ||
-    artist.picture_medium ||
+    artist.picture_xl ??
+    artist.picture_big ??
+    artist.picture_medium ??
     "/placeholder.png";
 
   return (

@@ -248,7 +248,6 @@ export function EnhancedQueue({
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const { showToast } = useToast();
-  const _utils = api.useUtils();
   const queueListRef = useRef<HTMLDivElement>(null);
 
   // Load smart queue settings
@@ -286,26 +285,6 @@ export function EnhancedQueue({
       });
     }
   }, [currentTrack, queue]);
-
-  const trackIdMapRef = useRef<{
-    map: WeakMap<Track, string>;
-    counter: number;
-  }>({
-    map: new WeakMap<Track, string>(),
-    counter: 0,
-  });
-
-  const _getSortableId = useCallback((track: Track) => {
-    const map = trackIdMapRef.current.map;
-    const existing = map.get(track);
-    if (existing) {
-      return existing;
-    }
-
-    const newId = `queue-item-${trackIdMapRef.current.counter++}`;
-    map.set(track, newId);
-    return newId;
-  }, []);
 
   const queueEntries = useMemo(
     () =>
