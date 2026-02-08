@@ -31,7 +31,7 @@ export default function MiniPlayer({
   queue: _queue,
   lastAutoQueueCount = 0,
   onPlayPause,
-  onNext,
+  onNext: _onNext,
   onSeek,
   onTap,
   onToggleQueue,
@@ -41,7 +41,7 @@ export default function MiniPlayer({
   const opacity = useTransform(dragY, [0, -50], [1, 0.85]);
   const scale = useTransform(dragY, [0, -50], [1, 0.96]);
 
-  const swipeHintOpacity = useTransform(dragY, [0, -20, -50], [0, 1, 1]);
+  const _swipeHintOpacity = useTransform(dragY, [0, -20, -50], [0, 1, 1]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();

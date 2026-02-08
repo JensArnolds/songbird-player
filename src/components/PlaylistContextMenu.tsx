@@ -22,8 +22,7 @@ import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useWebShare } from "@/hooks/useWebShare";
 import { api } from "@/trpc/react";
-import type { PlaylistWithTracks } from "@/types";
-import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
+import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 
 export function PlaylistContextMenu() {

@@ -30,7 +30,7 @@ export default function SuppressExtensionErrors() {
         }
 
         boundOriginalError(...args);
-      } catch (_error) {
+      } catch {
         try {
 
           Function.prototype.apply.call(originalError, console, args);
