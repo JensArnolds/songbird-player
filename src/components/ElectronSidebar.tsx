@@ -169,7 +169,14 @@ export function ElectronSidebar() {
                     Starchild
                   </div>
                   <div className="truncate text-[10px] font-medium tracking-[0.16em] text-[var(--color-muted)] uppercase">
-                    You are now listening to...
+                    {session
+                      ? `Hi ${
+                          session.user?.name ??
+                          session.user?.email ??
+                          session.user?.username ??
+                          "there"
+                        }`
+                      : "Hi there"}
                   </div>
                 </div>
               )}

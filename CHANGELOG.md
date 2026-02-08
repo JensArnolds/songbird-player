@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Lint remediation for tests and hooks**: Typed the search, toast, TRPC, and audio-player stability specs, added the shared `renderPlayerHook`, and started calling the typed `api.music.addToPlaylist` helper so ESLint no-unsafe rules now pass cleanly. Locations: `src/__tests__/api-search-v2.test.ts`, `src/__tests__/Toast.test.tsx`, `src/__tests__/trpc.music.test.ts`, `src/__tests__/useAudioPlayer.stability.test.ts`, `src/components/PlaylistContextMenu.tsx`.
 - **Track metadata safety**: Ensured the `/track/[id]/page` data fetching narrows Songbird/Deezer responses before returning a `Track`, so runtime errors stop surfacing as unsafe assignments. Location: `src/app/track/[id]/page.tsx`.
 - **Visualization and config housekeeping**: Declared `twoPi` inside `FlowFieldRenderer`’s cloverleaf helper and added `vitest/globals` to `tsconfig.json` so the lint and test tooling stay aligned. Locations: `src/components/visualizers/FlowFieldRenderer.ts`, `tsconfig.json`.
+- **Desktop greeting update**: Sidebar branding now greets signed-in users by `Hi <username>` (falling back to email, username, or “Hi there” when absent). Location: `src/components/ElectronSidebar.tsx`.
 
 ## [0.14.8] - 2026-02-08
 
