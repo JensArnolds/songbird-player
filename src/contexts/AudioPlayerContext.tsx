@@ -12,6 +12,11 @@ import type {
   SmartQueueState,
   Track,
 } from "@/types";
+
+// DB stores dates as strings
+interface StoredQueuedTrack extends Omit<QueuedTrack, "addedAt"> {
+  addedAt: string;
+}
 import { useSession } from "next-auth/react";
 import {
   createContext,
@@ -262,7 +267,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           context?.source === "auto" ? "unified" : "spotify";
         const seedTracks = buildSeedTracks(
           currentTrack,
-          context?.seedQueue ?? context?.queue,
+          context?.queue,
           context?.history,
           { includeHistory: DEFAULT_QUEUE_MODE !== "useQueueOnly" },
         );
@@ -312,7 +317,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       try {
         const seedTracks = buildSeedTracks(
           currentTrack,
-          context?.seedQueue ?? context?.queue,
+          context?.queue,
           context?.history,
           { includeHistory: DEFAULT_QUEUE_MODE !== "useQueueOnly" },
         );
@@ -354,7 +359,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   );
 
   const initialQueueState = session && dbQueueState?.queuedTracks && dbQueueState.queuedTracks.length > 0 ? {
-    queuedTracks: dbQueueState.queuedTracks.map((qt: any) => ({
+    queuedTracks: (dbQueueState.queuedTracks as StoredQueuedTrack[]).map((qt) => ({
       ...qt,
       addedAt: new Date(qt.addedAt),
     })) as QueuedTrack[],

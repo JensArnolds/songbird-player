@@ -111,7 +111,11 @@ export function useSwipeGesture(config: SwipeGestureConfig) {
     hapticFeedback,
   ]);
 
+  const getSwipeState = () => swipeState.current;
+
   return {
+    swipeState,
+    getSwipeState,
     onTouchStart: handleTouchStart,
     onTouchMove: handleTouchMove,
     onTouchEnd: handleTouchEnd,

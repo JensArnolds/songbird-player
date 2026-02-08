@@ -24,7 +24,6 @@ export function useMediaQuery(query: string): boolean {
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener("change", handleChange);
     } else {
-
       mediaQuery.addListener(handleChange);
     }
 

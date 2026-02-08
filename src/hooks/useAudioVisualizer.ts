@@ -5,7 +5,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getOrCreateAudioConnection,
-  releaseAudioConnection,
   ensureConnectionChain,
 } from "@/utils/audioContextManager";
 
