@@ -1,12 +1,26 @@
 // File: src/utils/performance.ts
 
+const getPerformance = (): Performance | undefined => {
+  if (typeof globalThis === "undefined") return undefined;
+  return typeof globalThis.performance === "undefined"
+    ? undefined
+    : globalThis.performance;
+};
+
 export function measurePerformance(name: string, fn: () => void) {
-  if (typeof window === "undefined" || !window.performance) return fn();
+  const perf = getPerformance();
+  if (
+    !perf ||
+    typeof perf.mark !== "function" ||
+    typeof perf.measure !== "function" ||
+    typeof perf.getEntriesByName !== "function"
+  ) {
+    return fn();
+  }
 
   const startMark = `${name}-start`;
   const endMark = `${name}-end`;
   const measureName = `${name}-measure`;
-  const perf = window.performance;
 
   perf.mark(startMark);
   const result = fn();
@@ -29,12 +43,19 @@ export async function measureAsyncPerformance<T>(
   name: string,
   fn: () => Promise<T>,
 ): Promise<T> {
-  if (typeof window === "undefined" || !window.performance) return fn();
+  const perf = getPerformance();
+  if (
+    !perf ||
+    typeof perf.mark !== "function" ||
+    typeof perf.measure !== "function" ||
+    typeof perf.getEntriesByName !== "function"
+  ) {
+    return fn();
+  }
 
   const startMark = `${name}-start`;
   const endMark = `${name}-end`;
   const measureName = `${name}-measure`;
-  const perf = window.performance;
 
   perf.mark(startMark);
   const result = await fn();
@@ -81,9 +102,15 @@ export function reportWebVitals() {
 }
 
 export function clearPerformanceMarks(name?: string) {
-  if (typeof window === "undefined" || !window.performance) return;
+  const perf = getPerformance();
+  if (
+    !perf ||
+    typeof perf.clearMarks !== "function" ||
+    typeof perf.clearMeasures !== "function"
+  ) {
+    return;
+  }
 
-  const perf = window.performance;
   if (name) {
     perf.clearMarks(`${name}-start`);
     perf.clearMarks(`${name}-end`);
@@ -101,11 +128,10 @@ interface PerformanceMemory {
 }
 
 export function getMemoryUsage() {
-  if (typeof window === "undefined" || typeof window.performance === "undefined") {
-    return null;
-  }
-
-  const perf = window.performance as Performance & { memory?: PerformanceMemory };
+  const perf = getPerformance() as
+    | (Performance & { memory?: PerformanceMemory })
+    | undefined;
+  if (!perf) return null;
   if (!perf.memory) return null;
 
   return {

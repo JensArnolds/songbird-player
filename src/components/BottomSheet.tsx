@@ -90,8 +90,8 @@ export default function BottomSheet({
 
     let nearestSnap = snapPoints[0] ?? 50;
     let nearestDistance = Infinity;
-
     let nearestSnapIndex = 0;
+
     snapPoints.forEach((snap, index) => {
       const distance = Math.abs(targetHeight - snap);
       if (distance < nearestDistance) {
@@ -101,20 +101,22 @@ export default function BottomSheet({
       }
     });
 
+    let nextSnapIndex = nearestSnapIndex;
     if (Math.abs(dragVelocity) > 300) {
-      if (dragVelocity < 0 && nearestSnapIndex < snapPoints.length - 1) {
-        nearestSnap = snapPoints[nearestSnapIndex + 1] ?? nearestSnap;
-        nearestSnapIndex = nearestSnapIndex + 1;
-        hapticLight();
-      } else if (dragVelocity > 0 && nearestSnapIndex > 0) {
-        nearestSnap = snapPoints[nearestSnapIndex - 1] ?? nearestSnap;
-        nearestSnapIndex = nearestSnapIndex - 1;
+      if (dragVelocity < 0) {
+        nextSnapIndex = Math.min(nearestSnapIndex + 1, snapPoints.length - 1);
+      } else if (dragVelocity > 0) {
+        nextSnapIndex = Math.max(nearestSnapIndex - 1, 0);
+      }
+
+      if (nextSnapIndex !== nearestSnapIndex) {
         hapticLight();
       }
     }
 
-    setCurrentSnapIndex(nearestSnapIndex);
-    sheetHeight.set(nearestSnap);
+    const nextSnap = snapPoints[nextSnapIndex] ?? nearestSnap;
+    setCurrentSnapIndex(nextSnapIndex);
+    sheetHeight.set(nextSnap);
     y.set(0);
   };
 

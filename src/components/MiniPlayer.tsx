@@ -28,7 +28,7 @@ export default function MiniPlayer({
   isPlaying,
   currentTime,
   duration,
-  queue,
+  queue: _queue,
   lastAutoQueueCount = 0,
   onPlayPause,
   onNext,

@@ -72,9 +72,7 @@ export default function AlbumPage({
         setTracks(tracksResponse.data);
       } catch (err) {
         console.error("Failed to fetch album:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load album",
-        );
+        setError(err instanceof Error ? err.message : "Failed to load album");
       } finally {
         setIsLoading(false);
       }
@@ -136,7 +134,11 @@ export default function AlbumPage({
     );
   }
 
-  const coverUrl = album.cover_xl || album.cover_big || album.cover_medium || "/placeholder.png";
+  const coverUrl =
+    album.cover_xl ||
+    album.cover_big ||
+    album.cover_medium ||
+    "/placeholder.png";
 
   return (
     <div className="container mx-auto px-3 py-4 md:px-6 md:py-8">
@@ -170,7 +172,9 @@ export default function AlbumPage({
           )}
           <div className="mb-4 flex flex-wrap gap-2 text-sm text-[var(--color-muted)]">
             {album.nb_tracks && (
-              <span>{album.nb_tracks} track{album.nb_tracks !== 1 ? "s" : ""}</span>
+              <span>
+                {album.nb_tracks} track{album.nb_tracks !== 1 ? "s" : ""}
+              </span>
             )}
             {album.release_date && (
               <>

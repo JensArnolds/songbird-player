@@ -14,7 +14,7 @@ import {
 } from "framer-motion";
 import { Plus, Search, Shuffle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 interface QuickAction {
   id: string;
@@ -27,10 +27,14 @@ interface QuickAction {
 
 export default function FloatingActionButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted] = useState(() => typeof window !== "undefined");
   const isMobile = useIsMobile();
   const router = useRouter();
   const player = useGlobalPlayer();
+  const isClient = useSyncExternalStore(
+    (_onStoreChange) => () => {},
+    () => true,
+    () => false,
+  );
 
   const rotation = useMotionValue(0);
   const scale = useTransform(rotation, [0, 45], [1, 1.1]);
@@ -39,7 +43,7 @@ export default function FloatingActionButton() {
     rotation.set(isOpen ? 45 : 0);
   }, [isOpen, rotation]);
 
-  if (!mounted || !isMobile) return null;
+  if (!isClient || !isMobile) return null;
 
   const quickActions: QuickAction[] = [
     {

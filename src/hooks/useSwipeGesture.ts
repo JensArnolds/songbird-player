@@ -114,6 +114,7 @@ export function useSwipeGesture(config: SwipeGestureConfig) {
   const getSwipeState = () => swipeState.current;
 
   return {
+    swipeStateRef: swipeState,
     swipeState,
     getSwipeState,
     onTouchStart: handleTouchStart,

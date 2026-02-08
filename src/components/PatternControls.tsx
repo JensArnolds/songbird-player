@@ -1066,7 +1066,7 @@ export default function PatternControls({
           {rawCurrentPattern === "metatron" && (
             <div className="mb-6 space-y-4">
               <h4 className="text-sm font-semibold text-[var(--color-text)]">
-                Metatron's Cube Controls
+                Metatron&apos;s Cube Controls
               </h4>
               <SliderControl
                 label="Node Count"

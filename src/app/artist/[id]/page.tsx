@@ -99,9 +99,7 @@ export default function ArtistPage({
         setTracks(validTracks);
       } catch (err) {
         console.error("Failed to fetch artist:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load artist",
-        );
+        setError(err instanceof Error ? err.message : "Failed to load artist");
       } finally {
         setIsLoading(false);
       }
@@ -163,7 +161,11 @@ export default function ArtistPage({
     );
   }
 
-  const pictureUrl = artist.picture_xl || artist.picture_big || artist.picture_medium || "/placeholder.png";
+  const pictureUrl =
+    artist.picture_xl ||
+    artist.picture_big ||
+    artist.picture_medium ||
+    "/placeholder.png";
 
   return (
     <div className="container mx-auto px-3 py-4 md:px-6 md:py-8">
@@ -189,7 +191,9 @@ export default function ArtistPage({
           </h1>
           <div className="mb-4 flex flex-wrap gap-2 text-sm text-[var(--color-muted)]">
             {artist.nb_album !== undefined && (
-              <span>{artist.nb_album} album{artist.nb_album !== 1 ? "s" : ""}</span>
+              <span>
+                {artist.nb_album} album{artist.nb_album !== 1 ? "s" : ""}
+              </span>
             )}
             {artist.nb_fan !== undefined && (
               <>

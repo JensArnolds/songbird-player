@@ -58,7 +58,8 @@ export async function GET(request: NextRequest) {
     const referer = request.headers.get("referer");
     const forwardedFor = request.headers.get("x-forwarded-for");
     const realIp = request.headers.get("x-real-ip");
-    const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "unknown";
+    const forwardedIp = forwardedFor?.split(",")[0]?.trim();
+    const ip = forwardedIp || realIp || "unknown";
 
     console.log("[Health Check] Request received:", {
       method: request.method,

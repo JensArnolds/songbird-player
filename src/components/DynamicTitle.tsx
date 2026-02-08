@@ -3,16 +3,15 @@
 "use client";
 
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import { useEffect, useState } from "react";
+import { useIsElectron } from "@/hooks/useIsElectron";
+import { useEffect } from "react";
 
 export function DynamicTitle() {
   const { currentTrack, isPlaying } = useGlobalPlayer();
-  const [isElectron] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !!(window as Window & { electron?: { isElectron?: boolean } }).electron?.isElectron;
-  });
+  const isElectron = useIsElectron();
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (currentTrack && isPlaying && typeof currentTrack === 'object' && 'artist' in currentTrack && 'title' in currentTrack) {
 
       const track = currentTrack as { artist: unknown; title: unknown };

@@ -223,11 +223,6 @@ interface EnhancedQueueProps {
 
 }
 
-interface SelectedIndices {
-  indices: Set<number>;
-  lastSelectedIndex: number | null;
-}
-
 export function EnhancedQueue({
   queue,
   queuedTracks,
@@ -241,8 +236,7 @@ export function EnhancedQueue({
   onSaveAsPlaylist,
   onAddSmartTracks,
   onRefreshSmartTracks,
-  onClearSmartTracks,
-
+  onClearSmartTracks: _onClearSmartTracks,
 }: EnhancedQueueProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
