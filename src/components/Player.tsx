@@ -524,6 +524,9 @@ export default function MaturePlayer({
                 value={volume}
                 onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
                 className="slider-track accent-accent h-1 w-full cursor-pointer appearance-none rounded-full"
+                style={{
+                  background: `linear-gradient(to right, var(--color-slider-fill) 0%, var(--color-slider-fill) ${volume * 100}%, var(--color-slider-track) ${volume * 100}%, var(--color-slider-track) 100%)`,
+                }}
                 title="Volume (↑↓)"
               />
             </div>
