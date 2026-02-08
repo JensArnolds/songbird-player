@@ -20,13 +20,15 @@ export function useTheme() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
-  const [isMobile, setIsMobile] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`).matches;
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const m = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`);
-    setIsMobile(m.matches);
-    const handler = () => setIsMobile(window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`).matches);
+    const handler = () => setIsMobile(m.matches);
     m.addEventListener("change", handler);
     return () => m.removeEventListener("change", handler);
   }, []);
