@@ -5,7 +5,7 @@ import { and, asc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { users } from "@/server/db/schema";
+import { accounts, posts, sessions, users } from "@/server/db/schema";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!ctx.session.user?.admin) {
@@ -59,6 +59,31 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
+      const [currentUser, targetUser] = await Promise.all([
+        ctx.db.query.users.findFirst({
+          columns: { firstAdmin: true },
+          where: eq(users.id, ctx.session.user.id),
+        }),
+        ctx.db.query.users.findFirst({
+          columns: { id: true, admin: true },
+          where: eq(users.id, input.userId),
+        }),
+      ]);
+
+      if (!targetUser) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found.",
+        });
+      }
+
+      if (targetUser.admin && !currentUser?.firstAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the first admin can ban or unban other admins.",
+        });
+      }
+
       await ctx.db
         .update(users)
         .set({ banned: input.banned })
@@ -82,11 +107,30 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      // Check if the target user is the firstAdmin
-      const targetUser = await ctx.db.query.users.findFirst({
-        columns: { firstAdmin: true },
-        where: eq(users.id, input.userId),
-      });
+      const [currentUser, targetUser] = await Promise.all([
+        ctx.db.query.users.findFirst({
+          columns: { firstAdmin: true },
+          where: eq(users.id, ctx.session.user.id),
+        }),
+        ctx.db.query.users.findFirst({
+          columns: { firstAdmin: true, admin: true },
+          where: eq(users.id, input.userId),
+        }),
+      ]);
+
+      if (!targetUser) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found.",
+        });
+      }
+
+      if (!input.admin && targetUser.admin && !currentUser?.firstAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the first admin can remove admin access from admins.",
+        });
+      }
 
       if (targetUser?.firstAdmin && !input.admin) {
         throw new TRPCError({
@@ -99,6 +143,98 @@ export const adminRouter = createTRPCRouter({
         .update(users)
         .set({ admin: input.admin })
         .where(eq(users.id, input.userId));
+
+      return { success: true };
+    }),
+
+  removeUser: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.id === input.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "You cannot remove your own account from the admin panel.",
+        });
+      }
+
+      const targetUser = await ctx.db.query.users.findFirst({
+        columns: {
+          id: true,
+          admin: true,
+          firstAdmin: true,
+        },
+        where: eq(users.id, input.userId),
+      });
+
+      if (!targetUser) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found.",
+        });
+      }
+
+      const currentUser = await ctx.db.query.users.findFirst({
+        columns: { firstAdmin: true },
+        where: eq(users.id, ctx.session.user.id),
+      });
+
+      if (targetUser.admin && !currentUser?.firstAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the first admin can remove other admins.",
+        });
+      }
+
+      await ctx.db.transaction(async (tx) => {
+        let nextFirstAdminUserId: string | null = null;
+        let promoteNextFirstAdminToAdmin = false;
+
+        if (targetUser.firstAdmin) {
+          const nextAdmin = await tx.query.users.findFirst({
+            columns: { id: true },
+            where: and(eq(users.admin, true), ne(users.id, targetUser.id)),
+            orderBy: [asc(users.emailVerified), asc(users.email)],
+          });
+
+          if (nextAdmin) {
+            nextFirstAdminUserId = nextAdmin.id;
+          } else {
+            const nextUser = await tx.query.users.findFirst({
+              columns: { id: true },
+              where: ne(users.id, targetUser.id),
+              orderBy: [asc(users.emailVerified), asc(users.email)],
+            });
+
+            if (nextUser) {
+              nextFirstAdminUserId = nextUser.id;
+              promoteNextFirstAdminToAdmin = true;
+            }
+          }
+        }
+
+        // auth/session and post tables use non-cascade foreign keys
+        await tx.delete(sessions).where(eq(sessions.userId, targetUser.id));
+        await tx.delete(accounts).where(eq(accounts.userId, targetUser.id));
+        await tx.delete(posts).where(eq(posts.createdById, targetUser.id));
+
+        await tx.delete(users).where(eq(users.id, targetUser.id));
+
+        if (nextFirstAdminUserId) {
+          await tx
+            .update(users)
+            .set(
+              promoteNextFirstAdminToAdmin
+                ? { admin: true, firstAdmin: true }
+                : { firstAdmin: true },
+            )
+            .where(eq(users.id, nextFirstAdminUserId));
+        }
+      });
 
       return { success: true };
     }),

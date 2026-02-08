@@ -4,7 +4,18 @@
 
 import { useToast } from "@/contexts/ToastContext";
 import { api } from "@/trpc/react";
-import { Shield, Users2, RefreshCcw, Crown, Lock, Loader2, Link2, Ban, CircleCheck } from "lucide-react";
+import {
+  Shield,
+  Users2,
+  RefreshCcw,
+  Crown,
+  Lock,
+  Loader2,
+  Link2,
+  Ban,
+  CircleCheck,
+  UserX,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -48,10 +59,21 @@ export default function AdminPage() {
     },
   });
 
+  const removeUser = api.admin.removeUser.useMutation({
+    onSuccess: async () => {
+      showToast("User removed", "success");
+      await refetch();
+    },
+    onError: (err) => {
+      showToast(err.message ?? "Failed to remove user", "error");
+    },
+  });
+
   const isAuthorized = useMemo(
     () => session?.user?.admin === true,
     [session?.user?.admin],
   );
+  const isFirstAdmin = session?.user?.firstAdmin === true;
 
   const handleToggleAdmin = (userId: string, admin: boolean) => {
     updateAdmin.mutate({ userId, admin: !admin });
@@ -59,6 +81,14 @@ export default function AdminPage() {
 
   const handleToggleBanned = (userId: string, banned: boolean) => {
     updateBanned.mutate({ userId, banned: !banned });
+  };
+
+  const handleRemoveUser = (userId: string, userLabel: string) => {
+    const confirmed = window.confirm(
+      `Remove ${userLabel}? This permanently deletes their account and related data.`,
+    );
+    if (!confirmed) return;
+    removeUser.mutate({ userId });
   };
 
   if (status === "loading") {
@@ -121,7 +151,7 @@ export default function AdminPage() {
             User Management
           </h1>
           <p className="mt-1 text-[var(--color-subtext)]">
-            View users, inspect their profiles, and toggle admin access.
+            View users, inspect profiles, manage access, and remove accounts.
           </p>
         </div>
 
@@ -235,13 +265,23 @@ export default function AdminPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => handleToggleAdmin(user.id, user.admin ?? false)}
-                      disabled={updateAdmin.isPending || user.firstAdmin}
-                      title={user.firstAdmin ? "The first admin cannot be demoted by other admins" : ""}
+                      disabled={
+                        updateAdmin.isPending ||
+                        user.firstAdmin ||
+                        ((user.admin ?? false) && !isFirstAdmin)
+                      }
+                      title={
+                        user.firstAdmin
+                          ? "The first admin cannot be demoted by other admins."
+                          : (user.admin ?? false) && !isFirstAdmin
+                            ? "Only the first admin can remove admin access from admins."
+                            : ""
+                      }
                       className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                         user.admin
                           ? "border border-[var(--color-danger)]/70 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
                           : "border border-[var(--color-accent)]/70 text-[var(--color-text)] hover:bg-[var(--color-accent)]/10"
-                      } ${updateAdmin.isPending || user.firstAdmin ? "cursor-not-allowed opacity-50" : ""}`}
+                      } ${updateAdmin.isPending || user.firstAdmin || ((user.admin ?? false) && !isFirstAdmin) ? "cursor-not-allowed opacity-50" : ""}`}
                     >
                       {updateAdmin.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -259,12 +299,24 @@ export default function AdminPage() {
                     </button>
                     <button
                       onClick={() => handleToggleBanned(user.id, user.banned ?? false)}
-                      disabled={updateBanned.isPending || session?.user?.id === user.id}
+                      disabled={
+                        updateBanned.isPending ||
+                        removeUser.isPending ||
+                        ((user.admin ?? false) && !isFirstAdmin) ||
+                        session?.user?.id === user.id
+                      }
+                      title={
+                        session?.user?.id === user.id
+                          ? "You cannot ban yourself."
+                          : (user.admin ?? false) && !isFirstAdmin
+                            ? "Only the first admin can ban or unban other admins."
+                            : ""
+                      }
                       className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
                         user.banned
                           ? "border border-[var(--color-success)]/70 text-[var(--color-success)] hover:bg-[var(--color-success)]/10"
                           : "border border-[var(--color-danger)]/70 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
-                      } ${updateBanned.isPending ? "opacity-50" : ""} ${session?.user?.id === user.id ? "cursor-not-allowed opacity-50" : ""}`}
+                      } ${updateBanned.isPending || ((user.admin ?? false) && !isFirstAdmin) ? "opacity-50" : ""} ${session?.user?.id === user.id ? "cursor-not-allowed opacity-50" : ""}`}
                     >
                       {updateBanned.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -277,6 +329,40 @@ export default function AdminPage() {
                         <>
                           <Ban className="h-4 w-4" />
                           Ban
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleRemoveUser(
+                          user.id,
+                          user.name ?? user.email ?? "this user",
+                        )
+                      }
+                      disabled={
+                        removeUser.isPending ||
+                        updateBanned.isPending ||
+                        updateAdmin.isPending ||
+                        ((user.admin ?? false) && !isFirstAdmin) ||
+                        session?.user?.id === user.id
+                      }
+                      title={
+                        session?.user?.id === user.id
+                          ? "You cannot remove your own account from the admin panel."
+                          : (user.admin ?? false) && !isFirstAdmin
+                            ? "Only the first admin can remove other admins."
+                            : ""
+                      }
+                      className={`inline-flex items-center gap-2 rounded-xl border border-[var(--color-danger)]/70 px-3 py-2 text-sm font-semibold text-[var(--color-danger)] transition hover:bg-[var(--color-danger)]/10 ${
+                        removeUser.isPending || ((user.admin ?? false) && !isFirstAdmin) ? "opacity-50" : ""
+                      } ${session?.user?.id === user.id ? "cursor-not-allowed opacity-50" : ""}`}
+                    >
+                      {removeUser.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <UserX className="h-4 w-4" />
+                          Remove user
                         </>
                       )}
                     </button>

@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.14.8] - 2026-02-08
 
+### Added
+
+- **Admin user removal action**: Added a `Remove user` control in the Admin Panel with confirmation and refresh flow so admins can delete user accounts without using bans. Location: [src/app/admin/page.tsx](src/app/admin/page.tsx).
+- **Admin-side remove user API**: Added `admin.removeUser` tRPC mutation with guarded account deletion and related cleanup for non-cascade relations (`sessions`, `accounts`, `posts`). Location: [src/server/api/routers/admin.ts](src/server/api/routers/admin.ts).
+
+### Changed
+
+- **First-admin authority enforcement**: Restricts demoting admin users, banning/unbanning admin users, and removing admin users to the `firstAdmin` role only (enforced server-side, mirrored in UI disabled states/tooltips). Locations: [src/server/api/routers/admin.ts](src/server/api/routers/admin.ts), [src/app/admin/page.tsx](src/app/admin/page.tsx).
+- **Docker CI env handling**: Updated Docker workflow compose validation to ignore `.env` value checks and validate compose config without secret substitution. Location: [.github/workflows/docker-build.yml](.github/workflows/docker-build.yml).
 ### Fixed
 
 - **MobileHeader tests**: Typed the `framer-motion` mock and navigation helpers so RTL assertions use concrete call data, eliminating `@typescript-eslint/no-unsafe-*` errors and allowing the suite to pass lint. Location: `src/__tests__/MobileHeader.test.tsx`.
