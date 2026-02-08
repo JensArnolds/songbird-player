@@ -22,17 +22,18 @@ module.exports = async function afterPack(context) {
   const destStandalone = path.join(appOutDir, ".next", "standalone");
 
   if (!fs.existsSync(srcStandalone)) {
-     
     console.warn("[afterPack] Next standalone output missing:", srcStandalone);
     return;
   }
 
-   
   console.log("[afterPack] Copying Next standalone output to:", destStandalone);
 
   fs.rmSync(destStandalone, { recursive: true, force: true });
   fs.mkdirSync(path.dirname(destStandalone), { recursive: true });
-  fs.cpSync(srcStandalone, destStandalone, { recursive: true, dereference: true });
+  fs.cpSync(srcStandalone, destStandalone, {
+    recursive: true,
+    dereference: true,
+  });
 
   // Ensure installed packages (standalone node_modules) and server are delivered in the built app
   const destNodeModules = path.join(destStandalone, "node_modules");
@@ -42,12 +43,14 @@ module.exports = async function afterPack(context) {
   if (!fs.existsSync(destServerJs)) missing.push("server.js");
   if (missing.length > 0) {
     const msg = `[afterPack] Packaged app missing required standalone files: ${missing.join(", ")}. Installer would be broken.`;
-     
+
     console.error(msg);
     throw new Error(msg);
   }
-   
-  console.log("[afterPack] Verified standalone node_modules and server.js are present in packaged app.");
+
+  console.log(
+    "[afterPack] Verified standalone node_modules and server.js are present in packaged app.",
+  );
 
   // Ensure bundled Node.js runtime is present so the installed app can run the server without system Node
   const resourcesNode = path.join(appOutDir, "resources", "node");
@@ -57,11 +60,12 @@ module.exports = async function afterPack(context) {
   );
   if (!fs.existsSync(nodeBinary)) {
     const msg = `[afterPack] Bundled Node.js not found at ${nodeBinary}. Run "npm run electron:download-node" before building.`;
-     
+
     console.error(msg);
     throw new Error(msg);
   }
-   
-  console.log("[afterPack] Verified bundled Node.js runtime is present in packaged app.");
-};
 
+  console.log(
+    "[afterPack] Verified bundled Node.js runtime is present in packaged app.",
+  );
+};

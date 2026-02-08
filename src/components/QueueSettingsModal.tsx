@@ -12,7 +12,10 @@ import type { SimilarityPreference } from "@/types";
 export interface QueueSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApply: (settings: { count: number; similarityLevel: SimilarityPreference }) => void;
+  onApply: (settings: {
+    count: number;
+    similarityLevel: SimilarityPreference;
+  }) => void;
   initialCount?: number;
   initialSimilarityLevel?: SimilarityPreference;
 }
@@ -26,7 +29,9 @@ export function QueueSettingsModal({
 }: QueueSettingsModalProps) {
   const [mounted] = useState(() => typeof window !== "undefined");
   const [count, setCount] = useState(initialCount);
-  const [similarityLevel, setSimilarityLevel] = useState<SimilarityPreference>(initialSimilarityLevel);
+  const [similarityLevel, setSimilarityLevel] = useState<SimilarityPreference>(
+    initialSimilarityLevel,
+  );
 
   // Reset to initial values when modal opens - intentional sync pattern
   useEffect(() => {
@@ -43,7 +48,11 @@ export function QueueSettingsModal({
     onClose();
   };
 
-  const similarityOptions: Array<{ value: SimilarityPreference; label: string; description: string }> = [
+  const similarityOptions: Array<{
+    value: SimilarityPreference;
+    label: string;
+    description: string;
+  }> = [
     {
       value: "strict",
       label: "Strict",
@@ -105,10 +114,10 @@ export function QueueSettingsModal({
               </div>
 
               {/* Content */}
-              <div className="p-6 space-y-6">
+              <div className="space-y-6 p-6">
                 {/* Track Count */}
                 <div>
-                  <label className="block text-sm font-semibold text-[var(--color-text)] mb-3">
+                  <label className="mb-3 block text-sm font-semibold text-[var(--color-text)]">
                     Number of Tracks
                   </label>
                   <div className="flex items-center gap-4">
@@ -118,7 +127,7 @@ export function QueueSettingsModal({
                       max="20"
                       value={count}
                       onChange={(e) => setCount(Number(e.target.value))}
-                      className="flex-1 h-2 bg-[rgba(255,255,255,0.1)] rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
+                      className="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-[rgba(255,255,255,0.1)] accent-[var(--color-accent)]"
                     />
                     <div className="w-16 text-center text-lg font-bold text-[var(--color-accent)]">
                       {count}
@@ -131,7 +140,7 @@ export function QueueSettingsModal({
 
                 {/* Similarity Level */}
                 <div>
-                  <label className="block text-sm font-semibold text-[var(--color-text)] mb-3">
+                  <label className="mb-3 block text-sm font-semibold text-[var(--color-text)]">
                     Similarity Level
                   </label>
                   <div className="space-y-2">
@@ -139,13 +148,13 @@ export function QueueSettingsModal({
                       <button
                         key={option.value}
                         onClick={() => setSimilarityLevel(option.value)}
-                        className={`w-full text-left p-3 rounded-lg border transition-all ${
+                        className={`w-full rounded-lg border p-3 text-left transition-all ${
                           similarityLevel === option.value
                             ? "border-[var(--color-accent)] bg-[rgba(244,178,102,0.1)]"
                             : "border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] hover:border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.05)]"
                         }`}
                       >
-                        <div className="flex items-center justify-between mb-1">
+                        <div className="mb-1 flex items-center justify-between">
                           <span className="font-semibold text-[var(--color-text)]">
                             {option.label}
                           </span>
@@ -166,13 +175,13 @@ export function QueueSettingsModal({
               <div className="flex items-center justify-end gap-3 border-t border-[rgba(255,255,255,0.1)] px-6 py-4">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-[var(--color-subtext)] rounded-lg transition-colors hover:text-[var(--color-text)] hover:bg-[rgba(255,255,255,0.05)]"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-subtext)] transition-colors hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--color-text)]"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleApply}
-                  className="px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] rounded-lg bg-[var(--color-accent)] transition-all hover:bg-[var(--color-accent-strong)] hover:scale-105"
+                  className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] transition-all hover:scale-105 hover:bg-[var(--color-accent-strong)]"
                 >
                   Apply
                 </button>

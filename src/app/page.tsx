@@ -8,8 +8,6 @@ import { headers } from "next/headers";
 import { Suspense } from "react";
 import HomePageClient from "./HomePageClient";
 
-const baseUrl = getBaseUrl();
-
 async function getFirstTrackFromSearch(
   query: string,
   baseUrl: string,
@@ -27,25 +25,6 @@ async function getFirstTrackFromSearch(
     console.error("Failed to fetch track for metadata:", error);
     return null;
   }
-}
-
-function getAlbumCoverImage(track: Track | null): string {
-  if (!track?.album) {
-    return "";
-  }
-
-  const coverImage =
-    track.album.cover_xl ||
-    track.album.cover_big ||
-    track.album.cover_medium ||
-    track.album.cover_small ||
-    track.album.cover;
-
-  if (coverImage && coverImage.trim().length > 0) {
-    return coverImage;
-  }
-
-  return "";
 }
 
 function buildOgImageUrl(track: Track | null, baseUrl: string, query?: string | null): string {

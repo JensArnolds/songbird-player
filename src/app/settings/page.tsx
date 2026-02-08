@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface SettingsSection {
@@ -50,7 +49,6 @@ interface SettingsItem {
 
 export default function SettingsPage() {
   const { data: session } = useSession();
-  const router = useRouter();
   const { showToast } = useToast();
   const player = useGlobalPlayer();
   const isMobile = useIsMobile();

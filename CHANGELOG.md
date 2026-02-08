@@ -5,6 +5,31 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.7] - 2026-02-08
+
+### Fixed
+
+- **Performance utilities SSR safety**: Guarded performance helpers to avoid `window` access in SSR/tests by using `globalThis.performance` with feature checks. Location: [src/utils/performance.ts](src/utils/performance.ts).
+- **Settings volume slider stability**: Normalized persisted volume values and clamped invalid inputs to prevent slider jumps and out-of-range state. Location: [src/hooks/useAudioPlayer.ts](src/hooks/useAudioPlayer.ts).
+- **Bottom sheet flick snapping**: Velocity-based snapping now steps from the drag end snap target to avoid unexpected direction changes near midpoints. Location: [src/components/BottomSheet.tsx](src/components/BottomSheet.tsx).
+- **Health check IP parsing**: Treated empty `x-forwarded-for` values as missing so fallbacks apply correctly. Location: [src/app/api/health/route.ts](src/app/api/health/route.ts).
+- **Null settings persistence**: Restored undefined-only fallback behavior to keep explicit `null` values intact. Location: [src/utils/settingsStorage.ts](src/utils/settingsStorage.ts).
+- **SmartQueue seed filtering**: Trimmed empty/whitespace-only seed values before sending recommendations. Location: [src/services/smartQueue.ts](src/services/smartQueue.ts).
+
+### Changed
+
+- **Swipe gesture API compatibility**: Preserved `swipeState` snapshot while adding `swipeStateRef` and `getSwipeState` accessors. Location: [src/hooks/useSwipeGesture.ts](src/hooks/useSwipeGesture.ts).
+- **Media query hook resync**: Re-applies the current match state on subscription to handle query changes immediately. Location: [src/hooks/useMediaQuery.ts](src/hooks/useMediaQuery.ts).
+- **Repeat mode coercion**: Sanitized persisted `repeatMode` to the allowed union with a safe fallback. Location: [src/contexts/AudioPlayerContext.tsx](src/contexts/AudioPlayerContext.tsx).
+- **Electron detection**: Added a lightweight `useIsElectron` hook and used it for dynamic title behavior. Locations: [src/hooks/useIsElectron.ts](src/hooks/useIsElectron.ts), [src/components/DynamicTitle.tsx](src/components/DynamicTitle.tsx).
+- **Floating action button hydration**: Clarified `useSyncExternalStore` subscription semantics to avoid confusion in SSR/client checks. Location: [src/components/FloatingActionButton.tsx](src/components/FloatingActionButton.tsx).
+- **Queue state typing**: Tightened queue state normalization to use `Track | null` instead of `unknown`. Location: [src/server/api/routers/music.ts](src/server/api/routers/music.ts).
+
+### Chore
+
+- **Electron build logging**: Reinstated a targeted `no-console` lint disable for the afterPack hook. Location: [electron/builder/afterPack.cjs](electron/builder/afterPack.cjs).
+- **Error boundary tests**: Removed unused variables/disable directives and tightened `onError` typing. Location: [src/__tests__/ErrorBoundary.stability.test.tsx](src/__tests__/ErrorBoundary.stability.test.tsx).
+
 ## [0.14.6] - 2026-02-07
 
 ### Changed

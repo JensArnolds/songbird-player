@@ -1609,7 +1609,12 @@ export const musicRouter = createTRPCRouter({
           return [];
         }
         if (songs.length === 1) {
-          songs.push({ ...songs[0] });
+          const first = songs[0];
+          if (first) {
+            songs.push({
+              name: first.name,
+            });
+          }
         }
 
         const payload = await songbird.request<SpiceUpResponse>(
@@ -2091,11 +2096,12 @@ export const musicRouter = createTRPCRouter({
           userId: ctx.session.user.id,
         });
 
-        const songs = seedTracks.map((track) => ({
-          name: track.title,
-          artist: track.artist.name,
-          album: track.album?.title,
-        }));
+        const songs: Array<{ name: string; artist?: string; album?: string }> =
+          seedTracks.map((track) => ({
+            name: track.title,
+            artist: track.artist.name,
+            album: track.album?.title,
+          }));
         if (songs.length === 1) {
           songs.push({ ...songs[0] });
         }

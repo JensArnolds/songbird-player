@@ -12,7 +12,6 @@ import {
   Copy,
   Lock,
   Unlock,
-  ListPlus,
   GitMerge,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";

@@ -3,7 +3,7 @@
 import { render, screen } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorBoundary, type ErrorBoundaryProps } from "@/components/ErrorBoundary";
 import { useState } from "react";
 
 const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
@@ -11,22 +11,6 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
     throw new Error("Test error");
   }
   return <div>Working Component</div>;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ErrorBoundaryTestWrapper = () => {
-  const [shouldThrow, setShouldThrow] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [key, setKey] = useState(0);
-
-  return (
-    <div>
-      <button onClick={() => setShouldThrow(false)}>Fix Error</button>
-      <ErrorBoundary key={key}>
-        <ThrowError shouldThrow={shouldThrow} />
-      </ErrorBoundary>
-    </div>
-  );
 };
 
 describe("ErrorBoundary Stability Tests", () => {
@@ -59,9 +43,6 @@ describe("ErrorBoundary Stability Tests", () => {
   });
 
   it("should reset error state when resetError is called", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const user = userEvent.setup();
-
     const ErrorBoundaryWithReset = () => {
       const [hasError, setHasError] = useState(false);
       const [resetKey, setResetKey] = useState(0);
@@ -100,7 +81,8 @@ describe("ErrorBoundary Stability Tests", () => {
   });
 
   it("should call onError callback when error occurs", () => {
-    const onError = vi.fn();
+    type OnError = NonNullable<ErrorBoundaryProps["onError"]>;
+    const onError = vi.fn<OnError>();
 
     render(
       <ErrorBoundary onError={onError}>
@@ -109,12 +91,9 @@ describe("ErrorBoundary Stability Tests", () => {
     );
 
     expect(onError).toHaveBeenCalledTimes(1);
-    expect(onError).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.objectContaining({
-        componentStack: expect.any(String),
-      }),
-    );
+    expect(onError).toHaveBeenCalledWith(expect.any(Error), expect.any(Object));
+    const errorInfo = onError.mock.calls[0]?.[1];
+    expect(errorInfo?.componentStack).toEqual(expect.any(String));
   });
 
   it("should render children when no error occurs", () => {
