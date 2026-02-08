@@ -139,7 +139,7 @@ function normalizeSpiceUpSongs(
   return seeds
     .map((seed) => (typeof seed === "string" ? { name: seed } : seed))
     .filter((song) =>
-      Boolean(song.name?.trim() ?? song.artist?.trim() ?? song.album?.trim()),
+      Boolean(song.name?.trim() || song.artist?.trim() || song.album?.trim()),
     );
 }
 

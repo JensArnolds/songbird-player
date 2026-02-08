@@ -5,6 +5,12 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.8] - 2026-02-08
+
+### Fixed
+
+- **MobileHeader tests**: Typed the `framer-motion` mock and navigation helpers so RTL assertions use concrete call data, eliminating `@typescript-eslint/no-unsafe-*` errors and allowing the suite to pass lint. Location: `src/__tests__/MobileHeader.test.tsx`.
+
 ## [0.14.7] - 2026-02-08
 
 ### Fixed
