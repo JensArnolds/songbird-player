@@ -201,6 +201,11 @@ const config = {
         hostname: "discordapp.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "i.scdn.co",
+        pathname: "/image/**",
+      },
     ],
     unoptimized: process.env.ELECTRON_BUILD === "true",
     formats: ["image/avif", "image/webp"],

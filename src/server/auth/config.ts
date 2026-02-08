@@ -1,6 +1,7 @@
 // File: src/server/auth/config.ts
 
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { customFetch } from "@auth/core";
 import { and, eq, sql } from "drizzle-orm";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
@@ -33,6 +34,89 @@ declare module "next-auth" {
   }
 }
 
+function isJsonContentType(value: string | null): boolean {
+  if (!value) return false;
+  const contentType = value.split(";")[0]?.trim().toLowerCase() ?? "";
+  return contentType === "application/json" || contentType.endsWith("+json");
+}
+
+function extractUrl(input: Parameters<typeof fetch>[0]): URL | null {
+  try {
+    if (typeof input === "string") return new URL(input);
+    if (input instanceof URL) return input;
+    // Request
+    return new URL(input.url);
+  } catch {
+    return null;
+  }
+}
+
+async function sleep(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const spotifyCustomFetch: typeof fetch = async (input, init) => {
+  const url = extractUrl(input);
+  const isSpotifyEndpoint =
+    url?.hostname === "accounts.spotify.com" || url?.hostname === "api.spotify.com";
+
+  if (!isSpotifyEndpoint) {
+    return fetch(input, init);
+  }
+
+  const maxAttempts = 2;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const response = await fetch(input, init);
+
+    // Some edge/network failures can return HTML/text. Convert to a JSON error
+    // response to avoid blowing up when Auth.js tries to parse as JSON.
+    const bodyText = await response
+      .clone()
+      .text()
+      .catch(() => "");
+
+    // If the body is actually JSON (even if mislabeled), let the normal flow continue.
+    const trimmed = bodyText.trim();
+    if (trimmed) {
+      try {
+        JSON.parse(trimmed);
+        return response;
+      } catch {
+        // fall through
+      }
+    } else if (isJsonContentType(response.headers.get("content-type"))) {
+      return response;
+    }
+
+    const isRetryable =
+      response.status === 429 ||
+      (response.status >= 500 && response.status <= 599);
+
+    if (attempt < maxAttempts && isRetryable) {
+      await sleep(150 * attempt);
+      continue;
+    }
+
+    return new Response(
+      JSON.stringify({
+        error: "invalid_response",
+        error_description:
+          `Spotify returned a non-JSON response from ${url ? `${url.hostname}${url.pathname}` : "an OAuth endpoint"}. Please retry sign-in.`,
+        status: response.status,
+        content_type: response.headers.get("content-type"),
+      }),
+      {
+        status: response.status || 500,
+        headers: { "content-type": "application/json" },
+      },
+    );
+  }
+
+  // Unreachable, but keeps TypeScript happy.
+  return fetch(input, init);
+};
+
 console.log("[NextAuth Config] ELECTRON_BUILD:", env.ELECTRON_BUILD);
 console.log("[NextAuth Config] NODE_ENV:", process.env.NODE_ENV);
 console.log(
@@ -49,14 +133,51 @@ export const authConfig = {
       clientId: env.AUTH_DISCORD_ID,
       clientSecret: env.AUTH_DISCORD_SECRET,
     }),
-    ...(env.SPOTIFY_CLIENT_ID && env.SPOTIFY_CLIENT_SECRET
-      ? [
-          SpotifyProvider({
-            clientId: env.SPOTIFY_CLIENT_ID,
-            clientSecret: env.SPOTIFY_CLIENT_SECRET,
-          }),
-        ]
-      : []),
+    ...(() => {
+      const spotifyClientId = env.SPOTIFY_CLIENT_ID;
+      const spotifyClientSecret = env.SPOTIFY_CLIENT_SECRET;
+      if (!spotifyClientId || !spotifyClientSecret) return [];
+
+      // Work around rare non-JSON responses from Spotify OAuth endpoints which
+      // would otherwise crash Auth.js JSON parsing in the callback route.
+      const spotifyOptions: any = {
+        clientId: spotifyClientId,
+        clientSecret: spotifyClientSecret,
+        profile(profile: any) {
+          if (!profile || typeof profile !== "object") {
+            throw new Error("Spotify returned an empty profile response");
+          }
+
+          if (typeof profile.error === "string") {
+            const details =
+              typeof profile.error_description === "string"
+                ? `: ${profile.error_description}`
+                : "";
+            throw new Error(`Spotify userinfo error: ${profile.error}${details}`);
+          }
+
+          if (typeof profile.id !== "string" || !profile.id) {
+            throw new Error("Spotify profile response missing id");
+          }
+
+          return {
+            id: profile.id,
+            name:
+              typeof profile.display_name === "string"
+                ? profile.display_name
+                : null,
+            email: typeof profile.email === "string" ? profile.email : null,
+            image:
+              typeof profile.images?.[0]?.url === "string"
+                ? profile.images[0].url
+                : null,
+          };
+        },
+      };
+
+      spotifyOptions[customFetch] = spotifyCustomFetch;
+      return [SpotifyProvider(spotifyOptions)];
+    })(),
   ],
   adapter: DrizzleAdapter(db, {
     usersTable: users,

@@ -53,6 +53,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const { share, isSupported: isShareSupported } = useWebShare();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchParamsKey = searchParams.toString();
   const isMobile = useIsMobile();
 
   const [query, setQuery] = useState("");
@@ -289,7 +290,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
         }
       }
     }
-  }, [searchParams]);
+  }, [searchParamsKey]);
 
   const updateURL = (searchQuery: string) => {
     const params = new URLSearchParams();

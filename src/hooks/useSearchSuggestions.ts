@@ -14,6 +14,29 @@ const MIN_QUERY_LENGTH = 2;
 const DEFAULT_LIMIT = 10;
 const DEFAULT_DEBOUNCE_MS = 220;
 
+const areSuggestionListsEqual = (
+  a: SearchSuggestionItem[],
+  b: SearchSuggestionItem[],
+): boolean => {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    const left = a[i];
+    const right = b[i];
+    if (!left || !right) return false;
+
+    if (left.id !== right.id) return false;
+    if (left.type !== right.type) return false;
+    if (left.label !== right.label) return false;
+    if (left.query !== right.query) return false;
+    if ((left.sublabel ?? null) !== (right.sublabel ?? null)) return false;
+    if ((left.artwork ?? null) !== (right.artwork ?? null)) return false;
+  }
+
+  return true;
+};
+
 const dedupeSuggestions = (
   suggestions: SearchSuggestionItem[],
   limit: number,
@@ -46,38 +69,52 @@ export function useSearchSuggestions(
 
   const normalizedQuery = query.trim();
 
-  const querySuggestions = useMemo(() => {
-    if (!normalizedQuery) return [];
-    const lowered = normalizedQuery.toLowerCase();
-
-    return recentSearches
-      .filter((entry) => entry.toLowerCase().includes(lowered))
-      .slice(0, 4)
-      .map((entry, index) => ({
-        id: `query-${index}-${entry}`,
-        type: "query" as const,
-        label: entry,
-        query: entry,
-      }));
-  }, [normalizedQuery, recentSearches]);
+  // React Query may give us a fresh array each render even if contents are unchanged.
+  // A digest avoids effect churn and (more importantly) prevents state-update loops.
+  const recentSearchesDigest = useMemo(() => JSON.stringify(recentSearches), [
+    recentSearches,
+  ]);
 
   useEffect(() => {
+    const updateSuggestions = (next: SearchSuggestionItem[]) => {
+      setSuggestions((prev) =>
+        areSuggestionListsEqual(prev, next) ? prev : next,
+      );
+    };
+
     if (!enabled) {
-      setSuggestions([]);
-      setIsLoading(false);
+      updateSuggestions([]);
+      setIsLoading((prev) => (prev ? false : prev));
       return;
     }
 
+    const buildQuerySuggestions = () => {
+      if (!normalizedQuery) return [];
+      const lowered = normalizedQuery.toLowerCase();
+
+      return recentSearches
+        .filter((entry) => entry.toLowerCase().includes(lowered))
+        .slice(0, 4)
+        .map((entry, index) => ({
+          id: `query-${index}-${entry}`,
+          type: "query" as const,
+          label: entry,
+          query: entry,
+        }));
+    };
+
+    const querySuggestions = buildQuerySuggestions();
+
     if (normalizedQuery.length < MIN_QUERY_LENGTH) {
-      setSuggestions(querySuggestions.slice(0, limit));
-      setIsLoading(false);
+      updateSuggestions(querySuggestions.slice(0, limit));
+      setIsLoading((prev) => (prev ? false : prev));
       return;
     }
 
     let cancelled = false;
     const timer = setTimeout(() => {
       void (async () => {
-        setIsLoading(true);
+        setIsLoading((prev) => (prev ? prev : true));
         try {
           const response = await searchTracks(normalizedQuery, 0);
           if (cancelled) return;
@@ -141,18 +178,18 @@ export function useSearchSuggestions(
             limit,
           );
 
-          setSuggestions(combined);
+          updateSuggestions(combined);
         } catch (error) {
           console.error(
             "[useSearchSuggestions] Failed to load suggestions:",
             error,
           );
           if (!cancelled) {
-            setSuggestions(querySuggestions.slice(0, limit));
+            updateSuggestions(querySuggestions.slice(0, limit));
           }
         } finally {
           if (!cancelled) {
-            setIsLoading(false);
+            setIsLoading((prev) => (prev ? false : prev));
           }
         }
       })();
@@ -167,8 +204,7 @@ export function useSearchSuggestions(
     enabled,
     limit,
     normalizedQuery,
-    querySuggestions,
-    recentSearches,
+    recentSearchesDigest,
   ]);
 
   return {

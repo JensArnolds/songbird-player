@@ -19,6 +19,7 @@ export default function MobileHeader() {
   const isMobile = useIsMobile();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchParamsKey = searchParams.toString();
   const { data: session } = useSession();
   const { openAuthModal } = useAuthModal();
   const { openMenu } = useMenu();
@@ -53,7 +54,7 @@ export default function MobileHeader() {
 
     setIsSearching(false);
     setCountdown(0);
-  }, [searchParams]);
+  }, [searchParamsKey]);
 
   useEffect(() => {
     if (searchTimeoutRef.current) {
@@ -124,7 +125,7 @@ export default function MobileHeader() {
         clearTimeout(searchingTimeoutRef.current);
       }
     };
-  }, [searchQuery, router, searchParams]);
+  }, [searchQuery, router, searchParamsKey]);
 
   if (!isMobile) return null;
 
