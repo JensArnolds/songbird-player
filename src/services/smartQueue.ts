@@ -30,8 +30,12 @@ async function apiRequest<T>(
 ): Promise<T> {
   const token = getAuthToken();
 
-  const baseUrl = API_BASE_URL.endsWith("/") ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
-  const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const baseUrl = API_BASE_URL.endsWith("/")
+    ? API_BASE_URL.slice(0, -1)
+    : API_BASE_URL;
+  const normalizedEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
   const url = `${baseUrl}${normalizedEndpoint}`;
 
   console.log("[SmartQueue API] 🌐 Making API request:", {
@@ -134,7 +138,9 @@ function normalizeSpiceUpSongs(
 ): Array<{ name?: string; artist?: string; album?: string }> {
   return seeds
     .map((seed) => (typeof seed === "string" ? { name: seed } : seed))
-    .filter((song) => (song.name ?? song.artist ?? song.album) !== undefined);
+    .filter((song) =>
+      Boolean(song.name?.trim() ?? song.artist?.trim() ?? song.album?.trim()),
+    );
 }
 
 function extractSpiceUpTracks(payload: unknown): SpiceUpTrack[] {
@@ -177,15 +183,16 @@ async function convertSpiceUpTracksToDeezer(
   for (const track of spiceTracks) {
     if (resolved.length >= limit) break;
 
-    const spotifyId = typeof track.id === "string" ? track.id.trim() : undefined;
-    const deezerId = normalizeSpiceUpDeezerId(track.deezerId ?? track.deezer_id);
+    const spotifyId =
+      typeof track.id === "string" ? track.id.trim() : undefined;
+    const deezerId = normalizeSpiceUpDeezerId(
+      track.deezerId ?? track.deezer_id,
+    );
     if (deezerId) {
       const deezerTrack = await fetchDeezerTrack(deezerId);
       if (deezerTrack && !seenIds.has(deezerTrack.id)) {
         resolved.push(
-          spotifyId
-            ? { ...deezerTrack, spotify_id: spotifyId }
-            : deezerTrack,
+          spotifyId ? { ...deezerTrack, spotify_id: spotifyId } : deezerTrack,
         );
         seenIds.add(deezerTrack.id);
       }
@@ -342,7 +349,6 @@ export async function getDeezerRecommendations(
   });
 
   try {
-
     const songs = normalizeSpiceUpSongs(seeds);
     if (songs.length === 0) {
       return [];
@@ -358,7 +364,9 @@ export async function getDeezerRecommendations(
       new Set(options?.excludeTrackIds ?? []),
     ).filter((id) => id !== undefined && id !== null && id !== "");
 
-    const baseUrl = API_BASE_URL.endsWith("/") ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    const baseUrl = API_BASE_URL.endsWith("/")
+      ? API_BASE_URL.slice(0, -1)
+      : API_BASE_URL;
     const response = await fetch(
       `${baseUrl}/api/spotify/recommendations/spice-up/unified`,
       {
@@ -370,9 +378,7 @@ export async function getDeezerRecommendations(
           songs,
           limit: count,
           mode: "diverse",
-          ...(excludeDeezerIds.length > 0
-            ? { excludeDeezerIds }
-            : {}),
+          ...(excludeDeezerIds.length > 0 ? { excludeDeezerIds } : {}),
           ...(excludeTrackIds.length > 0 ? { excludeTrackIds } : {}),
           ...(options?.excludeExplicit ? { excludeExplicit: true } : {}),
         }),
@@ -428,7 +434,6 @@ export async function convertHexMusicToTracks(
 
   for (const hexTrack of hexMusicTracks) {
     try {
-
       if (hexTrack.deezer_id) {
         const deezerTrack = await fetchDeezerTrack(hexTrack.deezer_id);
         if (deezerTrack) {
@@ -516,7 +521,6 @@ export async function getSmartQueueRecommendations(
   const startTime = performance.now();
 
   try {
-
     console.log(
       "[SmartQueue] 🧠 Attempting intelligent recommendations from HexMusic API...",
     );
@@ -576,7 +580,6 @@ export async function getSmartQueueRecommendations(
     const tracks = await fetchDeezerRadio(currentTrack.id, count * 2);
 
     if (tracks.length > 0) {
-
       const filteredTracks = tracks.filter(
         (track) => track.id !== currentTrack.id,
       );
@@ -650,7 +653,6 @@ async function fetchDeezerRadio(
   });
 
   try {
-
     const trackResponse = await fetch(
       `https://api.deezer.com/track/${trackId}`,
     );
@@ -743,10 +745,8 @@ function applySimilarityFilter(
   level: "strict" | "balanced" | "diverse",
 ): Track[] {
   if (level === "strict") {
-
     return tracks.filter((track) => track.artist.id === seedTrack.artist.id);
   } else if (level === "diverse") {
-
     const diverseTracks: Track[] = [];
     const artistIds = new Set<number>();
 
@@ -782,7 +782,6 @@ export async function generateSmartMix(
   }
 
   try {
-
     const allRecommendations: Track[] = [];
     const tracksPerSeed = Math.ceil(count / seedTracks.length);
 

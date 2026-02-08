@@ -125,6 +125,8 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
     },
   });
 
+  // Sync state from server preferences - intentional initialization pattern
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (preferences && isAuthenticated) {
       const nextBands = DEFAULT_BANDS.map((band, index) => ({
@@ -156,6 +158,8 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
     };
   }, []);
 
+  // Load local preferences when not authenticated - intentional initialization
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (!isAuthenticated && status !== "loading") {
       if (debounceTimerRef.current) {

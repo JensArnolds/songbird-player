@@ -1067,7 +1067,7 @@ export const musicRouter = createTRPCRouter({
         ? ({
             version: input.queueState.version,
             queuedTracks: input.queueState.queuedTracks.map((item) => ({
-              track: (item.track ?? null) as unknown,
+              track: (item.track ?? null) as Track | null,
               queueSource: item.queueSource,
               addedAt: item.addedAt,
               queueId: item.queueId,
@@ -1080,7 +1080,7 @@ export const musicRouter = createTRPCRouter({
           } as {
             version: 2;
             queuedTracks: Array<{
-              track: unknown;
+              track: Track | null;
               queueSource: "user" | "smart";
               addedAt: string;
               queueId: string;

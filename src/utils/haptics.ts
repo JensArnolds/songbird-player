@@ -106,7 +106,7 @@ const throttleTimers = new Map<string, number>();
 export function hapticThrottled(
   pattern: HapticPattern,
   key: string,
-  intervalMs = 50 as number,
+  intervalMs = 50,
 ): void {
   const now = nowMs();
   const lastTime = throttleTimers.get(key) ?? 0;
@@ -122,8 +122,8 @@ let lastSliderTime = 0;
 
 export function hapticSliderContinuous(
   value: number,
-  min = 0 as number,
-  max = 100 as number,
+  min = 0,
+  max = 100,
   options: {
     intervalMs?: number;
     tickThreshold?: number;
