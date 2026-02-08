@@ -1177,7 +1177,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     currentTrack.album.cover;
 
   const extractRgbFromRgba = (rgba: string): [number, number, number] => {
-    const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgba);
     if (match) {
       return [parseInt(match[1] ?? "0"), parseInt(match[2] ?? "0"), parseInt(match[3] ?? "0")];
     }
@@ -1191,7 +1191,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }).join("")}`;
   };
 
-  const enhanceColor = (r: number, g: number, b: number, saturationBoost: number = 1.4, brightnessBoost: number = 1.15): [number, number, number] => {
+  const enhanceColor = (r: number, g: number, b: number, saturationBoost = 1.4, brightnessBoost = 1.15): [number, number, number] => {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     const delta = max - min;
@@ -1270,7 +1270,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     ];
   };
 
-  const getPaletteColor = (color: string, opacity: number = 1, enhance: boolean = false): string => {
+  const getPaletteColor = (color: string, opacity = 1, enhance = false): string => {
     let [r, g, b] = extractRgbFromRgba(color);
     if (enhance && albumColorPalette) {
       [r, g, b] = enhanceColor(r, g, b);
@@ -1278,7 +1278,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  const getPaletteHex = (color: string, enhance: boolean = false): string => {
+  const getPaletteHex = (color: string, enhance = false): string => {
     let [r, g, b] = extractRgbFromRgba(color);
     if (enhance && albumColorPalette) {
       [r, g, b] = enhanceColor(r, g, b);

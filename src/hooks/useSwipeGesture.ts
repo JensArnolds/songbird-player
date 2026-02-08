@@ -115,7 +115,6 @@ export function useSwipeGesture(config: SwipeGestureConfig) {
     onTouchStart: handleTouchStart,
     onTouchMove: handleTouchMove,
     onTouchEnd: handleTouchEnd,
-    swipeState: swipeState.current,
   };
 }
 

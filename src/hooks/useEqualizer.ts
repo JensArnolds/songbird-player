@@ -9,7 +9,6 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getOrCreateAudioConnection,
-  releaseAudioConnection,
   ensureConnectionChain,
   shouldBypassWebAudio,
 } from "@/utils/audioContextManager";

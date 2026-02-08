@@ -667,11 +667,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         setIsPlaying(false);
       }
     };
-    const handleEnded = () => handleTrackEnd();
+    const handleEnded = () => { void handleTrackEnd(); };
     const handleLoadStart = () => setIsLoading(true);
     const handleCanPlay = () => {
       setIsLoading(false);
-      if (currentTrack && streamErrorTrackIdRef.current === currentTrack.id) {
+      if (streamErrorTrackIdRef.current === currentTrack?.id) {
         streamErrorRetryCountRef.current = 0;
       }
     };
@@ -701,7 +701,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         return;
       }
 
-      const statusMatch = errorMessage.match(/\b(\d{3})\b/);
+      const statusMatch = /\b(\d{3})\b/.exec(errorMessage);
       const statusCode = statusMatch ? Number(statusMatch[1]) : null;
       const isRetryableStatus =
         statusCode !== null &&
@@ -2438,7 +2438,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       if (queue.length < 2) return null;
 
-      const [currentTrack, nextTrack, ...remainingQueue] = queue;
+      const [currentTrack, nextTrack] = queue;
 
       requestAutoPlayNext(true);
       setHistory((prev) => [...prev, currentTrack!]);

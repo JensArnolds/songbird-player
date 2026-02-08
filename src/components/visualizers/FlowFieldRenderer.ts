@@ -543,7 +543,7 @@ export class FlowFieldRenderer {
     };
 
     if (neutralNames[pattern]) {
-      return neutralNames[pattern]!;
+      return neutralNames[pattern];
     }
 
     return pattern

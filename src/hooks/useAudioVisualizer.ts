@@ -193,11 +193,23 @@ export function useAudioVisualizer(
     return analyserRef.current?.fftSize ?? fftSize;
   }, [fftSize]);
 
+  const getAnalyser = useCallback((): AnalyserNode | null => {
+    return analyserRef.current;
+  }, []);
+
+  const getAudioContext = useCallback((): AudioContext | null => {
+    return audioContextRef.current;
+  }, []);
+
   return {
     isInitialized,
     frequencyData,
-    analyser: analyserRef.current,
-    audioContext: audioContextRef.current,
+    /** @deprecated Use getAnalyser() instead to avoid accessing refs during render */
+    get analyser() { return analyserRef.current; },
+    /** @deprecated Use getAudioContext() instead to avoid accessing refs during render */
+    get audioContext() { return audioContextRef.current; },
+    getAnalyser,
+    getAudioContext,
     getFrequencyData,
     getTimeDomainData,
     getSampleRate,

@@ -203,7 +203,7 @@ export default function SettingsPage() {
               onChange: (value: boolean | number | string) => {
                 const vol = value as number;
                 player.setVolume(vol);
-                handleSlider("volume", vol);
+                // Volume is persisted by the player itself, no need for preferences mutation
               },
             },
           ]),

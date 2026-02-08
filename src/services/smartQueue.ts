@@ -1,7 +1,7 @@
 // File: src/services/smartQueue.ts
 
 import { env } from "@/env";
-import { isTrack, type Track } from "@/types";
+import { type Track } from "@/types";
 
 const API_BASE_URL =
   typeof window === "undefined"
@@ -134,7 +134,7 @@ function normalizeSpiceUpSongs(
 ): Array<{ name?: string; artist?: string; album?: string }> {
   return seeds
     .map((seed) => (typeof seed === "string" ? { name: seed } : seed))
-    .filter((song) => song.name || song.artist || song.album);
+    .filter((song) => (song.name ?? song.artist ?? song.album) !== undefined);
 }
 
 function extractSpiceUpTracks(payload: unknown): SpiceUpTrack[] {

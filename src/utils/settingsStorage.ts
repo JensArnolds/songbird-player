@@ -57,10 +57,8 @@ export const settingsStorage = {
   ): UserSettings[K] {
     const settings = this.getAll();
     const value = settings[key];
-    return value !== undefined
-      ? value
-      : defaultValue !== undefined
-        ? defaultValue
-        : DEFAULT_SETTINGS[key];
+    if (value !== undefined) return value;
+    if (defaultValue !== undefined) return defaultValue;
+    return DEFAULT_SETTINGS[key];
   },
 };

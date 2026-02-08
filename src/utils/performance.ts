@@ -6,14 +6,15 @@ export function measurePerformance(name: string, fn: () => void) {
   const startMark = `${name}-start`;
   const endMark = `${name}-end`;
   const measureName = `${name}-measure`;
+  const perf = window.performance;
 
-  performance.mark(startMark);
+  perf.mark(startMark);
   const result = fn();
-  performance.mark(endMark);
+  perf.mark(endMark);
 
   try {
-    performance.measure(measureName, startMark, endMark);
-    const measure = performance.getEntriesByName(measureName)[0];
+    perf.measure(measureName, startMark, endMark);
+    const measure = perf.getEntriesByName(measureName)[0];
     if (measure && process.env.NODE_ENV === "development") {
       console.log(`⚡ ${name}: ${measure.duration.toFixed(2)}ms`);
     }
@@ -33,14 +34,15 @@ export async function measureAsyncPerformance<T>(
   const startMark = `${name}-start`;
   const endMark = `${name}-end`;
   const measureName = `${name}-measure`;
+  const perf = window.performance;
 
-  performance.mark(startMark);
+  perf.mark(startMark);
   const result = await fn();
-  performance.mark(endMark);
+  perf.mark(endMark);
 
   try {
-    performance.measure(measureName, startMark, endMark);
-    const measure = performance.getEntriesByName(measureName)[0];
+    perf.measure(measureName, startMark, endMark);
+    const measure = perf.getEntriesByName(measureName)[0];
     if (measure && process.env.NODE_ENV === "development") {
       console.log(`⚡ ${name}: ${measure.duration.toFixed(2)}ms`);
     }
@@ -60,7 +62,9 @@ export function reportWebVitals() {
         for (const entry of list.getEntries()) {
           const metricName = entry.name;
           const value = Math.round(
-            "duration" in entry ? entry.duration : (entry as any).value,
+            "duration" in entry
+              ? entry.duration
+              : (entry as PerformanceEntry & { value?: number }).value ?? 0,
           );
 
           if (process.env.NODE_ENV === "development") {
@@ -79,27 +83,34 @@ export function reportWebVitals() {
 export function clearPerformanceMarks(name?: string) {
   if (typeof window === "undefined" || !window.performance) return;
 
+  const perf = window.performance;
   if (name) {
-    performance.clearMarks(`${name}-start`);
-    performance.clearMarks(`${name}-end`);
-    performance.clearMeasures(`${name}-measure`);
+    perf.clearMarks(`${name}-start`);
+    perf.clearMarks(`${name}-end`);
+    perf.clearMeasures(`${name}-measure`);
   } else {
-    performance.clearMarks();
-    performance.clearMeasures();
+    perf.clearMarks();
+    perf.clearMeasures();
   }
 }
 
-export function getMemoryUsage() {
-  if (
-    typeof window === "undefined" ||
-    !(performance as any).memory
-  )
-    return null;
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
 
-  const memory = (performance as any).memory;
+export function getMemoryUsage() {
+  if (typeof window === "undefined" || typeof window.performance === "undefined") {
+    return null;
+  }
+
+  const perf = window.performance as Performance & { memory?: PerformanceMemory };
+  if (!perf.memory) return null;
+
   return {
-    usedJSHeapSize: (memory.usedJSHeapSize / 1048576).toFixed(2),
-    totalJSHeapSize: (memory.totalJSHeapSize / 1048576).toFixed(2),
-    jsHeapSizeLimit: (memory.jsHeapSizeLimit / 1048576).toFixed(2),
+    usedJSHeapSize: (perf.memory.usedJSHeapSize / 1048576).toFixed(2),
+    totalJSHeapSize: (perf.memory.totalJSHeapSize / 1048576).toFixed(2),
+    jsHeapSizeLimit: (perf.memory.jsHeapSizeLimit / 1048576).toFixed(2),
   };
 }

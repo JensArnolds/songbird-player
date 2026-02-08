@@ -353,7 +353,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     [normalizedSmartQueueSettings, utils],
   );
 
-  const initialQueueState = session && dbQueueState && dbQueueState.queuedTracks && dbQueueState.queuedTracks.length > 0 ? {
+  const initialQueueState = session && dbQueueState?.queuedTracks && dbQueueState.queuedTracks.length > 0 ? {
     queuedTracks: dbQueueState.queuedTracks.map((qt: any) => ({
       ...qt,
       addedAt: new Date(qt.addedAt),
@@ -366,7 +366,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     } as SmartQueueState,
     history: (dbQueueState.history || []) as Track[],
     isShuffled: dbQueueState.isShuffled ?? false,
-    repeatMode: (dbQueueState.repeatMode || "none") as "none" | "one" | "all",
+    repeatMode: (dbQueueState.repeatMode || "none"),
   } : undefined;
 
   const player = useAudioPlayer({
