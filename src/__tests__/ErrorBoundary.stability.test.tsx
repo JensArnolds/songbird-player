@@ -13,8 +13,10 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   return <div>Working Component</div>;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ErrorBoundaryTestWrapper = () => {
   const [shouldThrow, setShouldThrow] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [key, setKey] = useState(0);
 
   return (
@@ -57,6 +59,7 @@ describe("ErrorBoundary Stability Tests", () => {
   });
 
   it("should reset error state when resetError is called", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const user = userEvent.setup();
 
     const ErrorBoundaryWithReset = () => {

@@ -235,10 +235,9 @@ export function ensureConnectionChain(connection: AudioConnection): void {
     let lastNode: AudioNode = connection.sourceNode;
 
     if (filters) {
-      for (let i = 0; i < filters.length; i++) {
-        const nextFilter = filters[i]!;
-        lastNode.connect(nextFilter);
-        lastNode = nextFilter;
+      for (const filter of filters) {
+        lastNode.connect(filter);
+        lastNode = filter;
       }
     }
 

@@ -136,10 +136,12 @@ export default function PatternControls({
     kaleidoscopeColorShift: number;
   } | null>(null);
 
+  // Initialize available patterns from renderer - intentional sync
   useEffect(() => {
     if (!renderer) return;
 
     const patterns = renderer.getAllPatterns();
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: init from external renderer */
     setAvailablePatterns(patterns);
   }, [renderer]);
 

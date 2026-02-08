@@ -28,6 +28,8 @@ export function FlowFieldBackground({
   const connectedAudioElementRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Sync playing state with audio element - intentional event subscription
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync from audio element events */
   useEffect(() => {
     if (!audioElement) {
       setIsPlaying(false);
@@ -53,6 +55,7 @@ export function FlowFieldBackground({
       audioElement.removeEventListener("pause", handlePause);
     };
   }, [audioElement]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!audioElement) {

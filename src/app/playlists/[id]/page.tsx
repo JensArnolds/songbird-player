@@ -131,6 +131,8 @@ export default function PlaylistDetailPage() {
     }
   };
 
+  // Sync draft state with playlist data - intentional initialization
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync from server data */
   useEffect(() => {
     if (playlist) {
       setLocalVisibility(playlist.isPublic);
@@ -138,6 +140,7 @@ export default function PlaylistDetailPage() {
       setDraftDescription(playlist.description ?? "");
     }
   }, [playlist]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleToggleVisibility = async (): Promise<void> => {
     if (!playlist) return;

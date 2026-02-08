@@ -29,6 +29,22 @@ interface QueueStateV2 {
 
 export type QueueState = QueueStateV1 | QueueStateV2;
 
+// Serialized versions (dates as strings) for localStorage
+interface StoredQueuedTrack extends Omit<QueuedTrack, "addedAt"> {
+  addedAt: string;
+}
+
+interface StoredSmartQueueState extends Omit<SmartQueueState, "lastRefreshedAt"> {
+  lastRefreshedAt: string | null;
+}
+
+interface StoredQueueStateV2 extends Omit<QueueStateV2, "queuedTracks" | "smartQueueState"> {
+  queuedTracks: StoredQueuedTrack[];
+  smartQueueState: StoredSmartQueueState;
+}
+
+type StoredQueueState = QueueStateV1 | StoredQueueStateV2;
+
 export function useQueuePersistence(state: QueueState) {
   const persistTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -56,7 +72,7 @@ export function useQueuePersistence(state: QueueState) {
 }
 
 export function loadPersistedQueueState(): QueueState | null {
-  const result = localStorage.get<any>(STORAGE_KEYS.QUEUE_STATE);
+  const result = localStorage.get<StoredQueueState>(STORAGE_KEYS.QUEUE_STATE);
 
   if (!result.success) {
     console.error("Failed to load queue state:", result.error);
@@ -70,11 +86,10 @@ export function loadPersistedQueueState(): QueueState | null {
   const stored = result.data;
 
   if ('version' in stored && stored.version === 2) {
-
-    const v2Data = stored as any;
+    const v2Data = stored;
     return {
       ...v2Data,
-      queuedTracks: v2Data.queuedTracks.map((qt: any) => ({
+      queuedTracks: v2Data.queuedTracks.map((qt) => ({
         ...qt,
         addedAt: new Date(qt.addedAt),
       })),
@@ -88,7 +103,7 @@ export function loadPersistedQueueState(): QueueState | null {
   }
 
   if ('queue' in stored && Array.isArray(stored.queue)) {
-    const v1 = stored as QueueStateV1;
+    const v1 = stored;
     console.log("[useQueuePersistence] 🔄 Migrating queue state from V1 to V2");
 
     const migratedQueuedTracks: QueuedTrack[] = v1.queue.map((track, idx) => ({

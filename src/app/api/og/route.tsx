@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         };
 
         const firstTrack = searchData.data?.[0];
-        if (firstTrack && firstTrack.id) {
+        if (firstTrack?.id) {
           // Found a track! Use trackId-based preview (most reliable)
           console.log("[OG Route] Found track via search, using trackId:", firstTrack.id);
           

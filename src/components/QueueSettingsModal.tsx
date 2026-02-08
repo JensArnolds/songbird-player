@@ -24,17 +24,16 @@ export function QueueSettingsModal({
   initialCount = 5,
   initialSimilarityLevel = "balanced",
 }: QueueSettingsModalProps) {
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => typeof window !== "undefined");
   const [count, setCount] = useState(initialCount);
   const [similarityLevel, setSimilarityLevel] = useState<SimilarityPreference>(initialSimilarityLevel);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  // Reset to initial values when modal opens - intentional sync pattern
   useEffect(() => {
     if (isOpen) {
+      /* eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync props to state on open */
       setCount(initialCount);
+      /* eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync props to state on open */
       setSimilarityLevel(initialSimilarityLevel);
     }
   }, [isOpen, initialCount, initialSimilarityLevel]);

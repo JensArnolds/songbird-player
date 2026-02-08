@@ -720,13 +720,15 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onCycleRepeat();
   };
 
-  // Load smart queue settings
+  // Load smart queue settings - intentional initialization from external state
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync from external settings */
   useEffect(() => {
     if (smartQueueSettings) {
       setSmartTracksCount(smartQueueSettings.autoQueueCount);
       setSimilarityLevel(smartQueueSettings.similarityPreference);
     }
   }, [smartQueueSettings]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSmartQueueAction = useCallback(
     async (action: "add" | "refresh") => {
@@ -987,6 +989,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     };
   }, [isExpanded]);
 
+  // Extract color palette from album cover - intentional async effect
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: async color extraction */
   useEffect(() => {
     const fallbackCover =
       "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect fill='%236495ed' width='1' height='1'/%3E%3C/svg%3E";
@@ -1045,9 +1049,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
       cleanup?.();
     };
   }, [currentTrack?.id]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
+  // Sync audio element from context - intentional initialization
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync from context */
   useEffect(() => {
-
     if (contextAudioElement) {
       setAudioElement(contextAudioElement);
     } else if (typeof window !== "undefined") {
@@ -1057,8 +1063,10 @@ export default function MobilePlayer(props: MobilePlayerProps) {
       }
     }
   }, [contextAudioElement]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-
+  // Sync visualizer state from preferences - intentional initialization
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync from server prefs */
   useEffect(() => {
     if (preferences) {
       setVisualizerEnabled(preferences.visualizerEnabled ?? true);
@@ -1075,11 +1083,11 @@ export default function MobilePlayer(props: MobilePlayerProps) {
         const parsed: unknown = JSON.parse(stored);
         setVisualizerEnabled(parsed === true);
       } catch {
-
         setVisualizerEnabled(stored === "true");
       }
     }
   }, [isAuthenticated]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useAudioReactiveBackground(audioElement, isPlaying, false);
 
@@ -1177,7 +1185,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     currentTrack.album.cover;
 
   const extractRgbFromRgba = (rgba: string): [number, number, number] => {
-    const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    const match = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgba);
     if (match) {
       return [parseInt(match[1] ?? "0"), parseInt(match[2] ?? "0"), parseInt(match[3] ?? "0")];
     }
@@ -1191,7 +1199,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }).join("")}`;
   };
 
-  const enhanceColor = (r: number, g: number, b: number, saturationBoost: number = 1.4, brightnessBoost: number = 1.15): [number, number, number] => {
+  const enhanceColor = (r: number, g: number, b: number, saturationBoost = 1.4, brightnessBoost = 1.15): [number, number, number] => {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     const delta = max - min;
@@ -1270,7 +1278,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     ];
   };
 
-  const getPaletteColor = (color: string, opacity: number = 1, enhance: boolean = false): string => {
+  const getPaletteColor = (color: string, opacity = 1, enhance = false): string => {
     let [r, g, b] = extractRgbFromRgba(color);
     if (enhance && albumColorPalette) {
       [r, g, b] = enhanceColor(r, g, b);
@@ -1278,7 +1286,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
 
-  const getPaletteHex = (color: string, enhance: boolean = false): string => {
+  const getPaletteHex = (color: string, enhance = false): string => {
     let [r, g, b] = extractRgbFromRgba(color);
     if (enhance && albumColorPalette) {
       [r, g, b] = enhanceColor(r, g, b);

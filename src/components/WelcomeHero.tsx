@@ -4,7 +4,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Music2, Sparkles, Play } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface WelcomeHeroProps {
   isVisible: boolean;
@@ -12,11 +12,7 @@ interface WelcomeHeroProps {
 }
 
 export function WelcomeHero({ isVisible, onDismiss }: WelcomeHeroProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [mounted] = useState(() => typeof window !== "undefined");
 
   if (!mounted) return null;
 

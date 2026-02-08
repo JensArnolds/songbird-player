@@ -263,12 +263,15 @@ export function EnhancedQueue({
     { enabled: isAuthenticated },
   );
 
+  // Sync smart queue settings - intentional initialization
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync from server settings */
   useEffect(() => {
     if (smartQueueSettings) {
       setSmartTracksCount(smartQueueSettings.autoQueueCount);
       setSimilarityLevel(smartQueueSettings.similarityPreference);
     }
   }, [smartQueueSettings]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (currentTrack && queueListRef.current) {

@@ -55,9 +55,9 @@ Object.defineProperty(window, "matchMedia", {
 });
 
 class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe() { /* noop */ }
+  unobserve() { /* noop */ }
+  disconnect() { /* noop */ }
 }
 
 Object.defineProperty(window, "ResizeObserver", {

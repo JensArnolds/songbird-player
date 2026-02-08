@@ -1,6 +1,5 @@
 // File: src/utils/api.ts
 
-import { env } from "@/env";
 import type { SearchResponse, Track } from "@/types";
 
 export async function searchTracks(

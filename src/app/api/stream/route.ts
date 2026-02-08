@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     const rangeHeader = req.headers.get("Range");
     const fetchHeaders: HeadersInit = {};
     if (rangeHeader) {
-      fetchHeaders["Range"] = rangeHeader;
+      fetchHeaders.Range = rangeHeader;
     }
 
     console.log("[Stream API] Request headers:", {

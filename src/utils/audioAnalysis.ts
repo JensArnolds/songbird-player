@@ -117,7 +117,7 @@ export function smoothFrequencyData(
   previousData: Uint8Array | null,
   smoothingFactor = 0.7,
 ): Uint8Array {
-  if (!previousData || previousData.length !== data.length) {
+  if (previousData?.length !== data.length) {
     return data;
   }
 

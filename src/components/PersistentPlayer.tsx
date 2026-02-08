@@ -66,6 +66,8 @@ export default function PersistentPlayer() {
   const [showPatternControls, setShowPatternControls] = useState(false);
   const [renderer, setRenderer] = useState<FlowFieldRenderer | null>(null);
 
+  // Sync panel state from server preferences - intentional initialization
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync from server prefs */
   useEffect(() => {
     if (preferences) {
       setShowQueue(preferences.queuePanelOpen ?? false);
@@ -73,7 +75,10 @@ export default function PersistentPlayer() {
       setVisualizerEnabled(preferences.visualizerEnabled ?? true);
     }
   }, [preferences]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
+  // Load visualizer state from localStorage when not authenticated
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: load from localStorage */
   useEffect(() => {
     if (isAuthenticated) return;
     if (typeof window === "undefined") return;
@@ -84,11 +89,11 @@ export default function PersistentPlayer() {
         const parsed: unknown = JSON.parse(stored);
         setVisualizerEnabled(parsed === true);
       } catch {
-
         setVisualizerEnabled(stored === "true");
       }
     }
   }, [isAuthenticated]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useAudioReactiveBackground(
     player.audioElement,

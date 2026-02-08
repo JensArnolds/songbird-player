@@ -22,6 +22,28 @@ import {
 
 type RepeatMode = "none" | "one" | "all";
 
+const DEFAULT_VOLUME = 0.7;
+
+const normalizeStoredVolume = (value: unknown): number => {
+  const numericValue =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : Number.NaN;
+
+  if (!Number.isFinite(numericValue)) return DEFAULT_VOLUME;
+
+  if (numericValue > 1) {
+    if (numericValue <= 100 && Number.isInteger(numericValue)) {
+      return Math.max(0, Math.min(1, numericValue / 100));
+    }
+    return 1;
+  }
+
+  return Math.max(0, Math.min(1, numericValue));
+};
+
 interface UseAudioPlayerOptions {
   onTrackChange?: (track: Track) => void;
   onTrackEnd?: (track: Track) => void;
@@ -170,9 +192,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, [queuedTracks]);
 
   useEffect(() => {
-    const savedVolume = localStorage.getOrDefault(STORAGE_KEYS.VOLUME, 0.7);
+    const savedVolume = localStorage.getOrDefault(
+      STORAGE_KEYS.VOLUME,
+      DEFAULT_VOLUME,
+    );
 
-    setVolume(savedVolume);
+    setVolume(normalizeStoredVolume(savedVolume));
 
     if (initialQueueState && initialQueueState.queuedTracks.length > 0) {
       logger.info("[useAudioPlayer] 📥 Restoring queue state from database");
@@ -667,11 +692,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         setIsPlaying(false);
       }
     };
-    const handleEnded = () => handleTrackEnd();
+    const handleEnded = () => { void handleTrackEnd(); };
     const handleLoadStart = () => setIsLoading(true);
     const handleCanPlay = () => {
       setIsLoading(false);
-      if (currentTrack && streamErrorTrackIdRef.current === currentTrack.id) {
+      if (streamErrorTrackIdRef.current === currentTrack?.id) {
         streamErrorRetryCountRef.current = 0;
       }
     };
@@ -701,7 +726,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         return;
       }
 
-      const statusMatch = errorMessage.match(/\b(\d{3})\b/);
+      const statusMatch = /\b(\d{3})\b/.exec(errorMessage);
       const statusCode = statusMatch ? Number(statusMatch[1]) : null;
       const isRetryableStatus =
         statusCode !== null &&
@@ -2310,6 +2335,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
   const setVolumeWithValidation = useCallback((newVolume: number) => {
 
+    if (!Number.isFinite(newVolume)) return;
     const clampedVolume = Math.max(0, Math.min(1, newVolume));
     setVolume(clampedVolume);
   }, []);
@@ -2438,7 +2464,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       if (queue.length < 2) return null;
 
-      const [currentTrack, nextTrack, ...remainingQueue] = queue;
+      const [currentTrack, nextTrack] = queue;
 
       requestAutoPlayNext(true);
       setHistory((prev) => [...prev, currentTrack!]);

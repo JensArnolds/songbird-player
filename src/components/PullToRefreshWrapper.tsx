@@ -48,6 +48,8 @@ export function PullToRefreshWrapper({
       threshold,
     });
 
+  // Sync refresh state based on pull distance - intentional UI state machine
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: state machine sync from gesture */
   useEffect(() => {
     pullY.set(pullDistance);
 
@@ -66,6 +68,7 @@ export function PullToRefreshWrapper({
       }
     }
   }, [pullDistance, isRefreshing, threshold, refreshState, pullY]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const refreshProgress = Math.min(pullDistance / threshold, 1);
   const indicatorOpacity = useTransform(pullY, [0, 20, threshold], [0, 0.5, 1]);

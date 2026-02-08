@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-# File: scripts/db-sync.cjs
+// File: scripts/db-sync.cjs
 
 const { execSync } = require('child_process');
 

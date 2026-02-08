@@ -181,8 +181,6 @@ export async function extractColorsFromImage(
 
     const extractRobustColors = (imageData: ImageData): ColorPalette => {
       const data = imageData.data;
-      const width = imageData.width;
-      const height = imageData.height;
 
       // First pass: Calculate average lightness to detect if image is too dark
       let totalLightness = 0;

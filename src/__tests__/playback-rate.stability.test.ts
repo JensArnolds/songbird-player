@@ -104,14 +104,14 @@ describe("Playback Rate Stability Tests", () => {
         if (!eventListeners[event]) {
           eventListeners[event] = [];
         }
-        eventListeners[event]!.push(handler);
+        eventListeners[event].push(handler);
       },
     ) as unknown as typeof element.addEventListener;
 
     element.removeEventListener = vi.fn(
       (event: string, handler: (e: Event) => void) => {
         if (eventListeners[event]) {
-          eventListeners[event] = eventListeners[event]!.filter(
+          eventListeners[event] = eventListeners[event].filter(
             (h) => h !== handler,
           );
         }
@@ -204,7 +204,7 @@ describe("Playback Rate Stability Tests", () => {
         mockAudioElement.playbackRate = 2.0;
       }
 
-      const ratechangeHandlers = eventListeners["ratechange"] ?? [];
+      const ratechangeHandlers = eventListeners.ratechange ?? [];
       act(() => {
         ratechangeHandlers.forEach((handler) => handler(new Event("ratechange")));
       });
@@ -361,7 +361,7 @@ describe("Playback Rate Stability Tests", () => {
         result.current.addToQueue(mockTrack);
       });
 
-      const ratechangeHandlers = eventListeners["ratechange"] ?? [];
+      const ratechangeHandlers = eventListeners.ratechange ?? [];
 
       for (let i = 0; i < 10; i++) {
         if (mockAudioElement) {
@@ -517,7 +517,7 @@ describe("Playback Rate Stability Tests", () => {
         mockAudioElement.playbackRate = 10.0;
       }
 
-      const ratechangeHandlers = eventListeners["ratechange"] ?? [];
+      const ratechangeHandlers = eventListeners.ratechange ?? [];
       act(() => {
         ratechangeHandlers.forEach((handler) => handler(new Event("ratechange")));
       });

@@ -23,7 +23,7 @@ export function useAudioReactiveBackground(
 
   const isInitialized = visualizer.isInitialized;
   const getFrequencyData = visualizer.getFrequencyData;
-  const audioContext = visualizer.audioContext;
+  const getAudioContext = visualizer.getAudioContext;
   const getFFTSize = visualizer.getFFTSize;
   const initialize = visualizer.initialize;
   const resumeContext = visualizer.resumeContext;
@@ -67,12 +67,13 @@ export function useAudioReactiveBackground(
         return;
       }
 
-      if (!audioContext) {
+      const audioCtx = getAudioContext();
+      if (!audioCtx) {
         animationFrameRef.current = requestAnimationFrame(updateBackground);
         return;
       }
 
-      const sampleRate = audioContext.sampleRate;
+      const sampleRate = audioCtx.sampleRate;
       const fftSize = getFFTSize();
       const analysis = analyzeAudio(frequencyData, sampleRate, fftSize);
 
@@ -166,7 +167,7 @@ export function useAudioReactiveBackground(
     isInitialized,
     audioElement,
     getFrequencyData,
-    audioContext,
+    getAudioContext,
     getFFTSize,
     initialize,
     resumeContext,

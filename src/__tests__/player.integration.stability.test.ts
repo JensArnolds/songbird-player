@@ -103,14 +103,14 @@ describe("Player Integration Stability Tests", () => {
         if (!eventListeners[event]) {
           eventListeners[event] = [];
         }
-        eventListeners[event]!.push(handler);
+        eventListeners[event].push(handler);
       },
     ) as unknown as typeof element.addEventListener;
 
     element.removeEventListener = vi.fn(
       (event: string, handler: (e: Event) => void) => {
         if (eventListeners[event]) {
-          eventListeners[event] = eventListeners[event]!.filter(
+          eventListeners[event] = eventListeners[event].filter(
             (h) => h !== handler,
           );
         }
@@ -142,7 +142,7 @@ describe("Player Integration Stability Tests", () => {
   });
 
   const simulateTrackEnd = () => {
-    const endedHandlers = eventListeners["ended"] ?? [];
+    const endedHandlers = eventListeners.ended ?? [];
     const event = new Event("ended");
     endedHandlers.forEach((handler) => handler(event));
   };
@@ -151,7 +151,7 @@ describe("Player Integration Stability Tests", () => {
     if (mockAudioElement) {
       mockAudioElement.currentTime = time;
     }
-    const timeUpdateHandlers = eventListeners["timeupdate"] ?? [];
+    const timeUpdateHandlers = eventListeners.timeupdate ?? [];
     const event = new Event("timeupdate");
     timeUpdateHandlers.forEach((handler) => handler(event));
   };
