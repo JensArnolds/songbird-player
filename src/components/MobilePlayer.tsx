@@ -444,7 +444,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     onCycleRepeat,
     onSkipForward,
     onSkipBackward,
-    onToggleQueue,
     onClose,
     forceExpanded = false,
   } = props;
@@ -461,7 +460,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     reorderQueue,
     saveQueueAsPlaylist,
     clearQueue,
-    clearSmartTracks,
   } = useGlobalPlayer();
   const { showToast } = useToast();
 
@@ -492,7 +490,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
   const [isExpanded, setIsExpanded] = useState(forceExpanded);
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
-  const [visualizerEnabled, setVisualizerEnabled] = useState(true);
+  const [, setVisualizerEnabled] = useState(true);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const [albumColorPalette, setAlbumColorPalette] =
     useState<ColorPalette | null>(null);
@@ -573,16 +571,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
   const seekX = useMotionValue(0);
   const queueThumbY = useMotionValue(0);
-
-  const shouldIgnoreTouch = (target: EventTarget | null) => {
-    if (!(target instanceof HTMLElement)) return false;
-    if (target.closest("[data-drag-exempt='true']")) return true;
-    return Boolean(
-      target.closest("button") ??
-        target.closest("input") ??
-        target.closest("select"),
-    );
-  };
 
   const updateQueueScrollbar = useCallback(() => {
     const container = queueScrollRef.current;

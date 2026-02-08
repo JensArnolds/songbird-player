@@ -21,17 +21,39 @@ vi.mock("@/utils/logger", () => ({
 const createMockTrack = (id: number): Track => ({
   id,
   title: `Track ${id}`,
-  artist: { id, name: `Artist ${id}` },
-  album: { id, title: `Album ${id}`, cover_medium: "" },
+  title_short: `Track ${id}`,
+  link: `https://example.com/track/${id}`,
+  readable: true,
+  rank: 0,
+  explicit_lyrics: false,
+  explicit_content_lyrics: 0,
+  explicit_content_cover: 0,
+  type: "track",
+  artist: { id, name: `Artist ${id}`, type: "artist" },
+  album: {
+    id,
+    title: `Album ${id}`,
+    cover: "",
+    cover_small: "",
+    cover_medium: "",
+    cover_big: "",
+    cover_xl: "",
+    md5_image: "",
+    tracklist: "",
+    type: "album",
+  },
   duration: 180 + id * 10,
   preview: `https://example.com/preview${id}.mp3`,
 });
 
 describe("Player Integration Stability Tests", () => {
-  let mockAudioElement: (HTMLAudioElement & { preservesPitch?: boolean }) | null;
+  let mockAudioElement:
+    | (HTMLAudioElement & { preservesPitch?: boolean })
+    | null;
   let eventListeners: Record<string, ((event: Event) => void)[]>;
   let playPromise: Promise<void>;
   let playResolve: () => void;
+  let playMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     eventListeners = {};
@@ -44,7 +66,8 @@ describe("Player Integration Stability Tests", () => {
       preservesPitch?: boolean;
     };
 
-    element.play = vi.fn().mockReturnValue(playPromise);
+    playMock = vi.fn().mockReturnValue(playPromise);
+    element.play = playMock;
     element.pause = vi.fn();
     element.load = vi.fn();
 
@@ -100,9 +123,7 @@ describe("Player Integration Stability Tests", () => {
 
     element.addEventListener = vi.fn(
       (event: string, handler: (e: Event) => void) => {
-        if (!eventListeners[event]) {
-          eventListeners[event] = [];
-        }
+        eventListeners[event] ??= [];
         eventListeners[event].push(handler);
       },
     ) as unknown as typeof element.addEventListener;
@@ -121,13 +142,16 @@ describe("Player Integration Stability Tests", () => {
       .fn()
       .mockImplementation(() => mockAudioElement as HTMLAudioElement);
 
-    global.navigator.serviceWorker = {
-      ready: Promise.resolve({
-        active: {
-          postMessage: vi.fn(),
-        },
-      } as unknown as ServiceWorkerRegistration),
-    } as unknown as ServiceWorkerContainer;
+    Object.defineProperty(global.navigator, "serviceWorker", {
+      configurable: true,
+      value: {
+        ready: Promise.resolve({
+          active: {
+            postMessage: vi.fn(),
+          },
+        } as unknown as ServiceWorkerRegistration),
+      } as unknown as ServiceWorkerContainer,
+    });
 
     Object.defineProperty(document, "visibilityState", {
       writable: true,
@@ -191,7 +215,7 @@ describe("Player Integration Stability Tests", () => {
         expect(result.current.isPlaying).toBe(true);
 
         act(() => {
-          simulateTimeUpdate(mockAudioElement.duration ?? 180);
+          simulateTimeUpdate(mockAudioElement?.duration ?? 180);
         });
 
         act(() => {
@@ -252,7 +276,11 @@ describe("Player Integration Stability Tests", () => {
 
       act(() => {
         result.current.addToQueue(track);
-        result.current.setRepeatMode("one");
+        (
+          result.current as typeof result.current & {
+            setRepeatMode: (mode: "off" | "one" | "all") => void;
+          }
+        ).setRepeatMode("one");
       });
 
       act(() => {
@@ -272,7 +300,7 @@ describe("Player Integration Stability Tests", () => {
         });
 
         await waitFor(() => {
-          expect(mockAudioElement.play).toHaveBeenCalled();
+          expect(playMock).toHaveBeenCalled();
         });
 
         expect(result.current.currentTrack?.id).toBe(track.id);
@@ -291,7 +319,11 @@ describe("Player Integration Stability Tests", () => {
 
       act(() => {
         tracks.forEach((track) => result.current.addToQueue(track));
-        result.current.setRepeatMode("all");
+        (
+          result.current as typeof result.current & {
+            setRepeatMode: (mode: "off" | "one" | "all") => void;
+          }
+        ).setRepeatMode("all");
       });
 
       for (let i = 0; i < 5; i++) {
@@ -440,7 +472,7 @@ describe("Player Integration Stability Tests", () => {
         result.current.addToQueue(createMockTrack(1));
       });
 
-      if (mockAudioElement.play) {
+      if (mockAudioElement?.play) {
         (mockAudioElement.play as ReturnType<typeof vi.fn>).mockRejectedValue(
           new Error("Playback not allowed"),
         );

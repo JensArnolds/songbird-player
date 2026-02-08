@@ -23,6 +23,28 @@ interface Track {
   };
 }
 
+function isTrackPayload(value: unknown): value is Track {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<Track>;
+  const hasArtist =
+    typeof candidate.artist === "object" &&
+    candidate.artist !== null &&
+    typeof candidate.artist.id === "number" &&
+    typeof candidate.artist.name === "string";
+  const hasAlbum =
+    typeof candidate.album === "object" &&
+    candidate.album !== null &&
+    typeof candidate.album.id === "number" &&
+    typeof candidate.album.title === "string";
+  return (
+    typeof candidate.id === "number" &&
+    typeof candidate.title === "string" &&
+    typeof candidate.duration === "number" &&
+    hasArtist &&
+    hasAlbum
+  );
+}
+
 async function getTrack(id: string): Promise<Track | null> {
   try {
     const songbirdApiUrl = env.API_V2_URL;
@@ -52,9 +74,9 @@ async function getTrack(id: string): Promise<Track | null> {
                 ? (payload as { tracks: unknown[] }).tracks
                 : []
             : [];
-        const track = tracks[0];
-        if (track) {
-          return track as Track;
+        const candidate = tracks[0];
+        if (isTrackPayload(candidate)) {
+          return candidate;
         }
       }
     } else {
@@ -72,7 +94,10 @@ async function getTrack(id: string): Promise<Track | null> {
       cache: "no-store",
     });
     if (deezerResponse.ok) {
-      return (await deezerResponse.json()) as Track;
+      const deezerTrack = await deezerResponse.json();
+      if (isTrackPayload(deezerTrack)) {
+        return deezerTrack;
+      }
     }
 
     return null;

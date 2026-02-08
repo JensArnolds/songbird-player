@@ -2,7 +2,7 @@
 
 import MobileFooter from "@/components/MobileFooter";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const navigationState = vi.hoisted(() => ({
   pathname: "/",
@@ -52,13 +52,14 @@ vi.mock("framer-motion", async () => {
       get: (_target, tag: string) =>
         ReactImport.forwardRef((props: Record<string, unknown>, ref) => {
           const {
-            layoutId: _layoutId,
+            layoutId,
             whileTap: _whileTap,
-            transition: _transition,
-            initial: _initial,
             animate: _animate,
             ...rest
           } = props;
+          void layoutId;
+          void _whileTap;
+          void _animate;
           return ReactImport.createElement(tag, { ...rest, ref });
         }),
     },

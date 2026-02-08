@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface SettingsSection {
   id: string;
@@ -793,12 +794,84 @@ function SelectButton({
   onChange: (value: string) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
 
   const currentOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    if (!isOpen || !buttonRef.current) return;
+
+    const updateRect = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (rect) {
+        setDropdownRect(rect);
+      }
+    };
+
+    updateRect();
+    window.addEventListener("resize", updateRect);
+    window.addEventListener("scroll", updateRect, true);
+
+    return () => {
+      window.removeEventListener("resize", updateRect);
+      window.removeEventListener("scroll", updateRect, true);
+    };
+  }, [isOpen]);
+
+  const dropdownStyle = dropdownRect
+    ? {
+        position: "fixed",
+        top: dropdownRect.bottom + 8,
+        left: dropdownRect.left,
+        width: dropdownRect.width,
+        zIndex: 70,
+      }
+    : undefined;
+
+  const dropdownPortal =
+    typeof document !== "undefined" && isOpen && dropdownStyle ? (
+      createPortal(
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+            transition={springPresets.snappy}
+            className="theme-panel mt-2 overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
+            style={dropdownStyle}
+          >
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  hapticLight();
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full px-4 py-3 text-left text-[14px] font-medium transition-colors ${
+                  value === option.value
+                    ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                    : "text-[var(--color-text)] active:bg-[var(--color-surface-hover)] md:hover:bg-[var(--color-surface-hover)]"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </motion.div>
+        </>,
+        document.body,
+      )
+    ) : null;
 
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => {
           hapticLight();
           setIsOpen(!isOpen);
@@ -828,39 +901,7 @@ function SelectButton({
         </div>
       </button>
 
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-50"
-            onClick={() => setIsOpen(false)}
-          />
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={springPresets.snappy}
-            className="theme-panel absolute top-full right-4 left-4 z-50 mt-2 overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
-          >
-            {options.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => {
-                  hapticLight();
-                  onChange(option.value);
-                  setIsOpen(false);
-                }}
-                className={`w-full px-4 py-3 text-left text-[14px] font-medium transition-colors ${
-                  value === option.value
-                    ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                    : "text-[var(--color-text)] active:bg-[var(--color-surface-hover)] md:hover:bg-[var(--color-surface-hover)]"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </motion.div>
-        </>
-      )}
+      {dropdownPortal}
     </div>
   );
 }

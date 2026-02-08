@@ -8,17 +8,30 @@ import MobilePlayer from "@/components/MobilePlayer";
 
 const mockTrack: Track = {
   id: 12345,
+  md5_image: "md5-test-image",
   title: "Test Track",
+  title_short: "Test Track",
+  readable: true,
+  link: "https://example.com/track/12345",
+  rank: 1000,
   duration: 180,
   preview: "https://example.com/preview.mp3",
+  explicit_lyrics: false,
+  explicit_content_lyrics: 0,
+  explicit_content_cover: 0,
+  type: "track",
   artist: {
     id: 1,
+    type: "artist",
     name: "Test Artist",
     picture_medium: "https://example.com/artist.jpg",
   },
   album: {
     id: 1,
     title: "Test Album",
+    md5_image: "md5-test-image",
+    tracklist: "https://example.com/album/1/tracks",
+    type: "album",
     cover_medium: "https://example.com/cover.jpg",
     cover_small: "https://example.com/cover_small.jpg",
     cover_big: "https://example.com/cover_big.jpg",
@@ -166,8 +179,10 @@ vi.mock("@/utils/images", () => ({
 }));
 
 vi.mock("@/utils/time", () => ({
-  formatDuration: (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`,
-  formatTime: (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`,
+  formatDuration: (seconds: number) =>
+    `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`,
+  formatTime: (seconds: number) =>
+    `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`,
 }));
 
 vi.mock("@/utils/colorExtractor", () => ({
@@ -190,43 +205,68 @@ vi.mock("@/utils/audioContextManager", () => ({
 
 vi.mock("next/image", () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
     const { src, alt, ...rest } = props;
     return React.createElement("img", { src, alt, ...rest });
   },
 }));
 
-vi.mock("framer-motion", async () => {
-  const ReactImport = await import("react");
+vi.mock("framer-motion", () => {
+  type MotionMockProps = React.HTMLAttributes<HTMLElement> &
+    Record<string, unknown>;
   const motion = new Proxy(
     {},
     {
-      get: (_target, tag: string) =>
-        ReactImport.forwardRef((props: any, ref) => {
-          const {
-            layoutId,
-            whileTap,
-            whileHover,
-            transition,
-            initial,
-            animate,
-            exit,
-            drag,
-            dragConstraints,
-            dragElastic,
-            onDrag,
-            onDragEnd,
-            style,
-            ...rest
-          } = props;
-          return ReactImport.createElement(tag, { ...rest, ref });
-        }),
+      get: (_target, tag) => {
+        const componentTag = typeof tag === "string" ? tag : "div";
+        return (() => {
+          const MotionComponent = React.forwardRef(
+            (props: MotionMockProps, ref) => {
+              const {
+                layoutId,
+                whileTap,
+                whileHover,
+                transition,
+                initial,
+                animate,
+                exit,
+                drag,
+                dragConstraints,
+                dragElastic,
+                onDrag,
+                onDragEnd,
+                style,
+                ...rest
+              } = props;
+              void layoutId;
+              void whileTap;
+              void whileHover;
+              void transition;
+              void initial;
+              void animate;
+              void exit;
+              void drag;
+              void dragConstraints;
+              void dragElastic;
+              void onDrag;
+              void onDragEnd;
+              return React.createElement(componentTag, {
+                ...rest,
+                ...(style ? { style } : {}),
+                ref,
+              });
+            },
+          );
+          MotionComponent.displayName = `motion.${String(tag)}`;
+          return MotionComponent;
+        })();
+      },
     },
   );
   return {
     motion,
     AnimatePresence: ({ children }: { children: React.ReactNode }) =>
-      ReactImport.createElement(ReactImport.Fragment, {}, children),
+      React.createElement(React.Fragment, {}, children),
     useMotionValue: () => ({ get: () => 0, set: vi.fn() }),
     useTransform: () => ({ get: () => 0 }),
   };
@@ -287,23 +327,31 @@ describe("MobilePlayer - Integrated Controls", () => {
     it("renders add to playlist button within the main controls section", () => {
       render(<MobilePlayer {...defaultProps} />);
 
-      const playlistButton = screen.getByLabelText("Sign in to add to playlists");
+      const playlistButton = screen.getByLabelText(
+        "Sign in to add to playlists",
+      );
       expect(playlistButton).toBeInTheDocument();
     });
 
     it("renders favorite button within the main controls section", () => {
       render(<MobilePlayer {...defaultProps} />);
 
-      const favoriteButton = screen.getByLabelText("Sign in to favorite tracks");
+      const favoriteButton = screen.getByLabelText(
+        "Sign in to favorite tracks",
+      );
       expect(favoriteButton).toBeInTheDocument();
     });
 
     it("displays all three action buttons in a row", () => {
-      const { container } = render(<MobilePlayer {...defaultProps} />);
+      render(<MobilePlayer {...defaultProps} />);
 
       const queueButton = screen.getByLabelText("Show queue");
-      const playlistButton = screen.getByLabelText("Sign in to add to playlists");
-      const favoriteButton = screen.getByLabelText("Sign in to favorite tracks");
+      const playlistButton = screen.getByLabelText(
+        "Sign in to add to playlists",
+      );
+      const favoriteButton = screen.getByLabelText(
+        "Sign in to favorite tracks",
+      );
 
       const queueParent = queueButton.closest('[class*="flex"]');
       const playlistParent = playlistButton.closest('[class*="flex"]');
@@ -345,7 +393,9 @@ describe("MobilePlayer - Integrated Controls", () => {
       sessionState.data = null;
       render(<MobilePlayer {...defaultProps} />);
 
-      const playlistButton = screen.getByLabelText("Sign in to add to playlists");
+      const playlistButton = screen.getByLabelText(
+        "Sign in to add to playlists",
+      );
       expect(playlistButton.className).toContain("opacity-50");
       expect(playlistButton.title).toBe("Sign in to add to playlists");
     });
@@ -410,7 +460,9 @@ describe("MobilePlayer - Integrated Controls", () => {
 
       await waitFor(() => {
         expect(screen.getByText("No playlists yet")).toBeInTheDocument();
-        expect(screen.getByText("Create one from the Playlists page")).toBeInTheDocument();
+        expect(
+          screen.getByText("Create one from the Playlists page"),
+        ).toBeInTheDocument();
       });
     });
   });
@@ -420,7 +472,9 @@ describe("MobilePlayer - Integrated Controls", () => {
       sessionState.data = null;
       render(<MobilePlayer {...defaultProps} />);
 
-      const favoriteButton = screen.getByLabelText("Sign in to favorite tracks");
+      const favoriteButton = screen.getByLabelText(
+        "Sign in to favorite tracks",
+      );
       expect(favoriteButton.className).toContain("opacity-50");
     });
 
@@ -521,15 +575,23 @@ describe("MobilePlayer - Integrated Controls", () => {
       render(<MobilePlayer {...defaultProps} />);
 
       expect(screen.getByLabelText("Show queue")).toBeInTheDocument();
-      expect(screen.getByLabelText("Sign in to add to playlists")).toBeInTheDocument();
-      expect(screen.getByLabelText("Sign in to favorite tracks")).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Sign in to add to playlists"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Sign in to favorite tracks"),
+      ).toBeInTheDocument();
     });
 
     it("updates aria-labels based on authentication state", () => {
       const { rerender } = render(<MobilePlayer {...defaultProps} />);
 
-      expect(screen.getByLabelText("Sign in to add to playlists")).toBeInTheDocument();
-      expect(screen.getByLabelText("Sign in to favorite tracks")).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Sign in to add to playlists"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Sign in to favorite tracks"),
+      ).toBeInTheDocument();
 
       sessionState.data = mockSession;
       apiState.playlists = mockPlaylists;
@@ -548,7 +610,9 @@ describe("MobilePlayer - Integrated Controls", () => {
 
       apiState.favoriteData = { isFavorite: true };
       rerender(<MobilePlayer {...defaultProps} />);
-      expect(screen.getByLabelText("Remove from favorites")).toBeInTheDocument();
+      expect(
+        screen.getByLabelText("Remove from favorites"),
+      ).toBeInTheDocument();
     });
   });
 });

@@ -1,6 +1,7 @@
 // File: src/__tests__/trpc.music.test.ts
 
 import { describe, expect, it, vi } from "vitest";
+import type { MaybePromise } from "@trpc/server";
 
 vi.mock("@/server/auth", () => ({
   auth: vi.fn().mockResolvedValue(null),
@@ -20,8 +21,14 @@ import { createCallerFactory } from "@/server/api/trpc";
 import { musicRouter } from "@/server/api/routers/music";
 
 const createCaller = createCallerFactory(musicRouter);
+type CallerContext = Parameters<typeof createCaller>[0];
+type CallerContextDb = CallerContext extends { db: infer D }
+  ? D
+  : CallerContext extends () => MaybePromise<infer C>
+    ? C["db"]
+    : never;
 
-const createMockDb = () => {
+const createMockDb = (): CallerContextDb => {
   const insert = vi.fn().mockReturnValue({
     values: vi.fn().mockResolvedValue(undefined),
   });
@@ -38,7 +45,7 @@ const createMockDb = () => {
     },
     insert,
     update,
-  } as any;
+  } satisfies CallerContextDb;
 };
 
 describe("musicRouter tRPC operations", () => {
@@ -46,11 +53,13 @@ describe("musicRouter tRPC operations", () => {
     const db = createMockDb();
     db.query.userPreferences.findFirst.mockResolvedValue(null);
 
-    const caller = createCaller({
+    const context = {
       db,
-      session: { user: { id: "user-1" } },
+      session: { user: { id: "user-1" }, expires: new Date().toISOString() },
       headers: new Headers(),
-    });
+    } satisfies CallerContext;
+
+    const caller = createCaller(context);
 
     const result = await caller.getSmartQueueSettings();
 
@@ -67,11 +76,13 @@ describe("musicRouter tRPC operations", () => {
     const db = createMockDb();
     db.query.userPreferences.findFirst.mockResolvedValue(null);
 
-    const caller = createCaller({
+    const context = {
       db,
-      session: { user: { id: "user-1" } },
+      session: { user: { id: "user-1" }, expires: new Date().toISOString() },
       headers: new Headers(),
-    });
+    } satisfies CallerContext;
+
+    const caller = createCaller(context);
 
     const result = await caller.updatePreferences({
       visualizerType: "flowfield",

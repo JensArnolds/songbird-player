@@ -37,7 +37,9 @@ describe("Stream API (V2-only)", () => {
     const { GET } = await import("@/app/api/stream/route");
 
     const req = {
-      nextUrl: new URL("http://localhost:3000/api/stream?q=I+Disappear&kbps=320"),
+      nextUrl: new URL(
+        "http://localhost:3000/api/stream?q=I+Disappear&kbps=320",
+      ),
       headers: {
         get: (name: string) => {
           const key = name.toLowerCase();
@@ -87,7 +89,7 @@ describe("Stream API (V2-only)", () => {
     } as NextRequest;
 
     const res = await GET(req);
-    const body = await res.json();
+    const body = (await res.json()) as { error?: string };
 
     expect(res.status).toBe(500);
     expect(body.error).toBe("V2 API not configured");

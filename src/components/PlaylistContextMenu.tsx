@@ -67,7 +67,7 @@ export function PlaylistContextMenu() {
       if (playlist.tracks && playlist.tracks.length > 0) {
         await Promise.all(
           playlist.tracks.map((pt) =>
-            utils.music.addToPlaylist.mutate({
+            utils.music.addToPlaylist.mutateAsync({
               playlistId: newPlaylist.id,
               track: pt.track,
             }),

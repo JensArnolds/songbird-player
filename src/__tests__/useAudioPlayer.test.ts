@@ -1,6 +1,7 @@
 // File: src/__tests__/useAudioPlayer.test.ts
 
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import type { Track } from "@/types";
 

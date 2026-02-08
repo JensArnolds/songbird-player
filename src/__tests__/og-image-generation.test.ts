@@ -19,7 +19,19 @@ const TEST_TRACKS = [
   },
 ];
 
-async function fetchTrackData(trackId: number) {
+type DeezerTrack = {
+  title: string;
+  duration?: number;
+  artist?: {
+    name?: string;
+  };
+  album?: {
+    title?: string;
+    cover_medium?: string;
+  };
+};
+
+async function fetchTrackData(trackId: number): Promise<DeezerTrack> {
   try {
     const deezerUrl = new URL(`https://api.deezer.com/track/${trackId}`);
     const deezerResponse = await fetch(deezerUrl.toString(), {
@@ -27,7 +39,8 @@ async function fetchTrackData(trackId: number) {
     });
 
     if (deezerResponse.ok) {
-      return await deezerResponse.json();
+      const data = (await deezerResponse.json()) as DeezerTrack;
+      return data;
     }
 
     throw new Error(`Failed to fetch track ${trackId}`);
@@ -51,11 +64,12 @@ describe("OG Image Generation", () => {
       expect(track.title).toBeTruthy();
       expect(track.artist?.name).toBeTruthy();
 
-      console.log(`[Test] Track found: ${track.title} by ${track.artist.name}`);
+      const artistName = track.artist?.name ?? "Unknown Artist";
+      console.log(`[Test] Track found: ${track.title} by ${artistName}`);
 
       const ogUrl = new URL("https://starchildmusic.com/api/og");
       ogUrl.searchParams.set("title", track.title);
-      ogUrl.searchParams.set("artist", track.artist.name);
+      ogUrl.searchParams.set("artist", artistName);
       if (track.album?.title) {
         ogUrl.searchParams.set("album", track.album.title);
       }
@@ -83,12 +97,14 @@ describe("OG Image Generation", () => {
       const arrayBuffer = await response.arrayBuffer();
       expect(arrayBuffer.byteLength).toBeGreaterThan(0);
 
-      console.log(`[Test] Image generated successfully, size: ${arrayBuffer.byteLength} bytes`);
+      console.log(
+        `[Test] Image generated successfully, size: ${arrayBuffer.byteLength} bytes`,
+      );
 
       const outputPath = join(
         process.cwd(),
         "test-output",
-        `og-${testTrack.id}-${track.title.replace(/[^a-z0-9]/gi, "-").toLowerCase()}.png`
+        `og-${testTrack.id}-${track.title.replace(/[^a-z0-9]/gi, "-").toLowerCase()}.png`,
       );
 
       await writeFile(outputPath, Buffer.from(arrayBuffer));
@@ -114,7 +130,9 @@ describe("OG Image Generation", () => {
     const arrayBuffer = await response.arrayBuffer();
     expect(arrayBuffer.byteLength).toBeGreaterThan(0);
 
-    console.log(`[Test] Default image generated, size: ${arrayBuffer.byteLength} bytes`);
+    console.log(
+      `[Test] Default image generated, size: ${arrayBuffer.byteLength} bytes`,
+    );
 
     const outputPath = join(process.cwd(), "test-output", "og-default.png");
     await writeFile(outputPath, Buffer.from(arrayBuffer));
@@ -143,7 +161,9 @@ describe("OG Image Generation", () => {
     const arrayBuffer = await response.arrayBuffer();
     expect(arrayBuffer.byteLength).toBeGreaterThan(0);
 
-    console.log(`[Test] No-cover image generated, size: ${arrayBuffer.byteLength} bytes`);
+    console.log(
+      `[Test] No-cover image generated, size: ${arrayBuffer.byteLength} bytes`,
+    );
 
     const outputPath = join(process.cwd(), "test-output", "og-no-cover.png");
     await writeFile(outputPath, Buffer.from(arrayBuffer));

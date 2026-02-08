@@ -50,6 +50,16 @@ const REAL_TEST_URLS = [
   },
 ];
 
+type TrackData = {
+  title?: string;
+  name?: string;
+  artist?: string | { name?: string };
+};
+
+type SearchData = {
+  data?: TrackData[];
+};
+
 async function fetchWithTimeout(
   input: RequestInfo | URL,
   timeoutMs: number,
@@ -94,13 +104,15 @@ describe("OG Image Generation - Real URLs Integration Tests", () => {
         console.log(`\n[Real URL Test] Testing trackId=${testCase.trackId}...`);
 
         // First, verify the track exists by fetching it
-        let trackData;
+        let trackData: TrackData | undefined;
         try {
           const trackApiUrl = new URL(
             `/api/track/${testCase.trackId}`,
             testCase.url,
           );
-          console.log(`[Real URL Test] Fetching track from: ${trackApiUrl.toString()}`);
+          console.log(
+            `[Real URL Test] Fetching track from: ${trackApiUrl.toString()}`,
+          );
 
           const trackResponse = await fetchWithTimeout(
             trackApiUrl.toString(),
@@ -114,9 +126,9 @@ describe("OG Image Generation - Real URLs Integration Tests", () => {
             return;
           }
 
-          trackData = await trackResponse.json();
+          trackData = (await trackResponse.json()) as TrackData;
           console.log(
-            `[Real URL Test] Track found: ${trackData.title || trackData.name} by ${
+            `[Real URL Test] Track found: ${trackData.title ?? trackData.name} by ${
               typeof trackData.artist === "string"
                 ? trackData.artist
                 : trackData.artist?.name
@@ -177,12 +189,10 @@ describe("OG Image Generation - Real URLs Integration Tests", () => {
       }, 30000);
     } else if (testCase.query) {
       it(`generates OG image for query="${testCase.query}" (${testCase.name})`, async () => {
-        console.log(
-          `\n[Real URL Test] Testing query="${testCase.query}"...`,
-        );
+        console.log(`\n[Real URL Test] Testing query="${testCase.query}"...`);
 
         // First, verify the search works
-        let searchData;
+        let searchData: SearchData | undefined;
         try {
           const searchApiUrl = new URL(`${testCase.url}/api/music/search`);
           searchApiUrl.searchParams.set("q", testCase.query);
@@ -202,7 +212,7 @@ describe("OG Image Generation - Real URLs Integration Tests", () => {
             return;
           }
 
-          searchData = await searchResponse.json();
+          searchData = (await searchResponse.json()) as SearchData;
           const firstTrack = searchData.data?.[0];
           if (!firstTrack) {
             console.warn(
@@ -212,7 +222,7 @@ describe("OG Image Generation - Real URLs Integration Tests", () => {
           }
 
           console.log(
-            `[Real URL Test] First result: ${firstTrack.title || firstTrack.name} by ${
+            `[Real URL Test] First result: ${firstTrack.title ?? firstTrack.name} by ${
               typeof firstTrack.artist === "string"
                 ? firstTrack.artist
                 : firstTrack.artist?.name
@@ -281,7 +291,10 @@ describe("OG Image Generation - Real URLs Integration Tests", () => {
     // This test verifies that the timeout logic works
     // We'll use a query that might be slow or a trackId that doesn't exist
     const ogUrl = new URL("https://starchildmusic.com/api/og");
-    ogUrl.searchParams.set("q", "very obscure track that probably doesn't exist xyz123abc");
+    ogUrl.searchParams.set(
+      "q",
+      "very obscure track that probably doesn't exist xyz123abc",
+    );
 
     const mockRequest = {
       nextUrl: ogUrl,
