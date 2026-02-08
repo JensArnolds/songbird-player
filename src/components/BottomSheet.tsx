@@ -41,7 +41,7 @@ export default function BottomSheet({
 }: BottomSheetProps) {
   const constraintsRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
-  const currentSnapIndex = useRef(initialSnap);
+  const [currentSnapIndex, setCurrentSnapIndex] = useState(initialSnap);
 
   const sheetHeight = useMotionValue(snapPoints[initialSnap] ?? 50);
   const y = useMotionValue(0);
@@ -53,7 +53,7 @@ export default function BottomSheet({
       document.body.style.overflow = "hidden";
 
       sheetHeight.set(snapPoints[initialSnap] ?? 50);
-      currentSnapIndex.current = initialSnap;
+      setCurrentSnapIndex(initialSnap);
     } else {
       document.body.style.overflow = "";
     }
@@ -88,30 +88,29 @@ export default function BottomSheet({
     let nearestSnap = snapPoints[0] ?? 50;
     let nearestDistance = Infinity;
 
+    let nearestSnapIndex = 0;
     snapPoints.forEach((snap, index) => {
       const distance = Math.abs(targetHeight - snap);
       if (distance < nearestDistance) {
         nearestDistance = distance;
         nearestSnap = snap;
-        currentSnapIndex.current = index;
+        nearestSnapIndex = index;
       }
     });
 
     if (Math.abs(dragVelocity) > 300) {
-      const currentIndex = currentSnapIndex.current;
-      if (dragVelocity < 0 && currentIndex < snapPoints.length - 1) {
-
-        nearestSnap = snapPoints[currentIndex + 1] ?? nearestSnap;
-        currentSnapIndex.current = currentIndex + 1;
+      if (dragVelocity < 0 && nearestSnapIndex < snapPoints.length - 1) {
+        nearestSnap = snapPoints[nearestSnapIndex + 1] ?? nearestSnap;
+        nearestSnapIndex = nearestSnapIndex + 1;
         hapticLight();
-      } else if (dragVelocity > 0 && currentIndex > 0) {
-
-        nearestSnap = snapPoints[currentIndex - 1] ?? nearestSnap;
-        currentSnapIndex.current = currentIndex - 1;
+      } else if (dragVelocity > 0 && nearestSnapIndex > 0) {
+        nearestSnap = snapPoints[nearestSnapIndex - 1] ?? nearestSnap;
+        nearestSnapIndex = nearestSnapIndex - 1;
         hapticLight();
       }
     }
 
+    setCurrentSnapIndex(nearestSnapIndex);
     sheetHeight.set(nearestSnap);
     y.set(0);
   };
@@ -127,7 +126,7 @@ export default function BottomSheet({
     const maxSnap = snapPoints[snapPoints.length - 1] ?? 90;
     hapticMedium();
     sheetHeight.set(maxSnap);
-    currentSnapIndex.current = snapPoints.length - 1;
+    setCurrentSnapIndex(snapPoints.length - 1);
   };
 
   const showHeader = Boolean(title) || showCloseButton;
@@ -216,10 +215,10 @@ export default function BottomSheet({
                       onClick={() => {
                         hapticLight();
                         sheetHeight.set(snap);
-                        currentSnapIndex.current = index;
+                        setCurrentSnapIndex(index);
                       }}
                       className={`h-1.5 w-1.5 rounded-full transition-all ${
-                        currentSnapIndex.current === index
+                        currentSnapIndex === index
                           ? "w-3 bg-[var(--color-accent)]"
                           : "bg-[var(--color-surface-hover)] hover:bg-[var(--color-surface-hover)]"
                       }`}

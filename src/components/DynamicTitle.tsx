@@ -7,11 +7,10 @@ import { useEffect, useState } from "react";
 
 export function DynamicTitle() {
   const { currentTrack, isPlaying } = useGlobalPlayer();
-  const [isElectron, setIsElectron] = useState(false);
-
-  useEffect(() => {
-    setIsElectron(!!window.electron?.isElectron);
-  }, []);
+  const [isElectron] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !!(window as Window & { electron?: { isElectron?: boolean } }).electron?.isElectron;
+  });
 
   useEffect(() => {
     if (currentTrack && isPlaying && typeof currentTrack === 'object' && 'artist' in currentTrack && 'title' in currentTrack) {

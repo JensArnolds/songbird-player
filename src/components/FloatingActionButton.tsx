@@ -12,7 +12,7 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import { ListMusic, Music2, Plus, Search, Shuffle, X } from "lucide-react";
+import { Plus, Search, Shuffle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -27,17 +27,13 @@ interface QuickAction {
 
 export default function FloatingActionButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => typeof window !== "undefined");
   const isMobile = useIsMobile();
   const router = useRouter();
   const player = useGlobalPlayer();
 
   const rotation = useMotionValue(0);
   const scale = useTransform(rotation, [0, 45], [1, 1.1]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     rotation.set(isOpen ? 45 : 0);

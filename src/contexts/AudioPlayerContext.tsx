@@ -30,7 +30,6 @@ import {
 } from "react";
 
 interface AudioPlayerContextType {
-
   currentTrack: Track | null;
   queue: Track[];
   queuedTracks: QueuedTrack[];
@@ -80,16 +79,27 @@ interface AudioPlayerContextType {
   isValidTrack: (track: Track | null | undefined) => track is Track;
 
   addSmartTracks: (
-    countOrOptions?: number | { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
+    countOrOptions?:
+      | number
+      | { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
   ) => Promise<Track[]>;
   refreshSmartTracks: () => Promise<void>;
   clearSmartTracks: () => void;
-  getQueueSections: () => { userTracks: QueuedTrack[]; smartTracks: QueuedTrack[] };
+  getQueueSections: () => {
+    userTracks: QueuedTrack[];
+    smartTracks: QueuedTrack[];
+  };
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(
   undefined,
 );
+
+const isRepeatMode = (value: unknown): value is "none" | "one" | "all" =>
+  value === "none" || value === "one" || value === "all";
+
+const coerceRepeatMode = (value: unknown): "none" | "one" | "all" =>
+  isRepeatMode(value) ? value : "none";
 
 export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
@@ -125,10 +135,10 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const saveQueueStateMutation = api.music.saveQueueState.useMutation();
   const clearQueueStateMutation = api.music.clearQueueState.useMutation();
-  const { data: dbQueueState } = api.music.getQueueState.useQuery(
-    undefined,
-    { enabled: !!session, refetchOnWindowFocus: false },
-  );
+  const { data: dbQueueState } = api.music.getQueueState.useQuery(undefined, {
+    enabled: !!session,
+    refetchOnWindowFocus: false,
+  });
 
   const { data: smartQueueSettings } = api.music.getSmartQueueSettings.useQuery(
     undefined,
@@ -141,7 +151,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         return {
           ...smartQueueSettings,
           diversityFactor: smartQueueSettingsWithExtras.diversityFactor ?? 0.5,
-          excludeExplicit: smartQueueSettingsWithExtras.excludeExplicit ?? false,
+          excludeExplicit:
+            smartQueueSettingsWithExtras.excludeExplicit ?? false,
           preferLiveVersions:
             smartQueueSettingsWithExtras.preferLiveVersions ?? false,
         } as SmartQueueSettings;
@@ -201,8 +212,13 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    if (seeds.length === 1) {
-      seeds.push({ ...seeds[0] });
+    const [firstSeed] = seeds;
+    if (seeds.length === 1 && firstSeed?.name) {
+      seeds.push({
+        name: firstSeed.name,
+        artist: firstSeed.artist,
+        album: firstSeed.album,
+      });
     }
 
     return seeds;
@@ -262,7 +278,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         const similarityLevel =
           context?.source === "auto"
             ? "diverse"
-            : normalizedSmartQueueSettings?.similarityPreference ?? "balanced";
+            : (normalizedSmartQueueSettings?.similarityPreference ??
+              "balanced");
         const recommendationSource =
           context?.source === "auto" ? "unified" : "spotify";
         const seedTracks = buildSeedTracks(
@@ -301,7 +318,10 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
         return result || [];
       } catch (error) {
-        console.error("[AudioPlayerContext] Failed to fetch similar tracks:", error);
+        console.error(
+          "[AudioPlayerContext] Failed to fetch similar tracks:",
+          error,
+        );
         return [];
       }
     },
@@ -311,7 +331,10 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const handleCustomSmartTracksFetch = useCallback(
     async (
       currentTrack: Track,
-      options: { count: number; similarityLevel: "strict" | "balanced" | "diverse" },
+      options: {
+        count: number;
+        similarityLevel: "strict" | "balanced" | "diverse";
+      },
       context?: { history: Track[]; queue: Track[] },
     ): Promise<Track[]> => {
       try {
@@ -351,28 +374,38 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
         return result || [];
       } catch (error) {
-        console.error("[AudioPlayerContext] Failed to fetch custom smart tracks:", error);
+        console.error(
+          "[AudioPlayerContext] Failed to fetch custom smart tracks:",
+          error,
+        );
         return [];
       }
     },
     [normalizedSmartQueueSettings, utils],
   );
 
-  const initialQueueState = session && dbQueueState?.queuedTracks && dbQueueState.queuedTracks.length > 0 ? {
-    queuedTracks: (dbQueueState.queuedTracks as StoredQueuedTrack[]).map((qt) => ({
-      ...qt,
-      addedAt: new Date(qt.addedAt),
-    })) as QueuedTrack[],
-    smartQueueState: {
-      ...dbQueueState.smartQueueState,
-      lastRefreshedAt: dbQueueState.smartQueueState.lastRefreshedAt
-        ? new Date(dbQueueState.smartQueueState.lastRefreshedAt)
-        : null,
-    } as SmartQueueState,
-    history: (dbQueueState.history || []) as Track[],
-    isShuffled: dbQueueState.isShuffled ?? false,
-    repeatMode: (dbQueueState.repeatMode || "none"),
-  } : undefined;
+  const initialQueueState =
+    session &&
+    dbQueueState?.queuedTracks &&
+    dbQueueState.queuedTracks.length > 0
+      ? {
+          queuedTracks: (dbQueueState.queuedTracks as StoredQueuedTrack[]).map(
+            (qt) => ({
+              ...qt,
+              addedAt: new Date(qt.addedAt),
+            }),
+          ) as QueuedTrack[],
+          smartQueueState: {
+            ...dbQueueState.smartQueueState,
+            lastRefreshedAt: dbQueueState.smartQueueState.lastRefreshedAt
+              ? new Date(dbQueueState.smartQueueState.lastRefreshedAt)
+              : null,
+          } as SmartQueueState,
+          history: (dbQueueState.history || []) as Track[],
+          isShuffled: dbQueueState.isShuffled ?? false,
+          repeatMode: coerceRepeatMode(dbQueueState.repeatMode),
+        }
+      : undefined;
 
   const player = useAudioPlayer({
     initialQueueState: initialQueueState,
@@ -473,17 +506,20 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       };
 
       if (queueState.queuedTracks.length === 0) {
-        console.log("[AudioPlayerContext] 🧹 Clearing queue state from database");
+        console.log(
+          "[AudioPlayerContext] 🧹 Clearing queue state from database",
+        );
         clearQueueStateMutation.mutate();
       } else {
-
-        console.log("[AudioPlayerContext] 💾 Persisting queue state to database");
+        console.log(
+          "[AudioPlayerContext] 💾 Persisting queue state to database",
+        );
         saveQueueStateMutation.mutate({ queueState });
       }
     }, 1000);
 
     return () => clearTimeout(persistTimer);
-      }, [
+  }, [
     session,
     player.queuedTracks,
     player.smartQueueState,
@@ -518,13 +554,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     }
 
     setLastUserId(currentUserId);
-      }, [session?.user?.id, lastUserId]);
+  }, [session?.user?.id, lastUserId]);
 
   useEffect(() => {
     const cleanupInterval = setInterval(
       () => {
         if (player.queue.length > 1) {
-
           console.log("[AudioPlayerContext] 🧹 Running periodic queue cleanup");
           player.cleanQueue();
         }
@@ -537,7 +572,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const play = useCallback(
     (track: Track) => {
-
       player.playTrack(track);
 
       if (isMobile) {
@@ -555,18 +589,15 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   );
 
   const playNext = useCallback(() => {
-
     player.playNext();
   }, [player]);
 
   const playPrevious = useCallback(() => {
-
     player.playPrevious();
   }, [player]);
 
   const playFromQueue = useCallback(
     (index: number) => {
-
       player.playFromQueue(index);
     },
     [player],
@@ -666,13 +697,13 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   // Use a ref to maintain a stable reference to the audio element
   // This prevents audio-related effects from re-running when hideUI changes
   const stableAudioElementRef = useRef<HTMLAudioElement | null>(null);
-  
+
   // Update the ref when the audio element actually changes
   // We check if it's different to avoid unnecessary updates
   if (player.audioRef.current !== stableAudioElementRef.current) {
     stableAudioElementRef.current = player.audioRef.current;
   }
-  
+
   const audioElement = stableAudioElementRef.current;
 
   const value: AudioPlayerContextType = useMemo(
