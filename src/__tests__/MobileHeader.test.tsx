@@ -2,14 +2,23 @@
 
 import React from "react";
 import { act, render } from "@testing-library/react";
-import { vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import MobileHeader from "@/components/MobileHeader";
 
-const navigationState = vi.hoisted(() => ({
+type NavigationState = {
+  pathname: string;
+  searchParams: URLSearchParams;
+  push: (path?: string) => void;
+};
+
+let pushCalls: Array<string | undefined> = [];
+const navigationState: NavigationState = {
   pathname: "/",
   searchParams: new URLSearchParams("q=radiohead"),
-  push: vi.fn(),
-}));
+  push: (path?: string) => {
+    pushCalls.push(path);
+  },
+};
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navigationState.push }),
@@ -64,21 +73,42 @@ vi.mock("@/components/MobileSearchBar", () => ({
 
 vi.mock("framer-motion", async () => {
   const ReactImport = await import("react");
+  type MotionMockProps = React.ComponentPropsWithoutRef<"div"> & {
+    layoutId?: string;
+    whileTap?: unknown;
+    transition?: unknown;
+    initial?: unknown;
+    animate?: unknown;
+  };
+
   const motion = new Proxy(
     {},
     {
-      get: (_target, tag: string) =>
-        ReactImport.forwardRef((props: any, ref) => {
-          const {
-            layoutId,
-            whileTap,
-            transition,
-            initial,
-            animate,
-            ...rest
-          } = props;
-          return ReactImport.createElement(tag, { ...rest, ref });
-        }),
+      get: (_target, tag) =>
+        (() => {
+          const elementTag = typeof tag === "string" ? tag : "div";
+          const MotionComponent = ReactImport.forwardRef<
+            HTMLElement,
+            MotionMockProps & React.HTMLAttributes<HTMLElement>
+          >((props, ref) => {
+            const {
+              layoutId,
+              whileTap,
+              transition,
+              initial,
+              animate,
+              ...rest
+            } = props;
+            void layoutId;
+            void whileTap;
+            void transition;
+            void initial;
+            void animate;
+            return ReactImport.createElement(elementTag, { ...rest, ref });
+          });
+          MotionComponent.displayName = `motion.${String(tag)}`;
+          return MotionComponent;
+        })(),
     },
   );
   return { motion };
@@ -87,13 +117,13 @@ vi.mock("framer-motion", async () => {
 describe("MobileHeader", () => {
   beforeEach(() => {
     navigationState.searchParams = new URLSearchParams("q=radiohead");
-    navigationState.push.mockClear();
+    pushCalls = [];
   });
 
   it("does not clear the query when URL already has a search param", () => {
     render(<MobileHeader />);
 
-    expect(navigationState.push).not.toHaveBeenCalledWith("/");
+    expect(pushCalls).not.toContain("/");
   });
 
   it("navigates back to home when a non-empty query is cleared", async () => {
@@ -106,6 +136,6 @@ describe("MobileHeader", () => {
     });
 
     await Promise.resolve();
-    expect(navigationState.push).toHaveBeenCalledWith("/");
+    expect(pushCalls).toContain("/");
   });
 });
