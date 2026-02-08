@@ -99,14 +99,12 @@ describe("Playback Rate Stability Tests", () => {
 
     mockAudioElement = element;
 
-    element.addEventListener = vi.fn(
-      (event: string, handler: (e: Event) => void) => {
-        if (!eventListeners[event]) {
-          eventListeners[event] = [];
-        }
-        eventListeners[event].push(handler);
-      },
-    ) as unknown as typeof element.addEventListener;
+      element.addEventListener = vi.fn(
+        (event: string, handler: (e: Event) => void) => {
+          eventListeners[event] ??= [];
+          eventListeners[event].push(handler);
+        },
+      ) as unknown as typeof element.addEventListener;
 
     element.removeEventListener = vi.fn(
       (event: string, handler: (e: Event) => void) => {

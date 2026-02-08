@@ -17,18 +17,16 @@ vi.mock("@/services/songbird", () => ({
   },
 }));
 
-import { createCallerFactory } from "@/server/api/trpc";
 import { musicRouter } from "@/server/api/routers/music";
 
-const createCaller = createCallerFactory(musicRouter);
-type CallerContext = Parameters<typeof createCaller>[0];
+type CallerContext = Parameters<typeof musicRouter.createCaller>[0];
 type CallerContextDb = CallerContext extends { db: infer D }
   ? D
   : CallerContext extends () => MaybePromise<infer C>
     ? C["db"]
     : never;
 
-const createMockDb = (): CallerContextDb => {
+const createMockDb = (findFirstResult: unknown = null): CallerContextDb => {
   const insert = vi.fn().mockReturnValue({
     values: vi.fn().mockResolvedValue(undefined),
   });
@@ -40,7 +38,7 @@ const createMockDb = (): CallerContextDb => {
   return {
     query: {
       userPreferences: {
-        findFirst: vi.fn(),
+        findFirst: vi.fn().mockResolvedValue(findFirstResult),
       },
     },
     insert,
@@ -50,8 +48,7 @@ const createMockDb = (): CallerContextDb => {
 
 describe("musicRouter tRPC operations", () => {
   it("returns default smart queue settings when no preferences exist", async () => {
-    const db = createMockDb();
-    db.query.userPreferences.findFirst.mockResolvedValue(null);
+    const db = createMockDb(null);
 
     const context = {
       db,
@@ -59,7 +56,7 @@ describe("musicRouter tRPC operations", () => {
       headers: new Headers(),
     } satisfies CallerContext;
 
-    const caller = createCaller(context);
+    const caller = musicRouter.createCaller(context);
 
     const result = await caller.getSmartQueueSettings();
 
@@ -73,8 +70,7 @@ describe("musicRouter tRPC operations", () => {
   });
 
   it("persists preferences with supported visualizer type", async () => {
-    const db = createMockDb();
-    db.query.userPreferences.findFirst.mockResolvedValue(null);
+    const db = createMockDb(null);
 
     const context = {
       db,
@@ -82,7 +78,7 @@ describe("musicRouter tRPC operations", () => {
       headers: new Headers(),
     } satisfies CallerContext;
 
-    const caller = createCaller(context);
+    const caller = musicRouter.createCaller(context);
 
     const result = await caller.updatePreferences({
       visualizerType: "flowfield",

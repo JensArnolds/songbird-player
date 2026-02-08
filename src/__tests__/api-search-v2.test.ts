@@ -20,11 +20,13 @@ describe("Music Search API (V2-only)", () => {
       },
     }));
 
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ data: [{ id: 1 }], total: 1 }), {
-        headers: { "content-type": "application/json" },
-      }),
-    );
+    const fetchMock = vi
+      .fn<[RequestInfo | URL], Promise<Response>>()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ data: [{ id: 1 }], total: 1 }), {
+          headers: { "content-type": "application/json" },
+        }),
+      );
     global.fetch = fetchMock;
 
     const { GET } = await import("@/app/api/music/search/route");
@@ -36,12 +38,25 @@ describe("Music Search API (V2-only)", () => {
     } as NextRequest;
 
     const res = await GET(req);
-    const body = await res.json();
+    const body = (await res.json()) as {
+      data: Array<{ id: number }>;
+      total: number;
+    };
 
     expect(body).toEqual({ data: [{ id: 1 }], total: 1 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    const calledUrl = new URL(fetchMock.mock.calls[0]?.[0] as string);
+    const calledUrlArg = fetchMock.mock.calls[0]?.[0];
+    if (!calledUrlArg) {
+      throw new Error("Missing fetch URL");
+    }
+    const calledUrlString =
+      typeof calledUrlArg === "string"
+        ? calledUrlArg
+        : calledUrlArg instanceof URL
+          ? calledUrlArg.toString()
+          : calledUrlArg.url;
+    const calledUrl = new URL(calledUrlString);
     expect(calledUrl.origin).toBe("https://darkfloor.one");
     expect(calledUrl.pathname).toBe("/music/search");
     expect(calledUrl.searchParams.get("key")).toBe("test-key");
@@ -59,7 +74,7 @@ describe("Music Search API (V2-only)", () => {
       },
     }));
 
-    const fetchMock = vi.fn();
+    const fetchMock = vi.fn<[RequestInfo | URL], Promise<Response>>();
     global.fetch = fetchMock;
 
     const { GET } = await import("@/app/api/music/search/route");
@@ -69,7 +84,7 @@ describe("Music Search API (V2-only)", () => {
     } as NextRequest;
 
     const res = await GET(req);
-    const body = await res.json();
+    const body = (await res.json()) as { error?: string };
 
     expect(res.status).toBe(500);
     expect(body.error).toMatch(/API_V2_URL|SONGBIRD_API_KEY/);

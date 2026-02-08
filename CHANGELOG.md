@@ -5,11 +5,20 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.9] - 2026-02-08
+
+### Fixed
+
+- **Lint remediation for tests and hooks**: Typed the search, toast, TRPC, and audio-player stability specs, added the shared `renderPlayerHook`, and started calling the typed `api.music.addToPlaylist` helper so ESLint no-unsafe rules now pass cleanly. Locations: `src/__tests__/api-search-v2.test.ts`, `src/__tests__/Toast.test.tsx`, `src/__tests__/trpc.music.test.ts`, `src/__tests__/useAudioPlayer.stability.test.ts`, `src/components/PlaylistContextMenu.tsx`.
+- **Track metadata safety**: Ensured the `/track/[id]/page` data fetching narrows Songbird/Deezer responses before returning a `Track`, so runtime errors stop surfacing as unsafe assignments. Location: `src/app/track/[id]/page.tsx`.
+- **Visualization and config housekeeping**: Declared `twoPi` inside `FlowFieldRenderer`’s cloverleaf helper and added `vitest/globals` to `tsconfig.json` so the lint and test tooling stay aligned. Locations: `src/components/visualizers/FlowFieldRenderer.ts`, `tsconfig.json`.
+
 ## [0.14.8] - 2026-02-08
 
 ### Fixed
 
 - **MobileHeader tests**: Typed the `framer-motion` mock and navigation helpers so RTL assertions use concrete call data, eliminating `@typescript-eslint/no-unsafe-*` errors and allowing the suite to pass lint. Location: `src/__tests__/MobileHeader.test.tsx`.
+
 
 ## [0.14.7] - 2026-02-08
 

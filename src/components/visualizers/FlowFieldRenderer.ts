@@ -11800,6 +11800,7 @@ export class FlowFieldRenderer {
     const lobeSize = radius * 0.25;
     const lobeDistance = radius * 0.7;
     const hue = this.fastMod360(this.hueBase + 240);
+    const twoPi = FlowFieldRenderer.TWO_PI;
 
     for (let i = 0; i < 4; i++) {
       const lobeAngle = (i * twoPi) / 4;

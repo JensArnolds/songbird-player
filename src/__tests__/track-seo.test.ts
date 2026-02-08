@@ -53,9 +53,10 @@ describe("track SEO metadata", () => {
     });
 
     const ogImage = metadata.openGraph?.images?.[0] as { url: string } | undefined;
-    expect(ogImage?.url).toBeTruthy();
+    const ogImageUrl = ogImage?.url;
+    expect(ogImageUrl).toBeTruthy();
 
-    const ogUrl = new URL(ogImage?.url!);
+    const ogUrl = new URL(ogImageUrl!);
     expect(ogUrl.pathname).toBe("/api/og");
     expect(ogUrl.searchParams.get("trackId")).toBe(String(mockTrack.id));
   });
@@ -71,7 +72,7 @@ describe("track SEO metadata", () => {
       },
     }));
 
-    const fetchMock = vi.fn(async (input: RequestInfo, init?: RequestInit) => {
+    const fetchMock = vi.fn(async (input: RequestInfo, _init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.url;
       if (url.includes("/music/tracks/batch")) {
         return {

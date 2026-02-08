@@ -34,6 +34,7 @@ export function PlaylistContextMenu() {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showMergeModal, setShowMergeModal] = useState(false);
   const utils = api.useUtils();
+  const addToPlaylist = api.music.addToPlaylist.useMutation();
 
   const deletePlaylist = api.music.deletePlaylist.useMutation({
     onSuccess: async () => {
@@ -62,12 +63,12 @@ export function PlaylistContextMenu() {
 
   const duplicatePlaylist = api.music.createPlaylist.useMutation({
     onSuccess: async (newPlaylist) => {
-      if (!playlist) return;
+      if (!playlist || !newPlaylist) return;
 
       if (playlist.tracks && playlist.tracks.length > 0) {
         await Promise.all(
           playlist.tracks.map((pt) =>
-            utils.music.addToPlaylist.mutateAsync({
+            addToPlaylist.mutateAsync({
               playlistId: newPlaylist.id,
               track: pt.track,
             }),
@@ -140,7 +141,9 @@ export function PlaylistContextMenu() {
     hapticMedium();
 
     try {
-      const fullPlaylist = await utils.music.getPlaylist.fetch({ id: playlist.id });
+      const fullPlaylist = await utils.music.getPlaylist.fetch({
+        id: playlist.id,
+      });
 
       if (!fullPlaylist.tracks || fullPlaylist.tracks.length === 0) {
         showToast("This playlist has no tracks", "info");
@@ -148,7 +151,9 @@ export function PlaylistContextMenu() {
         return;
       }
 
-      const sortedTracks = [...fullPlaylist.tracks].sort((a, b) => a.position - b.position);
+      const sortedTracks = [...fullPlaylist.tracks].sort(
+        (a, b) => a.position - b.position,
+      );
       const [first, ...rest] = sortedTracks.map((pt) => pt.track);
 
       if (first) {
@@ -157,7 +162,10 @@ export function PlaylistContextMenu() {
         if (rest.length > 0) {
           player.addToQueue(rest);
         }
-        showToast(`Playing "${fullPlaylist.name}" (${sortedTracks.length} tracks)`, "success");
+        showToast(
+          `Playing "${fullPlaylist.name}" (${sortedTracks.length} tracks)`,
+          "success",
+        );
       }
     } catch (error) {
       console.error("Failed to fetch full playlist:", error);
@@ -173,7 +181,9 @@ export function PlaylistContextMenu() {
     hapticLight();
 
     try {
-      const fullPlaylist = await utils.music.getPlaylist.fetch({ id: playlist.id });
+      const fullPlaylist = await utils.music.getPlaylist.fetch({
+        id: playlist.id,
+      });
 
       if (!fullPlaylist.tracks || fullPlaylist.tracks.length === 0) {
         showToast("This playlist has no tracks", "info");
@@ -198,7 +208,6 @@ export function PlaylistContextMenu() {
   const handleMergePlaylist = () => {
     hapticLight();
     setShowMergeModal(true);
-
   };
 
   const handleShare = async () => {
@@ -222,7 +231,6 @@ export function PlaylistContextMenu() {
     if (success) {
       showToast("Playlist shared successfully!", "success");
     } else {
-
       try {
         await navigator.clipboard.writeText(url);
         showToast("Link copied to clipboard!", "success");
@@ -350,14 +358,20 @@ export function PlaylistContextMenu() {
               <button
                 onClick={handleShare}
                 className="group flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all hover:bg-[rgba(244,178,102,0.15)] active:scale-95"
-                title={playlist.isPublic ? "Share playlist" : "Only public playlists can be shared"}
+                title={
+                  playlist.isPublic
+                    ? "Share playlist"
+                    : "Only public playlists can be shared"
+                }
                 disabled={!playlist.isPublic && !isShareSupported}
               >
-                <Share2 className={`h-5 w-5 transition-all group-hover:scale-110 ${
-                  playlist.isPublic
-                    ? "text-[var(--color-subtext)] group-hover:text-[var(--color-accent)]"
-                    : "text-[var(--color-muted)]"
-                }`} />
+                <Share2
+                  className={`h-5 w-5 transition-all group-hover:scale-110 ${
+                    playlist.isPublic
+                      ? "text-[var(--color-subtext)] group-hover:text-[var(--color-accent)]"
+                      : "text-[var(--color-muted)]"
+                  }`}
+                />
                 <span className="text-[10px] font-medium text-[var(--color-subtext)] group-hover:text-[var(--color-text)]">
                   Share
                 </span>
@@ -436,8 +450,8 @@ export function PlaylistContextMenu() {
               Merge Playlists
             </h3>
             <p className="mb-4 text-sm text-[var(--color-subtext)]">
-              Merge functionality coming soon! This will allow you to combine tracks from
-              multiple playlists.
+              Merge functionality coming soon! This will allow you to combine
+              tracks from multiple playlists.
             </p>
             <button
               onClick={() => {

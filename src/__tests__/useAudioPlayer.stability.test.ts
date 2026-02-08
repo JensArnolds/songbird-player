@@ -23,6 +23,11 @@ const mockTrack2: Track = {
   preview: "https://example.com/preview2.mp3",
 };
 
+const renderPlayerHook = (options?: Parameters<typeof useAudioPlayer>[0]) =>
+  renderHook<ReturnType<typeof useAudioPlayer>, void>(() =>
+    useAudioPlayer(options),
+  );
+
 vi.mock("@/utils/api", () => ({
   getStreamUrlById: vi.fn().mockResolvedValue("https://example.com/stream.mp3"),
 }));
@@ -54,11 +59,16 @@ describe("useAudioPlayer Stability Tests", () => {
 
   describe("Play/Pause Race Conditions", () => {
     it("should handle rapid play/pause calls without corruption", async () => {
-      const { result } = renderHook(() => useAudioPlayer());
+      const { result } = renderPlayerHook();
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();
       });
+
+      const audioEl = result.current.audioRef.current;
+      expect(audioEl).not.toBeNull();
+      const playSpy = vi.spyOn(audioEl!, "play");
+      const pauseSpy = vi.spyOn(audioEl!, "pause");
 
       act(() => {
         result.current.addToQueue(mockTrack);
@@ -74,14 +84,14 @@ describe("useAudioPlayer Stability Tests", () => {
         });
       }
 
-      const audioEl = result.current.audioRef.current;
-      expect(audioEl).not.toBeNull();
-      expect(vi.mocked(audioEl!.play)).toHaveBeenCalled();
-      expect(vi.mocked(audioEl!.pause)).toHaveBeenCalled();
+      expect(playSpy).toHaveBeenCalled();
+      expect(pauseSpy).toHaveBeenCalled();
+      playSpy.mockRestore();
+      pauseSpy.mockRestore();
     });
 
     it("should prevent concurrent play operations", async () => {
-      const { result } = renderHook(() => useAudioPlayer());
+      const { result } = renderPlayerHook();
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();
@@ -103,7 +113,7 @@ describe("useAudioPlayer Stability Tests", () => {
     });
 
     it("should handle play() with null audio element gracefully", async () => {
-      const { result } = renderHook(() => useAudioPlayer());
+      const { result } = renderPlayerHook();
 
       (result.current as { audioRef: { current: null } }).audioRef.current =
         null;
@@ -119,7 +129,7 @@ describe("useAudioPlayer Stability Tests", () => {
   describe("State Synchronization", () => {
     it("should sync isPlaying state with actual audio state", async () => {
       vi.useFakeTimers();
-      const { result } = renderHook(() => useAudioPlayer());
+      const { result } = renderPlayerHook();
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();
@@ -149,7 +159,7 @@ describe("useAudioPlayer Stability Tests", () => {
       vi.useFakeTimers();
       const setIntervalSpy = vi.spyOn(global, "setInterval");
 
-      const { result } = renderHook(() => useAudioPlayer());
+      const { result } = renderPlayerHook();
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();
@@ -298,7 +308,7 @@ describe("useAudioPlayer Stability Tests", () => {
   describe("Error Handling", () => {
     it("should handle repeat-one playback errors gracefully", async () => {
       const onError = vi.fn();
-      const { result } = renderHook(() => useAudioPlayer({ onError }));
+      const { result } = renderPlayerHook({ onError });
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();
@@ -306,14 +316,17 @@ describe("useAudioPlayer Stability Tests", () => {
 
       act(() => {
         result.current.addToQueue(mockTrack);
-        result.current.setRepeatMode("one");
+        result.current.cycleRepeatMode();
+        result.current.cycleRepeatMode();
       });
 
       const audioEl = result.current.audioRef.current;
       if (audioEl) {
-        vi.mocked(audioEl.play).mockRejectedValue(new Error("Playback failed"));
+        const playMock = vi.spyOn(audioEl, "play");
+        playMock.mockRejectedValue(new Error("Playback failed"));
         const endedEvent = new Event("ended");
         audioEl.dispatchEvent(endedEvent);
+        playMock.mockRestore();
       }
 
       await waitFor(() => {
@@ -328,7 +341,7 @@ describe("useAudioPlayer Stability Tests", () => {
       const rejectedPromise = Promise.reject(
         new Error("Service worker not available"),
       );
-      rejectedPromise.catch(() => {});
+      rejectedPromise.catch(() => undefined);
 
       global.navigator.serviceWorker = {
         ready: rejectedPromise,
@@ -346,13 +359,8 @@ describe("useAudioPlayer Stability Tests", () => {
         result.current.addToQueue(mockTrack);
       });
 
-      act(() => {
-        void result.current.play();
-      });
-
       await act(async () => {
-        playResolve();
-        await playPromise;
+        await result.current.play();
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -366,7 +374,7 @@ describe("useAudioPlayer Stability Tests", () => {
       vi.useFakeTimers();
       const clearIntervalSpy = vi.spyOn(global, "clearInterval");
 
-      const { result, unmount } = renderHook(() => useAudioPlayer());
+      const { result, unmount } = renderPlayerHook();
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();
@@ -396,7 +404,7 @@ describe("useAudioPlayer Stability Tests", () => {
       vi.useFakeTimers();
       const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
 
-      const { result } = renderHook(() => useAudioPlayer());
+      const { result } = renderPlayerHook();
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();
@@ -424,7 +432,7 @@ describe("useAudioPlayer Stability Tests", () => {
 
   describe("Rapid Track Changes", () => {
     it("should handle rapid track changes without player disappearing", async () => {
-      const { result } = renderHook(() => useAudioPlayer());
+      const { result } = renderPlayerHook();
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();
@@ -455,7 +463,7 @@ describe("useAudioPlayer Stability Tests", () => {
     });
 
     it("should maintain queue integrity during rapid operations", async () => {
-      const { result } = renderHook(() => useAudioPlayer());
+      const { result } = renderPlayerHook();
 
       await waitFor(() => {
         expect(result.current.audioRef.current).not.toBeNull();

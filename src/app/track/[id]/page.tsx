@@ -74,8 +74,8 @@ async function getTrack(id: string): Promise<Track | null> {
                 ? (payload as { tracks: unknown[] }).tracks
                 : []
             : [];
-        const candidate = tracks[0];
-        if (isTrackPayload(candidate)) {
+        const candidate = tracks.find(isTrackPayload);
+        if (candidate) {
           return candidate;
         }
       }
@@ -94,7 +94,7 @@ async function getTrack(id: string): Promise<Track | null> {
       cache: "no-store",
     });
     if (deezerResponse.ok) {
-      const deezerTrack = await deezerResponse.json();
+      const deezerTrack = (await deezerResponse.json()) as unknown;
       if (isTrackPayload(deezerTrack)) {
         return deezerTrack;
       }

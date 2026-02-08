@@ -541,7 +541,7 @@ describe("MobilePlayer - Integrated Controls", () => {
 
   describe("Visual Layout", () => {
     it("renders controls within the gradient-bordered card", () => {
-      const { container } = render(<MobilePlayer {...defaultProps} />);
+      render(<MobilePlayer {...defaultProps} />);
 
       const queueButton = screen.getByLabelText("Show queue");
       const controlsCard = queueButton.closest('[class*="rounded"]');
