@@ -543,7 +543,7 @@ export class FlowFieldRenderer {
     };
 
     if (neutralNames[pattern]) {
-      return neutralNames[pattern]!;
+      return neutralNames[pattern];
     }
 
     return pattern
@@ -11792,14 +11792,13 @@ export class FlowFieldRenderer {
     radius: number,
     angle: number,
     audioIntensity: number,
-    trebleIntensity: number,
+    _trebleIntensity: number,
   ): void {
     ctx.save();
     ctx.rotate(angle);
 
     const lobeSize = radius * 0.25;
     const lobeDistance = radius * 0.7;
-    const twoPi = FlowFieldRenderer.TWO_PI;
     const hue = this.fastMod360(this.hueBase + 240);
 
     for (let i = 0; i < 4; i++) {
@@ -11858,8 +11857,6 @@ export class FlowFieldRenderer {
     audioIntensity: number,
     bassIntensity: number,
   ): void {
-    const twoPi = FlowFieldRenderer.TWO_PI;
-
     this.hydrogenElectrons.forEach((electron) => {
       const speed = electron.speed * (1 + audioIntensity * 2 + bassIntensity);
       electron.angle += speed / (n * n);
@@ -11916,7 +11913,7 @@ export class FlowFieldRenderer {
   private renderPlasmaStorm(
     audioIntensity: number,
     bassIntensity: number,
-    trebleIntensity: number,
+    _trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
     ctx.save();

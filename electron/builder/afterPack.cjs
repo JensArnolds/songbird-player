@@ -22,12 +22,12 @@ module.exports = async function afterPack(context) {
   const destStandalone = path.join(appOutDir, ".next", "standalone");
 
   if (!fs.existsSync(srcStandalone)) {
-    // eslint-disable-next-line no-console
+     
     console.warn("[afterPack] Next standalone output missing:", srcStandalone);
     return;
   }
 
-  // eslint-disable-next-line no-console
+   
   console.log("[afterPack] Copying Next standalone output to:", destStandalone);
 
   fs.rmSync(destStandalone, { recursive: true, force: true });
@@ -42,11 +42,11 @@ module.exports = async function afterPack(context) {
   if (!fs.existsSync(destServerJs)) missing.push("server.js");
   if (missing.length > 0) {
     const msg = `[afterPack] Packaged app missing required standalone files: ${missing.join(", ")}. Installer would be broken.`;
-    // eslint-disable-next-line no-console
+     
     console.error(msg);
     throw new Error(msg);
   }
-  // eslint-disable-next-line no-console
+   
   console.log("[afterPack] Verified standalone node_modules and server.js are present in packaged app.");
 
   // Ensure bundled Node.js runtime is present so the installed app can run the server without system Node
@@ -57,11 +57,11 @@ module.exports = async function afterPack(context) {
   );
   if (!fs.existsSync(nodeBinary)) {
     const msg = `[afterPack] Bundled Node.js not found at ${nodeBinary}. Run "npm run electron:download-node" before building.`;
-    // eslint-disable-next-line no-console
+     
     console.error(msg);
     throw new Error(msg);
   }
-  // eslint-disable-next-line no-console
+   
   console.log("[afterPack] Verified bundled Node.js runtime is present in packaged app.");
 };
 

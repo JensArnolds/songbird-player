@@ -50,13 +50,13 @@ vi.mock("framer-motion", async () => {
     {},
     {
       get: (_target, tag: string) =>
-        ReactImport.forwardRef((props: any, ref) => {
+        ReactImport.forwardRef((props: Record<string, unknown>, ref) => {
           const {
-            layoutId,
-            whileTap,
-            transition,
-            initial,
-            animate,
+            layoutId: _layoutId,
+            whileTap: _whileTap,
+            transition: _transition,
+            initial: _initial,
+            animate: _animate,
             ...rest
           } = props;
           return ReactImport.createElement(tag, { ...rest, ref });

@@ -1,6 +1,5 @@
 /* File: ecosystem.docker.cjs */
-/* * */
-
+/**
  * PM2 config for Docker. Used by pm2-runtime in the container.
  * Env is provided by the container (docker-compose / Dockerfile); no .env load.
  */

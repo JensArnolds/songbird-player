@@ -55,7 +55,7 @@ describe("track SEO metadata", () => {
     const ogImage = metadata.openGraph?.images?.[0] as { url: string } | undefined;
     expect(ogImage?.url).toBeTruthy();
 
-    const ogUrl = new URL(ogImage?.url as string);
+    const ogUrl = new URL(ogImage?.url!);
     expect(ogUrl.pathname).toBe("/api/og");
     expect(ogUrl.searchParams.get("trackId")).toBe(String(mockTrack.id));
   });
@@ -99,7 +99,7 @@ describe("track SEO metadata", () => {
     const urlObj = new URL(calledUrl as string);
     expect(urlObj.pathname).toBe("/music/tracks/batch");
     expect(urlObj.searchParams.get("ids")).toBe(String(mockTrack.id));
-    const headers = (options as RequestInit | undefined)?.headers as
+    const headers = (options)?.headers as
       | Record<string, string>
       | undefined;
     expect(headers?.["X-API-Key"]).toBe("test-key");

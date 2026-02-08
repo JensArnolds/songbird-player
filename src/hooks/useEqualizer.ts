@@ -9,7 +9,6 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getOrCreateAudioConnection,
-  releaseAudioConnection,
   ensureConnectionChain,
   shouldBypassWebAudio,
 } from "@/utils/audioContextManager";
@@ -126,6 +125,7 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
     },
   });
 
+  // Sync state from server preferences - intentional initialization pattern
   useEffect(() => {
     if (preferences && isAuthenticated) {
       const nextBands = DEFAULT_BANDS.map((band, index) => ({
@@ -133,9 +133,11 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
         gain: preferences.bands[index] ?? 0,
       }));
 
+      /* eslint-disable react-hooks/set-state-in-effect -- Intentional: syncing from server on mount */
       setBands(nextBands);
       setCurrentPreset(preferences.preset);
       setIsEnabled(preferences.enabled);
+      /* eslint-enable react-hooks/set-state-in-effect */
       persistLocalPreferences(
         nextBands,
         preferences.preset,
@@ -157,12 +159,14 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
     };
   }, []);
 
+  // Load local preferences when not authenticated - intentional initialization
   useEffect(() => {
     if (!isAuthenticated && status !== "loading") {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = null;
       }
+      /* eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: loading local prefs on mount */
       loadLocalPreferences();
     }
   }, [isAuthenticated, status, loadLocalPreferences]);

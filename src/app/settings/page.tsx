@@ -203,7 +203,7 @@ export default function SettingsPage() {
               onChange: (value: boolean | number | string) => {
                 const vol = value as number;
                 player.setVolume(vol);
-                handleSlider("volume", vol);
+                // Volume is persisted by the player itself, no need for preferences mutation
               },
             },
           ]),
@@ -529,9 +529,9 @@ function SettingsItemComponent({
 }) {
   const [localValue, setLocalValue] = useState(item.value);
 
-  useEffect(() => {
-    setLocalValue(item.value);
-  }, [item.value]);
+  // Sync local value with prop - intentional controlled component pattern
+  /* eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync prop to state */
+  useEffect(() => { setLocalValue(item.value); }, [item.value]);
 
   const handleChange = (newValue: boolean | number | string) => {
     setLocalValue(newValue);
