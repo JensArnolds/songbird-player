@@ -36,7 +36,7 @@ export default function EnhancedTrackCard({
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
   const utils = api.useUtils();
   const { showToast } = useToast();
-  const { share, isSupported: _isShareSupported } = useWebShare();
+  const { share } = useWebShare();
   const { data: session } = useSession();
   const isAuthenticated = !!session;
   const { openMenu } = useTrackContextMenu();

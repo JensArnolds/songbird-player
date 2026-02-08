@@ -248,7 +248,7 @@ export function EnhancedQueue({
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const { showToast } = useToast();
-  const utils = api.useUtils();
+  const _utils = api.useUtils();
   const queueListRef = useRef<HTMLDivElement>(null);
 
   // Load smart queue settings
@@ -295,7 +295,7 @@ export function EnhancedQueue({
     counter: 0,
   });
 
-  const getSortableId = useCallback((track: Track) => {
+  const _getSortableId = useCallback((track: Track) => {
     const map = trackIdMapRef.current.map;
     const existing = map.get(track);
     if (existing) {

@@ -31,6 +31,7 @@ export default function FloatingActionButton() {
   const router = useRouter();
   const player = useGlobalPlayer();
   const isClient = useSyncExternalStore(
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- Required: useSyncExternalStore needs unsubscribe fn
     (_onStoreChange) => () => {},
     () => true,
     () => false,
