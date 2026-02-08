@@ -5,34 +5,34 @@ import { z } from "zod";
 
 import { ENABLE_AUDIO_FEATURES } from "@/config/features";
 import {
-    createTRPCRouter,
-    protectedProcedure,
-    publicProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
 } from "@/server/api/trpc";
 import type { db } from "@/server/db";
 import {
-    audioFeatures,
-    favorites,
-    listeningAnalytics,
-    listeningHistory,
-    playbackState,
-    playerSessions,
-    playlistTracks,
-    playlists,
-    recommendationCache,
-    recommendationLogs,
-    searchHistory,
-    userPreferences,
-    users,
+  audioFeatures,
+  favorites,
+  listeningAnalytics,
+  listeningHistory,
+  playbackState,
+  playerSessions,
+  playlistTracks,
+  playlists,
+  recommendationCache,
+  recommendationLogs,
+  searchHistory,
+  userPreferences,
+  users,
 } from "@/server/db/schema";
 import {
-    fetchDeezerRecommendations,
-    fetchEnhancedRecommendations,
-    fetchHybridRecommendations,
-    fetchMultiSeedRecommendations,
-    filterRecommendations,
-    getCacheExpiryDate,
-    shuffleWithDiversity,
+  fetchDeezerRecommendations,
+  fetchEnhancedRecommendations,
+  fetchHybridRecommendations,
+  fetchMultiSeedRecommendations,
+  filterRecommendations,
+  getCacheExpiryDate,
+  shuffleWithDiversity,
 } from "@/server/services/recommendations";
 import { songbird } from "@/services/songbird";
 import { isTrack, type Track } from "@/types";
@@ -109,11 +109,11 @@ type SpiceUpResponse = {
 
 function getDeezerId(track: z.infer<typeof trackSchema>): number | undefined {
   if (track.deezer_id !== undefined) {
-    return typeof track.deezer_id === "string" 
+    return typeof track.deezer_id === "string"
       ? parseInt(track.deezer_id, 10) || undefined
       : track.deezer_id;
   }
-      return undefined;
+  return undefined;
 }
 
 function normalizeDeezerId(value: unknown): number | null {
@@ -153,7 +153,9 @@ async function fetchTracksByDeezerIds(
     maxExplicit?: boolean;
   },
 ): Promise<Track[]> {
-  const uniqueIds = Array.from(new Set(ids)).filter((id) => Number.isFinite(id));
+  const uniqueIds = Array.from(new Set(ids)).filter((id) =>
+    Number.isFinite(id),
+  );
   if (uniqueIds.length === 0) return [];
 
   const params = new URLSearchParams();
@@ -223,7 +225,8 @@ async function resolveSpiceUpTracksToDeezer(
   }> = [];
 
   for (const track of spiceTracks) {
-    const spotifyId = typeof track.id === "string" ? track.id.trim() : undefined;
+    const spotifyId =
+      typeof track.id === "string" ? track.id.trim() : undefined;
     const deezerId = normalizeDeezerId(track.deezerId ?? track.deezer_id);
     if (deezerId) {
       if (!seenIds.has(deezerId)) {
@@ -281,7 +284,6 @@ async function resolveSpiceUpTracksToDeezer(
 }
 
 async function syncAutoFavorites(database: typeof db, userId: string) {
-
   const topTracks = await database
     .select({
       trackId: listeningAnalytics.trackId,
@@ -352,7 +354,6 @@ async function syncAutoFavorites(database: typeof db, userId: string) {
 }
 
 export const musicRouter = createTRPCRouter({
-
   addFavorite: protectedProcedure
     .input(z.object({ track: trackSchema }))
     .mutation(async ({ ctx, input }) => {
@@ -371,7 +372,7 @@ export const musicRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-                trackData: input.track as unknown as Record<string, unknown>,
+        trackData: input.track as unknown as Record<string, unknown>,
       });
 
       return { success: true, alreadyExists: false };
@@ -604,7 +605,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-
       const playlistsResult = await ctx.db.query.playlists.findMany({
         where: input.excludePlaylistId
           ? and(
@@ -617,7 +617,6 @@ export const musicRouter = createTRPCRouter({
 
       const playlistsWithStatus = await Promise.all(
         playlistsResult.map(async (playlist) => {
-
           const trackInPlaylist = await ctx.db.query.playlistTracks.findFirst({
             where: and(
               eq(playlistTracks.playlistId, playlist.id),
@@ -719,7 +718,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const playlist = await ctx.db.query.playlists.findFirst({
         where: and(
           eq(playlists.id, input.playlistId),
@@ -753,7 +751,7 @@ export const musicRouter = createTRPCRouter({
         playlistId: input.playlistId,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-                trackData: input.track as unknown as Record<string, unknown>,
+        trackData: input.track as unknown as Record<string, unknown>,
         position: nextPosition,
       });
 
@@ -768,7 +766,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const playlist = await ctx.db.query.playlists.findFirst({
         where: and(
           eq(playlists.id, input.playlistId),
@@ -820,7 +817,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const playlist = await ctx.db.query.playlists.findFirst({
         where: and(
           eq(playlists.id, input.playlistId),
@@ -859,7 +855,7 @@ export const musicRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-                trackData: input.track as unknown as Record<string, unknown>,
+        trackData: input.track as unknown as Record<string, unknown>,
         duration: input.duration,
       });
 
@@ -946,7 +942,6 @@ export const musicRouter = createTRPCRouter({
   getRecentSearches: protectedProcedure
     .input(z.object({ limit: z.number().min(1).max(100).default(50) }))
     .query(async ({ ctx, input }) => {
-
       const items = await ctx.db
         .selectDistinct({
           query: searchHistory.query,
@@ -997,11 +992,12 @@ export const musicRouter = createTRPCRouter({
         autoQueueThreshold: z.number().min(1).max(10).optional(),
         autoQueueCount: z.number().min(1).max(20).optional(),
         smartMixEnabled: z.boolean().optional(),
-        similarityPreference: z.enum(["strict", "balanced", "diverse"]).optional(),
+        similarityPreference: z
+          .enum(["strict", "balanced", "diverse"])
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const existing = await ctx.db.query.userPreferences.findFirst({
         where: eq(userPreferences.userId, ctx.session.user.id),
       });
@@ -1058,12 +1054,11 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const existing = await ctx.db.query.userPreferences.findFirst({
         where: eq(userPreferences.userId, ctx.session.user.id),
       });
 
-                  const normalizedQueueState = input.queueState
+      const normalizedQueueState = input.queueState
         ? ({
             version: input.queueState.version,
             queuedTracks: input.queueState.queuedTracks.map((item) => ({
@@ -1144,7 +1139,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const existing = await ctx.db.query.playerSessions.findFirst({
         where: and(
           eq(playerSessions.userId, ctx.session.user.id),
@@ -1153,7 +1147,6 @@ export const musicRouter = createTRPCRouter({
       });
 
       if (existing) {
-
         await ctx.db
           .update(playerSessions)
           .set({
@@ -1236,7 +1229,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const existing = await ctx.db.query.playbackState.findFirst({
         where: eq(playbackState.userId, ctx.session.user.id),
       });
@@ -1246,7 +1238,7 @@ export const musicRouter = createTRPCRouter({
         currentTrack: input.currentTrack as unknown as
           | Record<string, unknown>
           | undefined,
-        currentTrackDeezerId: input.currentTrack 
+        currentTrackDeezerId: input.currentTrack
           ? getDeezerId(input.currentTrack)
           : undefined,
         currentPosition: input.currentPosition,
@@ -1343,7 +1335,6 @@ export const musicRouter = createTRPCRouter({
         input.track.id % 5 === 0 ||
         (completionPercentage >= 80 && !input.skipped);
       if (shouldSync) {
-
         syncAutoFavorites(ctx.db, ctx.session.user.id).catch((error) => {
           console.error("[logPlay] Error syncing auto-favorites:", error);
         });
@@ -1493,7 +1484,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-
       if (input.useCache) {
         const cached = await ctx.db.query.recommendationCache.findFirst({
           where: and(
@@ -1579,7 +1569,6 @@ export const musicRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       try {
-
         const userPrefs = await ctx.db.query.userPreferences.findFirst({
           where: eq(userPreferences.userId, ctx.session.user.id),
         });
@@ -1680,9 +1669,13 @@ export const musicRouter = createTRPCRouter({
         excludeExplicit: z.boolean().optional(),
         recommendationSource: z.enum(["spotify", "unified"]).optional(),
         maxSeeds: z.number().int().min(1).max(200).optional(),
-        sampling: z.enum(["round-robin", "evenly-spaced", "weighted"]).optional(),
+        sampling: z
+          .enum(["round-robin", "evenly-spaced", "weighted"])
+          .optional(),
         seedStride: z.number().int().min(1).optional(),
-        queueMode: z.enum(["useQueueOnly", "blendHistory", "includeHistory"]).optional(),
+        queueMode: z
+          .enum(["useQueueOnly", "blendHistory", "includeHistory"])
+          .optional(),
         seedTracks: z
           .array(
             z.object({
@@ -1696,7 +1689,6 @@ export const musicRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       return ctx.db.transaction(async () => {
-
         const cached = await ctx.db.query.recommendationCache.findFirst({
           where: and(
             eq(recommendationCache.seedTrackId, input.trackId),
@@ -1729,12 +1721,12 @@ export const musicRouter = createTRPCRouter({
 
           if (filtered.length > 0 && !cached) {
             try {
-                            const seedDeezerId = filtered[0]?.deezer_id 
-                ? (typeof filtered[0].deezer_id === "string" 
-                    ? parseInt(filtered[0].deezer_id, 10) 
-                    : filtered[0].deezer_id)
+              const seedDeezerId = filtered[0]?.deezer_id
+                ? typeof filtered[0].deezer_id === "string"
+                  ? parseInt(filtered[0].deezer_id, 10)
+                  : filtered[0].deezer_id
                 : undefined;
-              
+
               await ctx.db.insert(recommendationCache).values({
                 seedTrackId: input.trackId,
                 seedDeezerId,
@@ -1748,9 +1740,7 @@ export const musicRouter = createTRPCRouter({
                 source: "deezer",
                 expiresAt: getCacheExpiryDate(),
               });
-            } catch {
-
-            }
+            } catch {}
           }
 
           return filtered.slice(0, input.limit);
@@ -1769,16 +1759,12 @@ export const musicRouter = createTRPCRouter({
         }
 
         if (!seedTrack) {
-
           const recommendations = await fetchDeezerRecommendations(
             input.trackId,
             input.limit + 5,
           );
           return filterRecommendations(recommendations, {
-            excludeTrackIds: [
-              ...(input.excludeTrackIds ?? []),
-              input.trackId,
-            ],
+            excludeTrackIds: [...(input.excludeTrackIds ?? []), input.trackId],
             maxExplicit: input.excludeExplicit ? false : undefined,
           }).slice(0, input.limit);
         }
@@ -1805,7 +1791,9 @@ export const musicRouter = createTRPCRouter({
           queueMode === "useQueueOnly"
             ? []
             : recentHistory
-                .map((entry: { trackData: unknown }) => entry.trackData as Track)
+                .map(
+                  (entry: { trackData: unknown }) => entry.trackData as Track,
+                )
                 .filter((track) => isTrack(track))
                 .map((track) => ({
                   name: track.title,
@@ -1853,7 +1841,10 @@ export const musicRouter = createTRPCRouter({
         }
 
         if (seedInputs.length === 1) {
-          seedInputs.push({ ...seedInputs[0] });
+          const firstSeed = seedInputs[0];
+          if (firstSeed) {
+            seedInputs.push({ ...firstSeed });
+          }
         }
 
         try {
@@ -1871,9 +1862,8 @@ export const musicRouter = createTRPCRouter({
               ? "/api/spotify/recommendations/spice-up"
               : "/api/spotify/recommendations/spice-up/unified";
 
-          const recommendationResponse = await songbird.request<SpiceUpResponse>(
-            recommendationEndpoint,
-            {
+          const recommendationResponse =
+            await songbird.request<SpiceUpResponse>(recommendationEndpoint, {
               method: "POST",
               body: JSON.stringify({
                 songs: seedInputs,
@@ -1885,17 +1875,14 @@ export const musicRouter = createTRPCRouter({
                 ...(typeof input.seedStride === "number"
                   ? { seedStride: input.seedStride }
                   : {}),
-                ...(excludeDeezerIds.length > 0
-                  ? { excludeDeezerIds }
-                  : {}),
+                ...(excludeDeezerIds.length > 0 ? { excludeDeezerIds } : {}),
                 ...(input.excludeSpotifyTrackIds &&
                 input.excludeSpotifyTrackIds.length > 0
                   ? { excludeTrackIds: input.excludeSpotifyTrackIds }
                   : {}),
                 ...(input.excludeExplicit ? { excludeExplicit: true } : {}),
               }),
-            },
-          );
+            });
 
           if (
             recommendationResponse.warnings &&
@@ -1910,7 +1897,8 @@ export const musicRouter = createTRPCRouter({
           if (
             recommendationResponse.foundSongs !== undefined &&
             recommendationResponse.inputSongs !== undefined &&
-            recommendationResponse.foundSongs < recommendationResponse.inputSongs
+            recommendationResponse.foundSongs <
+              recommendationResponse.inputSongs
           ) {
             console.warn(
               `[getSimilarTracks] Only ${recommendationResponse.foundSongs} of ${recommendationResponse.inputSongs} input songs were found`,
@@ -1918,7 +1906,8 @@ export const musicRouter = createTRPCRouter({
           }
 
           const spiceTracks = extractSpiceUpTracks(recommendationResponse);
-          const resolvedTracks = await resolveSpiceUpTracksToDeezer(spiceTracks);
+          const resolvedTracks =
+            await resolveSpiceUpTracksToDeezer(spiceTracks);
 
           if (resolvedTracks.length > 0) {
             const filtered = filterRecommendations(resolvedTracks, {
@@ -1937,7 +1926,10 @@ export const musicRouter = createTRPCRouter({
           const similarParams = new URLSearchParams();
           similarParams.set("artist", seedTrack.artist.name);
           similarParams.set("track", seedTrack.title);
-          similarParams.set("limit", Math.min(input.limit + 10, 100).toString());
+          similarParams.set(
+            "limit",
+            Math.min(input.limit + 10, 100).toString(),
+          );
           const similarResponse = await songbird.request<unknown>(
             `/api/lastfm/track/similar?${similarParams.toString()}`,
           );
@@ -1953,7 +1945,8 @@ export const musicRouter = createTRPCRouter({
               .map((entry) => {
                 if (!entry || typeof entry !== "object") return null;
                 const record = entry as Record<string, unknown>;
-                const name = typeof record.name === "string" ? record.name : null;
+                const name =
+                  typeof record.name === "string" ? record.name : null;
                 let artist: string | undefined;
                 const rawArtist = record.artist;
                 if (typeof rawArtist === "string") {
@@ -1967,8 +1960,11 @@ export const musicRouter = createTRPCRouter({
                 if (!name) return null;
                 return { name, artist };
               })
-              .filter((track): track is { name: string; artist: string | undefined } =>
-                track !== null && Boolean(track.name),
+              .filter(
+                (
+                  track,
+                ): track is { name: string; artist: string | undefined } =>
+                  track !== null && Boolean(track.name),
               );
           })();
 
@@ -2005,8 +2001,9 @@ export const musicRouter = createTRPCRouter({
               const artist = track.artists?.[0]?.name;
               return { name: track.name, artist };
             })
-            .filter((track): track is { name: string; artist: string | undefined } =>
-              track !== null && Boolean(track.name),
+            .filter(
+              (track): track is { name: string; artist: string | undefined } =>
+                track !== null && Boolean(track.name),
             );
 
           const spotifyDeezerIds = await convertToDeezerIds(spotifyCandidates);
@@ -2023,7 +2020,10 @@ export const musicRouter = createTRPCRouter({
             }
           }
         } catch (error) {
-          console.error("[getSimilarTracks] Songbird recommendations failed:", error);
+          console.error(
+            "[getSimilarTracks] Songbird recommendations failed:",
+            error,
+          );
         }
 
         const recommendations = await fetchEnhancedRecommendations(seedTrack, {
@@ -2036,10 +2036,7 @@ export const musicRouter = createTRPCRouter({
         });
 
         const filtered = filterRecommendations(recommendations, {
-          excludeTrackIds: [
-            ...(input.excludeTrackIds ?? []),
-            input.trackId,
-          ],
+          excludeTrackIds: [...(input.excludeTrackIds ?? []), input.trackId],
           maxExplicit: input.excludeExplicit ? false : undefined,
         });
 
@@ -2061,7 +2058,6 @@ export const musicRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-
         const seedTracks: Track[] = [];
         for (const trackId of input.seedTrackIds) {
           try {
@@ -2103,7 +2099,10 @@ export const musicRouter = createTRPCRouter({
             album: track.album?.title,
           }));
         if (songs.length === 1) {
-          songs.push({ ...songs[0] });
+          const [firstSong] = songs;
+          if (firstSong) {
+            songs.push({ ...firstSong });
+          }
         }
 
         const payload = await songbird.request<SpiceUpResponse>(
@@ -2190,13 +2189,10 @@ export const musicRouter = createTRPCRouter({
               const track = (await response.json()) as Track;
               seedTracksForFallback.push(track);
             }
-          } catch {
-
-          }
+          } catch {}
         }
 
         if (seedTracksForFallback.length === 0) {
-
           const allRecommendations: Track[] = [];
           const seenTrackIds = new Set<number>(input.seedTrackIds);
 
@@ -2304,7 +2300,6 @@ export const musicRouter = createTRPCRouter({
     });
 
     if (!prefs) {
-
       return {
         autoQueueEnabled: false,
         autoQueueThreshold: 3,
@@ -2339,7 +2334,6 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-
       const existing = await ctx.db.query.userPreferences.findFirst({
         where: eq(userPreferences.userId, ctx.session.user.id),
       });
