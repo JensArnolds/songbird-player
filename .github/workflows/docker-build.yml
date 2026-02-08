@@ -36,6 +36,8 @@ jobs:
           tags: songbird-frontend:test
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          build-args: |
+            SKIP_ENV_VALIDATION=true
 
       - name: Move cache
         run: |
@@ -68,3 +70,5 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/songbird-frontend:latest
             ${{ secrets.DOCKER_USERNAME }}/songbird-frontend:${{ github.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
+          build-args: |
+            SKIP_ENV_VALIDATION=true

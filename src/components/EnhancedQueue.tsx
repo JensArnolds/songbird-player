@@ -297,16 +297,6 @@ export function EnhancedQueue({
     [queuedTracks],
   );
 
-  const userTracks = useMemo(
-    () => queuedTracks.slice(1).filter(qt => qt.queueSource === 'user'),
-    [queuedTracks]
-  );
-
-  const smartTracks = useMemo(
-    () => queuedTracks.slice(1).filter(qt => qt.queueSource === 'smart'),
-    [queuedTracks]
-  );
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
