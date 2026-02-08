@@ -5,7 +5,9 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
+    AUTH_SECRET: z
+      .string()
+      .min(32, "AUTH_SECRET must be at least 32 characters"),
     AUTH_DISCORD_ID: z.string(),
     AUTH_DISCORD_SECRET: z.string(),
     SPOTIFY_CLIENT_ID: z.string().optional(),
@@ -55,8 +57,10 @@ export const env = createEnv({
       process.env.V2_API_URL ??
       process.env.NEXT_PUBLIC_V2_API_URL,
     NEXT_PUBLIC_NEXTAUTH_URL: process.env.NEXT_PUBLIC_NEXTAUTH_URL,
-    NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: process.env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL,
-    NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: process.env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER,
+    NEXT_PUBLIC_NEXTAUTH_VERCEL_URL:
+      process.env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL,
+    NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER:
+      process.env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER,
     NEXT_PUBLIC_API_V2_HEALTH_URL: process.env.NEXT_PUBLIC_API_V2_HEALTH_URL,
     SONGBIRD_API_KEY: process.env.SONGBIRD_API_KEY,
     ELECTRON_BUILD: process.env.ELECTRON_BUILD,
