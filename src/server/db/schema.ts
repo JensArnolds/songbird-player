@@ -285,6 +285,39 @@ export const userPreferences = createTable(
   (t) => [index("user_preferences_user_idx").on(t.userId)],
 );
 
+export const userTasteProfiles = createTable(
+  "user_taste_profile",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    userId: d
+      .varchar({ length: 255 })
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: "cascade" }),
+    preferredGenreId: d.integer(),
+    preferredGenreName: d.varchar({ length: 120 }),
+    seedArtists: d
+      .jsonb()
+      .$type<string[]>()
+      .default(sql`'[]'::jsonb`)
+      .notNull(),
+    seedPlaylistTitles: d
+      .jsonb()
+      .$type<string[]>()
+      .default(sql`'[]'::jsonb`)
+      .notNull(),
+    createdAt: d
+      .timestamp({ withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+  }),
+  (t) => [
+    index("user_taste_profile_user_idx").on(t.userId),
+    index("user_taste_profile_genre_idx").on(t.preferredGenreId),
+  ],
+);
+
 export const playerSessions = createTable(
   "player_session",
   (d) => ({
@@ -507,6 +540,16 @@ export const userPreferencesRelations = relations(
   ({ one }) => ({
     user: one(users, {
       fields: [userPreferences.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const userTasteProfilesRelations = relations(
+  userTasteProfiles,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userTasteProfiles.userId],
       references: [users.id],
     }),
   }),

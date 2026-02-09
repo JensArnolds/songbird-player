@@ -16,6 +16,7 @@ import type { Track } from "@/types";
 import {
   getAlbumTracks,
   getLatestReleases,
+  type PlaylistFeedItem,
   getPlaylistsByGenre,
   getPlaylistsByGenreId,
   getPopularPlaylists,
@@ -76,12 +77,14 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [madeForYouTracks, setMadeForYouTracks] = useState<Track[]>([]);
   const [newReleaseTracks, setNewReleaseTracks] = useState<Track[]>([]);
+  const [tastePlaylists, setTastePlaylists] = useState<PlaylistFeedItem[]>([]);
   const [preferredGenreId, setPreferredGenreId] = useState<number | null>(null);
   const [preferredGenreName, setPreferredGenreName] = useState("");
   const [isFeedLoading, setIsFeedLoading] = useState(false);
   const lastUrlQueryRef = useRef<string | null>(null);
   const lastTrackIdRef = useRef<string | null>(null);
   const shouldAutoPlayRef = useRef(false);
+  const lastTasteSyncRef = useRef("");
 
   const player = useGlobalPlayer();
   const hasActiveRouteQuery = [
@@ -142,6 +145,37 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
         refetchOnWindowFocus: false,
       },
     );
+  const { data: tasteProfile } = api.music.getTasteProfile.useQuery(undefined, {
+    enabled: !!session,
+    refetchOnWindowFocus: false,
+  });
+  const upsertTasteProfile = api.music.upsertTasteProfile.useMutation();
+
+  useEffect(() => {
+    if (!mounted || !session || !tasteProfile) return;
+
+    const hasLocalGenre =
+      preferredGenreId !== null || preferredGenreName.trim().length > 0;
+    if (hasLocalGenre) return;
+
+    const profileGenreId = parsePreferredGenreId(
+      (tasteProfile.preferredGenreId as number | string | null) ?? null,
+    );
+    const profileGenreName =
+      typeof tasteProfile.preferredGenreName === "string"
+        ? tasteProfile.preferredGenreName.trim()
+        : "";
+
+    if (profileGenreId) {
+      setPreferredGenreId(profileGenreId);
+      appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_ID, profileGenreId);
+    }
+
+    if (profileGenreName) {
+      setPreferredGenreName(profileGenreName);
+      appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_NAME, profileGenreName);
+    }
+  }, [mounted, preferredGenreId, preferredGenreName, session, tasteProfile]);
 
   const performSearch = useCallback(
     async (searchQuery: string, force = false) => {
@@ -470,6 +504,19 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     return output;
   }, []);
 
+  const dedupePlaylists = useCallback((playlists: PlaylistFeedItem[]) => {
+    const seen = new Set<number>();
+    const output: PlaylistFeedItem[] = [];
+
+    for (const playlist of playlists) {
+      if (!playlist || seen.has(playlist.id)) continue;
+      seen.add(playlist.id);
+      output.push(playlist);
+    }
+
+    return output;
+  }, []);
+
   const historyTracks = useMemo(
     () => dedupeTracks((historyItems ?? []).map((item) => item.track)),
     [dedupeTracks, historyItems],
@@ -499,6 +546,69 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     () => dedupeTracks(newReleaseTracks).slice(0, 14),
     [dedupeTracks, newReleaseTracks],
   );
+
+  const tastePlaylistsRow = useMemo(
+    () => dedupePlaylists(tastePlaylists).slice(0, 8),
+    [dedupePlaylists, tastePlaylists],
+  );
+
+  const tasteSeedArtists = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [...favoriteTracks, ...historyTracks]
+            .map((track) => track.artist.name.trim())
+            .filter((name) => name.length > 0),
+        ),
+      ).slice(0, 24),
+    [favoriteTracks, historyTracks],
+  );
+
+  const tasteSeedPlaylistTitles = useMemo(
+    () =>
+      tastePlaylistsRow
+        .map((playlist) => playlist.title.trim())
+        .filter((title) => title.length > 0)
+        .slice(0, 24),
+    [tastePlaylistsRow],
+  );
+
+  useEffect(() => {
+    if (!session) return;
+
+    if (
+      preferredGenreId === null &&
+      preferredGenreName.trim().length === 0 &&
+      tasteSeedArtists.length === 0 &&
+      tasteSeedPlaylistTitles.length === 0
+    ) {
+      return;
+    }
+
+    const payload = {
+      preferredGenreId,
+      preferredGenreName: preferredGenreName.trim() || null,
+      seedArtists: tasteSeedArtists,
+      seedPlaylistTitles: tasteSeedPlaylistTitles,
+    };
+    const signature = JSON.stringify(payload);
+
+    if (lastTasteSyncRef.current === signature) return;
+    lastTasteSyncRef.current = signature;
+
+    upsertTasteProfile.mutate(payload, {
+      onError: (error) => {
+        console.warn("[HomePageClient] Failed to sync taste profile:", error);
+      },
+    });
+  }, [
+    preferredGenreId,
+    preferredGenreName,
+    session,
+    tasteSeedArtists,
+    tasteSeedPlaylistTitles,
+    upsertTasteProfile,
+  ]);
 
   useEffect(() => {
     if (!homeFeedEnabled) return;
@@ -536,6 +646,43 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                 ? getPlaylistsByGenre(preferredGenreName, 100).catch(() => [])
                 : Promise.resolve([]),
           ]);
+
+        const tasteSeedTitles = new Set(
+          (Array.isArray(tasteProfile?.seedPlaylistTitles)
+            ? tasteProfile.seedPlaylistTitles
+            : []
+          )
+            .map((title) =>
+              typeof title === "string" ? title.trim().toLowerCase() : "",
+            )
+            .filter((title) => title.length > 0),
+        );
+
+        const preferredGenreNameLower = preferredGenreName.trim().toLowerCase();
+
+        const curatedTastePlaylists = dedupePlaylists([
+          ...genrePlaylists,
+          ...popularPlaylists.filter((playlist) => {
+            const title = playlist.title.trim().toLowerCase();
+            if (!title) return false;
+
+            if (
+              preferredGenreNameLower &&
+              title.includes(preferredGenreNameLower)
+            ) {
+              return true;
+            }
+
+            for (const seedTitle of tasteSeedTitles) {
+              if (title.includes(seedTitle) || seedTitle.includes(title)) {
+                return true;
+              }
+            }
+
+            return false;
+          }),
+          ...popularPlaylists,
+        ]).slice(0, 24);
 
         const releaseQueries = uniqueQueries([
           ...latestReleases
@@ -591,6 +738,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
             24,
           ),
         );
+        setTastePlaylists(curatedTastePlaylists);
         setNewReleaseTracks(
           dedupeTracks(newReleaseResults.flat()).slice(0, 24),
         );
@@ -607,12 +755,14 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
       cancelled = true;
     };
   }, [
+    dedupePlaylists,
     dedupeTracks,
     favoriteTracks,
     historyTracks,
     homeFeedEnabled,
     preferredGenreId,
     preferredGenreName,
+    tasteProfile,
   ]);
 
   const hasMore = results.length < total;
@@ -892,6 +1042,76 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                       }
                       emptyLabel="We are building personalized picks for you."
                     />
+                    <section className="card p-4 text-left md:p-5">
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <ListMusic className="h-4 w-4 text-[var(--color-secondary-accent)]" />
+                          <h4 className="text-sm font-bold tracking-wide text-[var(--color-text)] uppercase">
+                            Playlists for Your Taste
+                          </h4>
+                        </div>
+                        {preferredGenreName && (
+                          <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-0.5 text-[11px] text-[var(--color-subtext)]">
+                            {preferredGenreName}
+                          </span>
+                        )}
+                      </div>
+                      {isFeedLoading && tastePlaylistsRow.length === 0 ? (
+                        <div className="flex items-center justify-center py-5">
+                          <div className="spinner spinner-sm" />
+                        </div>
+                      ) : tastePlaylistsRow.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+                          {tastePlaylistsRow.map((playlist) => {
+                            const artwork =
+                              playlist.picture_medium ??
+                              playlist.picture ??
+                              playlist.picture_big ??
+                              "";
+
+                            return (
+                              <button
+                                key={playlist.id}
+                                onClick={() => {
+                                  hapticLight();
+                                  const playlistQuery = playlist.title.trim();
+                                  if (!playlistQuery) return;
+                                  setQuery(playlistQuery);
+                                  void handleSearch(playlistQuery);
+                                }}
+                                className="group rounded-xl border border-white/10 bg-[var(--color-surface)]/70 p-2 text-left transition-all hover:scale-[1.01] hover:border-white/20"
+                              >
+                                <div className="aspect-square w-full overflow-hidden rounded-lg bg-[rgba(255,255,255,0.05)]">
+                                  {artwork ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      src={artwork}
+                                      alt={playlist.title}
+                                      className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                                    />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-xs text-[var(--color-subtext)]">
+                                      playlist
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="mt-2 line-clamp-2 text-xs font-semibold text-[var(--color-text)]">
+                                  {playlist.title}
+                                </p>
+                                <p className="line-clamp-1 text-[11px] text-[var(--color-subtext)]">
+                                  {(playlist.nb_tracks ?? 0).toString()} tracks
+                                </p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[var(--color-subtext)]">
+                          Taste-based playlists will appear after we learn more
+                          from your listening.
+                        </p>
+                      )}
+                    </section>
                     <HomeFeedRow
                       title="New Releases"
                       subtitle="Fresh tracks discovered right now"

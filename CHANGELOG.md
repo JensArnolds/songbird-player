@@ -5,6 +5,18 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.4] - 2026-02-09
+
+### Added
+
+- **Start-page taste profile persistence**: Added a dedicated user taste profile data model with migration support to persist preferred genre and playlist/artist seed signals for signed-in users. Locations: `src/server/db/schema.ts`, `drizzle/0022_startpage_taste_profile.sql`, `drizzle/meta/_journal.json`.
+- **Taste profile API methods**: Added protected tRPC endpoints to read and upsert taste profile data used by home personalization. Location: `src/server/api/routers/music.ts`.
+
+### Changed
+
+- **Personalized playlist section on Home**: Added a new “Playlists for Your Taste” block on the start page and wired it to discovery data filtered by user taste signals. Location: `src/app/HomePageClient.tsx`.
+- **Cross-device taste sync**: Home now syncs saved genre preference and observed taste seeds into the server profile so playlist personalization remains consistent across sessions/devices. Location: `src/app/HomePageClient.tsx`.
+
 ## [0.15.3] - 2026-02-09
 
 ### Fixed

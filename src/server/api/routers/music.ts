@@ -22,6 +22,7 @@ import {
   recommendationCache,
   recommendationLogs,
   searchHistory,
+  userTasteProfiles,
   userPreferences,
   users,
 } from "@/server/db/schema";
@@ -144,6 +145,31 @@ function extractSpiceUpTracks(payload: unknown): SpiceUpTrack[] {
   const tracks = record.tracks ?? record.recommendations;
 
   return Array.isArray(tracks) ? (tracks as SpiceUpTrack[]) : [];
+}
+
+function normalizeTasteStrings(
+  values: string[] | undefined,
+  maxItems: number,
+): string[] {
+  if (!values || values.length === 0) return [];
+
+  const normalized: string[] = [];
+  const seen = new Set<string>();
+
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+
+    const normalizedKey = trimmed.toLowerCase();
+    if (seen.has(normalizedKey)) continue;
+
+    seen.add(normalizedKey);
+    normalized.push(trimmed);
+
+    if (normalized.length >= maxItems) break;
+  }
+
+  return normalized;
 }
 
 async function fetchTracksByDeezerIds(
@@ -954,6 +980,91 @@ export const musicRouter = createTRPCRouter({
         .limit(input.limit);
 
       return items.map((item: { query: string }) => item.query);
+    }),
+
+  getTasteProfile: protectedProcedure.query(async ({ ctx }) => {
+    return (
+      (await ctx.db.query.userTasteProfiles.findFirst({
+        where: eq(userTasteProfiles.userId, ctx.session.user.id),
+      })) ?? null
+    );
+  }),
+
+  upsertTasteProfile: protectedProcedure
+    .input(
+      z.object({
+        preferredGenreId: z.number().int().positive().nullable().optional(),
+        preferredGenreName: z.string().trim().max(120).nullable().optional(),
+        seedArtists: z
+          .array(z.string().trim().min(1).max(120))
+          .max(24)
+          .optional(),
+        seedPlaylistTitles: z
+          .array(z.string().trim().min(1).max(200))
+          .max(24)
+          .optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.db.query.userTasteProfiles.findFirst({
+        where: eq(userTasteProfiles.userId, ctx.session.user.id),
+      });
+
+      const preferredGenreName =
+        input.preferredGenreName === undefined
+          ? undefined
+          : input.preferredGenreName
+            ? input.preferredGenreName.trim()
+            : null;
+
+      const seedArtists = input.seedArtists
+        ? normalizeTasteStrings(input.seedArtists, 24)
+        : undefined;
+      const seedPlaylistTitles = input.seedPlaylistTitles
+        ? normalizeTasteStrings(input.seedPlaylistTitles, 24)
+        : undefined;
+
+      if (!existing) {
+        await ctx.db.insert(userTasteProfiles).values({
+          userId: ctx.session.user.id,
+          preferredGenreId: input.preferredGenreId ?? null,
+          preferredGenreName: preferredGenreName ?? null,
+          seedArtists: seedArtists ?? [],
+          seedPlaylistTitles: seedPlaylistTitles ?? [],
+          updatedAt: new Date(),
+        });
+      } else {
+        const updatePayload: Partial<typeof userTasteProfiles.$inferInsert> = {
+          updatedAt: new Date(),
+        };
+
+        if (input.preferredGenreId !== undefined) {
+          updatePayload.preferredGenreId = input.preferredGenreId;
+        }
+
+        if (preferredGenreName !== undefined) {
+          updatePayload.preferredGenreName = preferredGenreName;
+        }
+
+        if (seedArtists !== undefined) {
+          updatePayload.seedArtists = seedArtists;
+        }
+
+        if (seedPlaylistTitles !== undefined) {
+          updatePayload.seedPlaylistTitles = seedPlaylistTitles;
+        }
+
+        await ctx.db
+          .update(userTasteProfiles)
+          .set(updatePayload)
+          .where(eq(userTasteProfiles.userId, ctx.session.user.id));
+      }
+
+      return (
+        (await ctx.db.query.userTasteProfiles.findFirst({
+          where: eq(userTasteProfiles.userId, ctx.session.user.id),
+        })) ?? null
+      );
     }),
 
   getUserPreferences: protectedProcedure.query(async ({ ctx }) => {
