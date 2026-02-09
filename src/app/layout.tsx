@@ -22,6 +22,7 @@ import { SessionProvider } from "@/components/SessionProvider";
 import SuppressExtensionErrors from "@/components/SuppressExtensionErrors";
 import { TrackContextMenu } from "@/components/TrackContextMenu";
 import { UIWrapper } from "@/components/UIWrapper";
+import CookieConsent from "@/components/CookieConsent";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { MenuProvider } from "@/contexts/MenuContext";
@@ -115,6 +116,7 @@ export default function RootLayout({
         <SuppressExtensionErrors />
         <ElectronStorageInit />
         <RegisterServiceWorker />
+        <CookieConsent />
         <ErrorBoundary>
           <SessionProvider>
             <TRPCReactProvider>
