@@ -190,44 +190,6 @@ export const authConfig = {
     maxAge: 30 * 24 * 60 * 60,
     updateAge: 24 * 60 * 60,
   },
-  cookies: {
-    sessionToken: {
-      name:
-        process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD
-          ? `__Secure-authjs.session-token`
-          : `authjs.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
-        maxAge: 30 * 24 * 60 * 60,
-      },
-    },
-    csrfToken: {
-      name:
-        process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD
-          ? `__Host-authjs.csrf-token`
-          : `authjs.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
-      },
-    },
-    callbackUrl: {
-      name:
-        process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD
-          ? `__Secure-authjs.callback-url`
-          : `authjs.callback-url`,
-      options: {
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production" && !env.ELECTRON_BUILD,
-      },
-    },
-  },
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
