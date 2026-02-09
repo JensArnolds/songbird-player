@@ -8,6 +8,10 @@ export const env = createEnv({
     AUTH_SECRET: z
       .string()
       .min(32, "AUTH_SECRET must be at least 32 characters"),
+    AUTH_TRUST_HOST: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
     AUTH_DISCORD_ID: z.string(),
     AUTH_DISCORD_SECRET: z.string(),
     SPOTIFY_CLIENT_ID: z.string().optional(),
@@ -40,6 +44,7 @@ export const env = createEnv({
   runtimeEnv: {
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
     AUTH_SECRET: process.env.AUTH_SECRET,
+    AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,
     AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
