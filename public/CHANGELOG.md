@@ -5,6 +5,39 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.3] - 2026-02-09
+
+### Fixed
+
+- **Discovery proxy/spec alignment**: Updated discovery proxy forwarding paths and request bounds to match the current upstream music API contract for releases, popular playlists, genre playlists, and genre taxonomy. Locations: `src/app/api/music/releases/latest/route.ts`, `src/app/api/music/playlists/popular/route.ts`, `src/app/api/music/playlists/by-genre/route.ts`, `src/app/api/music/playlists/by-genre-id/route.ts`, `src/app/api/music/genres/route.ts`.
+- **Track conversion endpoint alignment**: Updated server-side conversion calls to the current upstream track conversion path under the shared music namespace. Location: `src/server/api/routers/music.ts`.
+
+### Changed
+
+- **Client discovery helper bounds**: Normalized helper defaults/max limits to the current upstream contract and removed unsupported query parameters from genre-list requests (local slicing is now applied client-side). Location: `src/utils/api.ts`.
+- **Home feed query sizing**: Updated start-page discovery fetch sizes to stay within upstream discovery endpoint bounds while retaining personalized feed behavior. Location: `src/app/HomePageClient.tsx`.
+- **OpenAPI source reference**: Pointed route-usage docs at `docs/API_V2_SWAGGER.json` as the active upstream schema reference. Location: `docs/API_ROUTE_USE.md`.
+
+## [0.15.2] - 2026-02-09
+
+### Added
+
+- **Provider-agnostic discovery proxy routes**: Added new discovery endpoints for latest releases, popular playlists, playlist discovery by genre id/name, and genre taxonomy under the shared music API namespace. Locations: `src/app/api/music/releases/latest/route.ts`, `src/app/api/music/playlists/popular/route.ts`, `src/app/api/music/playlists/by-genre-id/route.ts`, `src/app/api/music/playlists/by-genre/route.ts`, `src/app/api/music/genres/route.ts`, `src/app/api/music/_lib.ts`.
+- **Start-page taste preference storage**: Added persisted genre preference keys used by onboarding and home feed personalization. Location: `src/config/storage.ts`.
+
+### Changed
+
+- **Home feed relevance and freshness**: Reworked home feed row generation to use live discovery sources (latest releases + curated playlists) and bias results with saved user genre preference for more engaging start-page content. Location: `src/app/HomePageClient.tsx`.
+- **Sign-in personalization step**: Enhanced the sign-in page with a pre-login genre selector that stores user preference for immediate homepage personalization after authentication (or later as guest). Location: `src/app/signin/page.tsx`.
+- **Client discovery helpers**: Added typed frontend helpers for discovery feeds and switched app-side calls to the new generic route surface. Location: `src/utils/api.ts`.
+- **API route documentation**: Updated route mapping docs to include the new `/api/music/*` endpoints. Location: `docs/API_ROUTE_USE.md`.
+
+## [0.15.1] - 2026-02-09
+
+### Added
+
+- **Cookie consent banner**: Implemented a minimalistic, non-intrusive cookie consent banner that informs users about functional cookies. The banner appears once on first visit, stores consent in localStorage, and features a clean design that matches the app's aesthetic. Only functional cookies are used, which are essential for site operation. Locations: [src/components/CookieConsent.tsx](src/components/CookieConsent.tsx), [src/app/layout.tsx](src/app/layout.tsx).
+
 ## [0.15.0] - 2026-02-09
 
 ### Fixed

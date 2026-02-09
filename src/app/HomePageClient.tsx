@@ -5,18 +5,25 @@
 import { PullToRefreshWrapper } from "@/components/PullToRefreshWrapper";
 import { HomeFeedRow } from "@/components/HomeFeedRow";
 import SwipeableTrackCard from "@/components/SwipeableTrackCard";
+import { STORAGE_KEYS } from "@/config/storage";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { localStorage as appStorage } from "@/services/storage";
 import { useWebShare } from "@/hooks/useWebShare";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import {
   getAlbumTracks,
+  getLatestReleases,
+  getPlaylistsByGenre,
+  getPlaylistsByGenreId,
+  getPopularPlaylists,
   getTrackById,
   searchTracks,
   searchTracksByArtist,
 } from "@/utils/api";
+import { parsePreferredGenreId } from "@/utils/genre";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import {
   springPresets,
@@ -69,6 +76,8 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [madeForYouTracks, setMadeForYouTracks] = useState<Track[]>([]);
   const [newReleaseTracks, setNewReleaseTracks] = useState<Track[]>([]);
+  const [preferredGenreId, setPreferredGenreId] = useState<number | null>(null);
+  const [preferredGenreName, setPreferredGenreName] = useState("");
   const [isFeedLoading, setIsFeedLoading] = useState(false);
   const lastUrlQueryRef = useRef<string | null>(null);
   const lastTrackIdRef = useRef<string | null>(null);
@@ -89,6 +98,24 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const storedGenreId = appStorage.getOrDefault<number | string | null>(
+      STORAGE_KEYS.PREFERRED_GENRE_ID,
+      null,
+    );
+    setPreferredGenreId(parsePreferredGenreId(storedGenreId));
+
+    const storedGenreName = appStorage.getOrDefault<string>(
+      STORAGE_KEYS.PREFERRED_GENRE_NAME,
+      "",
+    );
+    setPreferredGenreName(
+      typeof storedGenreName === "string" ? storedGenreName.trim() : "",
+    );
+  }, [mounted]);
 
   const addSearchQuery = api.music.addSearchQuery.useMutation();
   const { data: recentSearches } = api.music.getRecentSearches.useQuery(
@@ -478,6 +505,15 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
 
     let cancelled = false;
 
+    const uniqueQueries = (queries: string[]) =>
+      Array.from(
+        new Set(
+          queries
+            .map((query) => query.trim())
+            .filter((query) => query.length > 0),
+        ),
+      );
+
     const loadFeedRows = async () => {
       setIsFeedLoading(true);
 
@@ -488,39 +524,58 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
               .map((track) => track.artist.name.trim())
               .filter((name) => name.length > 0),
           ),
-        ).slice(0, 3);
+        ).slice(0, 4);
 
-        const madeForYouQueries =
-          seedArtists.length > 0
-            ? seedArtists.map((artist) => `${artist} essentials`)
-            : [
-                "electronic essentials",
-                "trip hop essentials",
-                "indie alternative essentials",
-              ];
+        const [latestReleases, popularPlaylists, genrePlaylists] =
+          await Promise.all([
+            getLatestReleases(36).catch(() => []),
+            getPopularPlaylists(60).catch(() => []),
+            preferredGenreId
+              ? getPlaylistsByGenreId(preferredGenreId, 100).catch(() => [])
+              : preferredGenreName
+                ? getPlaylistsByGenre(preferredGenreName, 100).catch(() => [])
+                : Promise.resolve([]),
+          ]);
 
-        const newReleaseQueries = [
-          "new releases 2026",
-          "latest music releases",
-          "fresh tracks 2026",
-        ];
+        const releaseQueries = uniqueQueries([
+          ...latestReleases
+            .map((release) =>
+              [release.artist?.name?.trim(), release.title?.trim()]
+                .filter((part) => (part ?? "").length > 0)
+                .join(" "),
+            )
+            .filter((query) => query.length > 0),
+          `${new Date().getFullYear()} latest releases`,
+          "fresh new music",
+        ]).slice(0, 12);
+
+        const madeForYouQueries = uniqueQueries([
+          ...genrePlaylists
+            .map((playlist) => playlist.title ?? "")
+            .slice(0, 10),
+          ...popularPlaylists
+            .map((playlist) => playlist.title ?? "")
+            .slice(0, 8),
+          ...seedArtists.map((artist) => `${artist} essentials`),
+          preferredGenreName ? `${preferredGenreName} essentials` : "",
+        ]).slice(0, 14);
 
         const [madeForYouResults, newReleaseResults] = await Promise.all([
           Promise.all(
-            madeForYouQueries.map(async (query) => {
+            madeForYouQueries.map(async (seedQuery) => {
               try {
-                const response = await searchTracks(query, 0);
-                return response.data.slice(0, 8);
+                const response = await searchTracks(seedQuery, 0);
+                return response.data.slice(0, 6);
               } catch {
                 return [] as Track[];
               }
             }),
           ),
           Promise.all(
-            newReleaseQueries.map(async (query) => {
+            releaseQueries.map(async (releaseQuery) => {
               try {
-                const response = await searchTracks(query, 0);
-                return response.data.slice(0, 8);
+                const response = await searchTracks(releaseQuery, 0);
+                return response.data.slice(0, 2);
               } catch {
                 return [] as Track[];
               }
@@ -531,7 +586,10 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
         if (cancelled) return;
 
         setMadeForYouTracks(
-          dedupeTracks(madeForYouResults.flat()).slice(0, 24),
+          dedupeTracks([...favoriteTracks, ...madeForYouResults.flat()]).slice(
+            0,
+            24,
+          ),
         );
         setNewReleaseTracks(
           dedupeTracks(newReleaseResults.flat()).slice(0, 24),
@@ -548,7 +606,14 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     return () => {
       cancelled = true;
     };
-  }, [dedupeTracks, favoriteTracks, historyTracks, homeFeedEnabled]);
+  }, [
+    dedupeTracks,
+    favoriteTracks,
+    historyTracks,
+    homeFeedEnabled,
+    preferredGenreId,
+    preferredGenreName,
+  ]);
 
   const hasMore = results.length < total;
   const featuredAlbums = [
@@ -593,7 +658,14 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     setTotal(0);
 
     try {
-      const popularQueries = ["pop", "rock", "electronic", "jazz", "indie"];
+      const popularQueries = [
+        preferredGenreName,
+        "pop",
+        "rock",
+        "electronic",
+        "jazz",
+        "indie",
+      ].filter((value) => value.trim().length > 0);
       const randomQuery =
         popularQueries[Math.floor(Math.random() * popularQueries.length)];
 
@@ -617,7 +689,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     } finally {
       setLoading(false);
     }
-  }, [player]);
+  }, [player, preferredGenreName]);
 
   const handleFeedTrackSelect = useCallback(
     (track: Track, rowTracks: Track[]) => {
@@ -805,7 +877,11 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                     />
                     <HomeFeedRow
                       title="Made for You"
-                      subtitle="Built from your favorites and listening patterns"
+                      subtitle={
+                        preferredGenreName
+                          ? `Built from your favorites and ${preferredGenreName} curation`
+                          : "Built from your favorites and listening patterns"
+                      }
                       tracks={madeForYouRowTracks}
                       onTrackSelect={(track) =>
                         handleFeedTrackSelect(track, madeForYouRowTracks)
