@@ -155,6 +155,20 @@
       "when": 1770390000000,
       "tag": "0021_unique_first_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1770462000000,
+      "tag": "0022_startpage_taste_profile",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1770666522280,
+      "tag": "0023_handy_karnak",
+      "breakpoints": true
     }
   ]
 }
