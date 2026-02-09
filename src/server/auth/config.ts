@@ -16,6 +16,26 @@ import {
   verificationTokens,
 } from "@/server/db/schema";
 
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+function buildProviderRedirectUri(providerId: "discord" | "spotify"): string | undefined {
+  const base = env.NEXTAUTH_URL;
+  if (!base) return undefined;
+
+  try {
+    const url = new URL(base);
+    if (LOOPBACK_HOSTS.has(url.hostname)) {
+      url.hostname = "127.0.0.1";
+    }
+    url.pathname = `/api/auth/callback/${providerId}`;
+    url.search = "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
@@ -129,20 +149,42 @@ export const authConfig = {
   basePath: "/api/auth",
   pages: { signIn: "/signin" },
   providers: [
-    DiscordProvider({
-      clientId: env.AUTH_DISCORD_ID,
-      clientSecret: env.AUTH_DISCORD_SECRET,
-    }),
+    (() => {
+      const redirectUri = buildProviderRedirectUri("discord");
+      return DiscordProvider({
+        clientId: env.AUTH_DISCORD_ID,
+        clientSecret: env.AUTH_DISCORD_SECRET,
+        ...(redirectUri
+          ? {
+              authorization: {
+                params: {
+                  redirect_uri: redirectUri,
+                },
+              },
+            }
+          : {}),
+      });
+    })(),
     ...(() => {
       const spotifyClientId = env.SPOTIFY_CLIENT_ID;
       const spotifyClientSecret = env.SPOTIFY_CLIENT_SECRET;
       if (!spotifyClientId || !spotifyClientSecret) return [];
+      const spotifyRedirectUri = buildProviderRedirectUri("spotify");
 
       // Work around rare non-JSON responses from Spotify OAuth endpoints which
       // would otherwise crash Auth.js JSON parsing in the callback route.
       const spotifyOptions: any = {
         clientId: spotifyClientId,
         clientSecret: spotifyClientSecret,
+        ...(spotifyRedirectUri
+          ? {
+              authorization: {
+                params: {
+                  redirect_uri: spotifyRedirectUri,
+                },
+              },
+            }
+          : {}),
         profile(profile: any) {
           if (!profile || typeof profile !== "object") {
             throw new Error("Spotify returned an empty profile response");

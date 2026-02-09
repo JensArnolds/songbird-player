@@ -10,6 +10,43 @@ const fs = require("fs");
  * @property {boolean} isMaximized
  */
 
+/**
+ * @typedef {"light" | "dark"} ThemeSource
+ */
+
+/**
+ * @typedef {Object} WindowMinimizePayload
+ * @property {"window:minimize"} type
+ */
+
+/**
+ * @typedef {Object} WindowClosePayload
+ * @property {"window:close"} type
+ */
+
+/**
+ * @typedef {Object} WindowToggleMaximizePayload
+ * @property {"window:toggleMaximize"} type
+ */
+
+/**
+ * @typedef {Object} WindowGetStatePayload
+ * @property {"window:getState"} type
+ */
+
+/**
+ * @typedef {Object} TitlebarOverlaySetPayload
+ * @property {"titlebarOverlay:set"} type
+ * @property {string} [color]
+ * @property {string} [symbolColor]
+ * @property {number} [height]
+ * @property {ThemeSource} [theme]
+ */
+
+/**
+ * @typedef {WindowMinimizePayload | WindowClosePayload | WindowToggleMaximizePayload | WindowGetStatePayload | TitlebarOverlaySetPayload} WindowIpcMessage
+ */
+
 /** @type {string[]} */
 const bufferedLogLines = [];
 
@@ -127,11 +164,64 @@ const isDev = !app.isPackaged && process.env.ELECTRON_PROD !== "true";
 const enableDevTools = isDev || process.env.ELECTRON_DEV_TOOLS === "true";
 /** @type {number} */
 const port = parseInt(process.env.PORT || "3222", 10);
+/** @type {string} */
+const loopbackHost = process.env.ELECTRON_LOOPBACK_HOST || "127.0.0.1";
+/** @type {Set<string>} */
+const loopbackOriginHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+/**
+ * @param {URL} url
+ * @returns {boolean}
+ */
+const isLoopbackUrl = (url) => {
+  return (
+    (url.protocol === "http:" || url.protocol === "https:") &&
+    loopbackOriginHosts.has(url.hostname)
+  );
+};
+
+/**
+ * Treat localhost/127.0.0.1/::1 as equivalent app origins on the same port.
+ * This keeps OAuth callbacks in-app even if a provider returns a different
+ * loopback hostname variant than the one currently loaded.
+ * @param {URL} target
+ * @param {URL} appUrl
+ * @returns {boolean}
+ */
+const isEquivalentLoopbackOrigin = (target, appUrl) => {
+  return (
+    isLoopbackUrl(target) &&
+    isLoopbackUrl(appUrl) &&
+    target.protocol === appUrl.protocol &&
+    target.port === appUrl.port
+  );
+};
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
 /** @type {import('child_process').ChildProcess | null} */
 let serverProcess = null;
+
+/**
+ * @typedef {Object} ServerProcessState
+ * @property {boolean} startupSettled
+ * @property {boolean} serverExited
+ * @property {string} stderrTail
+ * @property {string} stdoutTail
+ */
+
+/**
+ * @typedef {Object} ServerSpawnOptions
+ * @property {NodeJS.ProcessEnv} env
+ * @property {string} cwd
+ * @property {import('child_process').StdioOptions} stdio
+ */
+
+/**
+ * @typedef {Object} WindowOpenHandlerResult
+ * @property {"allow" | "deny"} action
+ * @property {import('electron').BrowserWindowConstructorOptions} [overrideBrowserWindowOptions]
+ */
 
 /** @returns {void} */
 const publishWindowState = () => {
@@ -158,7 +248,8 @@ if (process.platform === "win32") {
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 if (!gotSingleInstanceLock) {
   bootLog("Another instance is already running - exiting");
-  app.quit();
+  app.exit(0);
+  process.exit(0);
 }
 
 /** @type {string} */
@@ -317,57 +408,91 @@ const saveWindowState = (window) => {
 
 /**
  * @param {number} startPort
+ * @param {string} [host=loopbackHost]
  * @returns {Promise<number>}
  */
-/**
- * @param {number} startPort
- * @returns {Promise<number>}
- */
-const findAvailablePort = (startPort) => {
+const findAvailablePort = (startPort, host = loopbackHost) => {
   return new Promise((resolve) => {
     const server = http.createServer();
-    server.listen(startPort, () => {
+    server.once(
+      "error",
+      /**
+       * @param {NodeJS.ErrnoException} err
+       */
+      (err) => {
+        const code = err?.code;
+        if (code === "EADDRINUSE" || code === "EACCES") {
+          log(
+            `Port ${startPort} on ${host} unavailable, trying ${startPort + 1}`,
+          );
+          resolve(findAvailablePort(startPort + 1, host));
+          return;
+        }
+
+        log(
+          `Port probe error on ${host}:${startPort} (${code ?? "unknown"}), trying ${startPort + 1}`,
+        );
+        resolve(findAvailablePort(startPort + 1, host));
+      },
+    );
+
+    server.listen(startPort, host, () => {
       const address = server.address();
       const port =
         typeof address === "object" && address !== null
           ? address.port
           : startPort;
       server.close(() => {
-        log(`Found available port: ${port}`);
+        log(`Found available port: ${port} on ${host}`);
         resolve(port);
       });
-    });
-    server.on("error", () => {
-      log(`Port ${startPort} in use, trying ${startPort + 1}`);
-      resolve(findAvailablePort(startPort + 1));
     });
   });
 };
 
 /**
- * @param {number} port
- * @param {number} maxAttempts
- * @returns {Promise<boolean>}
+ * @typedef {(value: boolean) => void} FinishHandler
  */
 /**
  * @param {number} port
  * @param {number} [maxAttempts=30]
+ * @param {string} [host=loopbackHost]
+ * @param {() => boolean} [shouldStop]
  * @returns {Promise<boolean>}
  */
-const waitForServer = (port, maxAttempts = 30) => {
+const waitForServer = (
+  port,
+  maxAttempts = 30,
+  host = loopbackHost,
+  shouldStop = () => false,
+) => {
   return new Promise((resolve) => {
+    /** @type {boolean} */
+    let settled = false;
+    /** @type {FinishHandler} */
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
     let attempts = 0;
     const checkServer = () => {
+      if (shouldStop()) {
+        finish(false);
+        return;
+      }
+
       log(
-        `Checking server on port ${port} (attempt ${attempts + 1}/${maxAttempts})`,
+        `Checking server on ${host}:${port} (attempt ${attempts + 1}/${maxAttempts})`,
       );
       http
         .get(
-          `http://localhost:${port}`,
+          `http://${host}:${port}`,
           (/** @type {import('http').IncomingMessage} */ res) => {
             log(`Server responded with status: ${res.statusCode}`);
             if (res.statusCode === 200 || res.statusCode === 304) {
-              resolve(true);
+              finish(true);
             } else {
               retry();
             }
@@ -387,11 +512,15 @@ const waitForServer = (port, maxAttempts = 30) => {
 
     const retry = () => {
       attempts++;
+      if (shouldStop()) {
+        finish(false);
+        return;
+      }
       if (attempts < maxAttempts) {
         setTimeout(checkServer, 1000);
       } else {
         log("Server failed to start after max attempts");
-        resolve(false);
+        finish(false);
       }
     };
 
@@ -403,7 +532,7 @@ const waitForServer = (port, maxAttempts = 30) => {
  * @returns {Promise<number>}
  */
 const startServer = async () => {
-  const serverPort = await findAvailablePort(port);
+  const serverPort = await findAvailablePort(port, loopbackHost);
 
   let standaloneDir;
   if (app.isPackaged) {
@@ -481,12 +610,68 @@ const startServer = async () => {
 
   return new Promise((resolve, reject) => {
     const standaloneNodeModules = path.join(standaloneDir, "node_modules");
+    let startupSettled = false;
+    let serverExited = false;
+    let stderrTail = "";
+    let stdoutTail = "";
+
+    /**
+     * Keep only the most recent output to include in startup errors.
+     * @param {string} current
+     * @param {string} chunk
+     * @returns {string}
+     */
+    const appendOutput = (current, chunk) => {
+      const next = current + chunk;
+      const maxLength = 2000;
+      return next.length <= maxLength ? next : next.slice(-maxLength);
+    };
+
+    /**
+     * @typedef {Object} StartupFailureInfo
+     * @property {number | null} code
+     * @property {NodeJS.Signals | null} signal
+     */
+
+    /**
+     * @typedef {(code: number | null, signal: NodeJS.Signals | null) => string} StartupFailureFormatter
+     */
+
+    /**
+     * @type {StartupFailureFormatter}
+     */
+    const formatStartupFailure = (code, signal) => {
+      const output = (stderrTail.trim() || stdoutTail.trim()).trim();
+      const outputSection = output ? `\n\nLast server output:\n${output}` : "";
+      return `Server process exited before becoming ready (code: ${code ?? "null"}, signal: ${signal ?? "null"}).${outputSection}`;
+    };
+
+    /**
+     * @param {Error} error
+     * @returns {void}
+     */
+    const rejectOnce = (error) => {
+      if (startupSettled) return;
+      startupSettled = true;
+      reject(error);
+    };
+
+    /**
+     * @param {number} value
+     * @returns {void}
+     */
+    const resolveOnce = (value) => {
+      if (startupSettled) return;
+      startupSettled = true;
+      resolve(value);
+    };
+
     /** @type {import('child_process').ChildProcess | null} */
     serverProcess = spawn(nodeExecutable, [serverPath], {
       env: {
         ...process.env,
         PORT: serverPort.toString(),
-        HOSTNAME: "localhost",
+        HOSTNAME: loopbackHost,
         NODE_ENV: "production",
         ELECTRON_BUILD: "true",
         NODE_PATH: standaloneNodeModules,
@@ -497,30 +682,48 @@ const startServer = async () => {
     });
 
     serverProcess?.stdout?.on("data", (data) => {
-      log("[Server STDOUT]:", data.toString().trim());
+      const message = data.toString().trim();
+      stdoutTail = appendOutput(stdoutTail, `${message}\n`);
+      log("[Server STDOUT]:", message);
     });
 
     serverProcess?.stderr?.on("data", (data) => {
-      log("[Server STDERR]:", data.toString().trim());
+      const message = data.toString().trim();
+      stderrTail = appendOutput(stderrTail, `${message}\n`);
+      log("[Server STDERR]:", message);
     });
 
     serverProcess?.on("error", (/** @type {Error} */ err) => {
       log("[Server ERROR]:", err);
-      reject(err);
+      rejectOnce(err);
     });
 
     serverProcess?.on("exit", (code, signal) => {
       log(`[Server EXIT] Code: ${code}, Signal: ${signal}`);
+      serverExited = true;
+      if (!startupSettled) {
+        rejectOnce(new Error(formatStartupFailure(code, signal)));
+      }
     });
 
-    waitForServer(serverPort).then((ready) => {
+    waitForServer(
+      serverPort,
+      30,
+      loopbackHost,
+      () => startupSettled || serverExited,
+    ).then((ready) => {
+      if (startupSettled) return;
       if (ready) {
         log(`Server started successfully on port ${serverPort}`);
-        resolve(serverPort);
+        resolveOnce(serverPort);
       } else {
-        const error = "Server failed to respond after 30 seconds";
+        const output = (stderrTail.trim() || stdoutTail.trim()).trim();
+        const outputSection = output
+          ? `\n\nLast server output:\n${output}`
+          : "";
+        const error = `Server failed to respond after 30 seconds on ${loopbackHost}:${serverPort}.${outputSection}`;
         log("ERROR:", error);
-        reject(new Error(error));
+        rejectOnce(new Error(error));
       }
     });
   });
@@ -539,12 +742,12 @@ const createWindow = async () => {
 
   if (isDev) {
     log("Development mode - connecting to dev server");
-    serverUrl = `http://localhost:${port}`;
+    serverUrl = `http://${loopbackHost}:${port}`;
   } else {
     log("Production mode - starting bundled server");
     try {
       const serverPort = await startServer();
-      serverUrl = `http://localhost:${serverPort}`;
+      serverUrl = `http://${loopbackHost}:${serverPort}`;
       log(`Will load URL: ${serverUrl}`);
     } catch (err) {
       log("FATAL ERROR starting server:", err);
@@ -578,21 +781,10 @@ const createWindow = async () => {
           frame: true,
         }
       : {}),
-    ...(isMac
-      ? {
-          titleBarStyle: "hiddenInset",
-        }
-      : {}),
-    autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      devTools: enableDevTools,
       partition: "persist:darkfloor-art",
     },
-    ...(iconPath ? { icon: iconPath } : {}),
+    icon: iconPath || undefined,
     backgroundColor: "#0a0a0f",
     show: false,
   });
@@ -632,6 +824,7 @@ const createWindow = async () => {
   mainWindow.webContents.setWindowOpenHandler(
     /**
      * @param {import('electron').HandlerDetails} details
+     * @returns {WindowOpenHandlerResult}
      */
     ({ url }) => {
       log("Window open handler triggered for URL:", url);
@@ -664,6 +857,7 @@ const createWindow = async () => {
     /**
      * @param {import('electron').Event} event
      * @param {string} url
+     * @returns {void}
      */
     (event, url) => {
       log("Navigation requested to:", url);
@@ -673,6 +867,11 @@ const createWindow = async () => {
 
       if (parsedUrl.origin === appUrl.origin) {
         log("Allowing same-origin navigation");
+        return;
+      }
+
+      if (isEquivalentLoopbackOrigin(parsedUrl, appUrl)) {
+        log("Allowing equivalent loopback-origin navigation");
         return;
       }
 
@@ -755,7 +954,7 @@ ipcMain.on(
   /** @param {import("electron").IpcMainEvent} _event */ (_event, message) => {
     if (!message || typeof message !== "object") return;
 
-    /** @type {any} */
+    /** @type {WindowIpcMessage} */
     const payload = message;
 
     if (payload.type === "window:minimize") {

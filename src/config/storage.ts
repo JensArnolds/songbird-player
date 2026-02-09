@@ -33,6 +33,8 @@ export const STORAGE_KEYS = {
 
   RECOMMENDATION_CACHE: `${STORAGE_PREFIX}recommendation_cache`,
   SEARCH_HISTORY: `${STORAGE_PREFIX}search_history`,
+  PREFERRED_GENRE_ID: `${STORAGE_PREFIX}preferred_genre_id`,
+  PREFERRED_GENRE_NAME: `${STORAGE_PREFIX}preferred_genre_name`,
 
   DESKTOP_SIDEBAR_COLLAPSED: `${STORAGE_PREFIX}desktop_sidebar_collapsed`,
 } as const;

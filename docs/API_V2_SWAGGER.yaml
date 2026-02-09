@@ -23,6 +23,19 @@ paths:
           description: JSON object containing all available routes organized by module
       summary: Get all available API routes
       tags: *a1
+  /changelog:
+    get:
+      operationId: AppController_getChangelog
+      parameters: []
+      responses:
+        "200":
+          description: Returns the project CHANGELOG in Markdown format
+          content:
+            application/json:
+              schema:
+                type: string
+      summary: Project changelog (Markdown)
+      tags: *a1
   /health:
     get:
       operationId: AppController_getHealth
@@ -36,18 +49,18 @@ paths:
     get:
       operationId: SpotifyController_searchTracks
       parameters:
-      - name: query
-        required: true
-        in: query
-        description: Search query string
-        schema:
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return (default 10)
-        schema:
-          type: number
+        - name: query
+          required: true
+          in: query
+          description: Search query string
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Number of results to return (default 10)
+          schema:
+            type: number
       responses:
         "200":
           description: ""
@@ -64,52 +77,52 @@ paths:
     get:
       operationId: SpotifyController_getRecommendations
       parameters:
-      - name: seed_tracks
-        required: false
-        in: query
-        description: Comma-separated Spotify track IDs
-        schema:
-          example: 4iV5W9uYEdYUVa79Axb7Rh,0VjIjW4GlUZ9YafUnjvTv7
-          type: string
-      - name: seed_artists
-        required: false
-        in: query
-        description: Comma-separated Spotify artist IDs
-        schema:
-          example: 4Z8W4fKeB5YxbusRsdQVPb
-          type: string
-      - name: seed_genres
-        required: false
-        in: query
-        description: Comma-separated genre names
-        schema:
-          example: rock,pop,indie
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Number of recommendations (1-100)
-        schema:
-          default: 20
-          type: number
-      - name: market
-        required: false
-        in: query
-        description: Market code (ISO 3166-1 alpha-2)
-        schema:
-          type: string
-      - name: target_danceability
-        required: false
-        in: query
-        description: Target danceability (0.0-1.0)
-        schema:
-          type: number
-      - name: target_popularity
-        required: false
-        in: query
-        description: Target popularity (0-100)
-        schema:
-          type: number
+        - name: seed_tracks
+          required: false
+          in: query
+          description: Comma-separated Spotify track IDs
+          schema:
+            example: 4iV5W9uYEdYUVa79Axb7Rh,0VjIjW4GlUZ9YafUnjvTv7
+            type: string
+        - name: seed_artists
+          required: false
+          in: query
+          description: Comma-separated Spotify artist IDs
+          schema:
+            example: 4Z8W4fKeB5YxbusRsdQVPb
+            type: string
+        - name: seed_genres
+          required: false
+          in: query
+          description: Comma-separated genre names
+          schema:
+            example: rock,pop,indie
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Number of recommendations (1-100)
+          schema:
+            default: 20
+            type: number
+        - name: market
+          required: false
+          in: query
+          description: Market code (ISO 3166-1 alpha-2)
+          schema:
+            type: string
+        - name: target_danceability
+          required: false
+          in: query
+          description: Target danceability (0.0-1.0)
+          schema:
+            type: number
+        - name: target_popularity
+          required: false
+          in: query
+          description: Target popularity (0-100)
+          schema:
+            type: number
       responses:
         "200":
           description: ""
@@ -174,7 +187,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UnifiedSpiceUpResponseDto"
-      summary: Generate recommendations using multiple platforms (Spotify, Last.fm, Deezer)
+      summary: Generate recommendations using multiple platforms (Spotify, Last.fm,
+        Deezer)
       tags: *a2
   /auth/register:
     post:
@@ -215,47 +229,128 @@ paths:
         "200":
           description: Return current user info
       security:
-      - bearer: []
+        - bearer: []
       summary: Get current user info
       tags: *a3
-  /api/deezer/search/tracks:
+  /api/music/search/tracks:
     get:
       operationId: DeezerController_searchTracks
       parameters:
-      - name: query
-        required: true
-        in: query
-        description: Search query string
-        schema:
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return (max 25)
-        schema:
-          type: number
+        - name: query
+          required: true
+          in: query
+          description: Search query string
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Number of results to return (max 25)
+          schema:
+            type: number
       responses:
         "200":
           description: Raw response from Deezer search API
       summary: Search for tracks on Deezer
       tags: &a4
         - Deezer
-  /api/deezer/track/find-id:
+  /api/music/genres:
+    get:
+      operationId: DeezerController_getGenresEnglish
+      parameters: []
+      responses:
+        "200":
+          description: List of Deezer genres in English
+      summary: Get Deezer genres (English)
+      tags: *a4
+  /api/music/releases/latest:
+    get:
+      operationId: DeezerController_getLatestReleases
+      parameters:
+        - name: limit
+          required: false
+          in: query
+          description: "Number of releases to return (default: 25, max: 100)"
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Latest releases from Deezer editorial API
+      summary: Get latest releases on Deezer
+      tags: *a4
+  /api/music/playlists/popular:
+    get:
+      operationId: DeezerController_getPopularPlaylists
+      parameters:
+        - name: limit
+          required: false
+          in: query
+          description: "Number of playlists to return (default: 25, max: 100)"
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Popular playlists from Deezer charts
+      summary: Get most popular playlists on Deezer
+      tags: *a4
+  /api/music/playlists/by-genre:
+    get:
+      operationId: DeezerController_getPlaylistsByGenre
+      parameters:
+        - name: genre
+          required: true
+          in: query
+          description: Genre name (e.g., Pop, Rock, Hip Hop)
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: "Number of playlists to return (default: 25, max: 100)"
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Playlists matching the genre, using Deezer playlist search
+      summary: Get playlists by genre (best-effort search)
+      tags: *a4
+  /api/music/playlists/by-genre-id:
+    get:
+      operationId: DeezerController_getPlaylistsByGenreId
+      parameters:
+        - name: genreId
+          required: true
+          in: query
+          description: Deezer genre ID (e.g., 132 for Pop)
+          schema:
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: "Number of playlists to return (default: 25, max: 100)"
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Playlists matching the genre ID, resolved to a genre name
+      summary: Get playlists by genre ID (best-effort search)
+      tags: *a4
+  /api/music/track/find-id:
     get:
       operationId: DeezerController_findTrackId
       parameters:
-      - name: name
-        required: true
-        in: query
-        description: Track title
-        schema:
-          type: string
-      - name: artist
-        required: false
-        in: query
-        description: Artist name to improve accuracy
-        schema:
-          type: string
+        - name: name
+          required: true
+          in: query
+          description: Track title
+          schema:
+            type: string
+        - name: artist
+          required: false
+          in: query
+          description: Artist name to improve accuracy
+          schema:
+            type: string
       responses:
         "200":
           description: ""
@@ -265,7 +360,7 @@ paths:
                 $ref: "#/components/schemas/FindTrackIdResponseDto"
       summary: Find a Deezer track ID by name and artist
       tags: *a4
-  /api/deezer/tracks/convert:
+  /api/music/tracks/convert:
     post:
       operationId: DeezerController_convertTracksToDeezerIds
       parameters: []
@@ -284,23 +379,23 @@ paths:
                 $ref: "#/components/schemas/ConvertToDeezerResponseDto"
       summary: Convert an array of tracks to Deezer track IDs
       tags: *a4
-  /api/deezer/artist/{artistName}/tracks:
+  /api/music/artist/{artistName}/tracks:
     get:
       operationId: DeezerController_getArtistTracks
       parameters:
-      - name: artistName
-        required: true
-        in: path
-        description: Artist name (URL-encoded)
-        schema:
-          example: Radiohead
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: "Maximum number of tracks to return (default: 100)"
-        schema:
-          type: number
+        - name: artistName
+          required: true
+          in: path
+          description: Artist name (URL-encoded)
+          schema:
+            example: Radiohead
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: "Maximum number of tracks to return (default: 100)"
+          schema:
+            type: number
       responses:
         "200":
           description: Array of detailed track objects sorted by popularity
@@ -308,23 +403,23 @@ paths:
           description: Artist not found or invalid request
       summary: Get all tracks from an artist sorted by popularity
       tags: *a4
-  /api/deezer/album/{albumName}/tracks:
+  /api/music/album/{albumName}/tracks:
     get:
       operationId: DeezerController_getAlbumTracks
       parameters:
-      - name: albumName
-        required: true
-        in: path
-        description: Album name (URL-encoded)
-        schema:
-          example: OK Computer
-          type: string
-      - name: artist
-        required: true
-        in: query
-        description: Artist name
-        schema:
-          type: string
+        - name: albumName
+          required: true
+          in: path
+          description: Album name (URL-encoded)
+          schema:
+            example: OK Computer
+            type: string
+        - name: artist
+          required: true
+          in: query
+          description: Artist name
+          schema:
+            type: string
       responses:
         "200":
           description: Array of detailed track objects in track order
@@ -334,7 +429,9 @@ paths:
       tags: *a4
   /api/track/preview:
     post:
-      description: Accepts a track ID (number), search query (string), or track object. Returns a 1200x600px PNG image with album cover and track details in darkfloor theme.
+      description: Accepts a track ID (number), search query (string), or track
+        object. Returns a 1200x600px PNG image with album cover and track
+        details in darkfloor theme.
       operationId: PreviewController_generatePreview
       parameters: []
       requestBody:
@@ -360,12 +457,12 @@ paths:
     get:
       operationId: PreviewController_generatePreviewFromId
       parameters:
-      - name: id
-        required: true
-        in: path
-        description: Track ID or Deezer track URL/URI
-        schema:
-          type: string
+        - name: id
+          required: true
+          in: path
+          description: Track ID or Deezer track URL/URI
+          schema:
+            type: string
       responses:
         "200":
           description: PNG image buffer
@@ -378,7 +475,8 @@ paths:
       tags: *a5
   /api/preview/test:
     get:
-      description: Diagnostic endpoint to verify canvas library is working. Returns a simple colored test image.
+      description: Diagnostic endpoint to verify canvas library is working. Returns a
+        simple colored test image.
       operationId: PreviewController_testCanvas
       parameters: []
       responses:
@@ -393,7 +491,9 @@ paths:
       tags: *a5
   /api/preview/default:
     get:
-      description: Returns a 1200x600px PNG image with Emily the Strange logo centered (slightly to the north) and "darkfloor.art - lossless music" text underneath. Uses the same ethereal dark background as track previews.
+      description: Returns a 1200x600px PNG image with Emily the Strange logo centered
+        (slightly to the north) and "darkfloor.art - lossless music" text
+        underneath. Uses the same ethereal dark background as track previews.
       operationId: PreviewController_generateDefaultPreview
       parameters: []
       responses:
@@ -409,25 +509,30 @@ paths:
   /api/preview:
     get:
       description: >-
-        GET endpoint that accepts a query parameter for easier OG generation. Extracts the search query from ?q= parameter and generates a track preview image. Falls back to default image if query is missing or track not found.
+        GET endpoint that accepts a query parameter for easier OG generation.
+        Extracts the search query from ?q= parameter and generates a track
+        preview image. Falls back to default image if query is missing or track
+        not found.
 
 
-        **Important:** The query parameter must be properly URL-encoded. Use `encodeURIComponent()` on the client side. Examples:
+        **Important:** The query parameter must be properly URL-encoded. Use
+        `encodeURIComponent()` on the client side. Examples:
 
         - ✅ Works: `?q=isobel%20bj%C3%B6rk` (properly encoded)
 
         - ✅ Works: Use `--data-urlencode` with curl
 
-        - ❌ Fails: `?q=isobel+björk` (unencoded special characters are rejected by NestJS before reaching this handler)
+        - ❌ Fails: `?q=isobel+björk` (unencoded special characters are rejected
+        by NestJS before reaching this handler)
       operationId: PreviewController_generatePreviewFromQuery
       parameters:
-      - name: q
-        required: false
-        in: query
-        description: Search query (e.g., "artist song")
-        allowEmptyValue: true
-        schema:
-          type: string
+        - name: q
+          required: false
+          in: query
+          description: Search query (e.g., "artist song")
+          allowEmptyValue: true
+          schema:
+            type: string
       responses:
         "200":
           description: PNG image buffer
@@ -442,41 +547,41 @@ paths:
     get:
       operationId: MusicStreamingController_streamMusic
       parameters:
-      - name: key
-        required: true
-        in: query
-        schema:
-          type: string
-      - name: id
-        required: false
-        in: query
-        schema:
-          type: string
-      - name: q
-        required: false
-        in: query
-        schema:
-          type: string
-      - name: link
-        required: false
-        in: query
-        schema:
-          type: boolean
-      - name: file
-        required: false
-        in: query
-        schema:
-          type: boolean
-      - name: kbps
-        required: false
-        in: query
-        schema:
-          type: number
-      - name: offset
-        required: false
-        in: query
-        schema:
-          type: number
+        - name: key
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: id
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: q
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: link
+          required: false
+          in: query
+          schema:
+            type: boolean
+        - name: file
+          required: false
+          in: query
+          schema:
+            type: boolean
+        - name: kbps
+          required: false
+          in: query
+          schema:
+            type: number
+        - name: offset
+          required: false
+          in: query
+          schema:
+            type: number
       responses:
         "200":
           description: Stream begins or link provided.
@@ -493,34 +598,36 @@ paths:
         - music
   /music/stream/direct:
     get:
-      description: Streams music directly from Deezer without filesystem operations. Ideal for Vercel and other serverless platforms. Supports HTTP range requests for seeking.
+      description: Streams music directly from Deezer without filesystem operations.
+        Ideal for Vercel and other serverless platforms. Supports HTTP range
+        requests for seeking.
       operationId: MusicStreamingController_streamMusicDirect
       parameters:
-      - name: key
-        required: true
-        in: query
-        schema:
-          type: string
-      - name: id
-        required: false
-        in: query
-        schema:
-          type: string
-      - name: q
-        required: false
-        in: query
-        schema:
-          type: string
-      - name: kbps
-        required: false
-        in: query
-        schema:
-          type: number
-      - name: offset
-        required: false
-        in: query
-        schema:
-          type: number
+        - name: key
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: id
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: q
+          required: false
+          in: query
+          schema:
+            type: string
+        - name: kbps
+          required: false
+          in: query
+          schema:
+            type: number
+        - name: offset
+          required: false
+          in: query
+          schema:
+            type: number
       responses:
         "200":
           description: Audio stream begins
@@ -550,17 +657,17 @@ paths:
     get:
       operationId: MusicStreamingController_searchMusic
       parameters:
-      - name: q
-        required: true
-        in: query
-        schema:
-          type: string
-      - name: offset
-        required: false
-        in: query
-        description: "Result offset for pagination (default: 0)"
-        schema:
-          type: number
+        - name: q
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: offset
+          required: false
+          in: query
+          description: "Result offset for pagination (default: 0)"
+          schema:
+            type: number
       responses:
         "200":
           description: Search results from Deezer.
@@ -583,12 +690,12 @@ paths:
     get:
       operationId: MusicStreamingController_getBatchTrackMetadata
       parameters:
-      - name: ids
-        required: true
-        in: query
-        description: Comma-separated Deezer track IDs
-        schema:
-          type: string
+        - name: ids
+          required: true
+          in: query
+          description: Comma-separated Deezer track IDs
+          schema:
+            type: string
       responses:
         "200":
           description: Array of track metadata
@@ -600,48 +707,48 @@ paths:
     get:
       operationId: MusicStreamingController_advancedSearch
       parameters:
-      - name: q
-        required: true
-        in: query
-        description: Search query
-        schema:
-          type: string
-      - name: artist
-        required: false
-        in: query
-        description: Filter by artist
-        schema:
-          type: string
-      - name: album
-        required: false
-        in: query
-        description: Filter by album
-        schema:
-          type: string
-      - name: durationMin
-        required: false
-        in: query
-        description: Minimum duration in seconds
-        schema:
-          type: number
-      - name: durationMax
-        required: false
-        in: query
-        description: Maximum duration in seconds
-        schema:
-          type: number
-      - name: offset
-        required: false
-        in: query
-        description: Pagination offset
-        schema:
-          type: number
-      - name: limit
-        required: false
-        in: query
-        description: Results limit
-        schema:
-          type: number
+        - name: q
+          required: true
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: artist
+          required: false
+          in: query
+          description: Filter by artist
+          schema:
+            type: string
+        - name: album
+          required: false
+          in: query
+          description: Filter by album
+          schema:
+            type: string
+        - name: durationMin
+          required: false
+          in: query
+          description: Minimum duration in seconds
+          schema:
+            type: number
+        - name: durationMax
+          required: false
+          in: query
+          description: Maximum duration in seconds
+          schema:
+            type: number
+        - name: offset
+          required: false
+          in: query
+          description: Pagination offset
+          schema:
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Results limit
+          schema:
+            type: number
       responses:
         "200":
           description: Filtered search results
@@ -651,17 +758,17 @@ paths:
     get:
       operationId: MusicStreamingController_streamStaticMusic
       parameters:
-      - name: id
-        required: true
-        in: query
-        schema:
-          type: number
-      - name: range
-        required: false
-        in: query
-        description: Percentage range of the song to stream, e.g., "0-20" or "20-40".
-        schema:
-          type: string
+        - name: id
+          required: true
+          in: query
+          schema:
+            type: number
+        - name: range
+          required: false
+          in: query
+          description: Percentage range of the song to stream, e.g., "0-20" or "20-40".
+          schema:
+            type: string
       responses:
         "200":
           description: Streaming of the music file started.
@@ -675,19 +782,19 @@ paths:
     get:
       operationId: MusicStreamingController_getArtistSongs
       parameters:
-      - name: artistName
-        required: true
-        in: path
-        description: Artist name (URL-encoded)
-        schema:
-          example: Radiohead
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: "Maximum number of tracks to return (default: 100)"
-        schema:
-          type: number
+        - name: artistName
+          required: true
+          in: path
+          description: Artist name (URL-encoded)
+          schema:
+            example: Radiohead
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: "Maximum number of tracks to return (default: 100)"
+          schema:
+            type: number
       responses:
         "200":
           description: Array of detailed track objects sorted by popularity (rank)
@@ -699,19 +806,19 @@ paths:
     get:
       operationId: MusicStreamingController_getAlbumSongs
       parameters:
-      - name: albumName
-        required: true
-        in: path
-        description: Album name (URL-encoded)
-        schema:
-          example: OK Computer
-          type: string
-      - name: artist
-        required: true
-        in: query
-        description: Artist name
-        schema:
-          type: string
+        - name: albumName
+          required: true
+          in: path
+          description: Album name (URL-encoded)
+          schema:
+            example: OK Computer
+            type: string
+        - name: artist
+          required: true
+          in: query
+          description: Artist name
+          schema:
+            type: string
       responses:
         "200":
           description: Array of detailed track objects in track order (by track_position)
@@ -723,12 +830,12 @@ paths:
     post:
       operationId: FavoritesController_addFavorite
       parameters:
-      - name: trackId
-        required: true
-        in: path
-        description: Deezer track ID
-        schema:
-          type: string
+        - name: trackId
+          required: true
+          in: path
+          description: Deezer track ID
+          schema:
+            type: string
       responses:
         "201":
           description: Track added to favorites
@@ -746,12 +853,12 @@ paths:
     delete:
       operationId: FavoritesController_removeFavorite
       parameters:
-      - name: trackId
-        required: true
-        in: path
-        description: Deezer track ID
-        schema:
-          type: string
+        - name: trackId
+          required: true
+          in: path
+          description: Deezer track ID
+          schema:
+            type: string
       responses:
         "204":
           description: Track removed from favorites
@@ -766,18 +873,18 @@ paths:
     get:
       operationId: FavoritesController_getFavorites
       parameters:
-      - name: limit
-        required: false
-        in: query
-        description: "Limit results (default: 50)"
-        schema:
-          type: number
-      - name: offset
-        required: false
-        in: query
-        description: "Offset for pagination (default: 0)"
-        schema:
-          type: number
+        - name: limit
+          required: false
+          in: query
+          description: "Limit results (default: 50)"
+          schema:
+            type: number
+        - name: offset
+          required: false
+          in: query
+          description: "Offset for pagination (default: 0)"
+          schema:
+            type: number
       responses:
         "200":
           description: List of favorite tracks
@@ -790,12 +897,12 @@ paths:
     get:
       operationId: FavoritesController_checkFavorite
       parameters:
-      - name: trackId
-        required: true
-        in: path
-        description: Deezer track ID
-        schema:
-          type: string
+        - name: trackId
+          required: true
+          in: path
+          description: Deezer track ID
+          schema:
+            type: string
       responses:
         "200":
           description: "Returns { isFavorite: boolean }"
@@ -820,11 +927,11 @@ paths:
     post:
       operationId: FavoritesController_batchCheckFavorites
       parameters:
-      - name: trackIds
-        required: true
-        in: query
-        schema:
-          type: string
+        - name: trackIds
+          required: true
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: Returns object with track IDs as keys and boolean values
@@ -837,18 +944,18 @@ paths:
     get:
       operationId: ListeningHistoryController_getHistory
       parameters:
-      - name: limit
-        required: false
-        in: query
-        description: "Limit results (default: 50)"
-        schema:
-          type: number
-      - name: offset
-        required: false
-        in: query
-        description: "Offset for pagination (default: 0)"
-        schema:
-          type: number
+        - name: limit
+          required: false
+          in: query
+          description: "Limit results (default: 50)"
+          schema:
+            type: number
+        - name: offset
+          required: false
+          in: query
+          description: "Offset for pagination (default: 0)"
+          schema:
+            type: number
       responses:
         "200":
           description: Listening history
@@ -874,12 +981,12 @@ paths:
     get:
       operationId: ListeningHistoryController_getRecentlyPlayed
       parameters:
-      - name: limit
-        required: false
-        in: query
-        description: "Limit results (default: 20)"
-        schema:
-          type: number
+        - name: limit
+          required: false
+          in: query
+          description: "Limit results (default: 20)"
+          schema:
+            type: number
       responses:
         "200":
           description: Recently played tracks
@@ -892,12 +999,12 @@ paths:
     get:
       operationId: ListeningHistoryController_getStats
       parameters:
-      - name: days
-        required: false
-        in: query
-        description: "Number of days to include in stats (default: 30)"
-        schema:
-          type: number
+        - name: days
+          required: false
+          in: query
+          description: "Number of days to include in stats (default: 30)"
+          schema:
+            type: number
       responses:
         "200":
           description: Listening statistics
@@ -941,12 +1048,12 @@ paths:
     get:
       operationId: PlaylistController_getPlaylist
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Playlist ID
-        schema:
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Playlist ID
+          schema:
+            type: string
       responses:
         "200":
           description: Playlist details
@@ -962,12 +1069,12 @@ paths:
     put:
       operationId: PlaylistController_updatePlaylist
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Playlist ID
-        schema:
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Playlist ID
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -989,12 +1096,12 @@ paths:
     delete:
       operationId: PlaylistController_deletePlaylist
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Playlist ID
-        schema:
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Playlist ID
+          schema:
+            type: string
       responses:
         "204":
           description: Playlist deleted successfully
@@ -1011,12 +1118,12 @@ paths:
     post:
       operationId: PlaylistController_addTrack
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Playlist ID
-        schema:
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Playlist ID
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -1041,18 +1148,18 @@ paths:
     delete:
       operationId: PlaylistController_removeTrack
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Playlist ID
-        schema:
-          type: string
-      - name: trackId
-        required: true
-        in: path
-        description: Deezer track ID
-        schema:
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Playlist ID
+          schema:
+            type: string
+        - name: trackId
+          required: true
+          in: path
+          description: Deezer track ID
+          schema:
+            type: string
       responses:
         "200":
           description: Track removed from playlist
@@ -1069,12 +1176,12 @@ paths:
     put:
       operationId: PlaylistController_reorderTrack
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Playlist ID
-        schema:
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Playlist ID
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -1097,7 +1204,9 @@ paths:
       tags: *a12
   /music/convert/playlist:
     post:
-      description: Takes an array of song names and converts them to either Spotify or Deezer format. Returns full track data from the target platform for each song.
+      description: Takes an array of song names and converts them to either Spotify or
+        Deezer format. Returns full track data from the target platform for each
+        song.
       operationId: PlaylistConversionController_convertPlaylist
       parameters: []
       requestBody:
@@ -1117,29 +1226,29 @@ paths:
           description: Invalid request
       summary: Convert playlist songs between Spotify and Deezer
       tags:
-      - playlist-conversion
+        - playlist-conversion
   /api/lastfm/track/info:
     get:
       operationId: LastfmController_getTrackInfo
       parameters:
-      - name: artist
-        required: true
-        in: query
-        description: Artist name
-        schema:
-          type: string
-      - name: track
-        required: true
-        in: query
-        description: Track name
-        schema:
-          type: string
-      - name: mbid
-        required: false
-        in: query
-        description: MusicBrainz ID
-        schema:
-          type: string
+        - name: artist
+          required: true
+          in: query
+          description: Artist name
+          schema:
+            type: string
+        - name: track
+          required: true
+          in: query
+          description: Track name
+          schema:
+            type: string
+        - name: mbid
+          required: false
+          in: query
+          description: MusicBrainz ID
+          schema:
+            type: string
       responses:
         "200":
           description: Track information object
@@ -1150,18 +1259,18 @@ paths:
     get:
       operationId: LastfmController_getArtistInfo
       parameters:
-      - name: artist
-        required: true
-        in: query
-        description: Artist name
-        schema:
-          type: string
-      - name: mbid
-        required: false
-        in: query
-        description: MusicBrainz ID
-        schema:
-          type: string
+        - name: artist
+          required: true
+          in: query
+          description: Artist name
+          schema:
+            type: string
+        - name: mbid
+          required: false
+          in: query
+          description: MusicBrainz ID
+          schema:
+            type: string
       responses:
         "200":
           description: Artist information object
@@ -1171,24 +1280,24 @@ paths:
     get:
       operationId: LastfmController_searchTracks
       parameters:
-      - name: query
-        required: true
-        in: query
-        description: Search query
-        schema:
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Number of results per page
-        schema:
-          type: number
-      - name: page
-        required: false
-        in: query
-        description: Page number
-        schema:
-          type: number
+        - name: query
+          required: true
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Number of results per page
+          schema:
+            type: number
+        - name: page
+          required: false
+          in: query
+          description: Page number
+          schema:
+            type: number
       responses:
         "200":
           description: Last.fm search result object
@@ -1198,24 +1307,24 @@ paths:
     get:
       operationId: LastfmController_searchArtists
       parameters:
-      - name: query
-        required: true
-        in: query
-        description: Search query
-        schema:
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Number of results per page
-        schema:
-          type: number
-      - name: page
-        required: false
-        in: query
-        description: Page number
-        schema:
-          type: number
+        - name: query
+          required: true
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Number of results per page
+          schema:
+            type: number
+        - name: page
+          required: false
+          in: query
+          description: Page number
+          schema:
+            type: number
       responses:
         "200":
           description: Last.fm search result object
@@ -1225,24 +1334,24 @@ paths:
     get:
       operationId: LastfmController_getArtistTopTracks
       parameters:
-      - name: artist
-        required: true
-        in: query
-        description: Artist name
-        schema:
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Number of tracks to return
-        schema:
-          type: number
-      - name: page
-        required: false
-        in: query
-        description: Page number
-        schema:
-          type: number
+        - name: artist
+          required: true
+          in: query
+          description: Artist name
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Number of tracks to return
+          schema:
+            type: number
+        - name: page
+          required: false
+          in: query
+          description: Page number
+          schema:
+            type: number
       responses:
         "200":
           description: Top tracks response from Last.fm
@@ -1252,24 +1361,24 @@ paths:
     get:
       operationId: LastfmController_getSimilarTracks
       parameters:
-      - name: artist
-        required: true
-        in: query
-        description: Artist name
-        schema:
-          type: string
-      - name: track
-        required: true
-        in: query
-        description: Track name
-        schema:
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Number of similar tracks to return
-        schema:
-          type: number
+        - name: artist
+          required: true
+          in: query
+          description: Artist name
+          schema:
+            type: string
+        - name: track
+          required: true
+          in: query
+          description: Track name
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Number of similar tracks to return
+          schema:
+            type: number
       responses:
         "200":
           description: Similar tracks response from Last.fm
@@ -1315,7 +1424,9 @@ paths:
       tags: *a13
   /api/health:
     get:
-      description: Returns detailed information about the server status, including database connectivity, external services configuration, memory usage, and system information.
+      description: Returns detailed information about the server status, including
+        database connectivity, external services configuration, memory usage,
+        and system information.
       operationId: HealthController_getHealth
       parameters: []
       responses:
@@ -1329,9 +1440,9 @@ paths:
                   status:
                     type: string
                     enum:
-                    - ok
-                    - degraded
-                    - unhealthy
+                      - ok
+                      - degraded
+                      - unhealthy
                   timestamp:
                     type: string
                     format: date-time
@@ -1349,34 +1460,34 @@ paths:
                     type: object
       summary: Comprehensive health check endpoint
       tags:
-      - Health
+        - Health
   /spotify/search:
     get:
       operationId: LegacySpotifyController_search
       parameters:
-      - name: q
-        required: true
-        in: query
-        description: Search query
-        schema:
-          type: string
-      - name: type
-        required: true
-        in: query
-        description: "Search type: track, playlist, album, artist"
-        schema:
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Results limit (max 50)
-        schema:
-          type: number
+        - name: q
+          required: true
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: type
+          required: true
+          in: query
+          description: "Search type: track, playlist, album, artist"
+          schema:
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Results limit (max 50)
+          schema:
+            type: number
       responses:
         "200":
           description: Search results
       security:
-      - bearer: []
+        - bearer: []
       summary: Legacy Spotify search (V1 compatible route)
       tags: &a14
         - Legacy Spotify
@@ -1384,17 +1495,17 @@ paths:
     get:
       operationId: LegacySpotifyController_getAuthUrl
       parameters:
-      - name: state
-        required: false
-        in: query
-        description: CSRF state
-        schema:
-          type: string
+        - name: state
+          required: false
+          in: query
+          description: CSRF state
+          schema:
+            type: string
       responses:
         "200":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Get Spotify OAuth authorization URL
       tags: *a14
   /spotify/auth/callback:
@@ -1411,7 +1522,7 @@ paths:
         "201":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Handle Spotify OAuth callback
       tags: *a14
   /spotify/auth/disconnect:
@@ -1422,7 +1533,7 @@ paths:
         "200":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Disconnect Spotify account
       tags: *a14
   /spotify/auth/status:
@@ -1433,41 +1544,41 @@ paths:
         "200":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Check Spotify connection status
       tags: *a14
   /spotify/playlists:
     get:
       operationId: LegacySpotifyController_getUserPlaylists
       parameters:
-      - name: limit
-        required: false
-        in: query
-        description: Results limit (max 50)
-        schema:
-          type: number
+        - name: limit
+          required: false
+          in: query
+          description: Results limit (max 50)
+          schema:
+            type: number
       responses:
         "200":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Get user playlists from Spotify
       tags: *a14
   /spotify/playlists/{playlistId}:
     get:
       operationId: LegacySpotifyController_getPlaylist
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Spotify playlist ID
-        schema:
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Spotify playlist ID
+          schema:
+            type: string
       responses:
         "200":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Get Spotify playlist details
       tags: *a14
   /spotify/playlists/import:
@@ -1484,24 +1595,24 @@ paths:
         "201":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Import Spotify playlist and match to Deezer
       tags: *a14
   /spotify/tracks/{trackId}:
     get:
       operationId: LegacySpotifyController_getTrack
       parameters:
-      - name: trackId
-        required: true
-        in: path
-        description: Spotify track ID
-        schema:
-          type: string
+        - name: trackId
+          required: true
+          in: path
+          description: Spotify track ID
+          schema:
+            type: string
       responses:
         "200":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Get Spotify track details
       tags: *a14
   /spotify/tracks/analyze:
@@ -1518,7 +1629,7 @@ paths:
         "201":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Analyze track for BPM, mood, and characteristics
       tags: *a14
   /spotify/tracks/analyze-batch:
@@ -1535,41 +1646,41 @@ paths:
         "201":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Analyze multiple tracks in batch
       tags: *a14
   /spotify/tracks/{trackId}/audio-features:
     get:
       operationId: LegacySpotifyController_getAudioFeatures
       parameters:
-      - name: trackId
-        required: true
-        in: path
-        description: Spotify track ID
-        schema:
-          type: string
+        - name: trackId
+          required: true
+          in: path
+          description: Spotify track ID
+          schema:
+            type: string
       responses:
         "200":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Get audio features for a track
       tags: *a14
   /spotify/tracks/{trackId}/audio-analysis:
     get:
       operationId: LegacySpotifyController_getAudioAnalysis
       parameters:
-      - name: trackId
-        required: true
-        in: path
-        description: Spotify track ID
-        schema:
-          type: string
+        - name: trackId
+          required: true
+          in: path
+          description: Spotify track ID
+          schema:
+            type: string
       responses:
         "200":
           description: ""
       security:
-      - bearer: []
+        - bearer: []
       summary: Get detailed audio analysis for a track
       tags: *a14
   /version:
@@ -1595,11 +1706,11 @@ paths:
     get:
       operationId: LegacyMetaController_servePublicFile
       parameters:
-      - name: filename
-        required: true
-        in: path
-        schema:
-          type: string
+        - name: filename
+          required: true
+          in: path
+          schema:
+            type: string
       responses:
         "200":
           description: ""
@@ -1634,16 +1745,18 @@ paths:
       tags: *a17
   /hexmusic/search/tracks:
     get:
-      description: Search Spotify for tracks by name, artist, or any search term. Returns up to 10 tracks with details including ID, name, artists, album, and cover art. Results are cached for 24 hours.
+      description: Search Spotify for tracks by name, artist, or any search term.
+        Returns up to 10 tracks with details including ID, name, artists, album,
+        and cover art. Results are cached for 24 hours.
       operationId: HexMusicController_searchTracks
       parameters:
-      - name: query
-        required: true
-        in: query
-        description: Search query string (track name, artist, or keywords)
-        schema:
-          example: Bohemian Rhapsody Queen
-          type: string
+        - name: query
+          required: true
+          in: query
+          description: Search query string (track name, artist, or keywords)
+          schema:
+            example: Bohemian Rhapsody Queen
+            type: string
       responses:
         "200":
           description: Successfully retrieved track search results
@@ -1664,16 +1777,18 @@ paths:
         - Music & Recommendations
   /hexmusic/search/playlists:
     get:
-      description: Search Spotify for playlists by name or keywords. Returns up to 20 playlists with metadata including ID, name, description, owner, and track count. Results are cached for 24 hours.
+      description: Search Spotify for playlists by name or keywords. Returns up to 20
+        playlists with metadata including ID, name, description, owner, and
+        track count. Results are cached for 24 hours.
       operationId: HexMusicController_searchPlaylists
       parameters:
-      - name: query
-        required: true
-        in: query
-        description: Search query string (playlist name or keywords)
-        schema:
-          example: Rock Classics
-          type: string
+        - name: query
+          required: true
+          in: query
+          description: Search query string (playlist name or keywords)
+          schema:
+            example: Rock Classics
+            type: string
       responses:
         "200":
           description: Successfully retrieved playlist search results
@@ -1693,16 +1808,17 @@ paths:
       tags: *a18
   /hexmusic/playlist/{playlistId}:
     get:
-      description: Retrieve detailed information about a specific Spotify playlist including all tracks, metadata, and cover art.
+      description: Retrieve detailed information about a specific Spotify playlist
+        including all tracks, metadata, and cover art.
       operationId: HexMusicController_getSpotifyPlaylist
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Spotify playlist ID
-        schema:
-          example: 37i9dQZF1DWXRqgorJj26U
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Spotify playlist ID
+          schema:
+            example: 37i9dQZF1DWXRqgorJj26U
+            type: string
       responses:
         "200":
           description: Successfully retrieved playlist details
@@ -1720,16 +1836,18 @@ paths:
       tags: *a18
   /hexmusic/recommendations/playlist/{playlistId}:
     get:
-      description: Generate song recommendations based on the first 5 tracks from a Spotify playlist. Returns 20 recommended tracks similar to the playlist content.
+      description: Generate song recommendations based on the first 5 tracks from a
+        Spotify playlist. Returns 20 recommended tracks similar to the playlist
+        content.
       operationId: HexMusicController_getRecommendationsFromPlaylist
       parameters:
-      - name: playlistId
-        required: true
-        in: path
-        description: Spotify playlist ID to base recommendations on
-        schema:
-          example: 37i9dQZF1DWXRqgorJj26U
-          type: string
+        - name: playlistId
+          required: true
+          in: path
+          description: Spotify playlist ID to base recommendations on
+          schema:
+            example: 37i9dQZF1DWXRqgorJj26U
+            type: string
       responses:
         "200":
           description: Successfully generated recommendations from playlist
@@ -1760,16 +1878,17 @@ paths:
       tags: *a18
   /hexmusic/playlist-recommendations:
     get:
-      description: Search for playlists by query, select the first result, and generate recommendations based on it. Results are saved to the database.
+      description: Search for playlists by query, select the first result, and
+        generate recommendations based on it. Results are saved to the database.
       operationId: HexMusicController_getPlaylistRecommendations
       parameters:
-      - name: query
-        required: true
-        in: query
-        description: Playlist search query
-        schema:
-          example: Chill Vibes
-          type: string
+        - name: query
+          required: true
+          in: query
+          description: Playlist search query
+          schema:
+            example: Chill Vibes
+            type: string
       responses:
         "200":
           description: Successfully searched playlist and generated recommendations
@@ -1810,7 +1929,11 @@ paths:
       tags: *a18
   /hexmusic/recommendations:
     post:
-      description: "Generate personalized song recommendations based on 1-5 seed tracks. Supports flexible input: provide track IDs, track names (with optional artist), or a mix of both. Configurable recommendation limit (1-100). Results are cached for 24 hours. This is the primary recommendation endpoint with the most flexibility."
+      description: "Generate personalized song recommendations based on 1-5 seed
+        tracks. Supports flexible input: provide track IDs, track names (with
+        optional artist), or a mix of both. Configurable recommendation limit
+        (1-100). Results are cached for 24 hours. This is the primary
+        recommendation endpoint with the most flexibility."
       operationId: HexMusicController_getRecommendations
       parameters: []
       requestBody:
@@ -1824,26 +1947,26 @@ paths:
               Track IDs:
                 value:
                   tracks:
-                  - id: 3n3Ppam7vgaVa1iaRUc9Lp
-                  - id: 5ChkMS8OtdzJeqyybCc9R5
+                    - id: 3n3Ppam7vgaVa1iaRUc9Lp
+                    - id: 5ChkMS8OtdzJeqyybCc9R5
                   limit: 20
                 summary: Using Spotify track IDs
               Track Names:
                 value:
                   tracks:
-                  - name: Bohemian Rhapsody
-                    artist: Queen
-                  - name: Stairway to Heaven
-                    artist: Led Zeppelin
+                    - name: Bohemian Rhapsody
+                      artist: Queen
+                    - name: Stairway to Heaven
+                      artist: Led Zeppelin
                   limit: 30
                 summary: Using track names with artists
               Mixed Input:
                 value:
                   tracks:
-                  - id: 3n3Ppam7vgaVa1iaRUc9Lp
-                  - name: Hotel California
-                  - name: Wonderwall
-                    artist: Oasis
+                    - id: 3n3Ppam7vgaVa1iaRUc9Lp
+                    - name: Hotel California
+                    - name: Wonderwall
+                      artist: Oasis
                   limit: 15
                 summary: Mix of IDs and names
       responses:
@@ -1871,7 +1994,9 @@ paths:
       tags: *a18
   /hexmusic/recommendations/legacy:
     post:
-      description: Legacy endpoint for backward compatibility. Accepts only track IDs and returns exactly 20 recommendations. Use the /recommendations endpoint instead for more flexibility.
+      description: Legacy endpoint for backward compatibility. Accepts only track IDs
+        and returns exactly 20 recommendations. Use the /recommendations
+        endpoint instead for more flexibility.
       operationId: HexMusicController_getRecommendationsLegacy
       parameters: []
       requestBody:
@@ -1885,9 +2010,9 @@ paths:
               default:
                 value:
                   trackIds:
-                  - 3n3Ppam7vgaVa1iaRUc9Lp
-                  - 5ChkMS8OtdzJeqyybCc9R5
-                  - 0c6xIDDpzE81m2q797ordA
+                    - 3n3Ppam7vgaVa1iaRUc9Lp
+                    - 5ChkMS8OtdzJeqyybCc9R5
+                    - 0c6xIDDpzE81m2q797ordA
       responses:
         "200":
           description: Successfully generated 20 recommendations
@@ -1897,16 +2022,18 @@ paths:
       tags: *a18
   /hexmusic/recommendations/generate/{playlistSearchId}:
     post:
-      description: Generate recommendations based on a previously saved playlist search result. Uses the first playlist from the search results. Recommendations are saved to database.
+      description: Generate recommendations based on a previously saved playlist
+        search result. Uses the first playlist from the search results.
+        Recommendations are saved to database.
       operationId: HexMusicController_generateAndSaveRecommendations
       parameters:
-      - name: playlistSearchId
-        required: true
-        in: path
-        description: ID of a previously saved playlist search
-        schema:
-          example: clx1234567890abcdef
-          type: string
+        - name: playlistSearchId
+          required: true
+          in: path
+          description: ID of a previously saved playlist search
+          schema:
+            example: clx1234567890abcdef
+            type: string
       responses:
         "201":
           description: Successfully generated and saved recommendations
@@ -1937,23 +2064,25 @@ paths:
       tags: *a18
   /hexmusic/songs:
     get:
-      description: Search for tracks on Spotify with a customizable limit. Similar to /search/tracks but with configurable result count. Returns track details including preview URLs and cover art.
+      description: Search for tracks on Spotify with a customizable limit. Similar to
+        /search/tracks but with configurable result count. Returns track details
+        including preview URLs and cover art.
       operationId: HexMusicController_fetchSongs
       parameters:
-      - name: query
-        required: true
-        in: query
-        description: Search query for tracks
-        schema:
-          example: The Beatles
-          type: string
-      - name: limit
-        required: false
-        in: query
-        description: Maximum number of results to return
-        schema:
-          example: 10
-          type: number
+        - name: query
+          required: true
+          in: query
+          description: Search query for tracks
+          schema:
+            example: The Beatles
+            type: string
+        - name: limit
+          required: false
+          in: query
+          description: Maximum number of results to return
+          schema:
+            example: 10
+            type: number
       responses:
         "200":
           description: Successfully fetched songs
@@ -1973,7 +2102,7 @@ paths:
                       items:
                         type: string
                       example:
-                      - The Beatles
+                        - The Beatles
                     album:
                       type: string
                     previewUrl:
@@ -1988,7 +2117,12 @@ paths:
       tags: *a18
   /hexmusic/recommendations/bulk:
     post:
-      description: Submit an array of songs and receive recommendations. Accepts any number of songs (uses up to 5 as seeds due to Spotify API limits). Each song can be specified by ID, name, or name+artist. The "n" parameter controls how many recommendations to return (defaults to the number of input songs). Perfect for getting recommendations based on a playlist or collection of songs.
+      description: Submit an array of songs and receive recommendations. Accepts any
+        number of songs (uses up to 5 as seeds due to Spotify API limits). Each
+        song can be specified by ID, name, or name+artist. The "n" parameter
+        controls how many recommendations to return (defaults to the number of
+        input songs). Perfect for getting recommendations based on a playlist or
+        collection of songs.
       operationId: HexMusicController_getBulkRecommendations
       parameters: []
       requestBody:
@@ -2002,46 +2136,46 @@ paths:
               With IDs and Names:
                 value:
                   giveSongs:
-                  - id: 3n3Ppam7vgaVa1iaRUc9Lp
-                    name: Mr. Brightside
-                  - name: Somebody Told Me
-                    artist: The Killers
-                  - name: When You Were Young
-                    artist: The Killers
-                  - id: 0eGsygTp906u18L0Oimnem
+                    - id: 3n3Ppam7vgaVa1iaRUc9Lp
+                      name: Mr. Brightside
+                    - name: Somebody Told Me
+                      artist: The Killers
+                    - name: When You Were Young
+                      artist: The Killers
+                    - id: 0eGsygTp906u18L0Oimnem
                   n: 10
                 summary: Mixed IDs and names with custom count
               Only Names:
                 value:
                   giveSongs:
-                  - name: Blinding Lights
-                    artist: The Weeknd
-                  - name: Levitating
-                    artist: Dua Lipa
-                  - name: Save Your Tears
-                    artist: The Weeknd
-                  - name: Don't Start Now
-                    artist: Dua Lipa
-                  - name: Peaches
-                    artist: Justin Bieber
+                    - name: Blinding Lights
+                      artist: The Weeknd
+                    - name: Levitating
+                      artist: Dua Lipa
+                    - name: Save Your Tears
+                      artist: The Weeknd
+                    - name: Don't Start Now
+                      artist: Dua Lipa
+                    - name: Peaches
+                      artist: Justin Bieber
                 summary: Using only track names (returns 5 recommendations by default)
               Large Playlist:
                 value:
                   giveSongs:
-                  - name: Bohemian Rhapsody
-                    artist: Queen
-                  - name: Stairway to Heaven
-                    artist: Led Zeppelin
-                  - name: Hotel California
-                    artist: Eagles
-                  - name: Imagine
-                    artist: John Lennon
-                  - name: Sweet Child O Mine
-                    artist: Guns N' Roses
-                  - name: November Rain
-                    artist: Guns N' Roses
-                  - name: Dream On
-                    artist: Aerosmith
+                    - name: Bohemian Rhapsody
+                      artist: Queen
+                    - name: Stairway to Heaven
+                      artist: Led Zeppelin
+                    - name: Hotel California
+                      artist: Eagles
+                    - name: Imagine
+                      artist: John Lennon
+                    - name: Sweet Child O Mine
+                      artist: Guns N' Roses
+                    - name: November Rain
+                      artist: Guns N' Roses
+                    - name: Dream On
+                      artist: Aerosmith
                   n: 20
                 summary: 7 classic rock songs, requesting 20 recommendations
       responses:
@@ -2069,7 +2203,13 @@ paths:
       tags: *a18
   /hexmusic/recommendations/deezer:
     post:
-      description: Submit an array of track names and receive Deezer track recommendations with Deezer IDs. Track names can be simple titles or "Artist - Track" format for better accuracy. The "n" parameter controls how many recommendations to return (defaults to the number of input tracks). Perfect for getting Deezer-based recommendations that can be used with the Deezer API or player. Results are cached for 24 hours and stored in the database.
+      description: Submit an array of track names and receive Deezer track
+        recommendations with Deezer IDs. Track names can be simple titles or
+        "Artist - Track" format for better accuracy. The "n" parameter controls
+        how many recommendations to return (defaults to the number of input
+        tracks). Perfect for getting Deezer-based recommendations that can be
+        used with the Deezer API or player. Results are cached for 24 hours and
+        stored in the database.
       operationId: HexMusicController_getDeezerRecommendations
       parameters: []
       requestBody:
@@ -2083,37 +2223,38 @@ paths:
               Strict Mode - Same Artists:
                 value:
                   trackNames:
-                  - Queen - Bohemian Rhapsody
-                  - Queen - We Will Rock You
-                  - Led Zeppelin - Stairway to Heaven
+                    - Queen - Bohemian Rhapsody
+                    - Queen - We Will Rock You
+                    - Led Zeppelin - Stairway to Heaven
                   n: 10
                   mode: 0
                 summary: "Strict mode (0): Returns more tracks from the same artists"
               Balanced Mode - Related Artists:
                 value:
                   trackNames:
-                  - Bohemian Rhapsody
-                  - Stairway to Heaven
-                  - Hotel California
-                  - Imagine
+                    - Bohemian Rhapsody
+                    - Stairway to Heaven
+                    - Hotel California
+                    - Imagine
                   n: 15
                   mode: 1
-                summary: "Balanced mode (1): Returns tracks from related artists in similar genres"
+                summary: "Balanced mode (1): Returns tracks from related artists in similar
+                  genres"
               Diverse Mode - Genre Variety:
                 value:
                   trackNames:
-                  - The Weeknd - Blinding Lights
-                  - Dua Lipa - Levitating
-                  - Pink Floyd - Comfortably Numb
+                    - The Weeknd - Blinding Lights
+                    - Dua Lipa - Levitating
+                    - Pink Floyd - Comfortably Numb
                   n: 20
                   mode: 2
                 summary: "Diverse mode (2): Returns varied tracks with loose genre adherence"
               Default Mode (Balanced):
                 value:
                   trackNames:
-                  - Blinding Lights
-                  - Levitating
-                  - Save Your Tears
+                    - Blinding Lights
+                    - Levitating
+                    - Save Your Tears
                   n: 10
                 summary: No mode specified - defaults to Balanced (1)
       responses:
@@ -2141,7 +2282,9 @@ paths:
       tags: *a18
   /hexmusic/recommendations/json:
     post:
-      description: Legacy endpoint that accepts a JSON string of song objects. Parses the JSON and generates recommendations from the song IDs. Use the /recommendations/bulk endpoint instead for better type safety.
+      description: Legacy endpoint that accepts a JSON string of song objects. Parses
+        the JSON and generates recommendations from the song IDs. Use the
+        /recommendations/bulk endpoint instead for better type safety.
       operationId: HexMusicController_getRecommendationsFromJson
       parameters: []
       requestBody:
@@ -2154,9 +2297,11 @@ paths:
               properties:
                 songs:
                   type: string
-                  example: '[{"id":"3n3Ppam7vgaVa1iaRUc9Lp","name":"Mr. Brightside"},{"id":"5ChkMS8OtdzJeqyybCc9R5","name":"Somebody Told Me"}]'
+                  example: '[{"id":"3n3Ppam7vgaVa1iaRUc9Lp","name":"Mr.
+                    Brightside"},{"id":"5ChkMS8OtdzJeqyybCc9R5","name":"Somebody
+                    Told Me"}]'
               required:
-              - songs
+                - songs
       responses:
         "200":
           description: Successfully generated recommendations from JSON
@@ -2168,13 +2313,16 @@ paths:
       tags: *a18
 info:
   title: Darkfloor.one API
-  description: Aggregated music intelligence from Spotify, Last.fm, and Deezer with unified authentication, caching, and playlist workflows.
+  description: Aggregated music intelligence from Spotify, Last.fm, and Deezer
+    with unified authentication, caching, and playlist workflows.
   version: 1.0.0
   contact: {}
 tags: []
 servers:
-- url: https://www.darkfloor.one
-  description: Production (HTTPS)
+  - url: https://www.darkfloor.one
+    description: Production (HTTPS)
+  - url: http://localhost:3333
+    description: Local development
 components:
   securitySchemes:
     JWT-auth:
@@ -2194,8 +2342,8 @@ components:
           type: string
           description: Spotify artist ID
       required:
-      - name
-      - id
+        - name
+        - id
     TrackAlbumDto:
       type: object
       properties:
@@ -2203,7 +2351,7 @@ components:
           type: string
           description: Album name
       required:
-      - name
+        - name
     TrackExternalUrlsDto:
       type: object
       properties:
@@ -2211,7 +2359,7 @@ components:
           type: string
           description: Spotify URL for the track
       required:
-      - spotify
+        - spotify
     TrackDto:
       type: object
       properties:
@@ -2229,7 +2377,7 @@ components:
         album:
           description: Album information
           allOf:
-          - $ref: "#/components/schemas/TrackAlbumDto"
+            - $ref: "#/components/schemas/TrackAlbumDto"
         popularity:
           type: number
           description: Popularity score (0-100)
@@ -2239,7 +2387,7 @@ components:
         external_urls:
           description: External URLs for the track
           allOf:
-          - $ref: "#/components/schemas/TrackExternalUrlsDto"
+            - $ref: "#/components/schemas/TrackExternalUrlsDto"
         explicit:
           type: boolean
           description: Whether the track is explicit
@@ -2247,12 +2395,12 @@ components:
           type: string
           description: ISRC code if available
       required:
-      - id
-      - name
-      - artists
-      - album
-      - popularity
-      - external_urls
+        - id
+        - name
+        - artists
+        - album
+        - popularity
+        - external_urls
     RecommendationSeedDto:
       type: object
       properties:
@@ -2266,9 +2414,9 @@ components:
           type: number
           description: Initial pool size used by Spotify
       required:
-      - id
-      - type
-      - initialPoolSize
+        - id
+        - type
+        - initialPoolSize
     RecommendationResponseDto:
       type: object
       properties:
@@ -2283,8 +2431,8 @@ components:
           items:
             $ref: "#/components/schemas/TrackDto"
       required:
-      - seeds
-      - tracks
+        - seeds
+        - tracks
     RecommendationsFromSearchRequestDto:
       type: object
       properties:
@@ -2296,7 +2444,7 @@ components:
           description: Number of recommendations to return (1-100)
           default: 20
       required:
-      - query
+        - query
     SongInputDto:
       type: object
       properties:
@@ -2324,7 +2472,9 @@ components:
           default: 20
         mode:
           type: string
-          description: Diversity mode. strict -> most similar, balanced -> moderate variety, diverse -> maximum variety, wild -> experimental combinations
+          description: Diversity mode. strict -> most similar, balanced -> moderate
+            variety, diverse -> maximum variety, wild -> experimental
+            combinations
           enum: &a19
             - strict
             - balanced
@@ -2352,30 +2502,34 @@ components:
           maximum: 50
         sampling:
           type: string
-          description: Deterministic sampling strategy for large queues (ordered preserves input order)
+          description: Deterministic sampling strategy for large queues (ordered preserves
+            input order)
           enum: &a20
             - evenly-spaced
             - ordered
           default: evenly-spaced
         seedStride:
           type: number
-          description: Optional stride for deterministic sampling (used when sampling=evenly-spaced)
+          description: Optional stride for deterministic sampling (used when
+            sampling=evenly-spaced)
           minimum: 1
         queueMode:
           type: string
-          description: Queue mode for server-side history blending (defaults to useQueueOnly)
+          description: Queue mode for server-side history blending (defaults to
+            useQueueOnly)
           enum: &a21
             - useQueueOnly
             - blendHistory
             - includeHistory
           default: useQueueOnly
         historySongs:
-          description: Optional server-provided history seeds (ignored when queueMode=useQueueOnly)
+          description: Optional server-provided history seeds (ignored when
+            queueMode=useQueueOnly)
           type: array
           items:
             $ref: "#/components/schemas/SongInputDto"
       required:
-      - songs
+        - songs
     SpiceUpTrackDto:
       type: object
       properties:
@@ -2393,7 +2547,7 @@ components:
         album:
           description: Album information
           allOf:
-          - $ref: "#/components/schemas/TrackAlbumDto"
+            - $ref: "#/components/schemas/TrackAlbumDto"
         popularity:
           type: number
           description: Popularity score (0-100)
@@ -2403,7 +2557,7 @@ components:
         external_urls:
           description: External URLs for the track
           allOf:
-          - $ref: "#/components/schemas/TrackExternalUrlsDto"
+            - $ref: "#/components/schemas/TrackExternalUrlsDto"
         explicit:
           type: boolean
           description: Whether the track is explicit
@@ -2417,9 +2571,9 @@ components:
           type: string
           description: Recommendation source platform
           enum:
-          - spotify
-          - lastfm
-          - deezer
+            - spotify
+            - lastfm
+            - deezer
         reason:
           type: string
           description: Optional reason string for UI display
@@ -2427,12 +2581,12 @@ components:
           type: number
           description: Optional score for UI display (0-1)
       required:
-      - id
-      - name
-      - artists
-      - album
-      - popularity
-      - external_urls
+        - id
+        - name
+        - artists
+        - album
+        - popularity
+        - external_urls
     SpiceUpSeedDto:
       type: object
       properties:
@@ -2446,20 +2600,20 @@ components:
           type: number
           description: Initial pool size for the seed
       required:
-      - id
-      - type
-      - initialPoolSize
+        - id
+        - type
+        - initialPoolSize
     SpiceUpSongResultDto:
       type: object
       properties:
         input:
           description: Original song input
           allOf:
-          - $ref: "#/components/schemas/SongInputDto"
+            - $ref: "#/components/schemas/SongInputDto"
         track:
           description: Found track information
           allOf:
-          - $ref: "#/components/schemas/TrackDto"
+            - $ref: "#/components/schemas/TrackDto"
         confidence:
           type: number
           description: Search confidence score (0-1)
@@ -2470,9 +2624,9 @@ components:
           type: string
           description: Error message if search failed
       required:
-      - input
-      - confidence
-      - searchMethod
+        - input
+        - confidence
+        - searchMethod
     SeedQualityMetricsDto:
       type: object
       properties:
@@ -2494,10 +2648,10 @@ components:
           items:
             type: string
       required:
-      - overallScore
-      - uniqueArtists
-      - popularityRange
-      - diversityScore
+        - overallScore
+        - uniqueArtists
+        - popularityRange
+        - diversityScore
     SpiceUpResponseDto:
       type: object
       properties:
@@ -2533,7 +2687,7 @@ components:
         seedQuality:
           description: Seed quality analysis
           allOf:
-          - $ref: "#/components/schemas/SeedQualityMetricsDto"
+            - $ref: "#/components/schemas/SeedQualityMetricsDto"
         warnings:
           description: Warning messages for partial failures
           type: array
@@ -2543,13 +2697,13 @@ components:
           type: string
           description: Request ID for traceability
       required:
-      - mode
-      - inputSongs
-      - foundSongs
-      - tracks
-      - seeds
-      - songResults
-      - warnings
+        - mode
+        - inputSongs
+        - foundSongs
+        - tracks
+        - seeds
+        - songResults
+        - warnings
     UnifiedSpiceUpRequestDto:
       type: object
       properties:
@@ -2565,7 +2719,9 @@ components:
           default: 20
         mode:
           type: string
-          description: Diversity mode. strict -> most similar, balanced -> moderate variety, diverse -> maximum variety, wild -> experimental combinations
+          description: Diversity mode. strict -> most similar, balanced -> moderate
+            variety, diverse -> maximum variety, wild -> experimental
+            combinations
           enum: *a19
           default: balanced
         excludeTrackIds:
@@ -2589,20 +2745,24 @@ components:
           maximum: 50
         sampling:
           type: string
-          description: Deterministic sampling strategy for large queues (ordered preserves input order)
+          description: Deterministic sampling strategy for large queues (ordered preserves
+            input order)
           enum: *a20
           default: evenly-spaced
         seedStride:
           type: number
-          description: Optional stride for deterministic sampling (used when sampling=evenly-spaced)
+          description: Optional stride for deterministic sampling (used when
+            sampling=evenly-spaced)
           minimum: 1
         queueMode:
           type: string
-          description: Queue mode for server-side history blending (defaults to useQueueOnly)
+          description: Queue mode for server-side history blending (defaults to
+            useQueueOnly)
           enum: *a21
           default: useQueueOnly
         historySongs:
-          description: Optional server-provided history seeds (ignored when queueMode=useQueueOnly)
+          description: Optional server-provided history seeds (ignored when
+            queueMode=useQueueOnly)
           type: array
           items:
             $ref: "#/components/schemas/SongInputDto"
@@ -2610,13 +2770,13 @@ components:
           type: string
           description: Platforms to use for recommendations
           enum:
-          - spotify
-          - lastfm
-          - deezer
-          - auto
+            - spotify
+            - lastfm
+            - deezer
+            - auto
           default: auto
       required:
-      - songs
+        - songs
     UnifiedSpiceUpResponseDto:
       type: object
       properties:
@@ -2652,7 +2812,7 @@ components:
         seedQuality:
           description: Seed quality analysis
           allOf:
-          - $ref: "#/components/schemas/SeedQualityMetricsDto"
+            - $ref: "#/components/schemas/SeedQualityMetricsDto"
         warnings:
           description: Warning messages for partial failures
           type: array
@@ -2670,14 +2830,14 @@ components:
           type: object
           description: Platform-specific results
       required:
-      - mode
-      - inputSongs
-      - foundSongs
-      - tracks
-      - seeds
-      - songResults
-      - warnings
-      - platformsUsed
+        - mode
+        - inputSongs
+        - foundSongs
+        - tracks
+        - seeds
+        - songResults
+        - warnings
+        - platformsUsed
     RegisterDto:
       type: object
       properties:
@@ -2694,9 +2854,9 @@ components:
           example: password123
           description: The password of the user
       required:
-      - name
-      - email
-      - password
+        - name
+        - email
+        - password
     LoginDto:
       type: object
       properties:
@@ -2709,8 +2869,8 @@ components:
           example: password123
           description: The password of the user
       required:
-      - email
-      - password
+        - email
+        - password
     FindTrackIdResponseDto:
       type: object
       properties:
@@ -2724,7 +2884,7 @@ components:
           type: object
           description: Matched Deezer track ID
       required:
-      - name
+        - name
     TrackToConvertDto:
       type: object
       properties:
@@ -2735,7 +2895,7 @@ components:
           type: string
           description: Artist name to improve Deezer search accuracy
       required:
-      - name
+        - name
     ConvertToDeezerRequestDto:
       type: object
       properties:
@@ -2746,7 +2906,7 @@ components:
           items:
             $ref: "#/components/schemas/TrackToConvertDto"
       required:
-      - tracks
+        - tracks
     ConvertedTrackResultDto:
       type: object
       properties:
@@ -2760,7 +2920,7 @@ components:
           type: object
           description: Matched Deezer track ID
       required:
-      - name
+        - name
     ConvertToDeezerResponseDto:
       type: object
       properties:
@@ -2776,9 +2936,9 @@ components:
           items:
             $ref: "#/components/schemas/ConvertedTrackResultDto"
       required:
-      - converted
-      - total
-      - tracks
+        - converted
+        - total
+        - tracks
     PreviewRequestDto:
       type: object
       properties:
@@ -2814,7 +2974,7 @@ components:
           description: Cover image URL
           example: https://example.com/cover.jpg
       required:
-      - name
+        - name
     UpdatePlaylistDto:
       type: object
       properties:
@@ -2848,7 +3008,7 @@ components:
           description: Position in playlist (optional, defaults to end)
           example: 5
       required:
-      - deezerTrackId
+        - deezerTrackId
     ReorderPlaylistDto:
       type: object
       properties:
@@ -2861,31 +3021,31 @@ components:
           description: New position (0-based index)
           example: 3
       required:
-      - trackId
-      - newPosition
+        - trackId
+        - newPosition
     PlaylistConversionRequestDto:
       type: object
       properties:
         songs:
           description: Array of songs to convert
           example:
-          - name: Creep
-            artist: Radiohead
-          - name: Bohemian Rhapsody
-            artist: Queen
+            - name: Creep
+              artist: Radiohead
+            - name: Bohemian Rhapsody
+              artist: Queen
           type: array
           items:
             $ref: "#/components/schemas/SongInputDto"
         output:
           type: string
           enum:
-          - deezer
-          - spotify
+            - deezer
+            - spotify
           description: Target platform for conversion
           example: deezer
       required:
-      - songs
-      - output
+        - songs
+        - output
     PlaylistConversionResponseDto:
       type: object
       properties:
@@ -2904,10 +3064,10 @@ components:
           items:
             type: string
       required:
-      - output
-      - inputCount
-      - convertedCount
-      - results
+        - output
+        - inputCount
+        - convertedCount
+        - results
     LastfmSongInputDto:
       type: object
       properties:
@@ -2942,7 +3102,7 @@ components:
             - diverse
           default: normal
       required:
-      - songs
+        - songs
     LastfmRecommendationDto:
       type: object
       properties:
@@ -2962,9 +3122,9 @@ components:
           type: string
           description: MusicBrainz ID if available
       required:
-      - name
-      - artist
-      - url
+        - name
+        - artist
+        - url
     LastfmSpiceUpResponseDto:
       type: object
       properties:
@@ -2983,10 +3143,10 @@ components:
           type: number
           description: Number of input songs successfully matched on Last.fm
       required:
-      - mode
-      - inputSongs
-      - recommendations
-      - foundSongs
+        - mode
+        - inputSongs
+        - recommendations
+        - foundSongs
     LastfmSpiceUpWithDeezerRequestDto:
       type: object
       properties:
@@ -3010,7 +3170,7 @@ components:
           description: Convert Last.fm recommendations to Deezer track IDs
           default: true
       required:
-      - songs
+        - songs
     LastfmSpiceUpWithDeezerResponseRecommendationDto:
       type: object
       properties:
@@ -3033,9 +3193,9 @@ components:
           type: object
           description: Deezer track ID if conversion succeeded
       required:
-      - name
-      - artist
-      - url
+        - name
+        - artist
+        - url
     LastfmSpiceUpWithDeezerResponseDto:
       type: object
       properties:
@@ -3060,10 +3220,10 @@ components:
             converted: 18
             total: 20
       required:
-      - mode
-      - inputSongs
-      - foundSongs
-      - recommendations
+        - mode
+        - inputSongs
+        - foundSongs
+        - recommendations
     SpotifyAuthCallbackDto:
       type: object
       properties:
@@ -3075,7 +3235,7 @@ components:
           type: string
           description: State parameter for CSRF protection
       required:
-      - code
+        - code
     ImportPlaylistDto:
       type: object
       properties:
@@ -3095,7 +3255,7 @@ components:
           description: Make the imported playlist public
           default: true
       required:
-      - playlistId
+        - playlistId
     AnalyzeTrackDto:
       type: object
       properties:
@@ -3104,20 +3264,20 @@ components:
           description: Spotify track ID or URL
           example: 3n3Ppam7vgaVa1iaRUc9Lp
       required:
-      - trackId
+        - trackId
     BatchAnalyzeTracksDto:
       type: object
       properties:
         trackIds:
           description: Array of Spotify track IDs
           example:
-          - 3n3Ppam7vgaVa1iaRUc9Lp
-          - 7qiZfU4dY1lWllzX7mPBI
+            - 3n3Ppam7vgaVa1iaRUc9Lp
+            - 7qiZfU4dY1lWllzX7mPBI
           type: array
           items:
             type: string
       required:
-      - trackIds
+        - trackIds
     UpdateUserDto:
       type: object
       properties:
@@ -3150,10 +3310,10 @@ components:
           example: https://i.scdn.co/image/ab67616d0000b273e8b066f70c206551210d902b
           nullable: true
       required:
-      - id
-      - name
-      - artists
-      - album
+        - id
+        - name
+        - artists
+        - album
     ErrorResponseDto:
       type: object
       properties:
@@ -3170,9 +3330,9 @@ components:
           description: Error type/category
           example: Bad Request
       required:
-      - statusCode
-      - message
-      - error
+        - statusCode
+        - message
+        - error
     PlaylistSearchResultDto:
       type: object
       properties:
@@ -3202,11 +3362,11 @@ components:
           example: https://i.scdn.co/image/ab67706f00000003...
           nullable: true
       required:
-      - id
-      - name
-      - description
-      - owner
-      - tracksTotal
+        - id
+        - name
+        - description
+        - owner
+        - tracksTotal
     PlaylistDetailResponseDto:
       type: object
       properties:
@@ -3233,10 +3393,10 @@ components:
           items:
             $ref: "#/components/schemas/TrackResponseDto"
       required:
-      - id
-      - name
-      - description
-      - tracks
+        - id
+        - name
+        - description
+        - tracks
     TrackInput:
       type: object
       properties:
@@ -3256,25 +3416,27 @@ components:
       type: object
       properties:
         tracks:
-          description: Array of 1-5 tracks to base recommendations on. Each track can be specified by ID, name (with optional artist), or a mix of both.
+          description: Array of 1-5 tracks to base recommendations on. Each track can be
+            specified by ID, name (with optional artist), or a mix of both.
           minItems: 1
           maxItems: 5
           example:
-          - id: 3n3Ppam7vgaVa1iaRUc9Lp
-          - name: Stairway to Heaven
-            artist: Led Zeppelin
+            - id: 3n3Ppam7vgaVa1iaRUc9Lp
+            - name: Stairway to Heaven
+              artist: Led Zeppelin
           type: array
           items:
             $ref: "#/components/schemas/TrackInput"
         limit:
           type: number
-          description: Number of recommendations to return (1-100). Defaults to 20 if not specified.
+          description: Number of recommendations to return (1-100). Defaults to 20 if not
+            specified.
           minimum: 1
           maximum: 100
           default: 20
           example: 30
       required:
-      - tracks
+        - tracks
     TrackWithPreviewResponseDto:
       type: object
       properties:
@@ -3305,84 +3467,91 @@ components:
           example: https://p.scdn.co/mp3-preview/...
           nullable: true
       required:
-      - id
-      - name
-      - artists
-      - album
+        - id
+        - name
+        - artists
+        - album
     LegacyRecommendationRequestDto:
       type: object
       properties:
         trackIds:
-          description: Array of 1-5 Spotify track IDs to base recommendations on. Always returns 20 recommendations.
+          description: Array of 1-5 Spotify track IDs to base recommendations on. Always
+            returns 20 recommendations.
           minItems: 1
           maxItems: 5
           example:
-          - 3n3Ppam7vgaVa1iaRUc9Lp
-          - 5ChkMS8OtdzJeqyybCc9R5
-          - 0c6xIDDpzE81m2q797ordA
+            - 3n3Ppam7vgaVa1iaRUc9Lp
+            - 5ChkMS8OtdzJeqyybCc9R5
+            - 0c6xIDDpzE81m2q797ordA
           type: array
           items:
             type: string
       required:
-      - trackIds
+        - trackIds
     BulkSongsRecommendationDto:
       type: object
       properties:
         giveSongs:
-          description: Array of song objects. Each song can have an ID or name (with optional artist). Will use up to 5 songs as seeds.
+          description: Array of song objects. Each song can have an ID or name (with
+            optional artist). Will use up to 5 songs as seeds.
           minItems: 1
           example:
-          - id: 3n3Ppam7vgaVa1iaRUc9Lp
-            name: Mr. Brightside
-          - name: Somebody Told Me
-            artist: The Killers
-          - name: When You Were Young
-            artist: The Killers
-          - id: 0eGsygTp906u18L0Oimnem
+            - id: 3n3Ppam7vgaVa1iaRUc9Lp
+              name: Mr. Brightside
+            - name: Somebody Told Me
+              artist: The Killers
+            - name: When You Were Young
+              artist: The Killers
+            - id: 0eGsygTp906u18L0Oimnem
           type: array
           items:
             $ref: "#/components/schemas/TrackInput"
         n:
           type: number
-          description: Number of recommendations to return (1-100). Defaults to number of input songs if not specified.
+          description: Number of recommendations to return (1-100). Defaults to number of
+            input songs if not specified.
           minimum: 1
           maximum: 100
           example: 10
       required:
-      - giveSongs
+        - giveSongs
     RecommendationMode:
       type: number
       enum:
-      - 0
-      - 1
-      - 2
+        - 0
+        - 1
+        - 2
       description: >-
         Recommendation mode:
 
         - 0 (Strict): Returns tracks from the same artists as the seed tracks
 
-        - 1 (Balanced): Returns tracks from related artists in similar genres (uses Spotify API internally)
+        - 1 (Balanced): Returns tracks from related artists in similar genres
+        (uses Spotify API internally)
 
-        - 2 (Diverse): Returns tracks with vague genre adherence for more variety (uses Spotify API internally)
+        - 2 (Diverse): Returns tracks with vague genre adherence for more
+        variety (uses Spotify API internally)
 
         Defaults to Balanced (1) if not specified.
     DeezerRecommendationRequestDto:
       type: object
       properties:
         trackNames:
-          description: Array of track names to base recommendations on. Can be simple track names or "Artist - Track" format for better accuracy.
+          description: Array of track names to base recommendations on. Can be simple
+            track names or "Artist - Track" format for better accuracy.
           minItems: 1
           example:
-          - Bohemian Rhapsody
-          - Queen - We Will Rock You
-          - Led Zeppelin - Stairway to Heaven
-          - Hotel California
+            - Bohemian Rhapsody
+            - Queen - We Will Rock You
+            - Led Zeppelin - Stairway to Heaven
+            - Hotel California
           type: array
           items:
             type: string
         n:
           type: number
-          description: Number of recommendations to return. Defaults to the number of input tracks if not specified.
+          description: Number of recommendations to return. Defaults to the number of
+            input tracks if not specified.
           minimum: 1
           maximum: 100
           example: 10
@@ -3390,18 +3559,21 @@ components:
           description: >-
             Recommendation mode:
 
-            - 0 (Strict): Returns tracks from the same artists as the seed tracks
+            - 0 (Strict): Returns tracks from the same artists as the seed
+            tracks
 
-            - 1 (Balanced): Returns tracks from related artists in similar genres (uses Spotify API internally)
+            - 1 (Balanced): Returns tracks from related artists in similar
+            genres (uses Spotify API internally)
 
-            - 2 (Diverse): Returns tracks with vague genre adherence for more variety (uses Spotify API internally)
+            - 2 (Diverse): Returns tracks with vague genre adherence for more
+            variety (uses Spotify API internally)
 
             Defaults to Balanced (1) if not specified.
           example: 1
           allOf:
-          - $ref: "#/components/schemas/RecommendationMode"
+            - $ref: "#/components/schemas/RecommendationMode"
       required:
-      - trackNames
+        - trackNames
     DeezerArtistResponseDto:
       type: object
       properties:
@@ -3446,16 +3618,16 @@ components:
           description: Object type identifier
           example: artist
       required:
-      - id
-      - name
-      - link
-      - picture
-      - picture_small
-      - picture_medium
-      - picture_big
-      - picture_xl
-      - tracklist
-      - type
+        - id
+        - name
+        - link
+        - picture
+        - picture_small
+        - picture_medium
+        - picture_big
+        - picture_xl
+        - tracklist
+        - type
     DeezerAlbumResponseDto:
       type: object
       properties:
@@ -3500,16 +3672,16 @@ components:
           description: Object type identifier
           example: album
       required:
-      - id
-      - title
-      - cover
-      - cover_small
-      - cover_medium
-      - cover_big
-      - cover_xl
-      - md5_image
-      - tracklist
-      - type
+        - id
+        - title
+        - cover
+        - cover_small
+        - cover_medium
+        - cover_big
+        - cover_xl
+        - md5_image
+        - tracklist
+        - type
     DeezerTrackResponseDto:
       type: object
       properties:
@@ -3569,28 +3741,28 @@ components:
         artist:
           description: Track artist details
           allOf:
-          - $ref: "#/components/schemas/DeezerArtistResponseDto"
+            - $ref: "#/components/schemas/DeezerArtistResponseDto"
         album:
           description: Track album details
           allOf:
-          - $ref: "#/components/schemas/DeezerAlbumResponseDto"
+            - $ref: "#/components/schemas/DeezerAlbumResponseDto"
         type:
           type: string
           description: Object type identifier
           example: track
       required:
-      - id
-      - readable
-      - title
-      - title_short
-      - title_version
-      - link
-      - duration
-      - rank
-      - explicit_lyrics
-      - explicit_content_lyrics
-      - explicit_content_cover
-      - md5_image
-      - artist
-      - album
-      - type
+        - id
+        - readable
+        - title
+        - title_short
+        - title_version
+        - link
+        - duration
+        - rank
+        - explicit_lyrics
+        - explicit_content_lyrics
+        - explicit_content_cover
+        - md5_image
+        - artist
+        - album
+        - type

@@ -7,7 +7,7 @@ This repo uses **Next.js route handlers** under `src/app/api/**` for two purpose
 
 > If you add or change environment variables used by these routes, update both `.env.example` and `src/env.js`.
 
-Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.yaml` (vendored copy; this repo’s API is the Next.js routes listed below). The OpenAPI `servers` entry may list a production base URL, but this app uses `API_V2_URL`.
+Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.json` (vendored copy; this repo’s API is the Next.js routes listed below). The OpenAPI `servers` entry may list a production base URL, but this app uses `API_V2_URL`.
 
 ## Route map
 
@@ -17,6 +17,11 @@ Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.ya
 | `/api/stream` | GET | `src/app/api/stream/route.ts` | Proxies to Songbird V2 `music/stream/direct`, including `Range` passthrough for seeking (V2-only). | `API_V2_URL`, `SONGBIRD_API_KEY` |
 | `/api/track/[id]` | GET | `src/app/api/track/[id]/route.ts` | Tries Songbird V2 `music/tracks/batch?ids=...` (header `X-API-Key`), falls back to Deezer `track/:id`. | Optional: `API_V2_URL`, `SONGBIRD_API_KEY` |
 | `/api/og` | GET | `src/app/api/og/route.tsx` | Redirects to Songbird V2 preview endpoints; supports `trackId` and `q` flows; falls back to `/og-image.png` if V2 not configured. | Optional: `API_V2_URL` |
+| `/api/music/releases/latest` | GET | `src/app/api/music/releases/latest/route.ts` | Proxies latest release catalog entries from the upstream discovery service. | `API_V2_URL` |
+| `/api/music/playlists/popular` | GET | `src/app/api/music/playlists/popular/route.ts` | Proxies popular curated playlists from the upstream discovery service. | `API_V2_URL` |
+| `/api/music/playlists/by-genre-id` | GET | `src/app/api/music/playlists/by-genre-id/route.ts` | Proxies genre-scoped playlists using numeric `genreId` with optional bounded `limit`. | `API_V2_URL` |
+| `/api/music/playlists/by-genre` | GET | `src/app/api/music/playlists/by-genre/route.ts` | Proxies genre-scoped playlists using text `genre` as a fallback selector. | `API_V2_URL` |
+| `/api/music/genres` | GET | `src/app/api/music/genres/route.ts` | Proxies genre taxonomy for discovery and personalization selectors. | `API_V2_URL` |
 | `/api/album/[id]` | GET | `src/app/api/album/[id]/route.ts` | Proxies to Deezer `album/:id`. | none |
 | `/api/album/[id]/tracks` | GET | `src/app/api/album/[id]/tracks/route.ts` | Proxies to Deezer `album/:id/tracks` (also fetches album info to enrich track payload). | none |
 | `/api/artist/[id]` | GET | `src/app/api/artist/[id]/route.ts` | Proxies to Deezer `artist/:id`. | none |
@@ -34,7 +39,7 @@ Songbird V2 is called in two slightly different ways:
 
 `API_V2_URL` is normalized by stripping trailing slashes, so a trailing slash is optional.
 
-For upstream endpoint names/parameters, use `docs/API_V2_SWAGGER.yaml` as the source of truth.
+For upstream endpoint names/parameters, use `docs/API_V2_SWAGGER.json` as the source of truth.
 
 ## OG preview query encoding
 

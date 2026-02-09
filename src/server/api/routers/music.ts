@@ -193,7 +193,7 @@ async function convertToDeezerIds(
   if (tracks.length === 0) return [];
   const conversionResponse = await songbird.request<{
     tracks?: Array<{ deezerId?: unknown }>;
-  }>("/api/deezer/tracks/convert", {
+  }>("/api/music/tracks/convert", {
     method: "POST",
     body: JSON.stringify({
       tracks: tracks.map((track) => ({
@@ -248,7 +248,7 @@ async function resolveSpiceUpTracksToDeezer(
   if (missingCandidates.length > 0) {
     const conversionResponse = await songbird.request<{
       tracks?: Array<{ deezerId?: unknown }>;
-    }>("/api/deezer/tracks/convert", {
+    }>("/api/music/tracks/convert", {
       method: "POST",
       body: JSON.stringify({
         tracks: missingCandidates.map((track) => ({
