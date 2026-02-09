@@ -71,6 +71,68 @@ function extractUrl(input: Parameters<typeof fetch>[0]): URL | null {
   }
 }
 
+type UnknownRecord = Record<string, unknown>;
+
+type NormalizedSpotifyProfile = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+};
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null;
+}
+
+function getString(record: UnknownRecord, key: string): string | null {
+  const value = record[key];
+  return typeof value === "string" ? value : null;
+}
+
+function isUnknownArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+function getSpotifyImageUrl(record: UnknownRecord): string | null {
+  const images = record.images;
+  if (!isUnknownArray(images) || images.length === 0) {
+    return null;
+  }
+
+  const firstImage = images[0];
+  if (!isRecord(firstImage)) {
+    return null;
+  }
+
+  const url = firstImage.url;
+  return typeof url === "string" ? url : null;
+}
+
+function parseSpotifyProfile(profile: unknown): NormalizedSpotifyProfile {
+  if (!isRecord(profile)) {
+    throw new Error("Spotify returned an empty profile response");
+  }
+
+  const error = getString(profile, "error");
+  if (error) {
+    const errorDescription = getString(profile, "error_description");
+    const details = errorDescription ? `: ${errorDescription}` : "";
+    throw new Error(`Spotify userinfo error: ${error}${details}`);
+  }
+
+  const id = getString(profile, "id");
+  if (!id) {
+    throw new Error("Spotify profile response missing id");
+  }
+
+  return {
+    id,
+    name: getString(profile, "display_name"),
+    email: getString(profile, "email"),
+    image: getSpotifyImageUrl(profile),
+  };
+}
+
 async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -173,7 +235,7 @@ export const authConfig = {
 
       // Work around rare non-JSON responses from Spotify OAuth endpoints which
       // would otherwise crash Auth.js JSON parsing in the callback route.
-      const spotifyOptions: any = {
+      const spotifyOptions = {
         clientId: spotifyClientId,
         clientSecret: spotifyClientSecret,
         ...(spotifyRedirectUri
@@ -185,40 +247,17 @@ export const authConfig = {
               },
             }
           : {}),
-        profile(profile: any) {
-          if (!profile || typeof profile !== "object") {
-            throw new Error("Spotify returned an empty profile response");
-          }
-
-          if (typeof profile.error === "string") {
-            const details =
-              typeof profile.error_description === "string"
-                ? `: ${profile.error_description}`
-                : "";
-            throw new Error(`Spotify userinfo error: ${profile.error}${details}`);
-          }
-
-          if (typeof profile.id !== "string" || !profile.id) {
-            throw new Error("Spotify profile response missing id");
-          }
-
-          return {
-            id: profile.id,
-            name:
-              typeof profile.display_name === "string"
-                ? profile.display_name
-                : null,
-            email: typeof profile.email === "string" ? profile.email : null,
-            image:
-              typeof profile.images?.[0]?.url === "string"
-                ? profile.images[0].url
-                : null,
-          };
+        profile(profile: unknown) {
+          return parseSpotifyProfile(profile);
         },
       };
 
-      spotifyOptions[customFetch] = spotifyCustomFetch;
-      return [SpotifyProvider(spotifyOptions)];
+      const spotifyProviderConfig = {
+        ...spotifyOptions,
+        [customFetch]: spotifyCustomFetch,
+      } as Parameters<typeof SpotifyProvider>[0];
+
+      return [SpotifyProvider(spotifyProviderConfig)];
     })(),
   ],
   adapter: DrizzleAdapter(db, {

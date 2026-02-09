@@ -3,12 +3,9 @@
 import type { NextRequest } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const originalFetch = global.fetch;
-
 describe("Music Search API (V2-only)", () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    global.fetch = originalFetch;
   });
 
   it("calls V2 search with key/kbps and returns parsed response", async () => {
@@ -20,14 +17,15 @@ describe("Music Search API (V2-only)", () => {
       },
     }));
 
+    let capturedFetchInput: RequestInfo | URL | undefined;
     const fetchMock = vi
-      .fn<[RequestInfo | URL], Promise<Response>>()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ data: [{ id: 1 }], total: 1 }), {
+      .spyOn(global, "fetch")
+      .mockImplementation(async (input) => {
+        capturedFetchInput = input;
+        return new Response(JSON.stringify({ data: [{ id: 1 }], total: 1 }), {
           headers: { "content-type": "application/json" },
-        }),
-      );
-    global.fetch = fetchMock;
+        });
+      });
 
     const { GET } = await import("@/app/api/music/search/route");
 
@@ -46,7 +44,7 @@ describe("Music Search API (V2-only)", () => {
     expect(body).toEqual({ data: [{ id: 1 }], total: 1 });
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    const calledUrlArg = fetchMock.mock.calls[0]?.[0];
+    const calledUrlArg = capturedFetchInput;
     if (!calledUrlArg) {
       throw new Error("Missing fetch URL");
     }
@@ -74,8 +72,7 @@ describe("Music Search API (V2-only)", () => {
       },
     }));
 
-    const fetchMock = vi.fn<[RequestInfo | URL], Promise<Response>>();
-    global.fetch = fetchMock;
+    const fetchMock = vi.spyOn(global, "fetch");
 
     const { GET } = await import("@/app/api/music/search/route");
 
