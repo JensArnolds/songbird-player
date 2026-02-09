@@ -149,7 +149,29 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     enabled: !!session,
     refetchOnWindowFocus: false,
   });
-  const upsertTasteProfile = api.music.upsertTasteProfile.useMutation();
+  type TasteProfilePayload = {
+    preferredGenreId: number | null;
+    preferredGenreName: string | null;
+    seedArtists: string[];
+    seedPlaylistTitles: string[];
+  };
+
+  type UpsertTasteProfileMutation = {
+    mutate: (
+      input: TasteProfilePayload,
+      options?: { onError?: (error: unknown) => void },
+    ) => void;
+  };
+
+  const upsertTasteProfile = (
+    api as {
+      music: {
+        upsertTasteProfile: {
+          useMutation: () => UpsertTasteProfileMutation;
+        };
+      };
+    }
+  ).music.upsertTasteProfile.useMutation();
 
   useEffect(() => {
     if (!mounted || !session || !tasteProfile) return;
@@ -161,10 +183,13 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     const profileGenreId = parsePreferredGenreId(
       (tasteProfile.preferredGenreId as number | string | null) ?? null,
     );
-    const profileGenreName =
-      typeof tasteProfile.preferredGenreName === "string"
-        ? tasteProfile.preferredGenreName.trim()
-        : "";
+    const profileGenreName = (() => {
+      if (!tasteProfile || typeof tasteProfile !== "object") return "";
+      if (!("preferredGenreName" in tasteProfile)) return "";
+      const value = (tasteProfile as { preferredGenreName?: unknown })
+        .preferredGenreName;
+      return typeof value === "string" ? value.trim() : "";
+    })();
 
     if (profileGenreId) {
       setPreferredGenreId(profileGenreId);
@@ -585,7 +610,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
       return;
     }
 
-    const payload = {
+    const payload: TasteProfilePayload = {
       preferredGenreId,
       preferredGenreName: preferredGenreName.trim() || null,
       seedArtists: tasteSeedArtists,
