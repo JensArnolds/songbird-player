@@ -12,8 +12,11 @@ const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const NODE_VERSION = "20.18.2"; const PLATFORM = process.platform; const ARCH = process.arch; 
+const NODE_VERSION = process.env.NODE_DOWNLOAD_VERSION || "20.18.2";
+const TARGET_PLATFORM = process.env.NODE_DOWNLOAD_PLATFORM || process.platform;
+const TARGET_ARCH = process.env.NODE_DOWNLOAD_ARCH || process.arch;
 const OUTPUT_DIR = path.join(__dirname, "..", "resources", "node");
+const METADATA_PATH = path.join(OUTPUT_DIR, ".node-runtime.json");
 
 /**
  * Download a file from URL to destination
@@ -118,69 +121,108 @@ async function extractTarGz(tarPath, outputDir) {
  */
 async function main() {
   console.log("\n=== Downloading Node.js Runtime ===");
-  console.log(`Platform: ${PLATFORM}`);
-  console.log(`Architecture: ${ARCH}`);
+  console.log(`Target Platform: ${TARGET_PLATFORM}`);
+  console.log(`Target Architecture: ${TARGET_ARCH}`);
   console.log(`Node Version: ${NODE_VERSION}`);
   console.log(`Output: ${OUTPUT_DIR}\n`);
 
-    let downloadUrl;
+  const desiredMetadata = {
+    version: NODE_VERSION,
+    platform: TARGET_PLATFORM,
+    arch: TARGET_ARCH,
+  };
+
+  if (fs.existsSync(OUTPUT_DIR)) {
+    if (fs.existsSync(METADATA_PATH)) {
+      try {
+        const existingMetadata = JSON.parse(
+          fs.readFileSync(METADATA_PATH, "utf8"),
+        );
+        if (
+          existingMetadata.version === desiredMetadata.version &&
+          existingMetadata.platform === desiredMetadata.platform &&
+          existingMetadata.arch === desiredMetadata.arch
+        ) {
+          console.log("Node.js runtime already exists, skipping download");
+          console.log(`Location: ${OUTPUT_DIR}\n`);
+          return;
+        }
+      } catch (error) {
+        console.warn(
+          "Failed to read runtime metadata; redownloading Node.js runtime",
+          error,
+        );
+      }
+    }
+
+    console.log("Removing outdated Node.js runtime...");
+    fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
+  }
+
+  let downloadUrl;
   let fileName;
   let extractedDirName;
 
-  if (PLATFORM === "win32") {
-        fileName = `node-v${NODE_VERSION}-win-${ARCH}.zip`;
-    extractedDirName = `node-v${NODE_VERSION}-win-${ARCH}`;
+  if (TARGET_PLATFORM === "win32") {
+    fileName = `node-v${NODE_VERSION}-win-${TARGET_ARCH}.zip`;
+    extractedDirName = `node-v${NODE_VERSION}-win-${TARGET_ARCH}`;
     downloadUrl = `https://nodejs.org/dist/v${NODE_VERSION}/${fileName}`;
-  } else if (PLATFORM === "darwin") {
-        fileName = `node-v${NODE_VERSION}-darwin-${ARCH}.tar.gz`;
-    extractedDirName = `node-v${NODE_VERSION}-darwin-${ARCH}`;
+  } else if (TARGET_PLATFORM === "darwin") {
+    fileName = `node-v${NODE_VERSION}-darwin-${TARGET_ARCH}.tar.gz`;
+    extractedDirName = `node-v${NODE_VERSION}-darwin-${TARGET_ARCH}`;
     downloadUrl = `https://nodejs.org/dist/v${NODE_VERSION}/${fileName}`;
-  } else if (PLATFORM === "linux") {
-        fileName = `node-v${NODE_VERSION}-linux-${ARCH}.tar.gz`;
-    extractedDirName = `node-v${NODE_VERSION}-linux-${ARCH}`;
+  } else if (TARGET_PLATFORM === "linux") {
+    fileName = `node-v${NODE_VERSION}-linux-${TARGET_ARCH}.tar.gz`;
+    extractedDirName = `node-v${NODE_VERSION}-linux-${TARGET_ARCH}`;
     downloadUrl = `https://nodejs.org/dist/v${NODE_VERSION}/${fileName}`;
   } else {
-    console.error(`Unsupported platform: ${PLATFORM}`);
+    console.error(`Unsupported platform: ${TARGET_PLATFORM}`);
     process.exit(1);
   }
 
-    const resourcesDir = path.join(__dirname, "..", "resources");
+  const resourcesDir = path.join(__dirname, "..", "resources");
   if (!fs.existsSync(resourcesDir)) {
     fs.mkdirSync(resourcesDir, { recursive: true });
   }
 
-    if (fs.existsSync(OUTPUT_DIR)) {
-    console.log("Node.js runtime already exists, skipping download");
-    console.log(`Location: ${OUTPUT_DIR}\n`);
-    return;
-  }
-
-    const downloadPath = path.join(resourcesDir, fileName);
+  const downloadPath = path.join(resourcesDir, fileName);
 
   try {
     await downloadFile(downloadUrl, downloadPath);
 
-        const tempExtractDir = path.join(resourcesDir, "temp-node");
+    const tempExtractDir = path.join(resourcesDir, "temp-node");
     if (!fs.existsSync(tempExtractDir)) {
       fs.mkdirSync(tempExtractDir, { recursive: true });
     }
 
-    if (PLATFORM === "win32") {
+    if (TARGET_PLATFORM === "win32") {
       await extractZip(downloadPath, tempExtractDir);
     } else {
       await extractTarGz(downloadPath, tempExtractDir);
     }
 
-        const extractedPath = path.join(tempExtractDir, extractedDirName);
+    const extractedPath = path.join(tempExtractDir, extractedDirName);
     if (fs.existsSync(extractedPath)) {
       fs.renameSync(extractedPath, OUTPUT_DIR);
     } else {
       throw new Error(`Extracted directory not found: ${extractedPath}`);
     }
 
-        console.log("Cleaning up temporary files...");
+    console.log("Cleaning up temporary files...");
     fs.unlinkSync(downloadPath);
     fs.rmSync(tempExtractDir, { recursive: true, force: true });
+
+    fs.writeFileSync(
+      METADATA_PATH,
+      JSON.stringify(
+        {
+          ...desiredMetadata,
+          downloadedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
 
     console.log("\n✓ Node.js runtime downloaded and prepared successfully");
     console.log(`Location: ${OUTPUT_DIR}\n`);

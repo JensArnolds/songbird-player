@@ -92,7 +92,7 @@
     "electron:clean:win": "node scripts/electron-clean-win.js",
     "electron:download-node": "node scripts/download-node.js",
     "electron:build": "npm run electron:clean && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder\"",
-    "electron:build:win": "npm run electron:clean:win && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder --win\"",
+    "electron:build:win": "npm run electron:clean:win && cross-env NODE_DOWNLOAD_PLATFORM=win32 NODE_DOWNLOAD_ARCH=x64 npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder --win\"",
     "electron:build:mac": "npm run electron:clean && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder --mac\"",
     "electron:build:linux": "npm run electron:clean && npm run electron:download-node && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && node scripts/load-env-build.js \"electron-builder --linux\""
   },
