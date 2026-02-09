@@ -5,6 +5,34 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2026-02-09
+
+### Fixed
+
+- **OAuth PKCE authentication failure for new users**: Resolved critical "code_verifier was incorrect" error that blocked new user registration via Spotify and Discord OAuth on both Vercel and self-hosted deployments. The issue was caused by explicit cookie configuration that prevented Auth.js from creating necessary PKCE state cookies (`pkceCodeVerifier`, `state`, `nonce`). Removed custom cookie configuration to allow Auth.js to use its built-in defaults which properly handle all OAuth state management. Location: [src/server/auth/config.ts:193-230](src/server/auth/config.ts).
+
+### Changed
+
+- **Auth environment validation enhancement**: Added `AUTH_TRUST_HOST` environment variable to the Zod validation schema with proper boolean transformation. While `trustHost: true` was already set in the auth config, the environment variable is now properly validated and can be explicitly configured. Location: [src/env.js:11-14,43](src/env.js).
+
+### Technical Details
+
+This release fixes a critical OAuth authentication bug that manifested as:
+```
+CallbackRouteError: r_: server responded with an error in the response body
+[auth][details]: {
+  "error": "invalid_grant",
+  "error_description": "code_verifier was incorrect",
+  "provider": "spotify"
+}
+```
+
+**Root Cause**: The custom cookie configuration (sessionToken, csrfToken, callbackUrl) inadvertently prevented Auth.js from creating the required PKCE cookies needed for the OAuth 2.0 authorization code flow with PKCE (Proof Key for Code Exchange).
+
+**Impact**: New users attempting to sign up via Spotify or Discord OAuth would encounter a "Server error - There is a problem with the server configuration" message during the callback phase, effectively blocking all new user registrations.
+
+**Resolution**: By removing the explicit cookie configuration and allowing Auth.js to use its default cookie handling, all necessary OAuth state cookies are now properly created and managed with appropriate security settings for both development and production environments.
+
 ## [0.14.9] - 2026-02-08
 
 ### Fixed
