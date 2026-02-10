@@ -4,6 +4,7 @@
 
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useToast } from "@/contexts/ToastContext";
+import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
 import { api } from "@/trpc/react";
 import type { QueuedTrack, SimilarityPreference, SmartQueueState, Track } from "@/types";
 import { getCoverImage } from "@/utils/images";
@@ -55,6 +56,7 @@ interface QueueItemProps {
   onPlay: () => void;
   onRemove: () => void;
   onToggleSelect: (e: React.MouseEvent) => void;
+  onContextMenu: (e: React.MouseEvent) => void;
   sortableId: string;
   isSmartTrack?: boolean;
   canRemove: boolean;
@@ -68,6 +70,7 @@ function SortableQueueItem({
   onPlay,
   onRemove,
   onToggleSelect,
+  onContextMenu,
   sortableId,
   isSmartTrack,
   canRemove,
@@ -110,6 +113,7 @@ function SortableQueueItem({
         }
         onToggleSelect(e);
       }}
+      onContextMenu={onContextMenu}
       tabIndex={0}
       className={`group relative flex items-center gap-3 p-3 transition-colors cursor-pointer ${isSelected
           ? "bg-[rgba(88,198,177,0.18)] ring-2 ring-[rgba(88,198,177,0.4)]"
@@ -248,6 +252,7 @@ export function EnhancedQueue({
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const { showToast } = useToast();
+  const { openMenu } = useTrackContextMenu();
   const queueListRef = useRef<HTMLDivElement>(null);
 
   // Load smart queue settings
@@ -350,6 +355,16 @@ export function EnhancedQueue({
   const filteredSmartTracks = useMemo(() => {
     return filteredQueue.slice(1).filter(entry => entry.isSmartTrack);
   }, [filteredQueue]);
+
+  const handleTrackContextMenu = useCallback((track: Track, index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    openMenu(track, e.clientX, e.clientY, {
+      removeFromList: {
+        label: "Remove from Queue",
+        onRemove: () => onRemove(index),
+      },
+    });
+  }, [openMenu, onRemove]);
 
   const handleToggleSelect = useCallback((index: number, shiftKey: boolean) => {
     setSelectedIndices((prev) => {
@@ -624,8 +639,12 @@ export function EnhancedQueue({
       { }
       <div
         ref={queueListRef}
-        className="flex-1 overflow-y-auto overscroll-contain scroll-smooth"
+        className="flex-1 overflow-y-auto overscroll-contain scroll-smooth pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-track]:mr-1 [&::-webkit-scrollbar-thumb]:bg-[rgba(88,198,177,0.3)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-[rgba(88,198,177,0.5)] [&::-webkit-scrollbar-thumb]:transition-colors"
         id="queue-list"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(88, 198, 177, 0.3) transparent'
+        }}
       >
         {queue.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center p-8 text-center text-[var(--color-subtext)]">
@@ -670,6 +689,7 @@ export function EnhancedQueue({
                         onPlay={() => onPlayFrom(filteredNowPlaying.index)}
                         onRemove={() => onRemove(filteredNowPlaying.index)}
                         onToggleSelect={(e) => handleToggleSelect(filteredNowPlaying.index, e.shiftKey)}
+                        onContextMenu={(e) => handleTrackContextMenu(filteredNowPlaying.track, filteredNowPlaying.index, e)}
                         isSmartTrack={filteredNowPlaying.isSmartTrack}
                         canRemove={filteredNowPlaying.index !== 0}
                       />
@@ -695,6 +715,7 @@ export function EnhancedQueue({
                             onPlay={() => onPlayFrom(index)}
                             onRemove={() => onRemove(index)}
                             onToggleSelect={(e) => handleToggleSelect(index, e.shiftKey)}
+                            onContextMenu={(e) => handleTrackContextMenu(track, index, e)}
                             isSmartTrack={isSmartTrack}
                             canRemove={index !== 0}
                           />
@@ -735,6 +756,7 @@ export function EnhancedQueue({
                               onPlay={() => onPlayFrom(index)}
                               onRemove={() => onRemove(index)}
                               onToggleSelect={(e) => handleToggleSelect(index, e.shiftKey)}
+                              onContextMenu={(e) => handleTrackContextMenu(track, index, e)}
                               isSmartTrack={isSmartTrack}
                               canRemove={index !== 0}
                             />
