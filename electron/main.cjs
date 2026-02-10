@@ -667,11 +667,17 @@ const startServer = async () => {
     };
 
     /** @type {import('child_process').ChildProcess | null} */
+    const runtimeAuthOrigin = `http://${loopbackHost}:${serverPort}`;
+    log("  NEXTAUTH_URL (runtime):", runtimeAuthOrigin);
+
     serverProcess = spawn(nodeExecutable, [serverPath], {
       env: {
         ...process.env,
         PORT: serverPort.toString(),
         HOSTNAME: loopbackHost,
+        // Keep Auth.js redirect-uri generation aligned with the actual
+        // loopback host/port used by the packaged Electron runtime.
+        NEXTAUTH_URL: runtimeAuthOrigin,
         NODE_ENV: "production",
         ELECTRON_BUILD: "true",
         NODE_PATH: standaloneNodeModules,
