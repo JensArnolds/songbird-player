@@ -5,6 +5,12 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.8] - 2026-02-10
+
+### Added
+
+- **Queue item context menu**: Implemented full queue-aware context actions (play from queue, move to next/end, remove) while keeping standard track actions available on queued tracks. Locations: `src/components/EnhancedQueue.tsx`, `src/components/TrackContextMenu.tsx`, `src/contexts/TrackContextMenuContext.tsx`.
+
 ## [0.15.4] - 2026-02-09
 
 ### Added

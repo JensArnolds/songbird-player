@@ -15,9 +15,20 @@ export interface RemoveFromListOption {
   onRemove: () => void;
 }
 
+export interface QueueContextMenuActions {
+  onPlayFromQueue?: () => void;
+  onMoveToNext?: () => void;
+  onMoveToEnd?: () => void;
+  isQueued?: boolean;
+}
+
 export type OpenMenuOptions =
   | number
-  | { excludePlaylistId?: number; removeFromList?: RemoveFromListOption }
+  | {
+      excludePlaylistId?: number;
+      removeFromList?: RemoveFromListOption;
+      queueActions?: QueueContextMenuActions;
+    }
   | undefined;
 
 interface TrackContextMenuContextType {
@@ -25,6 +36,7 @@ interface TrackContextMenuContextType {
   position: MenuPosition | null;
   excludePlaylistId?: number;
   removeFromList?: RemoveFromListOption;
+  queueActions?: QueueContextMenuActions;
   openMenu: (track: Track, x: number, y: number, options?: OpenMenuOptions) => void;
   closeMenu: () => void;
 }
@@ -38,6 +50,9 @@ export function TrackContextMenuProvider({ children }: { children: ReactNode }) 
   const [position, setPosition] = useState<MenuPosition | null>(null);
   const [excludePlaylistId, setExcludePlaylistId] = useState<number | undefined>(undefined);
   const [removeFromList, setRemoveFromList] = useState<RemoveFromListOption | undefined>(undefined);
+  const [queueActions, setQueueActions] = useState<QueueContextMenuActions | undefined>(
+    undefined,
+  );
 
   const openMenu = useCallback(
     (track: Track, x: number, y: number, options?: OpenMenuOptions) => {
@@ -46,12 +61,15 @@ export function TrackContextMenuProvider({ children }: { children: ReactNode }) 
       if (options === undefined) {
         setExcludePlaylistId(undefined);
         setRemoveFromList(undefined);
+        setQueueActions(undefined);
       } else if (typeof options === "number") {
         setExcludePlaylistId(options);
         setRemoveFromList(undefined);
+        setQueueActions(undefined);
       } else {
         setExcludePlaylistId(options.excludePlaylistId);
         setRemoveFromList(options.removeFromList);
+        setQueueActions(options.queueActions);
       }
     },
     [],
@@ -62,11 +80,20 @@ export function TrackContextMenuProvider({ children }: { children: ReactNode }) 
     setPosition(null);
     setExcludePlaylistId(undefined);
     setRemoveFromList(undefined);
+    setQueueActions(undefined);
   }, []);
 
   return (
     <TrackContextMenuContext.Provider
-      value={{ track, position, excludePlaylistId, removeFromList, openMenu, closeMenu }}
+      value={{
+        track,
+        position,
+        excludePlaylistId,
+        removeFromList,
+        queueActions,
+        openMenu,
+        closeMenu,
+      }}
     >
       {children}
     </TrackContextMenuContext.Provider>
