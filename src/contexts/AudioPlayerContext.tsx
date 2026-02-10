@@ -414,11 +414,22 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     onTrackChange: (track) => {
       if (track && session) {
         if (hasCompleteTrackData(track)) {
-          addToHistory.mutate({
-            track,
-            duration:
-              typeof track.duration === "number" ? track.duration : undefined,
-          });
+          addToHistory.mutate(
+            {
+              track,
+              duration:
+                typeof track.duration === "number" ? track.duration : undefined,
+            },
+            {
+              onError: (error) => {
+                console.error(
+                  "[AudioPlayerContext] Failed to add track to history:",
+                  error.message,
+                  { trackId: track.id, trackTitle: track.title },
+                );
+              },
+            },
+          );
         } else {
           console.warn(
             "[AudioPlayerContext] ⚠️ Skipping addToHistory due to incomplete track data",
