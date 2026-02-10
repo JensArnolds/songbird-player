@@ -9,17 +9,12 @@ import { parsePreferredGenreId } from "@/utils/genre";
 import { getProviders, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 
 function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
   const isBanned = error === "Banned";
-  const getAuthorizationParams = (providerId: string) => {
-    const redirectUri = getOAuthRedirectUri(providerId);
-    return redirectUri ? { redirect_uri: redirectUri } : undefined;
-  };
   const [providers, setProviders] =
     useState<Awaited<ReturnType<typeof getProviders>>>(null);
   const [genres, setGenres] = useState<GenreListItem[]>([]);
@@ -224,7 +219,6 @@ function SignInContent() {
                       signIn(
                         provider.id,
                         { callbackUrl },
-                        getAuthorizationParams(provider.id),
                       )
                     }
                     className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 ${
