@@ -6,6 +6,7 @@ import { STORAGE_KEYS } from "@/config/storage";
 import { localStorage as appStorage } from "@/services/storage";
 import { getGenres, type GenreListItem } from "@/utils/api";
 import { parsePreferredGenreId } from "@/utils/genre";
+import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { getProviders, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -219,6 +220,7 @@ function SignInContent() {
                       signIn(
                         provider.id,
                         { callbackUrl },
+                        { redirect_uri: getOAuthRedirectUri(provider.id) },
                       )
                     }
                     className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 ${
