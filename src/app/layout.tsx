@@ -60,7 +60,10 @@ export const metadata: Metadata = {
   description:
     "Modern music streaming and discovery platform with advanced audio features and visual patterns",
   applicationName: "Starchild Music",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [
+    { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },
+    { rel: "icon", url: "/favicon.ico" },
+  ],
   manifest: "/manifest.json",
   openGraph: {
     title: "Starchild Music",
