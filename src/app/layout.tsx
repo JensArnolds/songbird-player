@@ -42,18 +42,8 @@ const manrope = Manrope({
 
 const baseUrl = getBaseUrl();
 
-// Get default OG image URL from environment
-const getDefaultOgImageUrl = (): string => {
-  const songbirdApiUrl = env.API_V2_URL;
-  if (songbirdApiUrl) {
-    const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-    return `${normalizedSongbirdUrl}/api/preview/default`;
-  }
-  // Fallback to static OG image served by this app if env not configured
-  return "/og-image.png";
-};
-
-const defaultOgImageUrl = getDefaultOgImageUrl();
+// Use static OG image for default metadata
+const defaultOgImageUrl = "/og-image.png";
 
 export const metadata: Metadata = {
   title: "Starchild Music",
