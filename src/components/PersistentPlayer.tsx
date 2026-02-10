@@ -179,8 +179,8 @@ export default function PersistentPlayer() {
       {}
       {!isMobile && (
         <>
-          <div className="fixed inset-x-0 bottom-0 z-50">
-            <div className="player-backdrop">
+          <div className="fixed left-0 right-0 bottom-0 z-50 px-4 pb-4">
+            <div className="player-backdrop max-w-5xl mx-auto rounded-2xl overflow-hidden">
               <div className="player-backdrop-inner">
                 <MaturePlayer {...playerProps} />
               </div>
