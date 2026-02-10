@@ -4,6 +4,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+    ChevronsDown,
     Disc3,
     Heart,
     ListPlus,
@@ -27,7 +28,7 @@ import { springPresets } from "@/utils/spring-animations";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
 
 export function TrackContextMenu() {
-  const { track, position, excludePlaylistId, removeFromList, closeMenu } =
+  const { track, position, excludePlaylistId, removeFromList, queueActions, closeMenu } =
     useTrackContextMenu();
   const player = useGlobalPlayer();
   const { showToast } = useToast();
@@ -125,7 +126,11 @@ export function TrackContextMenu() {
   const handlePlay = () => {
     if (!track) return;
     hapticMedium();
-    player.playTrack(track);
+    if (queueActions?.onPlayFromQueue) {
+      queueActions.onPlayFromQueue();
+    } else {
+      player.playTrack(track);
+    }
     closeMenu();
   };
 
@@ -140,8 +145,21 @@ export function TrackContextMenu() {
   const handleAddToPlayNext = () => {
     if (!track) return;
     hapticLight();
-    player.addToPlayNext(track);
-    showToast(`"${track.title}" will play next`, "success");
+    if (queueActions?.onMoveToNext) {
+      queueActions.onMoveToNext();
+      showToast(`Moved "${track.title}" to play next`, "success");
+    } else {
+      player.addToPlayNext(track);
+      showToast(`"${track.title}" will play next`, "success");
+    }
+    closeMenu();
+  };
+
+  const handleMoveToEnd = () => {
+    if (!track || !queueActions?.onMoveToEnd) return;
+    hapticLight();
+    queueActions.onMoveToEnd();
+    showToast(`Moved "${track.title}" to the end of the queue`, "success");
     closeMenu();
   };
 
@@ -208,6 +226,10 @@ export function TrackContextMenu() {
 
   if (!track || !position) return null;
 
+  const isQueuedItem = !!queueActions?.isQueued;
+  const canMoveToNext = !!queueActions?.onMoveToNext;
+  const canMoveToEnd = !!queueActions?.onMoveToEnd;
+
   return (
     <>
       <AnimatePresence>
@@ -253,28 +275,46 @@ export function TrackContextMenu() {
               <div className="h-10 w-px bg-[rgba(244,178,102,0.15)]" />
 
               {}
-              <button
-                onClick={handleAddToQueue}
-                className="group flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all hover:bg-[rgba(244,178,102,0.15)] active:scale-95"
-                title="Add to queue"
-              >
-                <Plus className="h-5 w-5 text-[var(--color-subtext)] transition-all group-hover:scale-110 group-hover:text-[var(--color-accent)]" />
-                <span className="text-[10px] font-medium text-[var(--color-subtext)] group-hover:text-[var(--color-text)]">
-                  Queue
-                </span>
-              </button>
+              {!isQueuedItem && (
+                <button
+                  onClick={handleAddToQueue}
+                  className="group flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all hover:bg-[rgba(244,178,102,0.15)] active:scale-95"
+                  title="Add to queue"
+                >
+                  <Plus className="h-5 w-5 text-[var(--color-subtext)] transition-all group-hover:scale-110 group-hover:text-[var(--color-accent)]" />
+                  <span className="text-[10px] font-medium text-[var(--color-subtext)] group-hover:text-[var(--color-text)]">
+                    Queue
+                  </span>
+                </button>
+              )}
 
               {}
               <button
                 onClick={handleAddToPlayNext}
-                className="group flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all hover:bg-[rgba(244,178,102,0.15)] active:scale-95"
-                title="Play next"
+                className="group flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all hover:bg-[rgba(244,178,102,0.15)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                title={isQueuedItem ? "Move to play next" : "Play next"}
+                disabled={isQueuedItem && !canMoveToNext}
               >
                 <SkipForward className="h-5 w-5 text-[var(--color-subtext)] transition-all group-hover:scale-110 group-hover:text-[var(--color-accent)]" />
                 <span className="text-[10px] font-medium text-[var(--color-subtext)] group-hover:text-[var(--color-text)]">
                   Next
                 </span>
               </button>
+
+              {}
+              {isQueuedItem && (
+                <button
+                  onClick={handleMoveToEnd}
+                  className="group flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all hover:bg-[rgba(244,178,102,0.15)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Move to end of queue"
+                  disabled={!canMoveToEnd}
+                >
+                  <ChevronsDown className="h-5 w-5 text-[var(--color-subtext)] transition-all group-hover:scale-110 group-hover:text-[var(--color-accent)]" />
+                  <span className="text-[10px] font-medium text-[var(--color-subtext)] group-hover:text-[var(--color-text)]">
+                    Last
+                  </span>
+                </button>
+              )}
 
               {}
               <div className="h-10 w-px bg-[rgba(244,178,102,0.15)]" />

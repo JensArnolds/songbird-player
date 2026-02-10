@@ -356,15 +356,31 @@ export function EnhancedQueue({
     return filteredQueue.slice(1).filter(entry => entry.isSmartTrack);
   }, [filteredQueue]);
 
-  const handleTrackContextMenu = useCallback((track: Track, index: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    openMenu(track, e.clientX, e.clientY, {
-      removeFromList: {
-        label: "Remove from Queue",
-        onRemove: () => onRemove(index),
-      },
-    });
-  }, [openMenu, onRemove]);
+  const handleTrackContextMenu = useCallback(
+    (track: Track, index: number, e: React.MouseEvent) => {
+      e.preventDefault();
+
+      const isCurrent = index === 0;
+      const canMoveToNext = index > 1;
+      const canMoveToEnd = index > 0 && index < queue.length - 1;
+
+      openMenu(track, e.clientX, e.clientY, {
+        removeFromList: isCurrent
+          ? undefined
+          : {
+              label: "Remove from Queue",
+              onRemove: () => onRemove(index),
+            },
+        queueActions: {
+          isQueued: true,
+          onPlayFromQueue: () => onPlayFrom(index),
+          onMoveToNext: canMoveToNext ? () => onReorder(index, 1) : undefined,
+          onMoveToEnd: canMoveToEnd ? () => onReorder(index, queue.length - 1) : undefined,
+        },
+      });
+    },
+    [openMenu, onPlayFrom, onRemove, onReorder, queue.length],
+  );
 
   const handleToggleSelect = useCallback((index: number, shiftKey: boolean) => {
     setSelectedIndices((prev) => {
