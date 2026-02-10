@@ -1,6 +1,7 @@
 // File: src/utils/api.ts
 
 import type { SearchResponse, Track } from "@/types";
+import type { StreamQuality } from "@/types/settings";
 
 export interface FeedArtist {
   id: number;
@@ -112,6 +113,20 @@ function buildFeedUrl(
   }
 
   return url.toString();
+}
+
+const STREAM_QUALITY_KBPS: Record<StreamQuality, number> = {
+  low: 128,
+  normal: 192,
+  high: 320,
+};
+
+function resolveStreamKbps(quality?: StreamQuality | string): number | null {
+  if (!quality) return null;
+  if (quality in STREAM_QUALITY_KBPS) {
+    return STREAM_QUALITY_KBPS[quality as StreamQuality];
+  }
+  return null;
 }
 
 async function fetchFeed<T>(
