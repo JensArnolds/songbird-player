@@ -591,11 +591,14 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
 
   const tasteSeedPlaylistTitles = useMemo(
     () =>
-      tastePlaylistsRow
-        .map((playlist) => playlist.title.trim())
-        .filter((title) => title.length > 0)
-        .slice(0, 24),
-    [tastePlaylistsRow],
+      Array.from(
+        new Set(
+          [...favoriteTracks, ...historyTracks]
+            .map((track) => track.album?.title?.trim())
+            .filter((title): title is string => !!title && title.length > 0),
+        ),
+      ).slice(0, 24),
+    [favoriteTracks, historyTracks],
   );
 
   useEffect(() => {
