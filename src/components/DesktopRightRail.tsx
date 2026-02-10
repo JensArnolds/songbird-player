@@ -29,7 +29,7 @@ type RemovedQueueItem = {
 export function DesktopRightRail() {
   const player = useGlobalPlayer();
   const currentTrack = player.currentTrack;
-  const upNext = player.queue.slice(1, 7);
+  const upNext = player.queue.slice(1);
   const upcomingDuration = upNext.reduce(
     (total, track) => total + (track.duration ?? 0),
     0,
