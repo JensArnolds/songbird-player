@@ -1,7 +1,6 @@
 "use client";
 
 import { springPresets } from "@/utils/spring-animations";
-import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { AnimatePresence, motion } from "framer-motion";
 import { getProviders, signIn } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
@@ -78,12 +77,7 @@ export function AuthModal({
 
   const handleProviderSignIn = async (providerId: string) => {
     setSubmittingProviderId(providerId);
-    const redirectUri = getOAuthRedirectUri(providerId);
-    await signIn(
-      providerId,
-      { callbackUrl },
-      redirectUri ? { redirect_uri: redirectUri } : undefined,
-    );
+    await signIn(providerId, { callbackUrl });
     setSubmittingProviderId(null);
   };
 
