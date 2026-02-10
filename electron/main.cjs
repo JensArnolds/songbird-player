@@ -164,10 +164,39 @@ const isDev = !app.isPackaged && process.env.ELECTRON_PROD !== "true";
 const enableDevTools = isDev || process.env.ELECTRON_DEV_TOOLS === "true";
 /** @type {number} */
 const port = parseInt(process.env.PORT || "3222", 10);
-/** @type {string} */
-const loopbackHost = process.env.ELECTRON_LOOPBACK_HOST || "127.0.0.1";
 /** @type {Set<string>} */
 const loopbackOriginHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+/**
+ * Resolve the loopback hostname used by Electron and the bundled Next server.
+ * Priority:
+ * 1) explicit ELECTRON_LOOPBACK_HOST
+ * 2) AUTH_URL / NEXTAUTH_URL hostname when it is loopback
+ * 3) localhost default (matches default OAuth redirect setup)
+ * @returns {string}
+ */
+const resolveLoopbackHost = () => {
+  const explicitHost = (process.env.ELECTRON_LOOPBACK_HOST || "").trim();
+  if (explicitHost) return explicitHost;
+
+  const authUrlCandidates = [process.env.AUTH_URL, process.env.NEXTAUTH_URL];
+  for (const candidate of authUrlCandidates) {
+    if (!candidate) continue;
+    try {
+      const url = new URL(candidate);
+      if (loopbackOriginHosts.has(url.hostname)) {
+        return url.hostname;
+      }
+    } catch {
+      // ignore malformed URL and keep resolving
+    }
+  }
+
+  return "localhost";
+};
+/** @type {string} */
+const loopbackHost = resolveLoopbackHost();
+bootLog("  ELECTRON_LOOPBACK_HOST (resolved):", loopbackHost);
 
 /**
  * @param {URL} url
