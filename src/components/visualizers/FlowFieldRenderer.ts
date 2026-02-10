@@ -14593,10 +14593,16 @@ export class FlowFieldRenderer {
     const baseHue = this.fastMod360(this.hueBase + time * 3);
     const fieldHue = this.fastMod360(baseHue + 180);
 
+    // Electromagnetic field constants (scaled for visual appeal)
+    const kE = 800; // Coulomb constant (scaled)
+    const kB = 0.3 + audioIntensity * 0.2; // Magnetic field coupling
+    const omega = time * 0.5; // Angular frequency for B-field rotation
+
     const chargeCount = 2 + ((audioIntensity * 1) | 0);
     const chargeX = this.emChargeX;
     const chargeY = this.emChargeY;
     const chargeSign = this.emChargeSign;
+    const chargeMagnitude = []; // Charge magnitudes
     const invChargeCount = 1 / chargeCount;
     for (let c = 0; c < chargeCount; c++) {
       const chargeAngle = c * invChargeCount * twoPi + time * 0.1;
@@ -14604,43 +14610,49 @@ export class FlowFieldRenderer {
       chargeX[c] = this.fastCos(chargeAngle) * chargeRadius;
       chargeY[c] = this.fastSin(chargeAngle) * chargeRadius;
       chargeSign[c] = (c & 1) === 0 ? 1 : -1;
+      // Charge magnitude with audio modulation
+      chargeMagnitude[c] = 1 + bassIntensity * 0.5;
     }
 
-    const fieldLineCount = 16 + ((audioIntensity * 12) | 0);
+    // Enhanced field line density - multiple layers for richer visualization
+    const fieldLineCount = 24 + ((audioIntensity * 16) | 0);
     const invFieldLineCount = 1 / fieldLineCount;
     const lineAngleStep = twoPi * invFieldLineCount;
-    const lineRadius = maxRadius * (0.15 + audioIntensity * 0.1);
-    const lineStepSize = 3 + audioIntensity * 2;
-    const lineWidth = 1.5 + trebleIntensity * 2;
-    const lineShadowBlur = 8 + audioIntensity * 6;
-    const maxLineDistance = maxRadius * 1.5;
+
+    // Multiple radial layers for field depth
+    const radiusLayers = 3;
+    const lineStepSize = 2.5 + audioIntensity * 1.5;
+    const maxLineDistance = maxRadius * 1.8;
     ctx.lineCap = "round";
 
-    for (let i = 0; i < fieldLineCount; i++) {
-      const lineAngle = lineAngleStep * i;
-      const startX = this.fastCos(lineAngle) * lineRadius;
-      const startY = this.fastSin(lineAngle) * lineRadius;
+    for (let layer = 0; layer < radiusLayers; layer++) {
+      const layerRadius = maxRadius * (0.1 + layer * 0.15 + audioIntensity * 0.08);
+      const layerLineCount = fieldLineCount >> layer; // Reduce density with distance
+      const layerAngleStep = twoPi / layerLineCount;
 
-      const lineHue = this.fastMod360(fieldHue + i * (360 * invFieldLineCount));
-      const lineAlpha = 0.4 + audioIntensity * 0.3;
+      for (let i = 0; i < layerLineCount; i++) {
+        const lineAngle = layerAngleStep * i + layer * 0.3;
+        const startX = this.fastCos(lineAngle) * layerRadius;
+        const startY = this.fastSin(lineAngle) * layerRadius;
+
+        const lineHue = this.fastMod360(fieldHue + i * (360 / layerLineCount) + layer * 40);
+        const lineAlpha = (0.3 + audioIntensity * 0.25) * (1 - layer * 0.2);
 
       if (chargeCount > 0) {
         let currentX = startX;
         let currentY = startY;
         let totalDistance = 0;
-
-        ctx.strokeStyle = this.hsla(lineHue, 85, 70, lineAlpha);
-        ctx.lineWidth = lineWidth;
-        ctx.shadowBlur = lineShadowBlur;
-        ctx.shadowColor = this.hsla(lineHue, 90, 75, 0.4);
+        let prevFieldMagnitude = 0;
 
         ctx.beginPath();
         ctx.moveTo(currentX, currentY);
 
-        for (let s = 0; s < 50 && totalDistance < maxLineDistance; s++) {
+        for (let s = 0; s < 60 && totalDistance < maxLineDistance; s++) {
           let fieldX = 0;
           let fieldY = 0;
+          let bFieldZ = 0; // Magnetic field (out of plane)
 
+          // Calculate electric field using Coulomb's law: E = kE * q / r²
           for (let c = 0; c < chargeCount; c++) {
             const dx = currentX - chargeX[c]!;
             const dy = currentY - chargeY[c]!;
@@ -14648,31 +14660,72 @@ export class FlowFieldRenderer {
             const distance = this.fastSqrt(distanceSq);
 
             if (distance > 5) {
-              const force = chargeSign[c]! / (distanceSq + 1);
-              fieldX += (dx / distance) * force;
-              fieldY += (dy / distance) * force;
+              // Coulomb's law with realistic inverse square
+              const invDistCubed = 1 / (distance * distanceSq + 0.1);
+              const eMagnitude = kE * chargeSign[c]! * chargeMagnitude[c]!;
+              const eFieldStrength = eMagnitude * invDistCubed;
+
+              fieldX += dx * eFieldStrength;
+              fieldY += dy * eFieldStrength;
+
+              // Magnetic field component (∇×E = -∂B/∂t)
+              // B field rotates perpendicular to E field
+              const bContribution = kB * eMagnitude * invDistCubed;
+              bFieldZ += bContribution * this.fastSin(omega + c * 1.5);
             }
           }
+
+          // Add magnetic deflection (Lorentz force component)
+          // F = q(E + v × B), where v × B gives perpendicular deflection
+          const bDeflectionX = -fieldY * bFieldZ * 0.1;
+          const bDeflectionY = fieldX * bFieldZ * 0.1;
+          fieldX += bDeflectionX;
+          fieldY += bDeflectionY;
 
           const fieldMagnitude = this.fastSqrt(
             fieldX * fieldX + fieldY * fieldY,
           );
+
           if (fieldMagnitude > 0.01) {
-            const normalizedX = fieldX / fieldMagnitude;
-            const normalizedY = fieldY / fieldMagnitude;
+            const invMagnitude = 1 / fieldMagnitude;
+            const normalizedX = fieldX * invMagnitude;
+            const normalizedY = fieldY * invMagnitude;
+
+            // Dynamic line properties based on field strength
+            const fieldStrength = Math.min(1, fieldMagnitude * 0.05);
+            const dynamicWidth = (1 + trebleIntensity * 1.5 + fieldStrength * 2) * (1 - layer * 0.15);
+            const dynamicAlpha = lineAlpha * (0.6 + fieldStrength * 0.4);
+            const dynamicShadow = (6 + audioIntensity * 8 + fieldStrength * 6) * (1 - layer * 0.3);
+
+            // Color shift based on field magnitude (redder = stronger field)
+            const strengthHue = this.fastMod360(lineHue - fieldStrength * 40);
+            const strengthLight = 60 + fieldStrength * 20;
+
+            // Set style for this segment
+            ctx.strokeStyle = this.hsla(strengthHue, 85 + fieldStrength * 10 | 0, strengthLight | 0, dynamicAlpha);
+            ctx.lineWidth = dynamicWidth;
+            ctx.shadowBlur = dynamicShadow;
+            ctx.shadowColor = this.hsla(strengthHue, 90, 75, 0.5 * dynamicAlpha);
+
             currentX += normalizedX * lineStepSize;
             currentY += normalizedY * lineStepSize;
             totalDistance += lineStepSize;
 
             ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+
+            // Restart path for next segment with new style
+            ctx.beginPath();
+            ctx.moveTo(currentX, currentY);
+
+            prevFieldMagnitude = fieldMagnitude;
           } else {
             break;
           }
         }
-
-        ctx.stroke();
       }
     }
+  }
 
     for (let c = 0; c < chargeCount; c++) {
       const chargeSize = 12 + bassIntensity * 10 + audioIntensity * 8;
@@ -14696,28 +14749,39 @@ export class FlowFieldRenderer {
       );
       chargeGradient.addColorStop(
         0,
+        this.hsla(chargeHue, 100, 90, chargeAlpha * 1.2),
+      );
+      chargeGradient.addColorStop(
+        0.3,
         this.hsla(chargeHue, 100, 80, chargeAlpha),
       );
       chargeGradient.addColorStop(
-        0.5,
-        this.hsla(chargeHue, 95, 75, chargeAlpha * 0.7),
+        0.7,
+        this.hsla(chargeHue, 95, 70, chargeAlpha * 0.6),
       );
-      chargeGradient.addColorStop(1, this.hsla(chargeHue, 90, 70, 0));
+      chargeGradient.addColorStop(1, this.hsla(chargeHue, 90, 60, 0));
 
       ctx.fillStyle = chargeGradient;
-      ctx.shadowBlur = 20 + audioIntensity * 15;
-      ctx.shadowColor = this.hsla(chargeHue, 100, 85, 0.6);
+      ctx.shadowBlur = 25 + audioIntensity * 20 + bassIntensity * 10;
+      ctx.shadowColor = this.hsla(chargeHue, 100, 85, 0.8);
       ctx.beginPath();
       ctx.arc(chargePosX, chargePosY, chargeSize * chargePulse, 0, twoPi);
       ctx.fill();
 
-      const chargeRingRadius = chargeSize * chargePulse * 1.3;
-      ctx.strokeStyle = this.hsla(chargeHue, 90, 75, chargeAlpha * 0.5);
-      ctx.lineWidth = 2;
-      ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.arc(chargePosX, chargePosY, chargeRingRadius, 0, twoPi);
-      ctx.stroke();
+      // Add multiple concentric rings for depth
+      const ringCount = 2 + ((trebleIntensity * 1) | 0);
+      for (let ring = 0; ring < ringCount; ring++) {
+        const ringRadius = chargeSize * chargePulse * (1.2 + ring * 0.3);
+        const ringAlpha = chargeAlpha * (0.4 - ring * 0.12);
+        const ringWidth = 2 - ring * 0.4;
+
+        ctx.strokeStyle = this.hsla(chargeHue, 90 - ring * 5 | 0, 75, ringAlpha);
+        ctx.lineWidth = ringWidth;
+        ctx.shadowBlur = 12 - ring * 3;
+        ctx.beginPath();
+        ctx.arc(chargePosX, chargePosY, ringRadius, 0, twoPi);
+        ctx.stroke();
+      }
     }
 
     const particleCount = 25 + ((audioIntensity * 20) | 0);
@@ -14732,6 +14796,11 @@ export class FlowFieldRenderer {
       let particleX = baseParticleX;
       let particleY = baseParticleY;
 
+      // Particle motion under Lorentz force: F = q(E + v × B)
+      let totalFieldX = 0;
+      let totalFieldY = 0;
+      let totalBFieldZ = 0;
+
       for (let c = 0; c < chargeCount; c++) {
         const dx = particleX - chargeX[c]!;
         const dy = particleY - chargeY[c]!;
@@ -14739,11 +14808,25 @@ export class FlowFieldRenderer {
         const distance = this.fastSqrt(distanceSq);
 
         if (distance > 10) {
-          const force = (chargeSign[c]! * 0.5) / (distanceSq + 1);
-          particleX += (dx / distance) * force;
-          particleY += (dy / distance) * force;
+          // Electric field with realistic inverse square
+          const invDistCubed = 1 / (distance * distanceSq + 0.1);
+          const eMagnitude = kE * chargeSign[c]! * chargeMagnitude[c]! * 0.0005;
+          const eFieldStrength = eMagnitude * invDistCubed;
+
+          totalFieldX += dx * eFieldStrength;
+          totalFieldY += dy * eFieldStrength;
+
+          // Magnetic field influence
+          const bContribution = kB * eMagnitude * invDistCubed;
+          totalBFieldZ += bContribution * this.fastSin(omega + c * 1.5);
         }
       }
+
+      // Apply Lorentz force with magnetic deflection
+      const bDeflectionX = -totalFieldY * totalBFieldZ * 0.15;
+      const bDeflectionY = totalFieldX * totalBFieldZ * 0.15;
+      particleX += totalFieldX + bDeflectionX;
+      particleY += totalFieldY + bDeflectionY;
 
       const particleHue = this.fastMod360(fieldHue + p * 15);
       const particleSize = 2 + trebleIntensity * 3;
@@ -14786,6 +14869,33 @@ export class FlowFieldRenderer {
         ctx.moveTo(trailStartX, trailStartY);
         ctx.lineTo(particleX, particleY);
         ctx.stroke();
+      }
+    }
+
+    // Add equipotential contours for field strength visualization
+    const contourCount = 4 + ((trebleIntensity * 3) | 0);
+    for (let c = 0; c < chargeCount; c++) {
+      const chargePosX = chargeX[c]!;
+      const chargePosY = chargeY[c]!;
+      const chargeIsPositive = chargeSign[c]! > 0;
+
+      for (let r = 0; r < contourCount; r++) {
+        const contourRadius = (20 + r * 25) * (1 + audioIntensity * 0.3);
+        const contourHue = chargeIsPositive
+          ? this.fastMod360(fieldHue + 30 + r * 15)
+          : this.fastMod360(fieldHue + 210 + r * 15);
+        const contourAlpha = (0.15 - r * 0.03) * (1 + trebleIntensity * 0.2);
+        const contourWidth = 1.5 - r * 0.2;
+
+        if (contourAlpha > 0.02) {
+          ctx.strokeStyle = this.hsla(contourHue, 80, 65, contourAlpha);
+          ctx.lineWidth = contourWidth;
+          ctx.shadowBlur = 3 + trebleIntensity * 3;
+          ctx.shadowColor = this.hsla(contourHue, 85, 70, contourAlpha * 0.6);
+          ctx.beginPath();
+          ctx.arc(chargePosX, chargePosY, contourRadius, 0, twoPi);
+          ctx.stroke();
+        }
       }
     }
 
