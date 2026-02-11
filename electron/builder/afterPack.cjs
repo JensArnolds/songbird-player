@@ -35,12 +35,14 @@ module.exports = async function afterPack(context) {
     dereference: true,
   });
 
-  // Ensure installed packages (standalone node_modules) and server are delivered in the built app
+  // Ensure installed packages, server, and static assets are delivered in the built app
   const destNodeModules = path.join(destStandalone, "node_modules");
   const destServerJs = path.join(destStandalone, "server.js");
+  const destStaticDir = path.join(destStandalone, ".next", "static");
   const missing = [];
   if (!fs.existsSync(destNodeModules)) missing.push("node_modules");
   if (!fs.existsSync(destServerJs)) missing.push("server.js");
+  if (!fs.existsSync(destStaticDir)) missing.push(".next/static");
   if (missing.length > 0) {
     const msg = `[afterPack] Packaged app missing required standalone files: ${missing.join(", ")}. Installer would be broken.`;
 
@@ -49,7 +51,7 @@ module.exports = async function afterPack(context) {
   }
 
   console.log(
-    "[afterPack] Verified standalone node_modules and server.js are present in packaged app.",
+    "[afterPack] Verified standalone node_modules, server.js, and .next/static are present in packaged app.",
   );
 
   // Ensure bundled Node.js runtime is present so the installed app can run the server without system Node

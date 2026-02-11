@@ -5,6 +5,7 @@
 import { STORAGE_KEYS } from "@/config/storage";
 import { localStorage as appStorage } from "@/services/storage";
 import { getGenres, type GenreListItem } from "@/utils/api";
+import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { parsePreferredGenreId } from "@/utils/genre";
 import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { getProviders, signIn } from "next-auth/react";
@@ -38,19 +39,32 @@ function SignInContent() {
 
   useEffect(() => {
     let isMounted = true;
+    let resolved = false;
+    const timeoutId = setTimeout(() => {
+      if (!isMounted || resolved) return;
+      console.warn(
+        "[SignIn] getProviders timed out; using fallback OAuth providers.",
+      );
+      setProviders(OAUTH_PROVIDERS_FALLBACK);
+    }, 3000);
 
     void getProviders()
       .then((nextProviders) => {
         if (!isMounted) return;
-        setProviders(nextProviders);
+        resolved = true;
+        clearTimeout(timeoutId);
+        setProviders(nextProviders ?? OAUTH_PROVIDERS_FALLBACK);
       })
       .catch(() => {
         if (!isMounted) return;
-        setProviders({});
+        resolved = true;
+        clearTimeout(timeoutId);
+        setProviders(OAUTH_PROVIDERS_FALLBACK);
       });
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
     };
   }, []);
 

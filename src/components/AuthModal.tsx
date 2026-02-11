@@ -1,6 +1,7 @@
 "use client";
 
 import { springPresets } from "@/utils/spring-animations";
+import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { AnimatePresence, motion } from "framer-motion";
 import { getProviders, signIn } from "next-auth/react";
@@ -40,19 +41,32 @@ export function AuthModal({
     if (!isOpen) return;
 
     let cancelled = false;
+    let resolved = false;
+    const timeoutId = setTimeout(() => {
+      if (cancelled || resolved) return;
+      console.warn(
+        "[AuthModal] getProviders timed out; using fallback OAuth providers.",
+      );
+      setProviders(OAUTH_PROVIDERS_FALLBACK);
+    }, 3000);
 
     void getProviders()
       .then((result) => {
         if (cancelled) return;
-        setProviders(result);
+        resolved = true;
+        clearTimeout(timeoutId);
+        setProviders(result ?? OAUTH_PROVIDERS_FALLBACK);
       })
       .catch(() => {
         if (cancelled) return;
-        setProviders({});
+        resolved = true;
+        clearTimeout(timeoutId);
+        setProviders(OAUTH_PROVIDERS_FALLBACK);
       });
 
     return () => {
       cancelled = true;
+      clearTimeout(timeoutId);
     };
   }, [isOpen]);
 
