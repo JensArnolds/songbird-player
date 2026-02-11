@@ -1102,10 +1102,11 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                                 key={playlist.id}
                                 onClick={() => {
                                   hapticLight();
-                                  const playlistQuery = playlist.title.trim();
-                                  if (!playlistQuery) return;
-                                  setQuery(playlistQuery);
-                                  void handleSearch(playlistQuery);
+                                  const title = playlist.title.trim();
+                                  const path = title
+                                    ? `/discover/playlists/${playlist.id}?title=${encodeURIComponent(title)}`
+                                    : `/discover/playlists/${playlist.id}`;
+                                  router.push(path);
                                 }}
                                 className="group rounded-xl border border-white/10 bg-[var(--color-surface)]/70 p-2 text-left transition-all hover:scale-[1.01] hover:border-white/20"
                               >
