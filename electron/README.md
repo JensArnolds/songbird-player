@@ -46,13 +46,81 @@ npm run electron:build:linux
 
 ## Important Notes
 
-### Packaged `.env.local` loading
+### Packaged environment loading (automatic encrypted bundle)
 
-For packaged builds, `electron/prepare-package.js` copies your root `.env.local` into:
+`npm run electron:build*` now runs an automatic env prep step:
 
-- `resources/.next/standalone/.env.local`
+- Generates RSA keypair if missing (`certs/starchild-env-private.key`, `certs/starchild-env-public.pem`)
+- Encrypts `.env.local` into `.next/standalone/.env.local.enc`
+- Keeps plaintext `.env.local` out of `.next/standalone`
+- Bundles the encrypted payload and key files with the app
 
-At runtime, `electron/main.cjs` loads env from `process.resourcesPath/.next/standalone/.env.local` so the bundled Next.js standalone server has the required configuration.
+At runtime, `electron/main.cjs` decrypts the bundled payload automatically.
+
+Important: this is **obfuscation for UX convenience**, not strong secret protection, because the private key ships with the app and can be reverse engineered.
+
+Disable auto encryption and use external env only:
+
+```bash
+ELECTRON_AUTO_ENCRYPT_ENV=false npm run electron:build:linux
+```
+
+### Recommended runtime env setup
+
+Use one of these:
+
+- `STARCHILD_ENV_FILE` environment variable pointing to an external env file.
+- OS/service environment variables (systemd unit, Windows service/session env).
+
+Linux example (`/etc/starchild/.env`):
+
+```bash
+API_V2_URL=https://songbirdapi.com/
+SONGBIRD_API_KEY=...
+DATABASE_URL=...
+AUTH_SECRET=...
+AUTH_DISCORD_ID=...
+AUTH_DISCORD_SECRET=...
+```
+
+Windows PowerShell example:
+
+```powershell
+$env:STARCHILD_ENV_FILE = "C:\ProgramData\Starchild\.env.local"
+Start-Process "C:\Program Files\Starchild\Starchild.exe"
+```
+
+### Certificate-based encrypted env (built-in decryption)
+
+The Electron main process can decrypt encrypted env payloads at startup.
+
+Supported runtime variables:
+
+- `STARCHILD_ENC_ENV_FILE`: path to encrypted env payload (`.enc`)
+- `STARCHILD_ENV_PRIVATE_KEY_FILE`: path to RSA private key PEM
+- `STARCHILD_ENV_PRIVATE_KEY_PASSPHRASE`: optional private key passphrase
+
+Create keys/cert (example):
+
+```bash
+npm run env:keypair
+```
+
+Encrypt `.env.local`:
+
+```bash
+npm run env:encrypt -- --in .env.local --cert certs/starchild-env-public.pem --out /etc/starchild/.env.enc
+```
+
+Run app with built-in decryption:
+
+```bash
+STARCHILD_ENC_ENV_FILE=/etc/starchild/.env.enc \
+STARCHILD_ENV_PRIVATE_KEY_FILE=/etc/starchild/.env.private.key \
+./Starchild.AppImage
+```
+
+The app tries encrypted env files first, then plaintext env files.
 
 ### If the EXE “doesn’t start”
 

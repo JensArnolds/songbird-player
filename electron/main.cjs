@@ -1,5 +1,8 @@
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
+const electron = require("electron");
+const { app } = electron;
 
 /**
  * @typedef {Object} WindowState
@@ -49,6 +52,8 @@ const fs = require("fs");
 
 /** @type {string[]} */
 const bufferedLogLines = [];
+const ENV_PAYLOAD_VERSION = 1;
+const ENV_PAYLOAD_ALGORITHM = "aes-256-gcm+rsa-oaep-sha256";
 
 /**
  * @param {unknown} arg
@@ -83,19 +88,177 @@ const bootLog = (...args) => {
   } catch {}
 };
 
+/**
+ * @param {string} value
+ * @returns {Buffer}
+ */
+const decodeBase64 = (value) => Buffer.from(value, "base64");
+
+/**
+ * @param {string} envText
+ * @param {import("dotenv")} dotenv
+ * @returns {number}
+ */
+const applyParsedEnv = (envText, dotenv) => {
+  const parsed = dotenv.parse(envText);
+  let applied = 0;
+  for (const [key, value] of Object.entries(parsed)) {
+    if (process.env[key] !== undefined) continue;
+    process.env[key] = value;
+    applied += 1;
+  }
+  return applied;
+};
+
+/**
+ * @param {string} envFilePath
+ * @param {string} keyFilePath
+ * @param {string | undefined} passphrase
+ * @returns {string}
+ */
+const decryptEnvPayload = (envFilePath, keyFilePath, passphrase) => {
+  const crypto = require("crypto");
+  const payloadRaw = fs.readFileSync(envFilePath, "utf8");
+  const payload = JSON.parse(payloadRaw);
+
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Encrypted env payload is not a valid JSON object");
+  }
+
+  const record = /** @type {Record<string, unknown>} */ (payload);
+  const version = record.version;
+  const algorithm = record.algorithm;
+  const encryptedKey = record.encryptedKey;
+  const iv = record.iv;
+  const tag = record.tag;
+  const ciphertext = record.ciphertext;
+
+  if (version !== ENV_PAYLOAD_VERSION) {
+    throw new Error(`Unsupported encrypted env version: ${String(version)}`);
+  }
+  if (algorithm !== ENV_PAYLOAD_ALGORITHM) {
+    throw new Error(`Unsupported encrypted env algorithm: ${String(algorithm)}`);
+  }
+  if (
+    typeof encryptedKey !== "string" ||
+    typeof iv !== "string" ||
+    typeof tag !== "string" ||
+    typeof ciphertext !== "string"
+  ) {
+    throw new Error("Encrypted env payload is missing required fields");
+  }
+
+  const privateKeyPem = fs.readFileSync(keyFilePath, "utf8");
+  const privateKey = crypto.createPrivateKey({
+    key: privateKeyPem,
+    format: "pem",
+    ...(passphrase ? { passphrase } : {}),
+  });
+
+  const symmetricKey = crypto.privateDecrypt(
+    {
+      key: privateKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: "sha256",
+    },
+    decodeBase64(encryptedKey),
+  );
+
+  const decipher = crypto.createDecipheriv(
+    "aes-256-gcm",
+    symmetricKey,
+    decodeBase64(iv),
+  );
+  decipher.setAuthTag(decodeBase64(tag));
+
+  const plaintext = Buffer.concat([
+    decipher.update(decodeBase64(ciphertext)),
+    decipher.final(),
+  ]);
+  return plaintext.toString("utf8");
+};
+
 try {
   const dotenv = require("dotenv");
 
-  const candidateEnvPaths = [
+  const isPackagedRuntime = app?.isPackaged === true;
+  const packagedStandaloneDirs = [
+    path.join(path.dirname(process.execPath), ".next", "standalone"),
+    process.resourcesPath
+      ? path.join(process.resourcesPath, ".next", "standalone")
+      : undefined,
+  ].filter(Boolean);
+  const packagedEncryptedEnvPaths = packagedStandaloneDirs.flatMap(
+    (standaloneDir) => [
+      path.join(standaloneDir, ".env.local.enc"),
+      path.join(standaloneDir, ".env.enc"),
+    ],
+  );
+  const packagedPrivateKeyPaths = packagedStandaloneDirs.flatMap(
+    (standaloneDir) => [
+      path.join(standaloneDir, "certs", "starchild-env-private.key"),
+      path.join(standaloneDir, ".env.private.key"),
+    ],
+  );
+  const userConfigDir = (() => {
+    if (process.platform === "win32") {
+      return process.env.APPDATA
+        ? path.join(process.env.APPDATA, "Starchild")
+        : path.join(os.homedir(), "AppData", "Roaming", "Starchild");
+    }
+    if (process.platform === "darwin") {
+      return path.join(
+        os.homedir(),
+        "Library",
+        "Application Support",
+        "Starchild",
+      );
+    }
+    const xdgConfigHome =
+      process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config");
+    return path.join(xdgConfigHome, "starchild");
+  })();
+
+  const externalEnvPaths = [
     process.env.STARCHILD_ENV_FILE,
     path.join(path.dirname(process.execPath), ".env.local"),
+    path.join(path.dirname(process.execPath), ".env"),
+    path.join(userConfigDir, ".env.local"),
+    path.join(userConfigDir, ".env"),
+    process.platform === "linux" ? "/etc/starchild/.env" : undefined,
+    path.join(process.cwd(), ".env.local"),
+    path.join(process.cwd(), ".env"),
+  ].filter(Boolean);
+
+  const externalEncryptedEnvPaths = [
+    process.env.STARCHILD_ENC_ENV_FILE,
+    path.join(path.dirname(process.execPath), ".env.local.enc"),
+    path.join(path.dirname(process.execPath), ".env.enc"),
+    path.join(userConfigDir, ".env.local.enc"),
+    path.join(userConfigDir, ".env.enc"),
+    process.platform === "linux" ? "/etc/starchild/.env.enc" : undefined,
+    path.join(process.cwd(), ".env.local.enc"),
+    path.join(process.cwd(), ".env.enc"),
+  ].filter(Boolean);
+
+  const externalKeyPaths = [
+    process.env.STARCHILD_ENV_PRIVATE_KEY_FILE,
+    path.join(path.dirname(process.execPath), ".env.private.key"),
+    path.join(path.dirname(process.execPath), "starchild-env-private.key"),
+    path.join(userConfigDir, ".env.private.key"),
+    path.join(userConfigDir, "starchild-env-private.key"),
+    process.platform === "linux" ? "/etc/starchild/.env.private.key" : undefined,
+    path.join(process.cwd(), ".env.private.key"),
+  ].filter(Boolean);
+
+  const devEnvPaths = [
+    ...externalEnvPaths,
     path.join(
       path.dirname(process.execPath),
       ".next",
       "standalone",
       ".env.local",
     ),
-    path.join(process.cwd(), ".env.local"),
     process.resourcesPath
       ? path.join(process.resourcesPath, ".next", "standalone", ".env.local")
       : undefined,
@@ -103,18 +266,93 @@ try {
     path.resolve(__dirname, "../.next/standalone/.env.local"),
   ].filter(Boolean);
 
+  const devEncryptedEnvPaths = [
+    ...externalEncryptedEnvPaths,
+    path.resolve(__dirname, "../.env.local.enc"),
+    path.resolve(__dirname, "../.env.enc"),
+    path.resolve(__dirname, "../.next/standalone/.env.local.enc"),
+  ].filter(Boolean);
+
+  const devKeyPaths = [
+    ...externalKeyPaths,
+    path.resolve(__dirname, "../.env.private.key"),
+    path.resolve(__dirname, "../certs/starchild-env-private.key"),
+  ].filter(Boolean);
+
+  const candidateEnvPaths = isPackagedRuntime ? externalEnvPaths : devEnvPaths;
+  const candidateEncryptedEnvPaths = isPackagedRuntime
+    ? [...externalEncryptedEnvPaths, ...packagedEncryptedEnvPaths]
+    : devEncryptedEnvPaths;
+  const candidatePrivateKeyPaths = isPackagedRuntime
+    ? [...externalKeyPaths, ...packagedPrivateKeyPaths]
+    : devKeyPaths;
+  const privateKeyPassphrase = process.env.STARCHILD_ENV_PRIVATE_KEY_PASSPHRASE;
+
   let loaded = false;
-  for (const envPath of candidateEnvPaths) {
-    if (envPath && fs.existsSync(envPath)) {
-      dotenv.config({ path: envPath });
-      bootLog("Loaded env from:", envPath);
-      loaded = true;
+  for (const envPath of candidateEncryptedEnvPaths) {
+    if (!envPath || !fs.existsSync(envPath)) continue;
+
+    const keyPaths = candidatePrivateKeyPaths.filter(
+      (candidateKeyPath) =>
+        typeof candidateKeyPath === "string" && fs.existsSync(candidateKeyPath),
+    );
+    if (keyPaths.length === 0) {
+      bootLog(
+        "Encrypted env found but no private key file was found. Set STARCHILD_ENV_PRIVATE_KEY_FILE.",
+      );
+      continue;
+    }
+
+    for (const keyPath of keyPaths) {
+      try {
+        const decryptedEnv = decryptEnvPayload(
+          envPath,
+          keyPath,
+          privateKeyPassphrase,
+        );
+        const appliedCount = applyParsedEnv(decryptedEnv, dotenv);
+        bootLog(
+          "Loaded encrypted env from:",
+          envPath,
+          "using key:",
+          keyPath,
+          `(applied ${appliedCount} vars)`,
+        );
+        loaded = true;
+        break;
+      } catch (decryptError) {
+        bootLog(
+          "Failed to decrypt env payload with key:",
+          envPath,
+          keyPath,
+          decryptError,
+        );
+      }
+    }
+
+    if (loaded) {
       break;
     }
   }
 
   if (!loaded) {
-    bootLog("No .env.local found - using system environment variables");
+    for (const envPath of candidateEnvPaths) {
+      if (envPath && fs.existsSync(envPath)) {
+        dotenv.config({ path: envPath });
+        bootLog("Loaded env from:", envPath);
+        loaded = true;
+        break;
+      }
+    }
+  }
+
+  if (!loaded) {
+    if (isPackagedRuntime) {
+      bootLog("No external env file found - using system environment variables");
+      bootLog("Checked env paths:", candidateEnvPaths.join(", "));
+    } else {
+      bootLog("No .env.local found - using system environment variables");
+    }
   }
 } catch (err) {
   bootLog("dotenv not available (using system environment variables)", err);
@@ -144,7 +382,6 @@ bootLog(
 );
 
 const {
-  app,
   BrowserWindow,
   Menu,
   globalShortcut,
@@ -154,7 +391,7 @@ const {
   ipcMain,
   nativeTheme,
   shell,
-} = require("electron");
+} = electron;
 const { spawn } = require("child_process");
 const http = require("http");
 
