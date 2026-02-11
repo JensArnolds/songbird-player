@@ -96,9 +96,7 @@ function SignInContent() {
 
   const oauthProviders = useMemo(() => {
     if (!providers) return [];
-    return Object.values(providers).filter(
-      (provider) => provider.id === "discord" || provider.id === "spotify",
-    );
+    return Object.values(providers).filter((provider) => provider.id === "discord");
   }, [providers]);
 
   const featuredGenres = useMemo(() => genres.slice(0, 12), [genres]);
@@ -225,7 +223,6 @@ function SignInContent() {
           ) : oauthProviders.length > 0 ? (
             <div className="space-y-3">
               {oauthProviders.map((provider) => {
-                const isDiscord = provider.id === "discord";
                 return (
                   <button
                     key={provider.id}
@@ -237,11 +234,9 @@ function SignInContent() {
                         { redirect_uri: getOAuthRedirectUri(provider.id) },
                       )
                     }
-                    className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 ${
-                      isDiscord ? "bg-[#5865f2]" : "bg-[#1db954]"
-                    }`}
+                    className="w-full rounded-xl bg-[#5865f2] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
                   >
-                    Sign in with {isDiscord ? "Discord" : "Spotify"}
+                    Sign in with {provider.name}
                   </button>
                 );
               })}

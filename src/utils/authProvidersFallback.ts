@@ -13,5 +13,4 @@ const buildOAuthProvider = (id: string, name: string): ProviderRecord => ({
 
 export const OAUTH_PROVIDERS_FALLBACK: ProvidersResponse = {
   discord: buildOAuthProvider("discord", "Discord"),
-  spotify: buildOAuthProvider("spotify", "Spotify"),
 };
