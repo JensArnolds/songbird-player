@@ -27,6 +27,20 @@ Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.js
 | `/api/album/[id]/tracks` | GET | `src/app/api/album/[id]/tracks/route.ts` | Proxies to Deezer `album/:id/tracks` (also fetches album info to enrich track payload). | none |
 | `/api/artist/[id]` | GET | `src/app/api/artist/[id]/route.ts` | Proxies to Deezer `artist/:id`. | none |
 | `/api/artist/[id]/tracks` | GET | `src/app/api/artist/[id]/tracks/route.ts` | Proxies to Deezer `artist/:id/top?limit=50`. | none |
+| `/api/v2/status` | GET | `src/app/api/v2/status/route.ts` | Proxies Songbird V2 liveness endpoint `/status`; used for lightweight UI health checks. | `API_V2_URL` |
+| `/api/v2/version` | GET | `src/app/api/v2/version/route.ts` | Proxies Songbird V2 diagnostics endpoint `/version` (`name`, `version`, `commitSha`, `buildTime`). | `API_V2_URL` |
+| `/api/v2/health` | GET | `src/app/api/v2/health/route.ts` | Proxies Songbird V2 `/health` endpoint (legacy compatibility fallback for client checks). | `API_V2_URL` |
+| `/api/v2/health/ready` | GET | `src/app/api/v2/health/ready/route.ts` | Proxies Songbird V2 readiness endpoint `/health/ready` (DB/cache/external dependency checks). | `API_V2_URL` |
+| `/api/v2/auth/me` | GET | `src/app/api/v2/auth/me/route.ts` | Proxies upstream session/user identity endpoint `/auth/me`. | `API_V2_URL` |
+| `/api/v2/auth/refresh` | GET | `src/app/api/v2/auth/refresh/route.ts` | Proxies upstream token/session refresh endpoint `/auth/refresh`. | `API_V2_URL` |
+| `/api/v2/config/public` | GET | `src/app/api/v2/config/public/route.ts` | Proxies upstream non-secret runtime flags endpoint `/config/public`. | `API_V2_URL` |
+| `/api/v2/rate-limits` | GET | `src/app/api/v2/rate-limits/route.ts` | Proxies upstream rate-limit policy/status endpoint `/rate-limits`. | `API_V2_URL` |
+| `/api/v2/docs/openapi` | GET | `src/app/api/v2/docs/openapi/route.ts` | Proxies upstream OpenAPI alias endpoint `/docs/openapi`. | `API_V2_URL` |
+| `/api/v2/cache/stats` | GET | `src/app/api/v2/cache/stats/route.ts` | Proxies upstream cache statistics endpoint `/cache/stats`. Local route requires an admin session. | `API_V2_URL` (+ admin session) |
+| `/api/v2/cache/clear` | POST | `src/app/api/v2/cache/clear/route.ts` | Proxies upstream cache invalidation endpoint `/cache/clear`. Local route requires an admin session. | `API_V2_URL` (+ admin session) |
+| `/api/v2/music/stream/capabilities` | GET | `src/app/api/v2/music/stream/capabilities/route.ts` | Proxies upstream stream capability endpoint `/music/stream/capabilities`. | `API_V2_URL` |
+| `/api/v2/music/tracks/[id]/metadata` | GET | `src/app/api/v2/music/tracks/[id]/metadata/route.ts` | Proxies upstream track metadata endpoint `/music/tracks/:id/metadata`. | `API_V2_URL` |
+| `/api/v2/metrics` | GET | `src/app/api/v2/metrics/route.ts` | Proxies upstream Prometheus metrics endpoint `/metrics`. Local route requires an admin session. | `API_V2_URL` (+ admin session) |
 | `/api/health` | GET, OPTIONS | `src/app/api/health/route.ts` | Local health endpoint; optionally checks DB connectivity (`@/server/db`). | Optional: `DATABASE_URL` |
 | `/api/auth/[...nextauth]` | GET, POST | `src/app/api/auth/[...nextauth]/route.ts` | NextAuth handlers (Discord OAuth). | `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `DATABASE_URL` (+ URLs) |
 | `/api/trpc/[trpc]` | GET, POST | `src/app/api/trpc/[trpc]/route.ts` | tRPC fetch adapter → `appRouter` (`src/server/api/root.ts`). | Typically: `DATABASE_URL` (+ auth vars if using protected procedures) |

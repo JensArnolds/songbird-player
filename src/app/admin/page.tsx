@@ -5,21 +5,115 @@
 import { useToast } from "@/contexts/ToastContext";
 import { api } from "@/trpc/react";
 import {
-  Shield,
-  Users2,
-  RefreshCcw,
-  Crown,
-  Lock,
-  Loader2,
-  Link2,
-  Ban,
+  Activity,
+  BarChart3,
+  CircleAlert,
   CircleCheck,
+  Crown,
+  FileText,
+  Gauge,
+  Ban,
+  Link2,
+  Loader2,
+  Lock,
+  Shield,
+  RefreshCcw,
+  Trash2,
+  Users2,
   UserX,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+type ApiDiagnosticTarget = {
+  key: string;
+  label: string;
+  path: string;
+};
+
+type ApiDiagnosticResult = {
+  key: string;
+  label: string;
+  path: string;
+  status: number | null;
+  ok: boolean;
+  state: "healthy" | "degraded" | "down";
+  payloadPreview: string;
+  fetchedAt: string;
+  error?: string;
+};
+
+const API_DIAGNOSTIC_TARGETS: ApiDiagnosticTarget[] = [
+  { key: "status", label: "Liveness", path: "/api/v2/status" },
+  { key: "version", label: "Version", path: "/api/v2/version" },
+  { key: "ready", label: "Readiness", path: "/api/v2/health/ready" },
+  { key: "config", label: "Public Config", path: "/api/v2/config/public" },
+  { key: "limits", label: "Rate Limits", path: "/api/v2/rate-limits" },
+  { key: "cache", label: "Cache Stats", path: "/api/v2/cache/stats" },
+  {
+    key: "streamCaps",
+    label: "Stream Capabilities",
+    path: "/api/v2/music/stream/capabilities",
+  },
+  { key: "authMe", label: "Auth Session", path: "/api/v2/auth/me" },
+];
+
+function toPreviewText(rawText: string): string {
+  if (!rawText.trim()) return "(empty)";
+
+  try {
+    const parsed = JSON.parse(rawText) as unknown;
+    const pretty = JSON.stringify(parsed, null, 2);
+    if (!pretty) return "(empty)";
+    return pretty.length > 600 ? `${pretty.slice(0, 600)}\n...` : pretty;
+  } catch {
+    return rawText.length > 600 ? `${rawText.slice(0, 600)}\n...` : rawText;
+  }
+}
+
+function getResultState(status: number | null): "healthy" | "degraded" | "down" {
+  if (status === null) return "down";
+  if (status >= 500) return "down";
+  if (status >= 400) return "degraded";
+  return "healthy";
+}
+
+async function probeApiTarget(
+  target: ApiDiagnosticTarget,
+): Promise<ApiDiagnosticResult> {
+  try {
+    const response = await fetch(target.path, {
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+    const rawText = await response.text().catch(() => "");
+
+    return {
+      key: target.key,
+      label: target.label,
+      path: target.path,
+      status: response.status,
+      ok: response.ok,
+      state: getResultState(response.status),
+      payloadPreview: toPreviewText(rawText),
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    return {
+      key: target.key,
+      label: target.label,
+      path: target.path,
+      status: null,
+      ok: false,
+      state: "down",
+      payloadPreview: "(no response)",
+      fetchedAt: new Date().toISOString(),
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -74,6 +168,13 @@ export default function AdminPage() {
     [session?.user?.admin],
   );
   const isFirstAdmin = session?.user?.firstAdmin === true;
+  const [diagnosticResults, setDiagnosticResults] = useState<
+    ApiDiagnosticResult[]
+  >([]);
+  const [isDiagnosticsLoading, setIsDiagnosticsLoading] = useState(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
+  const [isRefreshingUpstreamAuth, setIsRefreshingUpstreamAuth] =
+    useState(false);
 
   const handleToggleAdmin = (userId: string, admin: boolean) => {
     updateAdmin.mutate({ userId, admin: !admin });
@@ -90,6 +191,95 @@ export default function AdminPage() {
     if (!confirmed) return;
     removeUser.mutate({ userId });
   };
+
+  const refreshDiagnostics = useCallback(async () => {
+    setIsDiagnosticsLoading(true);
+    try {
+      const results = await Promise.all(
+        API_DIAGNOSTIC_TARGETS.map((target) => probeApiTarget(target)),
+      );
+      setDiagnosticResults(results);
+    } finally {
+      setIsDiagnosticsLoading(false);
+    }
+  }, []);
+
+  const handleRefreshUpstreamAuth = useCallback(async () => {
+    setIsRefreshingUpstreamAuth(true);
+    try {
+      const response = await fetch("/api/v2/auth/refresh", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const payloadText = await response.text().catch(() => "");
+      if (!response.ok) {
+        showToast(
+          `Auth refresh failed (${response.status})${
+            payloadText ? `: ${payloadText.slice(0, 120)}` : ""
+          }`,
+          "error",
+        );
+        return;
+      }
+      showToast("Upstream auth refresh succeeded", "success");
+      await refreshDiagnostics();
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Auth refresh failed",
+        "error",
+      );
+    } finally {
+      setIsRefreshingUpstreamAuth(false);
+    }
+  }, [refreshDiagnostics, showToast]);
+
+  const handleClearCaches = useCallback(async () => {
+    const confirmed = window.confirm(
+      "Clear upstream caches now? This may temporarily reduce cache hit rate.",
+    );
+    if (!confirmed) return;
+
+    setIsClearingCache(true);
+    try {
+      const response = await fetch("/api/v2/cache/clear", {
+        method: "POST",
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const payloadText = await response.text().catch(() => "");
+      if (!response.ok) {
+        showToast(
+          `Cache clear failed (${response.status})${
+            payloadText ? `: ${payloadText.slice(0, 120)}` : ""
+          }`,
+          "error",
+        );
+        return;
+      }
+      showToast("Upstream caches cleared", "success");
+      await refreshDiagnostics();
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Cache clear failed",
+        "error",
+      );
+    } finally {
+      setIsClearingCache(false);
+    }
+  }, [refreshDiagnostics, showToast]);
+
+  useEffect(() => {
+    if (!isAuthorized) return;
+
+    void refreshDiagnostics();
+    const intervalId = window.setInterval(() => {
+      void refreshDiagnostics();
+    }, 60_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isAuthorized, refreshDiagnostics]);
 
   if (status === "loading") {
     return (
@@ -165,8 +355,131 @@ export default function AdminPage() {
           ) : (
             <RefreshCcw className="h-4 w-4" />
           )}
-          Refresh
+          Refresh users
         </button>
+      </div>
+
+      <div className="mb-8 rounded-3xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)]/90 via-[var(--color-surface-2)]/85 to-[rgba(121,195,238,0.1)] p-6 shadow-[var(--shadow-lg)]">
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="flex items-center gap-2 text-sm uppercase tracking-[0.14em] text-[var(--color-subtext)]">
+              <Activity className="h-4 w-4 text-[var(--color-accent)]" />
+              API Diagnostics
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-subtext)]">
+              Lightweight checks run every 60s. Heavy endpoints are available as links.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => void refreshDiagnostics()}
+              disabled={isDiagnosticsLoading}
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
+            >
+              {isDiagnosticsLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCcw className="h-4 w-4" />
+              )}
+              Refresh diagnostics
+            </button>
+            <button
+              onClick={() => void handleRefreshUpstreamAuth()}
+              disabled={isRefreshingUpstreamAuth}
+              className="inline-flex items-center gap-2 rounded-xl border border-[rgba(88,198,177,0.35)] bg-[rgba(88,198,177,0.08)] px-3 py-2 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-accent)] disabled:opacity-50"
+            >
+              {isRefreshingUpstreamAuth ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Gauge className="h-4 w-4" />
+              )}
+              Refresh auth
+            </button>
+            <button
+              onClick={() => void handleClearCaches()}
+              disabled={isClearingCache}
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-danger)]/70 bg-[rgba(242,139,130,0.08)] px-3 py-2 text-sm font-semibold text-[var(--color-danger)] transition hover:bg-[rgba(242,139,130,0.14)] disabled:opacity-50"
+            >
+              {isClearingCache ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              Clear cache
+            </button>
+            <a
+              href="/api/v2/docs/openapi"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            >
+              <FileText className="h-4 w-4" />
+              OpenAPI
+            </a>
+            <a
+              href="/api/v2/metrics"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Metrics
+            </a>
+          </div>
+        </div>
+
+        {diagnosticResults.length === 0 && isDiagnosticsLoading ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="h-32 animate-pulse rounded-2xl bg-[var(--color-surface)]/70"
+              />
+            ))}
+          </div>
+        ) : diagnosticResults.length === 0 ? (
+          <div className="flex items-center gap-2 rounded-2xl border border-dashed border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-subtext)]">
+            <CircleAlert className="h-4 w-4 text-[var(--color-warning)]" />
+            Diagnostics not available yet.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {diagnosticResults.map((item) => (
+              <div
+                key={item.key}
+                className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/80 p-3"
+              >
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-[var(--color-text)]">
+                    {item.label}
+                  </p>
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                      item.state === "healthy"
+                        ? "bg-[rgba(88,198,177,0.15)] text-[var(--color-success)]"
+                        : item.state === "degraded"
+                          ? "bg-[rgba(242,199,97,0.15)] text-[var(--color-warning)]"
+                          : "bg-[rgba(242,139,130,0.15)] text-[var(--color-danger)]"
+                    }`}
+                  >
+                    {item.state === "healthy" ? (
+                      <CircleCheck className="h-3 w-3" />
+                    ) : (
+                      <CircleAlert className="h-3 w-3" />
+                    )}
+                    {item.status ?? "ERR"}
+                  </span>
+                </div>
+                <p className="mb-2 truncate font-mono text-[10px] text-[var(--color-muted)]">
+                  {item.path}
+                </p>
+                <pre className="max-h-28 overflow-auto rounded-lg bg-[var(--color-surface-2)]/70 p-2 text-[10px] leading-relaxed text-[var(--color-subtext)]">
+                  {item.error ? `${item.error}\n${item.payloadPreview}` : item.payloadPreview}
+                </pre>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-3xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)]/90 via-[var(--color-surface-2)]/90 to-[rgba(88,198,177,0.08)] p-6 shadow-[var(--shadow-lg)]">

@@ -3,7 +3,6 @@
 "use client";
 
 import { SearchSuggestionsList } from "@/components/SearchSuggestionsList";
-import { env } from "@/env";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
@@ -33,91 +32,99 @@ export default function Header() {
   const searchBlurTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const apiV2HealthUrl = env.NEXT_PUBLIC_API_V2_HEALTH_URL;
-    const isElectronRuntime = Boolean(window.electron?.isElectron);
-
-    const healthUrl = (() => {
-      if (!apiV2HealthUrl) return "/api/v2/health";
-
-      try {
-        const absolute = new URL(apiV2HealthUrl, window.location.origin);
-        if (absolute.origin !== window.location.origin || isElectronRuntime) {
-          return "/api/v2/health";
-        }
-        return absolute.toString();
-      } catch {
-        return "/api/v2/health";
-      }
-    })();
+    const healthUrls = ["/api/v2/status", "/api/v2/health"];
 
     let isMounted = true;
 
     const checkHealth = async () => {
-      try {
-        const response = await fetch(healthUrl, {
-          cache: "no-store",
-        });
-
-        if (!isMounted) return;
-
-        if (response.status >= 400 && response.status < 600) {
-          console.warn("[Header] API V2 HTTP error:", {
-            url: apiV2HealthUrl,
-            status: response.status,
-          });
-          setApiHealthy("down");
-          return;
-        }
-
-        let rawText = "";
-        try {
-          rawText = await response.text();
-        } catch (error) {
-          console.warn("[Header] Health response read failed:", error);
-        }
-        let payload: unknown = null;
-        if (rawText) {
-          try {
-            payload = JSON.parse(rawText) as unknown;
-          } catch {
-            payload = null;
+      let lastFailure:
+        | {
+            url: string;
+            status?: number;
+            parsedStatus?: string | null;
+            rawText?: string;
+            message?: string;
           }
-        }
-        const status = normalizeHealthStatus(payload, rawText);
+        | undefined;
 
-        let overallStatus: "healthy" | "degraded" | "down";
-        if (status === "ok") {
-          overallStatus = "healthy";
-        } else if (status === "degraded" || status === "unhealthy") {
-          overallStatus = "degraded";
-        } else {
-          overallStatus = "down";
-        }
-
-        if (overallStatus !== "healthy") {
-          console.warn("[Header] API V2 health degraded:", {
-            url: apiV2HealthUrl,
-            status: response.status,
-            parsedStatus: status,
-            raw: rawText,
-            overallStatus,
+      for (const healthUrl of healthUrls) {
+        try {
+          const response = await fetch(healthUrl, {
+            cache: "no-store",
           });
-        }
 
-        setApiHealthy(overallStatus);
-      } catch (error) {
-        if (isMounted) {
-          const now = Date.now();
-          if (now - lastHealthErrorLogRef.current > 60_000) {
-            lastHealthErrorLogRef.current = now;
-            console.warn("[Header] API health check failed:", {
+          if (!isMounted) return;
+
+          let rawText = "";
+          try {
+            rawText = await response.text();
+          } catch (error) {
+            console.warn("[Header] Health response read failed:", error);
+          }
+          let payload: unknown = null;
+          if (rawText) {
+            try {
+              payload = JSON.parse(rawText) as unknown;
+            } catch {
+              payload = null;
+            }
+          }
+          const parsedStatus = normalizeHealthStatus(payload, rawText);
+
+          if (!response.ok && parsedStatus === null) {
+            lastFailure = {
               url: healthUrl,
-              message: error instanceof Error ? error.message : String(error),
+              status: response.status,
+              parsedStatus,
+              rawText,
+            };
+            continue;
+          }
+
+          const effectiveStatus =
+            parsedStatus ?? (response.ok ? "ok" : "unhealthy");
+
+          let overallStatus: "healthy" | "degraded" | "down";
+          if (effectiveStatus === "ok") {
+            overallStatus = "healthy";
+          } else if (effectiveStatus === "degraded") {
+            overallStatus = "degraded";
+          } else {
+            overallStatus = "down";
+          }
+
+          if (overallStatus !== "healthy") {
+            console.warn("[Header] API V2 health degraded:", {
+              url: healthUrl,
+              status: response.status,
+              parsedStatus: effectiveStatus,
+              raw: rawText,
+              overallStatus,
             });
           }
-          setApiHealthy("down");
+
+          setApiHealthy(overallStatus);
+          return;
+        } catch (error) {
+          lastFailure = {
+            url: healthUrl,
+            message: error instanceof Error ? error.message : String(error),
+          };
         }
       }
+
+      if (!isMounted) return;
+
+      const now = Date.now();
+      if (now - lastHealthErrorLogRef.current > 60_000) {
+        lastHealthErrorLogRef.current = now;
+        console.warn("[Header] API health check failed:", {
+          checkedUrls: healthUrls,
+          failure: lastFailure,
+        });
+      }
+
+      setApiHealthy("down");
     };
 
     void checkHealth();

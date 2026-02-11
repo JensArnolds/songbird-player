@@ -7,9 +7,15 @@ describe("normalizeHealthStatus", () => {
   it("accepts JSON status values", () => {
     expect(normalizeHealthStatus({ status: "ok" })).toBe("ok");
     expect(normalizeHealthStatus({ status: "healthy" })).toBe("ok");
+    expect(normalizeHealthStatus({ status: "up" })).toBe("ok");
     expect(normalizeHealthStatus({ status: "degraded" })).toBe("degraded");
     expect(normalizeHealthStatus({ status: "unhealthy" })).toBe("unhealthy");
     expect(normalizeHealthStatus({ status: "error" })).toBe("unhealthy");
+  });
+
+  it("accepts JSON ok booleans", () => {
+    expect(normalizeHealthStatus({ ok: true })).toBe("ok");
+    expect(normalizeHealthStatus({ ok: false })).toBe("unhealthy");
   });
 
   it("accepts plain text responses", () => {
