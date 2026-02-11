@@ -5,6 +5,18 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.10] - 2026-02-11
+
+### Added
+
+- **Discover playlist proxy route**: Added `GET /api/playlist/[id]` to proxy upstream playlist-track payloads from `API_V2_URL/api/music/playlists/{id}` for frontend consumption. Location: `src/app/api/playlist/[id]/route.ts`.
+- **Discover playlist detail page**: Added a new playback-ready page for discovered playlists that fetches and validates upstream track arrays, then supports play-all/shuffle and queue integration. Location: `src/app/discover/playlists/[id]/page.tsx`.
+
+### Changed
+
+- **Taste playlist card navigation**: Updated “Playlists for Your Taste” cards to open discovered playlist detail routes instead of running title-based search fallback. Location: `src/app/HomePageClient.tsx`.
+- **API route map docs**: Documented the new `/api/playlist/[id]` proxy route in the API route usage reference. Location: `docs/API_ROUTE_USE.md`.
+
 ## [0.15.9] - 2026-02-11
 
 ### Added
