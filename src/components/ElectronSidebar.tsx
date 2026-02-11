@@ -76,7 +76,19 @@ export function ElectronSidebar() {
     : "/signin";
 
   const navItems: NavItem[] = useMemo(() => {
-    const items: NavItem[] = [
+    const items: NavItem[] = [];
+
+    if (!session) {
+      items.push({
+        href: profileHref,
+        label: "Sign In",
+        icon: <User className="h-5 w-5" />,
+        requiresAuth: true,
+        callbackUrl: "/",
+      });
+    }
+
+    items.push(
       { href: "/", label: "Home", icon: <Home className="h-5 w-5" /> },
       {
         href: "/library",
@@ -92,14 +104,17 @@ export function ElectronSidebar() {
         requiresAuth: true,
         callbackUrl: "/playlists",
       },
-      {
+    );
+
+    if (session) {
+      items.push({
         href: profileHref,
-        label: session ? "Profile" : "Sign In",
+        label: "Profile",
         icon: <User className="h-5 w-5" />,
         requiresAuth: true,
         callbackUrl: "/",
-      },
-    ];
+      });
+    }
 
     if (isAdmin) {
       items.push({
@@ -181,6 +196,17 @@ export function ElectronSidebar() {
                 </div>
               )}
             </div>
+            {!session && !collapsed && (
+              <button
+                type="button"
+                onClick={() => {
+                  openAuthModal({ callbackUrl: "/" });
+                }}
+                className="electron-no-drag mt-3 w-full rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-semibold text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition hover:scale-[1.01] active:scale-[0.99]"
+              >
+                Sign in to unlock your library
+              </button>
+            )}
           </div>
 
           {!collapsed && (
@@ -235,108 +261,129 @@ export function ElectronSidebar() {
           </nav>
 
           <div className="mt-2 min-h-0 flex-1 px-2 pb-24">
-            <div className="flex items-center justify-between px-2">
-              {!collapsed ? (
-                <div className="text-[10px] font-semibold tracking-[0.16em] text-[var(--color-muted)] uppercase">
-                  Your Library
-                </div>
-              ) : (
-                <div className="h-3" />
-              )}
-
-              <button
-                className="electron-no-drag flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] text-[var(--color-subtext)] transition-colors hover:border-[rgba(244,178,102,0.35)] hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
-                onClick={() => setCreateModalOpen(true)}
-                aria-label="Create playlist"
-                title="Create playlist"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mt-2 min-h-0 overflow-y-auto pr-1">
-              {!session ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    openAuthModal({ callbackUrl: "/playlists" });
-                  }}
-                  className="electron-no-drag block rounded-xl border border-[rgba(255,255,255,0.08)] px-3 py-2 text-sm text-[var(--color-subtext)] hover:border-[rgba(255,255,255,0.18)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-                >
-                  {!collapsed ? "Sign in to view playlists" : "Sign in"}
-                </button>
-              ) : playlistsQuery.isLoading ? (
-                <div className="px-3 py-2 text-sm text-[var(--color-subtext)]">
-                  {!collapsed ? "Loading..." : "…"}
-                </div>
-              ) : playlistsQuery.data && playlistsQuery.data.length > 0 ? (
-                <div className="space-y-1">
-                  {playlistsQuery.data.slice(0, 50).map((playlist) => {
-                    const href = `/playlists/${playlist.id}`;
-                    const active = pathname === href;
-                    return (
-                      <Link
-                        key={playlist.id}
-                        href={href}
-                        className={`electron-no-drag flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all ${
-                          active
-                            ? "bg-[rgba(255,255,255,0.14)] text-[var(--color-text)]"
-                            : "text-[var(--color-subtext)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--color-text)]"
-                        }`}
-                        title={collapsed ? playlist.name : undefined}
-                      >
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.1)] text-xs font-bold text-[var(--color-text)]">
-                          {playlist.name?.charAt(0)?.toUpperCase() ?? "P"}
-                        </div>
-                        {!collapsed && (
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate">{playlist.name}</div>
-                            <div className="truncate text-xs text-[var(--color-muted)]">
-                              {(playlist.trackCount ?? 0).toString()} tracks
-                            </div>
-                          </div>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="px-3 py-2 text-sm text-[var(--color-subtext)]">
+            {session ? (
+              <>
+                <div className="flex items-center justify-between px-2">
                   {!collapsed ? (
-                    <button
-                      className="electron-no-drag inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[var(--color-text)] hover:border-[rgba(244,178,102,0.35)] hover:bg-[rgba(244,178,102,0.1)]"
-                      onClick={() => setCreateModalOpen(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Create your first playlist
-                    </button>
+                    <div className="text-[10px] font-semibold tracking-[0.16em] text-[var(--color-muted)] uppercase">
+                      Your Library
+                    </div>
                   ) : (
-                    <span>—</span>
+                    <div className="h-3" />
+                  )}
+
+                  <button
+                    className="electron-no-drag flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] text-[var(--color-subtext)] transition-colors hover:border-[rgba(244,178,102,0.35)] hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
+                    onClick={() => setCreateModalOpen(true)}
+                    aria-label="Create playlist"
+                    title="Create playlist"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="mt-2 min-h-0 overflow-y-auto pr-1">
+                  {playlistsQuery.isLoading ? (
+                    <div className="px-3 py-2 text-sm text-[var(--color-subtext)]">
+                      {!collapsed ? "Loading..." : "…"}
+                    </div>
+                  ) : playlistsQuery.data && playlistsQuery.data.length > 0 ? (
+                    <div className="space-y-1">
+                      {playlistsQuery.data.slice(0, 50).map((playlist) => {
+                        const href = `/playlists/${playlist.id}`;
+                        const active = pathname === href;
+                        return (
+                          <Link
+                            key={playlist.id}
+                            href={href}
+                            className={`electron-no-drag flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all ${
+                              active
+                                ? "bg-[rgba(255,255,255,0.14)] text-[var(--color-text)]"
+                                : "text-[var(--color-subtext)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--color-text)]"
+                            }`}
+                            title={collapsed ? playlist.name : undefined}
+                          >
+                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.1)] text-xs font-bold text-[var(--color-text)]">
+                              {playlist.name?.charAt(0)?.toUpperCase() ?? "P"}
+                            </div>
+                            {!collapsed && (
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate">{playlist.name}</div>
+                                <div className="truncate text-xs text-[var(--color-muted)]">
+                                  {(playlist.trackCount ?? 0).toString()} tracks
+                                </div>
+                              </div>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-[var(--color-subtext)]">
+                      {!collapsed ? (
+                        <button
+                          className="electron-no-drag inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[var(--color-text)] hover:border-[rgba(244,178,102,0.35)] hover:bg-[rgba(244,178,102,0.1)]"
+                          onClick={() => setCreateModalOpen(true)}
+                        >
+                          <Plus className="h-4 w-4" />
+                          Create your first playlist
+                        </button>
+                      ) : (
+                        <span>—</span>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            {!collapsed && (
-              <div className="mt-3 px-2">
-                <Link
-                  href="/playlists"
-                  onClick={(event) => {
-                    if (!session) {
-                      event.preventDefault();
+                {!collapsed && (
+                  <div className="mt-3 px-2">
+                    <Link
+                      href="/playlists"
+                      className="electron-no-drag inline-flex items-center gap-2 text-xs font-semibold text-[var(--color-subtext)] hover:text-[var(--color-text)]"
+                    >
+                      <ListMusic className="h-4 w-4" />
+                      See all playlists
+                    </Link>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="px-2">
+                {!collapsed ? (
+                  <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-4 py-4 text-sm text-[var(--color-subtext)]">
+                    <div className="text-xs font-semibold tracking-[0.16em] text-[var(--color-muted)] uppercase">
+                      Your Library
+                    </div>
+                    <div className="mt-2 text-[var(--color-subtext)]">
+                      Sign in to see your playlists, liked tracks, and recent
+                      activity.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openAuthModal({ callbackUrl: "/playlists" });
+                      }}
+                      className="electron-no-drag mt-3 w-full rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm font-semibold text-[var(--color-text)] hover:border-[rgba(244,178,102,0.35)] hover:bg-[rgba(244,178,102,0.1)]"
+                    >
+                      Sign in to view playlists
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
                       openAuthModal({ callbackUrl: "/playlists" });
-                    }
-                  }}
-                  className="electron-no-drag inline-flex items-center gap-2 text-xs font-semibold text-[var(--color-subtext)] hover:text-[var(--color-text)]"
-                >
-                  <ListMusic className="h-4 w-4" />
-                  See all playlists
-                </Link>
+                    }}
+                    className="electron-no-drag flex h-10 w-full items-center justify-center rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] text-xs font-semibold text-[var(--color-text)]"
+                  >
+                    Sign in
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {!collapsed && (
+          {!collapsed && session && (
             <div className="mt-auto space-y-2 px-3 pb-[calc(env(safe-area-inset-bottom)+var(--electron-sidebar-bottom-padding))]">
               <button
                 className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-2.5 text-sm font-semibold text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition hover:scale-[1.01] active:scale-[0.99]"
