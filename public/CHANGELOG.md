@@ -5,6 +5,24 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.9] - 2026-02-11
+
+### Added
+
+- **Server-side taste inference pipeline**: Introduced weighted taste profiling from listening analytics, favorites, search behavior, and playlist context with recency/engagement scoring, genre alias normalization, and cached genre catalog matching for stronger personalization signals. Location: `src/server/api/routers/music.ts`.
+
+### Changed
+
+- **Taste profile API behavior**: `getTasteProfile` now returns a merged profile (stored + inferred) with confidence-aware genre selection and richer seed generation; `upsertTasteProfile` now merges incoming seeds with existing seeds instead of replacing them, improving long-term profile stability. Location: `src/server/api/routers/music.ts`.
+- **Desktop sidebar signed-out UX**: Reordered signed-out navigation to surface sign-in first, added prominent sign-in call-to-action blocks, replaced empty library state with guidance, and hid bottom authenticated actions for guests. Location: `src/components/ElectronSidebar.tsx`.
+- **Sidebar bottom action positioning**: Anchored sidebar actions to the bottom and introduced configurable bottom spacing via `--electron-sidebar-bottom-padding` for consistent layout tuning. Locations: `src/components/ElectronSidebar.tsx`, `src/styles/globals.css`.
+
+## [0.15.8] - 2026-02-10
+
+### Added
+
+- **Queue item context menu**: Implemented full queue-aware context actions (play from queue, move to next/end, remove) while keeping standard track actions available on queued tracks. Locations: `src/components/EnhancedQueue.tsx`, `src/components/TrackContextMenu.tsx`, `src/contexts/TrackContextMenuContext.tsx`.
+
 ## [0.15.4] - 2026-02-09
 
 ### Added

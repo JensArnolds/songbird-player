@@ -22,6 +22,7 @@ Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.js
 | `/api/music/playlists/by-genre-id` | GET | `src/app/api/music/playlists/by-genre-id/route.ts` | Proxies genre-scoped playlists using numeric `genreId` with optional bounded `limit`. | `API_V2_URL` |
 | `/api/music/playlists/by-genre` | GET | `src/app/api/music/playlists/by-genre/route.ts` | Proxies genre-scoped playlists using text `genre` as a fallback selector. | `API_V2_URL` |
 | `/api/music/genres` | GET | `src/app/api/music/genres/route.ts` | Proxies genre taxonomy for discovery and personalization selectors. | `API_V2_URL` |
+| `/api/playlist/[id]` | GET | `src/app/api/playlist/[id]/route.ts` | Proxies discovered playlist tracks from Songbird V2 `api/music/playlists/{id}` for UI playback pages. | `API_V2_URL` |
 | `/api/album/[id]` | GET | `src/app/api/album/[id]/route.ts` | Proxies to Deezer `album/:id`. | none |
 | `/api/album/[id]/tracks` | GET | `src/app/api/album/[id]/tracks/route.ts` | Proxies to Deezer `album/:id/tracks` (also fetches album info to enrich track payload). | none |
 | `/api/artist/[id]` | GET | `src/app/api/artist/[id]/route.ts` | Proxies to Deezer `artist/:id`. | none |
