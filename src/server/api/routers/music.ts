@@ -172,6 +172,592 @@ function normalizeTasteStrings(
   return normalized;
 }
 
+type WeightedTasteItem = {
+  label: string;
+  score: number;
+  count: number;
+  lastSeenAt: Date | null;
+};
+
+type GenreCatalogItem = {
+  id: number;
+  name: string;
+  normalizedName: string;
+  tokens: string[];
+};
+
+type StoredTasteProfile = typeof userTasteProfiles.$inferSelect;
+
+type InferredTasteProfile = {
+  preferredGenreId: number | null;
+  preferredGenreName: string | null;
+  seedArtists: string[];
+  seedPlaylistTitles: string[];
+  genreConfidence: number;
+  sampleSizes: {
+    analytics: number;
+    favorites: number;
+    searches: number;
+  };
+};
+
+const TASTE_MAX_SEEDS = 24;
+const TASTE_MIN_SEED_SCORE = 0.5;
+const TASTE_GENRE_CONFIDENCE_THRESHOLD = 0.58;
+const TASTE_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "at",
+  "by",
+  "for",
+  "from",
+  "in",
+  "mix",
+  "of",
+  "on",
+  "playlist",
+  "radio",
+  "song",
+  "songs",
+  "the",
+  "to",
+  "tracks",
+  "with",
+]);
+const GENRE_ALIAS_MAP = new Map<string, string>([
+  ["hiphop", "hip hop"],
+  ["hip-hop", "hip hop"],
+  ["rnb", "r&b"],
+  ["r and b", "r&b"],
+  ["drum and bass", "drum & bass"],
+  ["dnb", "drum & bass"],
+  ["edm", "electronic"],
+  ["electronica", "electronic"],
+]);
+const GENRE_CACHE_TTL_MS = 1000 * 60 * 30;
+let genreCatalogCache:
+  | {
+      expiresAt: number;
+      items: GenreCatalogItem[];
+    }
+  | null = null;
+
+function normalizeTasteLabel(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^\p{L}\p{N}\s-]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function canonicalizeGenreLabel(value: string): string {
+  const normalized = normalizeTasteLabel(value);
+  return GENRE_ALIAS_MAP.get(normalized) ?? normalized;
+}
+
+function tokenizeTasteText(value: string): string[] {
+  const normalized = canonicalizeGenreLabel(value);
+  if (!normalized) return [];
+
+  return normalized
+    .split(" ")
+    .map((token) => token.trim())
+    .filter((token) => token.length > 1 && !TASTE_STOP_WORDS.has(token));
+}
+
+function buildTokenPhrases(tokens: string[]): Set<string> {
+  const phrases = new Set<string>();
+  for (const token of tokens) {
+    phrases.add(token);
+  }
+
+  for (let i = 0; i < tokens.length - 1; i += 1) {
+    const first = tokens[i];
+    const second = tokens[i + 1];
+    if (first && second) {
+      phrases.add(`${first} ${second}`);
+    }
+  }
+
+  for (let i = 0; i < tokens.length - 2; i += 1) {
+    const first = tokens[i];
+    const second = tokens[i + 1];
+    const third = tokens[i + 2];
+    if (first && second && third) {
+      phrases.add(`${first} ${second} ${third}`);
+    }
+  }
+
+  return phrases;
+}
+
+function recencyWeight(
+  timestamp: Date | null,
+  now: Date,
+  halfLifeDays: number,
+  floor: number,
+): number {
+  if (!timestamp) return floor;
+  const ageDays = Math.max(
+    0,
+    (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  const decay = Math.exp(-ageDays / halfLifeDays);
+  return floor + (1 - floor) * decay;
+}
+
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(1, Math.max(0, value));
+}
+
+function addWeightedTasteItem(
+  map: Map<string, WeightedTasteItem>,
+  label: string | null | undefined,
+  score: number,
+  lastSeenAt: Date | null = null,
+) {
+  if (!label) return;
+  const trimmed = label.trim();
+  if (!trimmed) return;
+  if (!Number.isFinite(score) || score <= 0) return;
+
+  const key = normalizeTasteLabel(trimmed);
+  if (!key || TASTE_STOP_WORDS.has(key)) return;
+
+  const existing = map.get(key);
+  if (!existing) {
+    map.set(key, {
+      label: trimmed,
+      score,
+      count: 1,
+      lastSeenAt,
+    });
+    return;
+  }
+
+  existing.score += score;
+  existing.count += 1;
+  if (lastSeenAt && (!existing.lastSeenAt || lastSeenAt > existing.lastSeenAt)) {
+    existing.lastSeenAt = lastSeenAt;
+  }
+}
+
+function topWeightedTasteItems(
+  map: Map<string, WeightedTasteItem>,
+  limit: number,
+  minScore = TASTE_MIN_SEED_SCORE,
+): string[] {
+  return Array.from(map.values())
+    .filter((item) => item.score >= minScore)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.count !== a.count) return b.count - a.count;
+      if (a.lastSeenAt && b.lastSeenAt) {
+        return b.lastSeenAt.getTime() - a.lastSeenAt.getTime();
+      }
+      return a.label.localeCompare(b.label);
+    })
+    .slice(0, limit)
+    .map((item) => item.label);
+}
+
+function readTrackArtistName(trackData: unknown): string | null {
+  if (!trackData || typeof trackData !== "object") return null;
+  const record = trackData as Record<string, unknown>;
+  const artist = record.artist;
+  if (!artist || typeof artist !== "object") return null;
+  const name = (artist as Record<string, unknown>).name;
+  return typeof name === "string" ? name.trim() : null;
+}
+
+function readTrackAlbumTitle(trackData: unknown): string | null {
+  if (!trackData || typeof trackData !== "object") return null;
+  const record = trackData as Record<string, unknown>;
+  const album = record.album;
+  if (!album || typeof album !== "object") return null;
+  const title = (album as Record<string, unknown>).title;
+  return typeof title === "string" ? title.trim() : null;
+}
+
+function readTrackTitle(trackData: unknown): string | null {
+  if (!trackData || typeof trackData !== "object") return null;
+  const title = (trackData as Record<string, unknown>).title;
+  return typeof title === "string" ? title.trim() : null;
+}
+
+async function loadGenreCatalog(): Promise<GenreCatalogItem[]> {
+  const now = Date.now();
+  if (genreCatalogCache && genreCatalogCache.expiresAt > now) {
+    return genreCatalogCache.items;
+  }
+
+  try {
+    const payload = await songbird.request<unknown>("/api/music/genres");
+    const payloadRecord =
+      payload && typeof payload === "object"
+        ? (payload as Record<string, unknown>)
+        : null;
+    const rows = Array.isArray(payloadRecord?.data)
+      ? payloadRecord.data
+      : Array.isArray(payload)
+        ? payload
+        : [];
+
+    const genres = rows
+      .map((row) => {
+        if (!row || typeof row !== "object") return null;
+        const record = row as Record<string, unknown>;
+        const rawId = record.id;
+        const rawName = record.name;
+        if (typeof rawName !== "string" || !rawName.trim()) return null;
+        const id =
+          typeof rawId === "number"
+            ? rawId
+            : typeof rawId === "string"
+              ? Number.parseInt(rawId, 10)
+              : NaN;
+        if (!Number.isFinite(id) || id <= 0) return null;
+        const name = rawName.trim();
+        const normalizedName = canonicalizeGenreLabel(name);
+        const tokens = tokenizeTasteText(name);
+        return {
+          id,
+          name,
+          normalizedName,
+          tokens,
+        } satisfies GenreCatalogItem;
+      })
+      .filter((genre): genre is GenreCatalogItem => !!genre);
+
+    if (genres.length > 0) {
+      genreCatalogCache = {
+        expiresAt: now + GENRE_CACHE_TTL_MS,
+        items: genres,
+      };
+    }
+
+    return genres;
+  } catch (error) {
+    console.warn("[TasteProfile] Failed to load genre catalog:", error);
+    return genreCatalogCache?.items ?? [];
+  }
+}
+
+function scoreGenresFromText(
+  text: string,
+  weight: number,
+  genres: GenreCatalogItem[],
+  genreScores: Map<number, number>,
+) {
+  if (!text || !Number.isFinite(weight) || weight <= 0) return;
+  const tokens = tokenizeTasteText(text);
+  if (tokens.length === 0) return;
+
+  const tokenSet = new Set(tokens);
+  const tokenPhrases = buildTokenPhrases(tokens);
+
+  for (const genre of genres) {
+    if (!genre.normalizedName) continue;
+
+    let scoreDelta = 0;
+    if (tokenPhrases.has(genre.normalizedName)) {
+      scoreDelta = weight * 2.8;
+    } else {
+      const overlap = genre.tokens.reduce((count, token) => {
+        return count + (tokenSet.has(token) ? 1 : 0);
+      }, 0);
+
+      if (overlap === genre.tokens.length && overlap > 0) {
+        scoreDelta = weight * 1.6;
+      } else if (overlap > 0 && genre.tokens.length > 1) {
+        scoreDelta = weight * (overlap / genre.tokens.length);
+      } else if (
+        overlap === 1 &&
+        genre.tokens.length === 1 &&
+        genre.tokens[0] &&
+        genre.tokens[0].length >= 4
+      ) {
+        scoreDelta = weight * 0.5;
+      }
+    }
+
+    if (scoreDelta > 0) {
+      genreScores.set(genre.id, (genreScores.get(genre.id) ?? 0) + scoreDelta);
+    }
+  }
+}
+
+function mergeTasteProfileSignals(
+  userId: string,
+  stored: StoredTasteProfile | null,
+  inferred: InferredTasteProfile,
+) {
+  const storedHasGenre = Boolean(
+    (stored?.preferredGenreId !== null &&
+      stored?.preferredGenreId !== undefined) ||
+      (stored?.preferredGenreName ?? "").trim().length > 0,
+  );
+  const inferredHasGenre = Boolean(
+    (inferred.preferredGenreId !== null &&
+      inferred.preferredGenreId !== undefined) ||
+      (inferred.preferredGenreName ?? "").trim().length > 0,
+  );
+
+  let preferredGenreId = stored?.preferredGenreId ?? null;
+  let preferredGenreName = stored?.preferredGenreName ?? null;
+
+  if (
+    inferredHasGenre &&
+    (!storedHasGenre || inferred.genreConfidence >= TASTE_GENRE_CONFIDENCE_THRESHOLD)
+  ) {
+    preferredGenreId = inferred.preferredGenreId;
+    preferredGenreName = inferred.preferredGenreName;
+  }
+
+  const seedArtists = normalizeTasteStrings(
+    [...inferred.seedArtists, ...(stored?.seedArtists ?? [])],
+    TASTE_MAX_SEEDS,
+  );
+  const seedPlaylistTitles = normalizeTasteStrings(
+    [...inferred.seedPlaylistTitles, ...(stored?.seedPlaylistTitles ?? [])],
+    TASTE_MAX_SEEDS,
+  );
+
+  return {
+    id: stored?.id ?? null,
+    userId,
+    preferredGenreId,
+    preferredGenreName,
+    seedArtists,
+    seedPlaylistTitles,
+    createdAt: stored?.createdAt ?? null,
+    updatedAt: stored?.updatedAt ?? null,
+    inference: {
+      version: 2,
+      genreConfidence: inferred.genreConfidence,
+      sampleSizes: inferred.sampleSizes,
+    },
+  };
+}
+
+async function inferTasteProfileFromBehavior(
+  database: typeof db,
+  userId: string,
+  stored: StoredTasteProfile | null,
+): Promise<InferredTasteProfile> {
+  const now = new Date();
+
+  const [analyticsRows, favoriteRows, searchRows] = await Promise.all([
+    database
+      .select({
+        trackId: listeningAnalytics.trackId,
+        trackData: listeningAnalytics.trackData,
+        playedAt: listeningAnalytics.playedAt,
+        completionPercentage: listeningAnalytics.completionPercentage,
+        skipped: listeningAnalytics.skipped,
+        playContext: listeningAnalytics.playContext,
+        contextId: listeningAnalytics.contextId,
+      })
+      .from(listeningAnalytics)
+      .where(eq(listeningAnalytics.userId, userId))
+      .orderBy(desc(listeningAnalytics.playedAt))
+      .limit(900),
+    database
+      .select({
+        trackId: favorites.trackId,
+        trackData: favorites.trackData,
+        createdAt: favorites.createdAt,
+      })
+      .from(favorites)
+      .where(eq(favorites.userId, userId))
+      .orderBy(desc(favorites.createdAt))
+      .limit(250),
+    database
+      .select({
+        query: searchHistory.query,
+        searchedAt: searchHistory.searchedAt,
+      })
+      .from(searchHistory)
+      .where(eq(searchHistory.userId, userId))
+      .orderBy(desc(searchHistory.searchedAt))
+      .limit(180),
+  ]);
+
+  const playlistContextCounts = new Map<number, number>();
+  const playlistContextIds = new Set<number>();
+  for (const row of analyticsRows) {
+    if (row.playContext !== "playlist") continue;
+    if (typeof row.contextId !== "number" || row.contextId <= 0) continue;
+    playlistContextIds.add(row.contextId);
+    playlistContextCounts.set(
+      row.contextId,
+      (playlistContextCounts.get(row.contextId) ?? 0) + 1,
+    );
+  }
+
+  const playlistContextNames =
+    playlistContextIds.size > 0
+      ? await database
+          .select({
+            id: playlists.id,
+            name: playlists.name,
+          })
+          .from(playlists)
+          .where(
+            and(
+              eq(playlists.userId, userId),
+              inArray(playlists.id, Array.from(playlistContextIds).slice(0, 120)),
+            ),
+          )
+      : [];
+
+  const playCountByTrackId = new Map<number, number>();
+  for (const row of analyticsRows) {
+    const existing = playCountByTrackId.get(row.trackId) ?? 0;
+    playCountByTrackId.set(row.trackId, existing + 1);
+  }
+
+  const artistScores = new Map<string, WeightedTasteItem>();
+  const titleScores = new Map<string, WeightedTasteItem>();
+
+  for (const row of analyticsRows) {
+    const artistName = readTrackArtistName(row.trackData);
+    const albumTitle = readTrackAlbumTitle(row.trackData);
+    const trackTitle = readTrackTitle(row.trackData);
+    const completion = clamp01((row.completionPercentage ?? 0) / 100);
+    const recency = recencyWeight(row.playedAt, now, 42, 0.22);
+    const repeatCount = playCountByTrackId.get(row.trackId) ?? 1;
+    const repeatBoost = 1 + Math.min(0.55, Math.log1p(repeatCount) / 3.4);
+    const contextBoost =
+      row.playContext === "favorites"
+        ? 0.25
+        : row.playContext === "playlist"
+          ? 0.16
+          : row.playContext === "album"
+            ? 0.12
+            : row.playContext === "artist"
+              ? 0.1
+              : 0.06;
+    const engagement = row.skipped ? 0.18 + completion * 0.22 : 0.48 + completion * 0.88;
+    const score = engagement * recency * repeatBoost + contextBoost;
+
+    addWeightedTasteItem(artistScores, artistName, score * 1.35, row.playedAt);
+    addWeightedTasteItem(titleScores, albumTitle, score * 1.0, row.playedAt);
+
+    if (row.playContext === "search") {
+      addWeightedTasteItem(titleScores, trackTitle, score * 0.55, row.playedAt);
+    }
+  }
+
+  for (const row of favoriteRows) {
+    const artistName = readTrackArtistName(row.trackData);
+    const albumTitle = readTrackAlbumTitle(row.trackData);
+    const recency = recencyWeight(row.createdAt, now, 120, 0.45);
+    const score = 2.1 + recency;
+
+    addWeightedTasteItem(artistScores, artistName, score * 1.45, row.createdAt);
+    addWeightedTasteItem(titleScores, albumTitle, score * 1.15, row.createdAt);
+  }
+
+  for (const row of searchRows) {
+    const query = row.query.trim();
+    if (!query) continue;
+    const tokenCount = tokenizeTasteText(query).length;
+    if (tokenCount === 0 || tokenCount > 6) continue;
+
+    const recency = recencyWeight(row.searchedAt, now, 40, 0.24);
+    const score = recency * (tokenCount <= 3 ? 1.2 : 0.85);
+    addWeightedTasteItem(titleScores, query, score, row.searchedAt);
+  }
+
+  for (const playlist of playlistContextNames) {
+    const playCount = playlistContextCounts.get(playlist.id) ?? 0;
+    if (playCount <= 0) continue;
+    const score = Math.min(2.4, playCount * 0.33);
+    addWeightedTasteItem(titleScores, playlist.name, score);
+  }
+
+  for (const artist of stored?.seedArtists ?? []) {
+    addWeightedTasteItem(artistScores, artist, 0.75, stored?.updatedAt ?? null);
+  }
+  for (const title of stored?.seedPlaylistTitles ?? []) {
+    addWeightedTasteItem(titleScores, title, 0.65, stored?.updatedAt ?? null);
+  }
+
+  const seedArtists = topWeightedTasteItems(artistScores, TASTE_MAX_SEEDS);
+  const seedPlaylistTitles = topWeightedTasteItems(titleScores, TASTE_MAX_SEEDS);
+
+  const genres = await loadGenreCatalog();
+  const genreScores = new Map<number, number>();
+
+  if (stored?.preferredGenreId) {
+    genreScores.set(stored.preferredGenreId, 2.4);
+  }
+  if (stored?.preferredGenreName) {
+    scoreGenresFromText(stored.preferredGenreName, 1.6, genres, genreScores);
+  }
+
+  for (let i = 0; i < searchRows.length; i += 1) {
+    const row = searchRows[i];
+    if (!row) continue;
+    const query = row.query.trim();
+    if (!query) continue;
+    const tokens = tokenizeTasteText(query);
+    if (tokens.length === 0 || tokens.length > 8) continue;
+
+    const recency = recencyWeight(row.searchedAt, now, 40, 0.22);
+    const positionalWeight = 1 - Math.min(0.55, i * 0.015);
+    scoreGenresFromText(
+      query,
+      recency * positionalWeight * 1.7,
+      genres,
+      genreScores,
+    );
+  }
+
+  for (let i = 0; i < seedPlaylistTitles.length; i += 1) {
+    const title = seedPlaylistTitles[i];
+    if (!title) continue;
+    const positionalWeight = 1 - Math.min(0.65, i * 0.05);
+    scoreGenresFromText(title, positionalWeight, genres, genreScores);
+  }
+
+  const rankedGenres = Array.from(genreScores.entries()).sort(
+    (a, b) => b[1] - a[1],
+  );
+
+  const genreById = new Map(genres.map((genre) => [genre.id, genre]));
+  const topGenre = rankedGenres[0];
+  const secondGenre = rankedGenres[1];
+  const topGenreScore = topGenre?.[1] ?? 0;
+  const secondGenreScore = secondGenre?.[1] ?? 0;
+  const genreConfidence = clamp01(
+    topGenreScore / (topGenreScore + secondGenreScore + 0.9),
+  );
+  const topGenreRecord = topGenre ? genreById.get(topGenre[0]) : null;
+  const minimumGenreScore = 1.85;
+  const hasReliableGenre =
+    !!topGenreRecord &&
+    (topGenreScore >= minimumGenreScore ||
+      genreConfidence >= TASTE_GENRE_CONFIDENCE_THRESHOLD);
+
+  return {
+    preferredGenreId: hasReliableGenre ? topGenreRecord.id : null,
+    preferredGenreName: hasReliableGenre ? topGenreRecord.name : null,
+    seedArtists,
+    seedPlaylistTitles,
+    genreConfidence,
+    sampleSizes: {
+      analytics: analyticsRows.length,
+      favorites: favoriteRows.length,
+      searches: searchRows.length,
+    },
+  };
+}
+
 async function fetchTracksByDeezerIds(
   ids: number[],
   options?: {
@@ -983,11 +1569,33 @@ export const musicRouter = createTRPCRouter({
     }),
 
   getTasteProfile: protectedProcedure.query(async ({ ctx }) => {
-    return (
-      (await ctx.db.query.userTasteProfiles.findFirst({
-        where: eq(userTasteProfiles.userId, ctx.session.user.id),
-      })) ?? null
+    const existing = await ctx.db.query.userTasteProfiles.findFirst({
+      where: eq(userTasteProfiles.userId, ctx.session.user.id),
+    });
+
+    const inferred = await inferTasteProfileFromBehavior(
+      ctx.db,
+      ctx.session.user.id,
+      existing,
     );
+
+    const merged = mergeTasteProfileSignals(
+      ctx.session.user.id,
+      existing,
+      inferred,
+    );
+
+    const hasSignals =
+      merged.seedArtists.length > 0 ||
+      merged.seedPlaylistTitles.length > 0 ||
+      merged.preferredGenreId !== null ||
+      Boolean(merged.preferredGenreName);
+
+    if (!existing && !hasSignals) {
+      return null;
+    }
+
+    return merged;
   }),
 
   upsertTasteProfile: protectedProcedure
@@ -1017,12 +1625,14 @@ export const musicRouter = createTRPCRouter({
             ? input.preferredGenreName.trim()
             : null;
 
-      const seedArtists = input.seedArtists
-        ? normalizeTasteStrings(input.seedArtists, 24)
-        : undefined;
-      const seedPlaylistTitles = input.seedPlaylistTitles
-        ? normalizeTasteStrings(input.seedPlaylistTitles, 24)
-        : undefined;
+      const seedArtists =
+        input.seedArtists && input.seedArtists.length > 0
+          ? normalizeTasteStrings(input.seedArtists, TASTE_MAX_SEEDS)
+          : undefined;
+      const seedPlaylistTitles =
+        input.seedPlaylistTitles && input.seedPlaylistTitles.length > 0
+          ? normalizeTasteStrings(input.seedPlaylistTitles, TASTE_MAX_SEEDS)
+          : undefined;
 
       if (!existing) {
         await ctx.db.insert(userTasteProfiles).values({
@@ -1047,11 +1657,17 @@ export const musicRouter = createTRPCRouter({
         }
 
         if (seedArtists !== undefined) {
-          updatePayload.seedArtists = seedArtists;
+          updatePayload.seedArtists = normalizeTasteStrings(
+            [...seedArtists, ...(existing.seedArtists ?? [])],
+            TASTE_MAX_SEEDS,
+          );
         }
 
         if (seedPlaylistTitles !== undefined) {
-          updatePayload.seedPlaylistTitles = seedPlaylistTitles;
+          updatePayload.seedPlaylistTitles = normalizeTasteStrings(
+            [...seedPlaylistTitles, ...(existing.seedPlaylistTitles ?? [])],
+            TASTE_MAX_SEEDS,
+          );
         }
 
         await ctx.db
