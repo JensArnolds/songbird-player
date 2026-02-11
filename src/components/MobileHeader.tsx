@@ -179,9 +179,9 @@ export default function MobileHeader() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={springPresets.gentle}
-      className="theme-chrome-header safe-top fixed top-0 right-0 left-0 z-50 border-b shadow-lg backdrop-blur-xl"
+      className="safe-top fixed top-0 right-0 left-0 z-50 px-2 pt-2 pb-1"
     >
-      <div className="flex items-center gap-2 px-4 py-2.5">
+      <div className="theme-chrome-header flex items-center gap-2 rounded-[1.2rem] border px-4 py-2.5 shadow-lg backdrop-blur-xl">
         <motion.button
           onClick={() => {
             hapticLight();
