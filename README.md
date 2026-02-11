@@ -60,7 +60,7 @@
 - LightweightParticleBackground for performance
 - Real-time audio-reactive visuals
 
-### User Management
+### Diagnostics and Users
 
 **Authentication:**
 
@@ -537,7 +537,7 @@ docker compose up -d --build
 curl http://localhost:3222/api/health
 ```
 
-Access the application at **http://localhost:3222**.
+Access the application at **<http://localhost:3222>**.
 
 #### Managing the Container
 

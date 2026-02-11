@@ -73,7 +73,9 @@ function toPreviewText(rawText: string): string {
   }
 }
 
-function getResultState(status: number | null): "healthy" | "degraded" | "down" {
+function getResultState(
+  status: number | null,
+): "healthy" | "degraded" | "down" {
   if (status === null) return "down";
   if (status >= 500) return "down";
   if (status >= 400) return "degraded";
@@ -308,7 +310,8 @@ export default function AdminPage() {
             Admin access required
           </h1>
           <p className="mt-2 text-[var(--color-subtext)]">
-            You need to be an admin to view and manage users. If you think this is a mistake, sign out and back in.
+            You need to be an admin to view and manage users. If you think this
+            is a mistake, sign out and back in.
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
             <Link
@@ -333,12 +336,12 @@ export default function AdminPage() {
     <div className="mx-auto min-h-screen max-w-6xl px-4 py-10">
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="flex items-center gap-3 text-sm uppercase tracking-[0.2em] text-[var(--color-subtext)]">
+          <p className="flex items-center gap-3 text-sm tracking-[0.2em] text-[var(--color-subtext)] uppercase">
             <Shield className="h-5 w-5 text-[var(--color-accent)]" />
             Admin Console
           </p>
           <h1 className="mt-2 text-3xl font-bold text-[var(--color-text)]">
-            User Management
+            Diagnostics and Users
           </h1>
           <p className="mt-1 text-[var(--color-subtext)]">
             View users, inspect profiles, manage access, and remove accounts.
@@ -362,12 +365,13 @@ export default function AdminPage() {
       <div className="mb-8 rounded-3xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)]/90 via-[var(--color-surface-2)]/85 to-[rgba(121,195,238,0.1)] p-6 shadow-[var(--shadow-lg)]">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="flex items-center gap-2 text-sm uppercase tracking-[0.14em] text-[var(--color-subtext)]">
+            <p className="flex items-center gap-2 text-sm tracking-[0.14em] text-[var(--color-subtext)] uppercase">
               <Activity className="h-4 w-4 text-[var(--color-accent)]" />
               API Diagnostics
             </p>
             <p className="mt-1 text-sm text-[var(--color-subtext)]">
-              Lightweight checks run every 60s. Heavy endpoints are available as links.
+              Lightweight checks run every 60s. Heavy endpoints are available as
+              links.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -454,7 +458,7 @@ export default function AdminPage() {
                     {item.label}
                   </p>
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] uppercase ${
                       item.state === "healthy"
                         ? "bg-[rgba(88,198,177,0.15)] text-[var(--color-success)]"
                         : item.state === "degraded"
@@ -474,7 +478,9 @@ export default function AdminPage() {
                   {item.path}
                 </p>
                 <pre className="max-h-28 overflow-auto rounded-lg bg-[var(--color-surface-2)]/70 p-2 text-[10px] leading-relaxed text-[var(--color-subtext)]">
-                  {item.error ? `${item.error}\n${item.payloadPreview}` : item.payloadPreview}
+                  {item.error
+                    ? `${item.error}\n${item.payloadPreview}`
+                    : item.payloadPreview}
                 </pre>
               </div>
             ))}
@@ -572,12 +578,14 @@ export default function AdminPage() {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  <p className="text-xs uppercase tracking-[0.12em] text-[var(--color-muted)]">
+                  <p className="text-xs tracking-[0.12em] text-[var(--color-muted)] uppercase">
                     ID: {user.id}
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
                     <button
-                      onClick={() => handleToggleAdmin(user.id, user.admin ?? false)}
+                      onClick={() =>
+                        handleToggleAdmin(user.id, user.admin ?? false)
+                      }
                       disabled={
                         updateAdmin.isPending ||
                         user.firstAdmin ||
@@ -611,7 +619,9 @@ export default function AdminPage() {
                       )}
                     </button>
                     <button
-                      onClick={() => handleToggleBanned(user.id, user.banned ?? false)}
+                      onClick={() =>
+                        handleToggleBanned(user.id, user.banned ?? false)
+                      }
                       disabled={
                         updateBanned.isPending ||
                         removeUser.isPending ||
@@ -667,7 +677,10 @@ export default function AdminPage() {
                             : ""
                       }
                       className={`inline-flex items-center gap-2 rounded-xl border border-[var(--color-danger)]/70 px-3 py-2 text-sm font-semibold text-[var(--color-danger)] transition hover:bg-[var(--color-danger)]/10 ${
-                        removeUser.isPending || ((user.admin ?? false) && !isFirstAdmin) ? "opacity-50" : ""
+                        removeUser.isPending ||
+                        ((user.admin ?? false) && !isFirstAdmin)
+                          ? "opacity-50"
+                          : ""
                       } ${session?.user?.id === user.id ? "cursor-not-allowed opacity-50" : ""}`}
                     >
                       {removeUser.isPending ? (
