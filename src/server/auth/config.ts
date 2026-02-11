@@ -188,6 +188,7 @@ console.log(
 
 export const authConfig = {
   trustHost: true,
+  debug: process.env.NODE_ENV === "development",
   basePath: "/api/auth",
   pages: { signIn: "/signin" },
   providers: [
