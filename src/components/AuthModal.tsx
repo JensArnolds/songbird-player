@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  OAUTH_PROVIDER_BUTTON_STYLES,
+  isEnabledOAuthProviderId,
+} from "@/config/oauthProviders";
 import { springPresets } from "@/utils/spring-animations";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
@@ -17,13 +21,6 @@ interface AuthModalProps {
   message?: string;
   onClose: () => void;
 }
-
-const providerButtonStyles: Record<string, string> = {
-  discord:
-    "bg-[#5865F2] text-white hover:brightness-110 active:brightness-95",
-  spotify:
-    "bg-[#1DB954] text-white hover:brightness-110 active:brightness-95",
-};
 
 export function AuthModal({
   isOpen,
@@ -86,7 +83,8 @@ export function AuthModal({
     if (!providers) return [];
 
     return Object.values(providers).filter(
-      (provider) => provider.type === "oauth",
+      (provider) =>
+        provider.type === "oauth" && isEnabledOAuthProviderId(provider.id),
     );
   }, [providers]);
 
@@ -139,7 +137,7 @@ export function AuthModal({
                 ) : oauthProviders.length > 0 ? (
                   oauthProviders.map((provider) => {
                     const providerClasses =
-                      providerButtonStyles[provider.id] ??
+                      OAUTH_PROVIDER_BUTTON_STYLES[provider.id] ??
                       "border border-[var(--color-border)] bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:border-[var(--color-accent)]";
                     const isSubmitting = submittingProviderId === provider.id;
 

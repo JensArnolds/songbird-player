@@ -14,6 +14,10 @@ export const env = createEnv({
       .transform((val) => val === "true"),
     AUTH_DISCORD_ID: z.string(),
     AUTH_DISCORD_SECRET: z.string(),
+    AUTH_SPOTIFY_ENABLED: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
     SPOTIFY_CLIENT_ID: z.string().optional(),
     SPOTIFY_CLIENT_SECRET: z.string().optional(),
     NEXTAUTH_URL: z.string().url().optional(),
@@ -39,6 +43,10 @@ export const env = createEnv({
     NEXT_PUBLIC_NEXTAUTH_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: z.string().url().optional(),
+    NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
     NEXT_PUBLIC_API_V2_HEALTH_URL: z.string().url().optional(),
   },
   runtimeEnv: {
@@ -47,6 +55,7 @@ export const env = createEnv({
     AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,
     AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
+    AUTH_SPOTIFY_ENABLED: process.env.AUTH_SPOTIFY_ENABLED,
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
@@ -66,6 +75,8 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL,
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER:
       process.env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER,
+    NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED:
+      process.env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED,
     NEXT_PUBLIC_API_V2_HEALTH_URL: process.env.NEXT_PUBLIC_API_V2_HEALTH_URL,
     SONGBIRD_API_KEY: process.env.SONGBIRD_API_KEY,
     ELECTRON_BUILD: process.env.ELECTRON_BUILD,

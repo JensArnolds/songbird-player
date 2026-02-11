@@ -3,6 +3,10 @@
 "use client";
 
 import { STORAGE_KEYS } from "@/config/storage";
+import {
+  OAUTH_PROVIDER_BUTTON_STYLES,
+  isEnabledOAuthProviderId,
+} from "@/config/oauthProviders";
 import { localStorage as appStorage } from "@/services/storage";
 import { getGenres, type GenreListItem } from "@/utils/api";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
@@ -96,7 +100,10 @@ function SignInContent() {
 
   const oauthProviders = useMemo(() => {
     if (!providers) return [];
-    return Object.values(providers).filter((provider) => provider.id === "discord");
+    return Object.values(providers).filter(
+      (provider) =>
+        provider.type === "oauth" && isEnabledOAuthProviderId(provider.id),
+    );
   }, [providers]);
 
   const featuredGenres = useMemo(() => genres.slice(0, 12), [genres]);
@@ -223,6 +230,9 @@ function SignInContent() {
           ) : oauthProviders.length > 0 ? (
             <div className="space-y-3">
               {oauthProviders.map((provider) => {
+                const providerClasses =
+                  OAUTH_PROVIDER_BUTTON_STYLES[provider.id] ??
+                  "border border-[var(--color-border)] bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:border-[var(--color-accent)]";
                 return (
                   <button
                     key={provider.id}
@@ -234,7 +244,7 @@ function SignInContent() {
                         { redirect_uri: getOAuthRedirectUri(provider.id) },
                       )
                     }
-                    className="w-full rounded-xl bg-[#5865f2] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                    className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition hover:opacity-90 ${providerClasses}`}
                   >
                     Sign in with {provider.name}
                   </button>
