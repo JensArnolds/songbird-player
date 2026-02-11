@@ -62,7 +62,62 @@ function copyDir(src, dest) {
   }
 }
 
+/**
+ * Replace symlinked module aliases with real directories/files.
+ * Next.js Turbopack can emit hashed aliases under `.next/node_modules`
+ * (for example `pg-<hash>`), and electron-builder may preserve them as
+ * absolute symlinks that break inside AppImage mounts.
+ *
+ * @param {string} modulesDir
+ * @returns {number}
+ */
+function materializeSymlinkModules(modulesDir) {
+  if (!fs.existsSync(modulesDir)) return 0;
+
+  const entries = fs.readdirSync(modulesDir, { withFileTypes: true });
+  let replaced = 0;
+
+  for (const entry of entries) {
+    const entryPath = path.join(modulesDir, entry.name);
+    if (!entry.isSymbolicLink()) continue;
+
+    const targetPath = fs.realpathSync(entryPath);
+    const targetStat = fs.statSync(targetPath);
+
+    fs.rmSync(entryPath, { recursive: true, force: true });
+
+    if (targetStat.isDirectory()) {
+      fs.cpSync(targetPath, entryPath, { recursive: true, dereference: true });
+    } else {
+      fs.copyFileSync(targetPath, entryPath);
+    }
+
+    replaced += 1;
+    console.log(
+      `[Prepare] Materialized symlink module alias: ${entry.name} -> ${targetPath}`,
+    );
+  }
+
+  return replaced;
+}
+
 try {
+  const standaloneAliasedNodeModules = path.join(
+    standaloneDir,
+    ".next",
+    "node_modules",
+  );
+  const materializedAliases = materializeSymlinkModules(
+    standaloneAliasedNodeModules,
+  );
+  if (materializedAliases > 0) {
+    console.log(
+      `[Prepare] ✓ Materialized ${materializedAliases} aliased module symlink(s) in standalone output`,
+    );
+  } else {
+    console.log("[Prepare] No aliased module symlinks detected in standalone output");
+  }
+
     console.log("[Prepare] Copying .next/static...");
   copyDir(staticSource, staticDest);
   console.log("[Prepare] ✓ Static files copied");

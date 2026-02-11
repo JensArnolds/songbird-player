@@ -5,6 +5,38 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.13] - 2026-02-11
+
+### Changed
+
+- **Standalone prep module alias handling**: Electron package preparation now materializes symlinked Turbopack module aliases under `.next/standalone/.next/node_modules` into real directories/files before packaging. Location: `electron/prepare-package.js`.
+- **After-pack alias hardening**: Electron `afterPack` now also materializes any remaining symlinked module aliases in the packaged standalone output and validates required `pg-*` aliases referenced by Turbopack runtime chunks. Location: `electron/builder/afterPack.cjs`.
+
+### Fixed
+
+- **Linux AppImage auth runtime regression**: Fixed packaged Linux/Electron OAuth flows (`/api/auth/*`) failing with `Internal Server Error` caused by unresolved `pg-<hash>` module aliases in AppImage runtime mounts. Locations: `electron/prepare-package.js`, `electron/builder/afterPack.cjs`.
+
+## [0.15.12] - 2026-02-11
+
+### Added
+
+- **Spotify auth readiness module**: Added a dedicated Spotify provider factory with resilient OAuth response normalization/retry handling so Spotify login can be enabled safely when required. Location: `src/server/auth/spotifyProvider.ts`.
+- **Centralized OAuth provider config**: Added a shared provider config layer for enabled OAuth IDs and provider button styles to keep sign-in surfaces consistent. Location: `src/config/oauthProviders.ts`.
+- **Explicit Spotify feature flags**: Added `AUTH_SPOTIFY_ENABLED` (server) and `NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED` (client) to env validation and templates for controlled rollout. Locations: `src/env.js`, `.env.example`, `README.md`.
+
+### Changed
+
+- **Auth provider wiring**: Reintroduced Spotify in NextAuth as an opt-in provider behind `AUTH_SPOTIFY_ENABLED` plus credential checks, with warning logs for server/client flag mismatch. Location: `src/server/auth/config.ts`.
+- **Sign-in provider discovery fallback**: Updated fallback provider generation to derive from enabled provider config (no hardcoded provider IDs), preventing stale UI options after env changes. Location: `src/utils/authProvidersFallback.ts`.
+- **OAuth UI behavior**: Updated `/signin` and `AuthModal` to filter and style providers via shared enabled-provider config, supporting a clean Discord-only baseline and Spotify-ready expansion. Locations: `src/app/signin/page.tsx`, `src/components/AuthModal.tsx`.
+- **Electron OAuth navigation**: Extended in-app OAuth allowlist to include Spotify host navigation so callback cookies stay within Electron session context. Location: `electron/main.cjs`.
+- **Build helper command resolution**: Updated env build runner to prepend local `node_modules/.bin` into `PATH`, preventing `electron-builder` command resolution failures outside npm script context. Location: `scripts/load-env-build.js`.
+
+### Fixed
+
+- **Packaged app static asset integrity**: Added after-pack verification for `.next/static` alongside standalone server/node_modules to fail fast on broken Linux/Electron artifacts that would otherwise render without CSS/assets. Location: `electron/builder/afterPack.cjs`.
+- **Auth handler diagnostics**: Added explicit GET/POST handler error logging in NextAuth route wrapper to surface root causes during OAuth callback failures in Electron/prod-style runs. Location: `src/app/api/auth/[...nextauth]/route.ts`.
+
 ## [0.15.11] - 2026-02-11
 
 ### Added
