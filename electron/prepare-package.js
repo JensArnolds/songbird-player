@@ -90,25 +90,52 @@ try {
   copyDir(certsSource, certsDest);
   console.log("[Prepare] ✓ Certificate files copied to standalone");
 
-    const envLocalSource = path.join(rootDir, ".env.local");
+  const envLocalSource = path.join(rootDir, ".env.local");
   const envLocalDest = path.join(standaloneDir, ".env.local");
+  const envDest = path.join(standaloneDir, ".env");
+  const includeBundledEnv = process.env.ELECTRON_INCLUDE_ENV === "true";
 
-  if (fs.existsSync(envLocalSource)) {
-    console.log("[Prepare] Copying .env.local...");
-    fs.copyFileSync(envLocalSource, envLocalDest);
-    console.log("[Prepare] ✓ Environment configuration copied");
+  // Never ship stale env files by default.
+  for (const bundledEnvPath of [envLocalDest, envDest]) {
+    if (fs.existsSync(bundledEnvPath)) {
+      fs.rmSync(bundledEnvPath, { force: true });
+      console.log(`[Prepare] Removed bundled env file: ${bundledEnvPath}`);
+    }
+  }
+
+  if (includeBundledEnv) {
+    if (fs.existsSync(envLocalSource)) {
+      console.log("[Prepare] ELECTRON_INCLUDE_ENV=true, copying .env.local...");
+      fs.copyFileSync(envLocalSource, envLocalDest);
+      console.log("[Prepare] ✓ Environment configuration copied");
+    } else {
+      console.warn(
+        "[Prepare] ⚠️  Warning: ELECTRON_INCLUDE_ENV=true but .env.local not found",
+      );
+    }
   } else {
-    console.warn("[Prepare] ⚠️  Warning: .env.local not found - packaged app will use system environment variables");
+    console.log(
+      "[Prepare] Skipping bundled env copy (ELECTRON_INCLUDE_ENV is not true).",
+    );
+    console.log(
+      "[Prepare] Runtime should use STARCHILD_ENV_FILE or OS environment variables.",
+    );
   }
 
   if (process.env.ELECTRON_DEV_TOOLS === "true") {
-    console.log("[Prepare] Adding dev tools flag to .env.local...");
-    const envContent = fs.readFileSync(envLocalDest, "utf8");
-    if (!envContent.includes("ELECTRON_DEV_TOOLS=true")) {
-      fs.appendFileSync(envLocalDest, "ELECTRON_DEV_TOOLS=true\n");
-      console.log("[Prepare] ✓ Added ELECTRON_DEV_TOOLS=true");
+    if (!includeBundledEnv || !fs.existsSync(envLocalDest)) {
+      console.warn(
+        "[Prepare] ELECTRON_DEV_TOOLS=true but no bundled env file exists; set ELECTRON_DEV_TOOLS in external env.",
+      );
     } else {
-      console.log("[Prepare] ✓ ELECTRON_DEV_TOOLS already present");
+      console.log("[Prepare] Adding dev tools flag to .env.local...");
+      const envContent = fs.readFileSync(envLocalDest, "utf8");
+      if (!envContent.includes("ELECTRON_DEV_TOOLS=true")) {
+        fs.appendFileSync(envLocalDest, "ELECTRON_DEV_TOOLS=true\n");
+        console.log("[Prepare] ✓ Added ELECTRON_DEV_TOOLS=true");
+      } else {
+        console.log("[Prepare] ✓ ELECTRON_DEV_TOOLS already present");
+      }
     }
   }
 
