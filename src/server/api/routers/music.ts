@@ -236,12 +236,10 @@ const GENRE_ALIAS_MAP = new Map<string, string>([
   ["electronica", "electronic"],
 ]);
 const GENRE_CACHE_TTL_MS = 1000 * 60 * 30;
-let genreCatalogCache:
-  | {
-      expiresAt: number;
-      items: GenreCatalogItem[];
-    }
-  | null = null;
+let genreCatalogCache: {
+  expiresAt: number;
+  items: GenreCatalogItem[];
+} | null = null;
 
 function normalizeTasteLabel(value: string): string {
   return value
@@ -340,7 +338,10 @@ function addWeightedTasteItem(
 
   existing.score += score;
   existing.count += 1;
-  if (lastSeenAt && (!existing.lastSeenAt || lastSeenAt > existing.lastSeenAt)) {
+  if (
+    lastSeenAt &&
+    (!existing.lastSeenAt || lastSeenAt > existing.lastSeenAt)
+  ) {
     existing.lastSeenAt = lastSeenAt;
   }
 }
@@ -498,12 +499,12 @@ function mergeTasteProfileSignals(
   const storedHasGenre = Boolean(
     (stored?.preferredGenreId !== null &&
       stored?.preferredGenreId !== undefined) ||
-      (stored?.preferredGenreName ?? "").trim().length > 0,
+    (stored?.preferredGenreName ?? "").trim().length > 0,
   );
   const inferredHasGenre = Boolean(
     (inferred.preferredGenreId !== null &&
       inferred.preferredGenreId !== undefined) ||
-      (inferred.preferredGenreName ?? "").trim().length > 0,
+    (inferred.preferredGenreName ?? "").trim().length > 0,
   );
 
   let preferredGenreId = stored?.preferredGenreId ?? null;
@@ -511,7 +512,8 @@ function mergeTasteProfileSignals(
 
   if (
     inferredHasGenre &&
-    (!storedHasGenre || inferred.genreConfidence >= TASTE_GENRE_CONFIDENCE_THRESHOLD)
+    (!storedHasGenre ||
+      inferred.genreConfidence >= TASTE_GENRE_CONFIDENCE_THRESHOLD)
   ) {
     preferredGenreId = inferred.preferredGenreId;
     preferredGenreName = inferred.preferredGenreName;
@@ -609,7 +611,10 @@ async function inferTasteProfileFromBehavior(
           .where(
             and(
               eq(playlists.userId, userId),
-              inArray(playlists.id, Array.from(playlistContextIds).slice(0, 120)),
+              inArray(
+                playlists.id,
+                Array.from(playlistContextIds).slice(0, 120),
+              ),
             ),
           )
       : [];
@@ -641,7 +646,9 @@ async function inferTasteProfileFromBehavior(
             : row.playContext === "artist"
               ? 0.1
               : 0.06;
-    const engagement = row.skipped ? 0.18 + completion * 0.22 : 0.48 + completion * 0.88;
+    const engagement = row.skipped
+      ? 0.18 + completion * 0.22
+      : 0.48 + completion * 0.88;
     const score = engagement * recency * repeatBoost + contextBoost;
 
     addWeightedTasteItem(artistScores, artistName, score * 1.35, row.playedAt);
@@ -688,7 +695,10 @@ async function inferTasteProfileFromBehavior(
   }
 
   const seedArtists = topWeightedTasteItems(artistScores, TASTE_MAX_SEEDS);
-  const seedPlaylistTitles = topWeightedTasteItems(titleScores, TASTE_MAX_SEEDS);
+  const seedPlaylistTitles = topWeightedTasteItems(
+    titleScores,
+    TASTE_MAX_SEEDS,
+  );
 
   const genres = await loadGenreCatalog();
   const genreScores = new Map<number, number>();
@@ -1569,9 +1579,10 @@ export const musicRouter = createTRPCRouter({
     }),
 
   getTasteProfile: protectedProcedure.query(async ({ ctx }) => {
-    const existing = await ctx.db.query.userTasteProfiles.findFirst({
-      where: eq(userTasteProfiles.userId, ctx.session.user.id),
-    });
+    const existing =
+      (await ctx.db.query.userTasteProfiles.findFirst({
+        where: eq(userTasteProfiles.userId, ctx.session.user.id),
+      })) ?? null;
 
     const inferred = await inferTasteProfileFromBehavior(
       ctx.db,
