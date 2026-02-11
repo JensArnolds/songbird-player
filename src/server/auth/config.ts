@@ -13,6 +13,7 @@ import {
   users,
   verificationTokens,
 } from "@/server/db/schema";
+import { createSpotifyProvider } from "./spotifyProvider";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -38,6 +39,21 @@ console.log(
   "[NextAuth Config] DATABASE_URL:",
   process.env.DATABASE_URL ? "✓ Set" : "✗ Missing",
 );
+console.log("[NextAuth Config] AUTH_SPOTIFY_ENABLED:", env.AUTH_SPOTIFY_ENABLED);
+
+if (env.AUTH_SPOTIFY_ENABLED && !env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED) {
+  console.warn(
+    "[NextAuth Config] AUTH_SPOTIFY_ENABLED=true but NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED is false. Spotify may be enabled server-side but hidden in the client UI.",
+  );
+}
+
+if (!env.AUTH_SPOTIFY_ENABLED && env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED) {
+  console.warn(
+    "[NextAuth Config] NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=true but AUTH_SPOTIFY_ENABLED is false. Spotify can appear in fallback UI but sign-in will fail.",
+  );
+}
+
+const spotifyProvider = createSpotifyProvider();
 
 export const authConfig = {
   trustHost: true,
@@ -49,6 +65,7 @@ export const authConfig = {
       clientId: env.AUTH_DISCORD_ID,
       clientSecret: env.AUTH_DISCORD_SECRET,
     }),
+    ...(spotifyProvider ? [spotifyProvider] : []),
   ],
   adapter: DrizzleAdapter(db, {
     usersTable: users,

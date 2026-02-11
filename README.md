@@ -64,7 +64,7 @@
 
 **Authentication:**
 
-- **NextAuth.js**: Discord OAuth 2.0 authentication
+- **NextAuth.js**: Discord OAuth 2.0 authentication (+ Spotify-ready via feature flags)
 - **Session Management**: Database-backed sessions (30-day expiry)
 - **User Profiles**: Public/private profile settings with user hash URLs
 - **Profile Pages**: Shareable user profiles at `/[userhash]`
@@ -153,6 +153,10 @@
     AUTH_SECRET=generate-with->npx auth secret
     AUTH_DISCORD_ID="your-discord-app-id"
     AUTH_DISCORD_SECRET="your-discord-app-secret"
+    AUTH_SPOTIFY_ENABLED=false
+    NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=false
+    SPOTIFY_CLIENT_ID="your-spotify-client-id"
+    SPOTIFY_CLIENT_SECRET="your-spotify-client-secret"
     NEXTAUTH_URL="http://localhost:3222"  # Optional, auto-detected
 
     # Database Configuration
@@ -171,6 +175,11 @@
     # Environment
     NODE_ENV="development"
     ```
+
+    Spotify OAuth is feature-gated:
+
+    - Set both `AUTH_SPOTIFY_ENABLED=true` and `NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=true`
+    - Provide `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`
 
     **Generate NextAuth Secret:**
 
