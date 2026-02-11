@@ -179,8 +179,14 @@ export default function PersistentPlayer() {
       {}
       {!isMobile && (
         <>
-          <div className="fixed left-0 right-0 bottom-0 z-50 px-4 pb-4">
-            <div className="player-backdrop max-w-5xl mx-auto rounded-2xl overflow-hidden">
+          <div
+            className="pointer-events-none fixed bottom-0 z-50 px-4 pb-4"
+            style={{
+              left: "var(--electron-sidebar-width, 0px)",
+              right: "var(--desktop-right-rail-width, 0px)",
+            }}
+          >
+            <div className="player-backdrop pointer-events-auto mx-auto max-w-5xl overflow-hidden rounded-2xl">
               <div className="player-backdrop-inner">
                 <MaturePlayer {...playerProps} />
               </div>
