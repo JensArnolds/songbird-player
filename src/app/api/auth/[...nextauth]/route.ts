@@ -121,9 +121,17 @@ export async function GET(
 ) {
   applyLoopbackAuthOrigin(request);
   logAuthRequest(request);
-  const response = await handlers.GET(request);
-  logAuthResponse(response);
-  return response;
+  try {
+    const response = await handlers.GET(request);
+    logAuthResponse(response);
+    return response;
+  } catch (error) {
+    console.error("[Auth Debug] GET handler threw", {
+      url: request.url,
+      error,
+    });
+    throw error;
+  }
 }
 
 export async function POST(
@@ -132,7 +140,15 @@ export async function POST(
 ) {
   applyLoopbackAuthOrigin(request);
   logAuthRequest(request);
-  const response = await handlers.POST(request);
-  logAuthResponse(response);
-  return response;
+  try {
+    const response = await handlers.POST(request);
+    logAuthResponse(response);
+    return response;
+  } catch (error) {
+    console.error("[Auth Debug] POST handler threw", {
+      url: request.url,
+      error,
+    });
+    throw error;
+  }
 }
