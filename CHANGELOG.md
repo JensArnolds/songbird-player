@@ -5,6 +5,20 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.11] - 2026-02-11
+
+### Added
+
+- **New API V2 proxy surface**: Added Next.js proxy routes for upstream diagnostics, auth/session metadata, config, rate limits, cache operations, stream capabilities, track metadata, and metrics. Locations: `src/app/api/v2/_lib.ts` and `src/app/api/v2/**/route.ts`.
+- **Admin diagnostics panel**: Added an API diagnostics section to the Admin page with periodic probes, manual refresh, upstream auth refresh action, cache clear action, and quick links for OpenAPI + metrics. Location: `src/app/admin/page.tsx`.
+- **Proxy route coverage tests**: Added tests for new V2 route mappings, admin-only protections, and track metadata id validation. Location: `src/__tests__/api-v2-status-routes.test.ts`.
+
+### Changed
+
+- **Header health polling strategy**: Updated health badge checks to use `/api/v2/status` first with fallback to `/api/v2/health` for compatibility during upstream rollout. Location: `src/components/Header.tsx`.
+- **Health status normalization**: Extended parser support for additional upstream formats (`status: "up"` and `{ ok: boolean }`). Location: `src/utils/healthStatus.ts`, `src/__tests__/health-status.test.ts`.
+- **API route documentation**: Expanded route map docs to include all new V2 proxy endpoints and admin-session requirements for sensitive routes. Location: `docs/API_ROUTE_USE.md`.
+
 ## [0.15.10] - 2026-02-11
 
 ### Added
