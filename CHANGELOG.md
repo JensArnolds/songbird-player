@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Fluid**: Eliminated 500-3,600 gradient creations per frame by removing all `createLinearGradient()` calls and batching flow field lines into 6 hue-based paths (600x reduction in operations). Increased grid size from 24 to 36 for additional performance gain.
   - **Starfield**: Eliminated 200-500 radial gradients per frame by removing all `createRadialGradient()` calls, using simple `fillStyle` instead. Reduced visible stars via stride (every 2nd-3rd star) and minimized trail rendering to every 4th star only when `bassIntensity > 0.5`.
   - **Constellation**: Eliminated 70-120 gradients per frame (50-100 linear + 20 radial) by batching all connection lines into a single path with one stroke operation, and using simple fills for stars instead of radial gradients.
+- **Visualizer Firefox performance optimizations (high-cost dark set)**: Hyper-optimized the five heaviest dark-mode visualizers with adaptive detail scaling, reduced shadow churn, lower path density, and selective gradient fallback. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Abyssal Depth**: Removed redundant per-layer rotations, reduced layer/creature gradient pressure with low-detail flat-fill fallbacks, simplified creature glow/trails, and scaled counts by adaptive detail.
+  - **Demonic Gate**: Reused a single `Path2D` gate outline for fill/stroke, batched tendril strokes, reduced vortex/entity/sigil complexity on low detail, and switched pillars/core to conditional gradient use.
+  - **Shadow Dance**: Batched the dancer net into one path, cached dancer polar results per frame, replaced trail arcs with rect fills, reduced per-dancer shadow state flips, and lowered wisp/ring complexity in low detail.
+  - **Spectral Echo**: Reduced ring segment density and layer cadence adaptively, converted inner orbit particles to rect fills, batched beam and core segment strokes, and added low-detail center source fill fallback.
+  - **Twilight Zone**: Added adaptive zone/particle scaling, removed per-zone save/restore rotation overhead, batched tear strokes, converted wisps to grouped rect fills, and introduced low-detail core rendering fallback.
 
 ## [0.15.16] - 2026-02-12
 
