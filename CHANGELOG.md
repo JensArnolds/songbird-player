@@ -5,6 +5,15 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.17] - 2026-02-12
+
+### Changed
+
+- **Visualizer Firefox performance optimizations (gradient elimination)**: Eliminated gradient creation in three of the most performance-intensive visualizer patterns, achieving massive Firefox performance improvements. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Fluid**: Eliminated 500-3,600 gradient creations per frame by removing all `createLinearGradient()` calls and batching flow field lines into 6 hue-based paths (600x reduction in operations). Increased grid size from 24 to 36 for additional performance gain.
+  - **Starfield**: Eliminated 200-500 radial gradients per frame by removing all `createRadialGradient()` calls, using simple `fillStyle` instead. Reduced visible stars via stride (every 2nd-3rd star) and minimized trail rendering to every 4th star only when `bassIntensity > 0.5`.
+  - **Constellation**: Eliminated 70-120 gradients per frame (50-100 linear + 20 radial) by batching all connection lines into a single path with one stroke operation, and using simple fills for stars instead of radial gradients.
+
 ## [0.15.16] - 2026-02-12
 
 ### Added
