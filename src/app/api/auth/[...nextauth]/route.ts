@@ -2,18 +2,11 @@
 
 import { handlers } from "@/server/auth";
 
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
-
 function shouldLogAuthDebug(): boolean {
   return (
     process.env.NODE_ENV === "development" ||
     process.env.ELECTRON_BUILD === "true"
   );
-}
-
-function isLoopbackHost(hostname: string): boolean {
-  const normalized = hostname.trim().toLowerCase();
-  return LOOPBACK_HOSTS.has(normalized);
 }
 
 function resolveRequestOrigin(request: Request): string | null {
@@ -34,16 +27,16 @@ function resolveRequestOrigin(request: Request): string | null {
   }
 }
 
-function applyLoopbackAuthOrigin(request: Request): void {
+function applyDynamicAuthOrigin(request: Request): void {
   const requestOrigin = resolveRequestOrigin(request);
   if (!requestOrigin) return;
 
   try {
     const parsed = new URL(requestOrigin);
-    if (!isLoopbackHost(parsed.hostname)) return;
 
-    // Force Auth.js URL inference to the same loopback host used by this request.
+    // Force Auth.js URL inference to match the request origin.
     // This keeps OAuth redirect_uri and PKCE cookie host aligned.
+    // Critical for both local development and production (Vercel) deployments.
     process.env.AUTH_URL = parsed.origin;
     process.env.NEXTAUTH_URL = parsed.origin;
     process.env.NEXTAUTH_URL_INTERNAL = parsed.origin;
@@ -121,7 +114,7 @@ export async function GET(
   request: Request,
   _context: { params: Promise<{ nextauth: string[] }> },
 ) {
-  applyLoopbackAuthOrigin(request);
+  applyDynamicAuthOrigin(request);
   logAuthRequest(request);
   try {
     const response = await handlers.GET(request);
@@ -140,7 +133,7 @@ export async function POST(
   request: Request,
   _context: { params: Promise<{ nextauth: string[] }> },
 ) {
-  applyLoopbackAuthOrigin(request);
+  applyDynamicAuthOrigin(request);
   logAuthRequest(request);
   try {
     const response = await handlers.POST(request);
