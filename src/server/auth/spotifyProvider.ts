@@ -1,5 +1,5 @@
-import { customFetch } from "@auth/core";
 import SpotifyProvider from "next-auth/providers/spotify";
+import { customFetch } from "next-auth";
 
 import { env } from "@/env";
 
@@ -122,9 +122,10 @@ const spotifyCustomFetch: typeof fetch = async (input, init) => {
       JSON.stringify({
         error: "invalid_response",
         error_description:
-          `Spotify returned a non-JSON response from ${url ? `${url.hostname}${url.pathname}` : "an OAuth endpoint"}. Please retry sign-in.`,
+          `Spotify returned a non-JSON response from ${url ? `${url.hostname}${url.pathname}` : "an OAuth endpoint"}. Check Spotify app settings (client secret and redirect URI) and retry sign-in.`,
         status: response.status,
         content_type: response.headers.get("content-type"),
+        response_preview: trimmed.slice(0, 180),
       }),
       {
         status: response.status || 500,
@@ -159,4 +160,3 @@ export function createSpotifyProvider() {
 
   return SpotifyProvider(spotifyProviderConfig);
 }
-
