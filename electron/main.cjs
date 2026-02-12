@@ -408,14 +408,14 @@ const loopbackOriginHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
  * Resolve the loopback hostname used by Electron and the bundled Next server.
  * Priority:
  * 1) explicit ELECTRON_LOOPBACK_HOST
- * 2) localhost default (matches OAuth callback behavior in NextAuth/Electron)
+ * 2) 127.0.0.1 default (works with providers that reject localhost callbacks)
  * @returns {string}
  */
 const resolveLoopbackHost = () => {
   const explicitHost = (process.env.ELECTRON_LOOPBACK_HOST || "").trim();
   if (explicitHost) return explicitHost;
 
-  return "localhost";
+  return "127.0.0.1";
 };
 /** @type {string} */
 const loopbackHost = resolveLoopbackHost();
@@ -456,6 +456,9 @@ const oauthNavigationHosts = new Set([
   "discordapp.com",
   "www.discordapp.com",
   "accounts.spotify.com",
+  "challenge.spotify.com",
+  "login5.spotify.com",
+  "login.spotify.com",
 ]);
 
 /**
