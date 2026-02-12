@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Dimensional Rift**: Halved shadow operations from 12 to 6 by applying shadows only to alternating rifts, reduced shadow blur from 40px to 25px, and lowered shadow alpha from 0.9 to 0.6.
   - **Fireworks**: Switched from `arc()` to `fillRect()` for particle rendering (3-4x faster in Firefox) and removed expensive per-particle path operations for 50-150 particles per frame.
   - **Dusk Realm (shadowRealm)**: Reduced shadow operations by 70% (from ~23 to 7 per frame) by applying shadows only to every 3rd layer, reducing shadow blur from 25px to 15px for layers and 35px to 20px for center void, and removing shadowed accent fills entirely.
+  - **Mystic Ceremony (forbiddenRitual)**: Reduced from 200+ to ~60 operations per frame by cutting rune count from 40-70 to 20-35, removing all 140 individual shadowed symbol arcs, eliminating pentagrams and flame particles, batching spike lines into single path, reducing wisps from 12-18 to 8-12 using fillRect, and simplifying center from 4 gradients to 1.
+  - **Crystal Grid**: Reduced from 36 to 16 crystals (56% reduction) and eliminated all 36 per-frame radial gradient creations, batched internal hexagon lines into single path per crystal, and removed connection lines with setLineDash overhead.
+  - **EM Field (emField)**: Reduced from up to 7,200 individual shadowed stroke calls to ~20 operations per frame by removing entire physics simulation, replacing with 16 simple curved field lines (no per-segment shadows), simplifying particles from 25-45 to 12 using fillRect, eliminating gradient trails, and removing contour and wave rings.
 
 ## [0.15.14] - 2026-02-12
 
