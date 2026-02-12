@@ -355,8 +355,8 @@ export function ElectronSidebar() {
                       Your Library
                     </div>
                     <div className="mt-2 text-[var(--color-subtext)]">
-                      Sign in to see your playlists, liked tracks, and recent
-                      activity.
+                      I know we&apos;re being pedantic at this point. It&apos;s
+                      purely optional.
                     </div>
                     <button
                       type="button"
