@@ -188,7 +188,7 @@ export function ElectronSidebar() {
                       ? `Hi ${
                           session.user?.name ??
                           session.user?.email ??
-                          session.user?.username ??
+                          session.user?.userHash ??
                           "there"
                         }`
                       : "Hi there"}
