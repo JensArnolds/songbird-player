@@ -11,7 +11,6 @@ import { localStorage as appStorage } from "@/services/storage";
 import { getGenres, type GenreListItem } from "@/utils/api";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { parsePreferredGenreId } from "@/utils/genre";
-import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { getProviders, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -238,11 +237,7 @@ function SignInContent() {
                     key={provider.id}
                     type="button"
                     onClick={() =>
-                      signIn(
-                        provider.id,
-                        { callbackUrl },
-                        { redirect_uri: getOAuthRedirectUri(provider.id) },
-                      )
+                      signIn(provider.id, { callbackUrl })
                     }
                     className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition hover:opacity-90 ${providerClasses}`}
                   >

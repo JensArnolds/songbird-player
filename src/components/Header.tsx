@@ -299,8 +299,11 @@ export default function Header() {
             window.electron?.send?.("toMain", { type: "window:toggleMaximize" })
           }
         >
-          <div className="electron-titlebar-brand">Starchild Music</div>
-          <ElectronWindowControls />
+          <div className="electron-titlebar-spacer" aria-hidden="true" />
+          <div className="electron-titlebar-title">Starchild Music</div>
+          <div className="electron-titlebar-actions electron-no-drag">
+            <ElectronWindowControls />
+          </div>
         </div>
       )}
 

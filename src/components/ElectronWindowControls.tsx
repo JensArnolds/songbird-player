@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Minus, Square, X } from "lucide-react";
+import { Maximize2, Minimize2, Minus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type WindowStateMessage = {
@@ -59,7 +59,11 @@ export function ElectronWindowControls() {
           className="electron-window-control electron-window-control-maximize"
           onClick={() => window.electron?.send?.("toMain", { type: "window:toggleMaximize" })}
         >
-          <Square className={`h-3.5 w-3.5 stroke-[2.5] ${isMaximized ? "scale-90" : ""}`} />
+          {isMaximized ? (
+            <Minimize2 className="h-[11px] w-[11px] stroke-[2.3]" />
+          ) : (
+            <Maximize2 className="h-[11px] w-[11px] stroke-[2.3]" />
+          )}
         </button>
 
         <button
