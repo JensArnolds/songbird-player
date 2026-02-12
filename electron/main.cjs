@@ -1074,6 +1074,10 @@ const createWindow = async () => {
         }
       : {}),
     webPreferences: {
+      preload: path.join(__dirname, "preload.cjs"),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
       partition: "persist:darkfloor-art",
     },
     icon: iconPath || undefined,
