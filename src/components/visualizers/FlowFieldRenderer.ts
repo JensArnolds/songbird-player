@@ -8336,11 +8336,6 @@ export class FlowFieldRenderer {
     const strokeAlpha1 = 0.9 + audioIntensity * 0.3;
     const strokeAlpha2 = 0.95 + midIntensity * 0.2;
 
-    ctx.strokeStyle = this.hsla(hue1, 90, 40, strokeAlpha1);
-    ctx.lineWidth = (3 + bass) | 0;
-    ctx.shadowBlur = 35;
-    ctx.shadowColor = this.hsla(hue1, 100, 45, 0.95);
-
     const points: { x: number; y: number }[] = [];
     for (let i = 0; i < sigilPoints; i++) {
       const angle = angleStep * i - halfPi;
@@ -8352,23 +8347,32 @@ export class FlowFieldRenderer {
       });
     }
 
+    // Batch all inner lines into a single path (Firefox optimization)
+    ctx.strokeStyle = this.hsla(hue1, 90, 40, strokeAlpha1);
+    ctx.lineWidth = (3 + bass) | 0;
+    ctx.shadowBlur = 20; // Reduced from 35 for better Firefox performance
+    ctx.shadowColor = this.hsla(hue1, 100, 45, 0.7); // Reduced alpha from 0.95
+
+    ctx.beginPath();
     for (let i = 0; i < sigilPoints; i++) {
       for (let j = (i + 1) | 0; j < sigilPoints; j++) {
         if (((i + j) & 3) === 0) {
           const pointI = points[i];
           const pointJ = points[j];
           if (pointI && pointJ) {
-            ctx.beginPath();
             ctx.moveTo(pointI.x, pointI.y);
             ctx.lineTo(pointJ.x, pointJ.y);
-            ctx.stroke();
           }
         }
       }
     }
+    ctx.stroke();
 
+    // Outer circle
     ctx.strokeStyle = this.hsla(hue2, 95, 50, strokeAlpha2);
     ctx.lineWidth = 4;
+    ctx.shadowBlur = 25; // Reduced from implicit shadow
+    ctx.shadowColor = this.hsla(hue2, 100, 50, 0.8);
     const outerRadius = maxRadius * 0.85;
     ctx.beginPath();
     for (let i = 0; i <= sigilPoints; i++) {
@@ -8381,6 +8385,9 @@ export class FlowFieldRenderer {
     }
     ctx.stroke();
 
+    // Center glow
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = this.hsla(hue1, 100, 50, 0.9);
     const centerSize = (20 + bass * 2) | 0;
     const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, centerSize);
     centerGradient.addColorStop(0, this.hsla(hue1, 100, 55, 1));
