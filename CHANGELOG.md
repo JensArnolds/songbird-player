@@ -5,6 +5,16 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.16] - 2026-02-12
+
+### Added
+
+- **Automatic canvas state reset**: Implemented periodic deep canvas cleanup every 10 visualizer pattern switches to prevent performance degradation from accumulated canvas state. The reset clears transforms, shadows, filters, gradients, paths, and the HSL color cache. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+
+### Changed
+
+- **Canvas context management**: Added `patternsSinceReset` counter to track pattern switches and trigger `resetCanvasState()` method every 10 patterns, preventing memory pollution and canvas state accumulation that caused slowdowns over extended playback sessions.
+
 ## [0.15.15] - 2026-02-12
 
 ### Changed
