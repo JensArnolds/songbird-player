@@ -12,7 +12,7 @@ Upstream OpenAPI reference (not this repo’s API): `docs/API_V2_SWAGGER.yaml` (
 
 - `API_V2_URL` (server-side base URL)
 - `SONGBIRD_API_KEY` (server-side key)
-- `NEXT_PUBLIC_API_V2_HEALTH_URL` (public URL used for the UI health indicator)
+- `API_V2_HEALTH_URL` (public URL used for the UI health indicator)
 
 **Used by:**
 

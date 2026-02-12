@@ -47,7 +47,7 @@ export const env = createEnv({
       .string()
       .optional()
       .transform((val) => val === "true"),
-    NEXT_PUBLIC_API_V2_HEALTH_URL: z.string().url().optional(),
+    API_V2_HEALTH_URL: z.string().url().optional(),
   },
   runtimeEnv: {
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
@@ -77,7 +77,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER,
     NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED:
       process.env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED,
-    NEXT_PUBLIC_API_V2_HEALTH_URL: process.env.NEXT_PUBLIC_API_V2_HEALTH_URL,
+    API_V2_HEALTH_URL: process.env.API_V2_HEALTH_URL,
     SONGBIRD_API_KEY: process.env.SONGBIRD_API_KEY,
     ELECTRON_BUILD: process.env.ELECTRON_BUILD,
   },
