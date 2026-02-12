@@ -3,7 +3,6 @@
 "use client";
 
 import { SearchSuggestionsList } from "@/components/SearchSuggestionsList";
-import { ElectronWindowControls } from "@/components/ElectronWindowControls";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
@@ -275,40 +274,28 @@ export default function Header() {
 
   const isElectronRuntime =
     typeof window !== "undefined" && Boolean(window.electron?.isElectron);
+
   const isLinuxElectron =
-    isElectronRuntime && window.electron?.platform === "linux";
+    typeof window !== "undefined" &&
+    window.electron?.isElectron &&
+    (window.electron as { platform?: string }).platform === "linux";
 
   if (isMobile && isElectronRuntime) {
     return null;
   }
 
   return (
-    <>
-      {isLinuxElectron && (
-        <div
-          className="electron-titlebar-row electron-titlebar-overlay"
-          onDoubleClick={() =>
-            window.electron?.send?.("toMain", { type: "window:toggleMaximize" })
-          }
-        >
-          <div className="electron-titlebar-spacer" aria-hidden="true" />
-          <div className="electron-titlebar-title">Starchild Music</div>
-          <div className="electron-titlebar-actions electron-no-drag">
-            <ElectronWindowControls />
-          </div>
-        </div>
-      )}
-
-      <header
-        ref={desktopHeaderRef}
-        className="electron-app-header fixed top-0 right-0 z-30 hidden px-2 pt-2 pb-1 md:block"
-        style={{
-          left: "var(--electron-sidebar-width, 0px)",
-          right: "var(--desktop-right-rail-width, 0px)",
-        }}
-        suppressHydrationWarning
-      >
-        <div className="theme-chrome-header electron-header-main relative z-10 grid grid-cols-[minmax(0,1fr)_minmax(210px,auto)] gap-3 rounded-[1.25rem] border py-2 backdrop-blur-xl">
+    <header
+      ref={desktopHeaderRef}
+      className="electron-app-header fixed right-0 z-30 hidden px-2 pt-2 pb-1 md:block"
+      style={{
+        top: isLinuxElectron ? "36px" : "0",
+        left: "var(--electron-sidebar-width, 0px)",
+        right: "var(--desktop-right-rail-width, 0px)",
+      }}
+      suppressHydrationWarning
+    >
+      <div className="theme-chrome-header electron-header-main relative z-10 grid grid-cols-[minmax(0,1fr)_minmax(210px,auto)] gap-3 rounded-[1.25rem] border py-2 backdrop-blur-xl">
         <div className="electron-no-drag relative">
           <form
             className="electron-header-search flex h-11 w-full items-center gap-2 rounded-full border px-3"
@@ -414,7 +401,6 @@ export default function Header() {
           )}
         </div>
       </div>
-      </header>
-    </>
+    </header>
   );
 }

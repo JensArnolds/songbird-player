@@ -408,14 +408,16 @@ const loopbackOriginHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
  * Resolve the loopback hostname used by Electron and the bundled Next server.
  * Priority:
  * 1) explicit ELECTRON_LOOPBACK_HOST
- * 2) 127.0.0.1 default (works with providers that reject localhost callbacks)
+ * 2) localhost (consistent for OAuth providers)
  * @returns {string}
  */
 const resolveLoopbackHost = () => {
   const explicitHost = (process.env.ELECTRON_LOOPBACK_HOST || "").trim();
   if (explicitHost) return explicitHost;
 
-  return "127.0.0.1";
+  // Always use localhost for Electron to ensure OAuth callbacks work correctly
+  // OAuth providers like Discord expect the exact redirect_uri match
+  return "localhost";
 };
 /** @type {string} */
 const loopbackHost = resolveLoopbackHost();
