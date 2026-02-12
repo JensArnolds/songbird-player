@@ -305,7 +305,7 @@ export default function Header() {
       <div className="theme-chrome-header electron-header-main relative z-10 grid grid-cols-[minmax(0,1fr)_minmax(210px,auto)] gap-3 rounded-[1.25rem] border py-2 backdrop-blur-xl">
         <div className="electron-no-drag relative flex items-center justify-center">
           <form
-            className="electron-header-search flex h-11 w-full max-w-2xl items-center gap-2 rounded-full border px-3"
+            className="electron-header-search flex h-11 w-[90%] items-center gap-2 rounded-full border px-3"
             onSubmit={(event) => {
               event.preventDefault();
               submitHeaderSearch(searchText);
