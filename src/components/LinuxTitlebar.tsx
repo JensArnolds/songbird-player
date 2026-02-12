@@ -17,7 +17,7 @@ declare global {
   }
 }
 
-const APP_VERSION = "0.15.13";
+const APP_VERSION = "0.15.14";
 
 export function LinuxTitlebar() {
   const [isMaximized, setIsMaximized] = useState(false);
