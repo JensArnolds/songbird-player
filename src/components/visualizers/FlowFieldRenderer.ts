@@ -8425,11 +8425,12 @@ export class FlowFieldRenderer {
     const maxRadius02 = maxRadius * 0.2;
     const maxRadius025 = maxRadius * 0.25;
 
+    // Firefox optimization: Draw rifts with reduced shadow, only on odd iterations
+    const width = (25 + bass * 2) | 0;
+
     for (let rift = 0; rift < riftCount; rift++) {
       const angle = riftAngleStep * rift + timeRift;
-
       const distortion = this.fastSin(timeDistortion + rift) * 0.4;
-      const width = (25 + bass * 2) | 0;
 
       const hue1 = this.fastMod360(
         this.hueBase + 200 + (rift << 4) + (rift << 2),
@@ -8457,14 +8458,25 @@ export class FlowFieldRenderer {
 
       ctx.strokeStyle = gradient;
       ctx.lineWidth = width;
-      ctx.shadowBlur = 40;
-      ctx.shadowColor = this.hsla(hue1, 100, 65, 0.9);
+
+      // Only apply shadow to every other rift (6 instead of 12 shadow operations)
+      // and reduce blur from 40 to 25
+      if ((rift & 1) === 0) {
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = this.hsla(hue1, 100, 65, 0.6);
+      } else {
+        ctx.shadowBlur = 0;
+      }
 
       ctx.beginPath();
       ctx.moveTo(cosA * maxRadius02, sinA * maxRadius02);
       ctx.lineTo(cosAD * maxRadius, sinAD * maxRadius);
       ctx.stroke();
     }
+
+    // Reset shadow for center
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = this.hsla(this.hueBase + 210, 100, 70, 0.7);
 
     const centerHue210 = this.fastMod360(this.hueBase + 210);
     const centerHue200 = this.fastMod360(this.hueBase + 200);
