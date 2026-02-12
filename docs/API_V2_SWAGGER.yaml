@@ -45,6 +45,89 @@ paths:
           description: Returns health status including database connectivity
       summary: Health check endpoint with critical system status
       tags: *a1
+  /health/ready:
+    get:
+      operationId: AppController_getReadiness
+      parameters: []
+      responses:
+        "200":
+          description: Service is ready
+        "503":
+          description: Service is not ready
+      summary: Readiness check (database required)
+      tags: *a1
+  /status:
+    get:
+      operationId: OpsController_getStatus
+      parameters: []
+      responses:
+        "200":
+          description: Service is alive
+      summary: Lightweight liveness check
+      tags: &a2
+        - Ops
+  /config/public:
+    get:
+      operationId: OpsController_getPublicConfig
+      parameters: []
+      responses:
+        "200":
+          description: Public config
+      summary: Public runtime configuration (non-secret)
+      tags: *a2
+  /rate-limits:
+    get:
+      operationId: OpsController_getRateLimits
+      parameters: []
+      responses:
+        "200":
+          description: Rate limit policy
+      summary: Rate limit policy information
+      tags: *a2
+  /docs/openapi:
+    get:
+      operationId: OpsController_getOpenApiAlias
+      parameters: []
+      responses:
+        "302":
+          description: Redirect to /openapi.json
+      summary: Alias to OpenAPI JSON spec
+      tags: *a2
+  /cache/stats:
+    get:
+      operationId: OpsController_getCacheStats
+      parameters: []
+      responses:
+        "200":
+          description: Cache statistics
+      security:
+        - bearer: []
+      summary: Get in-memory cache stats
+      tags: *a2
+  /cache/clear:
+    post:
+      operationId: OpsController_clearCaches
+      parameters: []
+      responses:
+        "200":
+          description: Cache cleared
+      security:
+        - bearer: []
+      summary: Clear in-memory caches
+      tags: *a2
+  /metrics:
+    get:
+      operationId: OpsController_getMetrics
+      parameters: []
+      responses:
+        "200":
+          description: Prometheus metrics payload
+          content:
+            text/plain:
+              schema:
+                type: string
+      summary: Prometheus-style metrics
+      tags: *a2
   /api/spotify/search/tracks:
     get:
       operationId: SpotifyController_searchTracks
@@ -71,7 +154,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/TrackDto"
       summary: Search for tracks on Spotify
-      tags: &a2
+      tags: &a3
         - Spotify
   /api/spotify/recommendations:
     get:
@@ -131,7 +214,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/RecommendationResponseDto"
       summary: Get Spotify recommendations using seeds
-      tags: *a2
+      tags: *a3
   /api/spotify/recommendations/from-search:
     post:
       operationId: SpotifyController_getRecommendationsFromSearch
@@ -150,7 +233,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/RecommendationResponseDto"
       summary: Search for a track and get recommendations seeded from it
-      tags: *a2
+      tags: *a3
   /api/spotify/recommendations/spice-up:
     post:
       operationId: SpotifyController_spiceUpPlaylist
@@ -169,7 +252,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SpiceUpResponseDto"
       summary: Generate recommendations to spice up a playlist
-      tags: *a2
+      tags: *a3
   /api/spotify/recommendations/spice-up/unified:
     post:
       operationId: SpotifyController_spiceUpPlaylistUnified
@@ -189,7 +272,7 @@ paths:
                 $ref: "#/components/schemas/UnifiedSpiceUpResponseDto"
       summary: Generate recommendations using multiple platforms (Spotify, Last.fm,
         Deezer)
-      tags: *a2
+      tags: *a3
   /auth/register:
     post:
       operationId: AuthController_register
@@ -204,7 +287,7 @@ paths:
         "201":
           description: The user has been successfully created.
       summary: Register a new user
-      tags: &a3
+      tags: &a4
         - auth
   /auth/login:
     post:
@@ -220,7 +303,7 @@ paths:
         "200":
           description: User successfully logged in.
       summary: Log in a user
-      tags: *a3
+      tags: *a4
   /auth/me:
     get:
       operationId: AuthController_getProfile
@@ -231,7 +314,18 @@ paths:
       security:
         - bearer: []
       summary: Get current user info
-      tags: *a3
+      tags: *a4
+  /auth/refresh:
+    get:
+      operationId: AuthController_refresh
+      parameters: []
+      responses:
+        "200":
+          description: Token refreshed successfully.
+      security:
+        - bearer: []
+      summary: Refresh the current JWT token
+      tags: *a4
   /api/music/search/tracks:
     get:
       operationId: DeezerController_searchTracks
@@ -252,7 +346,7 @@ paths:
         "200":
           description: Raw response from Deezer search API
       summary: Search for tracks on Deezer
-      tags: &a4
+      tags: &a5
         - Deezer
   /api/music/genres:
     get:
@@ -262,7 +356,7 @@ paths:
         "200":
           description: List of Deezer genres in English
       summary: Get Deezer genres (English)
-      tags: *a4
+      tags: *a5
   /api/music/releases/latest:
     get:
       operationId: DeezerController_getLatestReleases
@@ -277,7 +371,7 @@ paths:
         "200":
           description: Latest releases from Deezer editorial API
       summary: Get latest releases on Deezer
-      tags: *a4
+      tags: *a5
   /api/music/playlists/popular:
     get:
       operationId: DeezerController_getPopularPlaylists
@@ -292,7 +386,7 @@ paths:
         "200":
           description: Popular playlists from Deezer charts
       summary: Get most popular playlists on Deezer
-      tags: *a4
+      tags: *a5
   /api/music/playlists/by-genre:
     get:
       operationId: DeezerController_getPlaylistsByGenre
@@ -313,7 +407,7 @@ paths:
         "200":
           description: Playlists matching the genre, using Deezer playlist search
       summary: Get playlists by genre (best-effort search)
-      tags: *a4
+      tags: *a5
   /api/music/playlists/by-genre-id:
     get:
       operationId: DeezerController_getPlaylistsByGenreId
@@ -334,7 +428,23 @@ paths:
         "200":
           description: Playlists matching the genre ID, resolved to a genre name
       summary: Get playlists by genre ID (best-effort search)
-      tags: *a4
+      tags: *a5
+  /api/music/playlists/{id}:
+    get:
+      operationId: DeezerController_getPlaylistTracks
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Deezer playlist ID
+          schema:
+            example: 908622995
+            type: string
+      responses:
+        "200":
+          description: Array of detailed track objects in playlist order
+      summary: Get all tracks from a Deezer playlist in playlist order
+      tags: *a5
   /api/music/track/find-id:
     get:
       operationId: DeezerController_findTrackId
@@ -359,7 +469,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/FindTrackIdResponseDto"
       summary: Find a Deezer track ID by name and artist
-      tags: *a4
+      tags: *a5
   /api/music/tracks/convert:
     post:
       operationId: DeezerController_convertTracksToDeezerIds
@@ -378,7 +488,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ConvertToDeezerResponseDto"
       summary: Convert an array of tracks to Deezer track IDs
-      tags: *a4
+      tags: *a5
   /api/music/artist/{artistName}/tracks:
     get:
       operationId: DeezerController_getArtistTracks
@@ -402,7 +512,7 @@ paths:
         "400":
           description: Artist not found or invalid request
       summary: Get all tracks from an artist sorted by popularity
-      tags: *a4
+      tags: *a5
   /api/music/album/{albumName}/tracks:
     get:
       operationId: DeezerController_getAlbumTracks
@@ -426,7 +536,7 @@ paths:
         "400":
           description: Album not found or invalid request
       summary: Get all tracks from an album in track order
-      tags: *a4
+      tags: *a5
   /api/track/preview:
     post:
       description: Accepts a track ID (number), search query (string), or track
@@ -451,7 +561,7 @@ paths:
         "400":
           description: Error generating preview - returns JSON error instead of image
       summary: Generate a social media preview image for a track
-      tags: &a5
+      tags: &a6
         - Preview Images
   /api/track/{id}/preview:
     get:
@@ -472,7 +582,7 @@ paths:
                 type: string
                 format: binary
       summary: Generate preview image from track ID (GET endpoint)
-      tags: *a5
+      tags: *a6
   /api/preview/test:
     get:
       description: Diagnostic endpoint to verify canvas library is working. Returns a
@@ -488,7 +598,7 @@ paths:
                 type: string
                 format: binary
       summary: Test canvas library - generates a simple test image
-      tags: *a5
+      tags: *a6
   /api/preview/default:
     get:
       description: Returns a 1200x600px PNG image with Emily the Strange logo centered
@@ -505,7 +615,7 @@ paths:
                 type: string
                 format: binary
       summary: Generate default darkfloor.art preview image
-      tags: *a5
+      tags: *a6
   /api/preview:
     get:
       description: >-
@@ -542,7 +652,7 @@ paths:
                 type: string
                 format: binary
       summary: Generate preview image from query parameter (for OG/meta tags)
-      tags: *a5
+      tags: *a6
   /music/stream:
     get:
       operationId: MusicStreamingController_streamMusic
@@ -550,38 +660,45 @@ paths:
         - name: key
           required: true
           in: query
+          description: API key (UNIVERSAL_KEY)
           schema:
             type: string
         - name: id
           required: false
           in: query
+          description: Deezer track ID
           schema:
             type: string
         - name: q
           required: false
           in: query
+          description: Search query if ID is not provided
           schema:
             type: string
-        - name: link
-          required: false
-          in: query
-          schema:
-            type: boolean
-        - name: file
-          required: false
-          in: query
-          schema:
-            type: boolean
         - name: kbps
           required: false
           in: query
+          description: Bitrate in kbps (1-320)
           schema:
             type: number
         - name: offset
           required: false
           in: query
+          description: Search offset (0-999)
           schema:
             type: number
+        - name: link
+          required: false
+          in: query
+          description: Return a Deezer link instead of streaming
+          schema:
+            type: boolean
+        - name: file
+          required: false
+          in: query
+          description: Return as attachment download
+          schema:
+            type: boolean
       responses:
         "200":
           description: Stream begins or link provided.
@@ -594,8 +711,17 @@ paths:
         "500":
           description: Server error during streaming or download.
       summary: Stream music
-      tags: &a6
+      tags: &a7
         - music
+  /music/stream/capabilities:
+    get:
+      operationId: MusicStreamingController_getStreamCapabilities
+      parameters: []
+      responses:
+        "200":
+          description: Streaming capabilities payload
+      summary: Get streaming capabilities and supported parameters
+      tags: *a7
   /music/stream/direct:
     get:
       description: Streams music directly from Deezer without filesystem operations.
@@ -606,26 +732,31 @@ paths:
         - name: key
           required: true
           in: query
+          description: API key (UNIVERSAL_KEY)
           schema:
             type: string
         - name: id
           required: false
           in: query
+          description: Deezer track ID
           schema:
             type: string
         - name: q
           required: false
           in: query
+          description: Search query if ID is not provided
           schema:
             type: string
         - name: kbps
           required: false
           in: query
+          description: Bitrate in kbps (1-320)
           schema:
             type: number
         - name: offset
           required: false
           in: query
+          description: Search offset (0-999)
           schema:
             type: number
       responses:
@@ -643,7 +774,7 @@ paths:
         "500":
           description: Server error during streaming
       summary: Stream music directly from source (serverless-friendly)
-      tags: *a6
+      tags: *a7
   /music/health:
     get:
       operationId: MusicStreamingController_healthCheck
@@ -652,7 +783,7 @@ paths:
         "200":
           description: Service is healthy
       summary: Health check endpoint
-      tags: *a6
+      tags: *a7
   /music/search:
     get:
       operationId: MusicStreamingController_searchMusic
@@ -674,7 +805,7 @@ paths:
         "500":
           description: Error during the search operation.
       summary: Search music on Deezer
-      tags: *a6
+      tags: *a7
   /music/cleanup:
     get:
       operationId: MusicStreamingController_cleanupDownloadFolder
@@ -685,7 +816,7 @@ paths:
         "500":
           description: Error during the cleanup operation.
       summary: Clean up download folder
-      tags: *a6
+      tags: *a7
   /music/tracks/batch:
     get:
       operationId: MusicStreamingController_getBatchTrackMetadata
@@ -702,7 +833,25 @@ paths:
         "400":
           description: Invalid track IDs
       summary: Get metadata for multiple tracks
-      tags: *a6
+      tags: *a7
+  /music/tracks/{id}/metadata:
+    get:
+      operationId: MusicStreamingController_getTrackMetadata
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Deezer track ID
+          schema:
+            example: "3135556"
+            type: string
+      responses:
+        "200":
+          description: Track metadata
+        "404":
+          description: Track not found
+      summary: Get metadata for a single Deezer track
+      tags: *a7
   /music/search/advanced:
     get:
       operationId: MusicStreamingController_advancedSearch
@@ -753,7 +902,7 @@ paths:
         "200":
           description: Filtered search results
       summary: Advanced search with filters
-      tags: *a6
+      tags: *a7
   /music/stream-static:
     get:
       operationId: MusicStreamingController_streamStaticMusic
@@ -777,7 +926,7 @@ paths:
         "500":
           description: Error during streaming.
       summary: Stream static music file
-      tags: *a6
+      tags: *a7
   /music/artist/{artistName}:
     get:
       operationId: MusicStreamingController_getArtistSongs
@@ -801,7 +950,7 @@ paths:
         "400":
           description: Artist not found or invalid request
       summary: Get all songs from a particular artist sorted by popularity
-      tags: *a6
+      tags: *a7
   /music/album/{albumName}:
     get:
       operationId: MusicStreamingController_getAlbumSongs
@@ -825,7 +974,7 @@ paths:
         "400":
           description: Album not found or invalid request
       summary: Get all songs from an album in track order
-      tags: *a6
+      tags: *a7
   /music/favorites/{trackId}:
     post:
       operationId: FavoritesController_addFavorite
@@ -845,10 +994,10 @@ paths:
           description: Track not found
         "409":
           description: Track already in favorites
-      security: &a7
+      security: &a8
         - bearer: []
       summary: Add a track to favorites
-      tags: &a8
+      tags: &a9
         - favorites
     delete:
       operationId: FavoritesController_removeFavorite
@@ -866,9 +1015,9 @@ paths:
           description: Unauthorized
         "404":
           description: Favorite not found
-      security: *a7
+      security: *a8
       summary: Remove a track from favorites
-      tags: *a8
+      tags: *a9
   /music/favorites:
     get:
       operationId: FavoritesController_getFavorites
@@ -890,9 +1039,9 @@ paths:
           description: List of favorite tracks
         "401":
           description: Unauthorized
-      security: *a7
+      security: *a8
       summary: Get all favorite tracks
-      tags: *a8
+      tags: *a9
   /music/favorites/check/{trackId}:
     get:
       operationId: FavoritesController_checkFavorite
@@ -908,9 +1057,9 @@ paths:
           description: "Returns { isFavorite: boolean }"
         "401":
           description: Unauthorized
-      security: *a7
+      security: *a8
       summary: Check if a track is in favorites
-      tags: *a8
+      tags: *a9
   /music/favorites/count:
     get:
       operationId: FavoritesController_getFavoriteCount
@@ -920,9 +1069,9 @@ paths:
           description: "Returns { count: number }"
         "401":
           description: Unauthorized
-      security: *a7
+      security: *a8
       summary: Get total count of favorite tracks
-      tags: *a8
+      tags: *a9
   /music/favorites/batch-check:
     post:
       operationId: FavoritesController_batchCheckFavorites
@@ -937,9 +1086,9 @@ paths:
           description: Returns object with track IDs as keys and boolean values
         "401":
           description: Unauthorized
-      security: *a7
+      security: *a8
       summary: Batch check if tracks are favorited
-      tags: *a8
+      tags: *a9
   /music/history:
     get:
       operationId: ListeningHistoryController_getHistory
@@ -961,10 +1110,10 @@ paths:
           description: Listening history
         "401":
           description: Unauthorized
-      security: &a9
+      security: &a10
         - bearer: []
       summary: Get listening history
-      tags: &a10
+      tags: &a11
         - listening-history
     delete:
       operationId: ListeningHistoryController_clearHistory
@@ -974,9 +1123,9 @@ paths:
           description: Listening history cleared
         "401":
           description: Unauthorized
-      security: *a9
+      security: *a10
       summary: Clear listening history
-      tags: *a10
+      tags: *a11
   /music/history/recent:
     get:
       operationId: ListeningHistoryController_getRecentlyPlayed
@@ -992,9 +1141,9 @@ paths:
           description: Recently played tracks
         "401":
           description: Unauthorized
-      security: *a9
+      security: *a10
       summary: Get recently played tracks (unique)
-      tags: *a10
+      tags: *a11
   /music/history/stats:
     get:
       operationId: ListeningHistoryController_getStats
@@ -1010,9 +1159,9 @@ paths:
           description: Listening statistics
         "401":
           description: Unauthorized
-      security: *a9
+      security: *a10
       summary: Get listening statistics
-      tags: *a10
+      tags: *a11
   /music/playlists:
     post:
       operationId: PlaylistController_createPlaylist
@@ -1028,10 +1177,10 @@ paths:
           description: Playlist created successfully
         "401":
           description: Unauthorized
-      security: &a11
+      security: &a12
         - bearer: []
       summary: Create a new playlist
-      tags: &a12
+      tags: &a13
         - playlists
     get:
       operationId: PlaylistController_getUserPlaylists
@@ -1041,9 +1190,9 @@ paths:
           description: List of playlists
         "401":
           description: Unauthorized
-      security: *a11
+      security: *a12
       summary: Get all playlists for the authenticated user
-      tags: *a12
+      tags: *a13
   /music/playlists/{playlistId}:
     get:
       operationId: PlaylistController_getPlaylist
@@ -1063,9 +1212,9 @@ paths:
           description: Forbidden - playlist is private
         "404":
           description: Playlist not found
-      security: *a11
+      security: *a12
       summary: Get a specific playlist by ID
-      tags: *a12
+      tags: *a13
     put:
       operationId: PlaylistController_updatePlaylist
       parameters:
@@ -1090,9 +1239,9 @@ paths:
           description: Forbidden - not playlist owner
         "404":
           description: Playlist not found
-      security: *a11
+      security: *a12
       summary: Update a playlist
-      tags: *a12
+      tags: *a13
     delete:
       operationId: PlaylistController_deletePlaylist
       parameters:
@@ -1111,9 +1260,9 @@ paths:
           description: Forbidden - not playlist owner
         "404":
           description: Playlist not found
-      security: *a11
+      security: *a12
       summary: Delete a playlist
-      tags: *a12
+      tags: *a13
   /music/playlists/{playlistId}/tracks:
     post:
       operationId: PlaylistController_addTrack
@@ -1141,9 +1290,9 @@ paths:
           description: Forbidden - not playlist owner
         "404":
           description: Playlist or track not found
-      security: *a11
+      security: *a12
       summary: Add a track to a playlist
-      tags: *a12
+      tags: *a13
   /music/playlists/{playlistId}/tracks/{trackId}:
     delete:
       operationId: PlaylistController_removeTrack
@@ -1169,9 +1318,9 @@ paths:
           description: Forbidden - not playlist owner
         "404":
           description: Playlist or track not found
-      security: *a11
+      security: *a12
       summary: Remove a track from a playlist
-      tags: *a12
+      tags: *a13
   /music/playlists/{playlistId}/tracks/reorder:
     put:
       operationId: PlaylistController_reorderTrack
@@ -1199,9 +1348,9 @@ paths:
           description: Forbidden - not playlist owner
         "404":
           description: Playlist or track not found
-      security: *a11
+      security: *a12
       summary: Reorder a track in a playlist
-      tags: *a12
+      tags: *a13
   /music/convert/playlist:
     post:
       description: Takes an array of song names and converts them to either Spotify or
@@ -1253,7 +1402,7 @@ paths:
         "200":
           description: Track information object
       summary: Get detailed information for a track
-      tags: &a13
+      tags: &a14
         - Last.fm
   /api/lastfm/artist/info:
     get:
@@ -1275,7 +1424,7 @@ paths:
         "200":
           description: Artist information object
       summary: Get detailed information for an artist
-      tags: *a13
+      tags: *a14
   /api/lastfm/track/search:
     get:
       operationId: LastfmController_searchTracks
@@ -1302,7 +1451,7 @@ paths:
         "200":
           description: Last.fm search result object
       summary: Search for tracks on Last.fm
-      tags: *a13
+      tags: *a14
   /api/lastfm/artist/search:
     get:
       operationId: LastfmController_searchArtists
@@ -1329,7 +1478,7 @@ paths:
         "200":
           description: Last.fm search result object
       summary: Search for artists on Last.fm
-      tags: *a13
+      tags: *a14
   /api/lastfm/artist/top-tracks:
     get:
       operationId: LastfmController_getArtistTopTracks
@@ -1356,7 +1505,7 @@ paths:
         "200":
           description: Top tracks response from Last.fm
       summary: Get top tracks for an artist
-      tags: *a13
+      tags: *a14
   /api/lastfm/track/similar:
     get:
       operationId: LastfmController_getSimilarTracks
@@ -1383,7 +1532,7 @@ paths:
         "200":
           description: Similar tracks response from Last.fm
       summary: Get similar tracks for a given track
-      tags: *a13
+      tags: *a14
   /api/lastfm/recommendations/spice-up:
     post:
       operationId: LastfmController_spiceUpPlaylist
@@ -1402,7 +1551,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/LastfmSpiceUpResponseDto"
       summary: Generate recommendations using Last.fm similarity data
-      tags: *a13
+      tags: *a14
   /api/lastfm/recommendations/spice-up-with-deezer:
     post:
       operationId: LastfmController_spiceUpPlaylistWithDeezer
@@ -1421,7 +1570,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/LastfmSpiceUpWithDeezerResponseDto"
       summary: Generate Last.fm recommendations and convert them to Deezer track IDs
-      tags: *a13
+      tags: *a14
   /api/health:
     get:
       description: Returns detailed information about the server status, including
@@ -1489,7 +1638,7 @@ paths:
       security:
         - bearer: []
       summary: Legacy Spotify search (V1 compatible route)
-      tags: &a14
+      tags: &a15
         - Legacy Spotify
   /spotify/auth/url:
     get:
@@ -1507,7 +1656,7 @@ paths:
       security:
         - bearer: []
       summary: Get Spotify OAuth authorization URL
-      tags: *a14
+      tags: *a15
   /spotify/auth/callback:
     post:
       operationId: LegacySpotifyController_handleCallback
@@ -1524,7 +1673,7 @@ paths:
       security:
         - bearer: []
       summary: Handle Spotify OAuth callback
-      tags: *a14
+      tags: *a15
   /spotify/auth/disconnect:
     delete:
       operationId: LegacySpotifyController_disconnect
@@ -1535,7 +1684,7 @@ paths:
       security:
         - bearer: []
       summary: Disconnect Spotify account
-      tags: *a14
+      tags: *a15
   /spotify/auth/status:
     get:
       operationId: LegacySpotifyController_getConnectionStatus
@@ -1546,7 +1695,7 @@ paths:
       security:
         - bearer: []
       summary: Check Spotify connection status
-      tags: *a14
+      tags: *a15
   /spotify/playlists:
     get:
       operationId: LegacySpotifyController_getUserPlaylists
@@ -1563,7 +1712,7 @@ paths:
       security:
         - bearer: []
       summary: Get user playlists from Spotify
-      tags: *a14
+      tags: *a15
   /spotify/playlists/{playlistId}:
     get:
       operationId: LegacySpotifyController_getPlaylist
@@ -1580,7 +1729,7 @@ paths:
       security:
         - bearer: []
       summary: Get Spotify playlist details
-      tags: *a14
+      tags: *a15
   /spotify/playlists/import:
     post:
       operationId: LegacySpotifyController_importPlaylist
@@ -1597,7 +1746,7 @@ paths:
       security:
         - bearer: []
       summary: Import Spotify playlist and match to Deezer
-      tags: *a14
+      tags: *a15
   /spotify/tracks/{trackId}:
     get:
       operationId: LegacySpotifyController_getTrack
@@ -1614,7 +1763,7 @@ paths:
       security:
         - bearer: []
       summary: Get Spotify track details
-      tags: *a14
+      tags: *a15
   /spotify/tracks/analyze:
     post:
       operationId: LegacySpotifyController_analyzeTrack
@@ -1631,7 +1780,7 @@ paths:
       security:
         - bearer: []
       summary: Analyze track for BPM, mood, and characteristics
-      tags: *a14
+      tags: *a15
   /spotify/tracks/analyze-batch:
     post:
       operationId: LegacySpotifyController_analyzeBatch
@@ -1648,7 +1797,7 @@ paths:
       security:
         - bearer: []
       summary: Analyze multiple tracks in batch
-      tags: *a14
+      tags: *a15
   /spotify/tracks/{trackId}/audio-features:
     get:
       operationId: LegacySpotifyController_getAudioFeatures
@@ -1665,7 +1814,7 @@ paths:
       security:
         - bearer: []
       summary: Get audio features for a track
-      tags: *a14
+      tags: *a15
   /spotify/tracks/{trackId}/audio-analysis:
     get:
       operationId: LegacySpotifyController_getAudioAnalysis
@@ -1682,7 +1831,7 @@ paths:
       security:
         - bearer: []
       summary: Get detailed audio analysis for a track
-      tags: *a14
+      tags: *a15
   /version:
     get:
       operationId: LegacyMetaController_getVersion
@@ -1691,7 +1840,7 @@ paths:
         "200":
           description: ""
       summary: Legacy version endpoint (V1 compatible route)
-      tags: &a15
+      tags: &a16
         - Legacy Meta
   /api-yaml:
     get:
@@ -1701,7 +1850,7 @@ paths:
         "200":
           description: ""
       summary: Legacy OpenAPI YAML endpoint (V1 compatible route)
-      tags: *a15
+      tags: *a16
   /public/{filename}:
     get:
       operationId: LegacyMetaController_servePublicFile
@@ -1715,7 +1864,7 @@ paths:
         "200":
           description: ""
       summary: Legacy public file endpoint (V1 compatible route)
-      tags: *a15
+      tags: *a16
   /users/profile:
     get:
       operationId: UserController_getProfile
@@ -1723,10 +1872,10 @@ paths:
       responses:
         "200":
           description: Return user profile
-      security: &a16
+      security: &a17
         - bearer: []
       summary: Get user profile
-      tags: &a17
+      tags: &a18
         - users
     put:
       operationId: UserController_updateProfile
@@ -1740,9 +1889,9 @@ paths:
       responses:
         "200":
           description: Return updated user profile
-      security: *a16
+      security: *a17
       summary: Update user profile
-      tags: *a17
+      tags: *a18
   /hexmusic/search/tracks:
     get:
       description: Search Spotify for tracks by name, artist, or any search term.
@@ -1773,7 +1922,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
       summary: Search for tracks
-      tags: &a18
+      tags: &a19
         - Music & Recommendations
   /hexmusic/search/playlists:
     get:
@@ -1805,7 +1954,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
       summary: Search for playlists
-      tags: *a18
+      tags: *a19
   /hexmusic/playlist/{playlistId}:
     get:
       description: Retrieve detailed information about a specific Spotify playlist
@@ -1833,7 +1982,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
       summary: Get playlist details
-      tags: *a18
+      tags: *a19
   /hexmusic/recommendations/playlist/{playlistId}:
     get:
       description: Generate song recommendations based on the first 5 tracks from a
@@ -1875,7 +2024,7 @@ paths:
         "500":
           description: Failed to generate recommendations
       summary: Get recommendations from a playlist
-      tags: *a18
+      tags: *a19
   /hexmusic/playlist-recommendations:
     get:
       description: Search for playlists by query, select the first result, and
@@ -1926,7 +2075,7 @@ paths:
         "500":
           description: Failed to process request
       summary: Search playlists and get recommendations
-      tags: *a18
+      tags: *a19
   /hexmusic/recommendations:
     post:
       description: "Generate personalized song recommendations based on 1-5 seed
@@ -1991,7 +2140,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
       summary: Get song recommendations (flexible input)
-      tags: *a18
+      tags: *a19
   /hexmusic/recommendations/legacy:
     post:
       description: Legacy endpoint for backward compatibility. Accepts only track IDs
@@ -2019,7 +2168,7 @@ paths:
         "500":
           description: Failed to fetch recommendations
       summary: Get recommendations (legacy endpoint)
-      tags: *a18
+      tags: *a19
   /hexmusic/recommendations/generate/{playlistSearchId}:
     post:
       description: Generate recommendations based on a previously saved playlist
@@ -2061,7 +2210,7 @@ paths:
         "500":
           description: Failed to generate recommendations
       summary: Generate and save recommendations from playlist search
-      tags: *a18
+      tags: *a19
   /hexmusic/songs:
     get:
       description: Search for tracks on Spotify with a customizable limit. Similar to
@@ -2114,7 +2263,7 @@ paths:
         "500":
           description: Failed to fetch songs
       summary: Fetch songs (search tracks)
-      tags: *a18
+      tags: *a19
   /hexmusic/recommendations/bulk:
     post:
       description: Submit an array of songs and receive recommendations. Accepts any
@@ -2200,7 +2349,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
       summary: Get recommendations from bulk songs
-      tags: *a18
+      tags: *a19
   /hexmusic/recommendations/deezer:
     post:
       description: Submit an array of track names and receive Deezer track
@@ -2279,7 +2428,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponseDto"
       summary: Get Deezer recommendations from track names
-      tags: *a18
+      tags: *a19
   /hexmusic/recommendations/json:
     post:
       description: Legacy endpoint that accepts a JSON string of song objects. Parses
@@ -2310,7 +2459,7 @@ paths:
         "500":
           description: Failed to fetch recommendations
       summary: Get recommendations from JSON string (legacy)
-      tags: *a18
+      tags: *a19
 info:
   title: Darkfloor.one API
   description: Aggregated music intelligence from Spotify, Last.fm, and Deezer
@@ -2475,7 +2624,7 @@ components:
           description: Diversity mode. strict -> most similar, balanced -> moderate
             variety, diverse -> maximum variety, wild -> experimental
             combinations
-          enum: &a19
+          enum: &a20
             - strict
             - balanced
             - diverse
@@ -2504,7 +2653,7 @@ components:
           type: string
           description: Deterministic sampling strategy for large queues (ordered preserves
             input order)
-          enum: &a20
+          enum: &a21
             - evenly-spaced
             - ordered
           default: evenly-spaced
@@ -2517,7 +2666,7 @@ components:
           type: string
           description: Queue mode for server-side history blending (defaults to
             useQueueOnly)
-          enum: &a21
+          enum: &a22
             - useQueueOnly
             - blendHistory
             - includeHistory
@@ -2722,7 +2871,7 @@ components:
           description: Diversity mode. strict -> most similar, balanced -> moderate
             variety, diverse -> maximum variety, wild -> experimental
             combinations
-          enum: *a19
+          enum: *a20
           default: balanced
         excludeTrackIds:
           description: Spotify track IDs to exclude from recommendations
@@ -2747,7 +2896,7 @@ components:
           type: string
           description: Deterministic sampling strategy for large queues (ordered preserves
             input order)
-          enum: *a20
+          enum: *a21
           default: evenly-spaced
         seedStride:
           type: number
@@ -2758,7 +2907,7 @@ components:
           type: string
           description: Queue mode for server-side history blending (defaults to
             useQueueOnly)
-          enum: *a21
+          enum: *a22
           default: useQueueOnly
         historySongs:
           description: Optional server-provided history seeds (ignored when
@@ -3096,7 +3245,7 @@ components:
         mode:
           type: string
           description: Diversity mode for recommendation variety
-          enum: &a22
+          enum: &a23
             - strict
             - normal
             - diverse
@@ -3163,7 +3312,7 @@ components:
         mode:
           type: string
           description: Diversity mode for recommendation variety
-          enum: *a22
+          enum: *a23
           default: normal
         convertToDeezer:
           type: boolean
