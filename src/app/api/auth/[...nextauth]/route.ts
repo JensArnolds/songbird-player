@@ -99,6 +99,7 @@ function logAuthResponse(response: Response): void {
 
   try {
     const setCookie = response.headers.get("set-cookie");
+    const location = response.headers.get("location");
     const hasPkceCookie =
       typeof setCookie === "string" &&
       (setCookie.includes("pkce.code_verifier") ||
@@ -106,6 +107,7 @@ function logAuthResponse(response: Response): void {
 
     console.log("[Auth Debug] Outgoing response", {
       status: response.status,
+      location,
       hasSetCookie: Boolean(setCookie),
       hasPkceCookie,
       setCookiePreview: setCookie ? setCookie.slice(0, 400) : null,

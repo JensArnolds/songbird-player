@@ -283,18 +283,10 @@ export default function Header() {
   }
 
   return (
-    <header
-      ref={desktopHeaderRef}
-      className="electron-app-header fixed top-0 right-0 z-30 hidden px-2 pt-2 pb-1 md:block"
-      style={{
-        left: "var(--electron-sidebar-width, 0px)",
-        right: "var(--desktop-right-rail-width, 0px)",
-      }}
-      suppressHydrationWarning
-    >
+    <>
       {isLinuxElectron && (
         <div
-          className="electron-titlebar-row"
+          className="electron-titlebar-row electron-titlebar-overlay"
           onDoubleClick={() =>
             window.electron?.send?.("toMain", { type: "window:toggleMaximize" })
           }
@@ -307,7 +299,16 @@ export default function Header() {
         </div>
       )}
 
-      <div className="theme-chrome-header electron-header-main relative z-10 grid grid-cols-[minmax(0,1fr)_minmax(210px,auto)] gap-3 rounded-[1.25rem] border py-2 backdrop-blur-xl">
+      <header
+        ref={desktopHeaderRef}
+        className="electron-app-header fixed top-0 right-0 z-30 hidden px-2 pt-2 pb-1 md:block"
+        style={{
+          left: "var(--electron-sidebar-width, 0px)",
+          right: "var(--desktop-right-rail-width, 0px)",
+        }}
+        suppressHydrationWarning
+      >
+        <div className="theme-chrome-header electron-header-main relative z-10 grid grid-cols-[minmax(0,1fr)_minmax(210px,auto)] gap-3 rounded-[1.25rem] border py-2 backdrop-blur-xl">
         <div className="electron-no-drag relative">
           <form
             className="electron-header-search flex h-11 w-full items-center gap-2 rounded-full border px-3"
@@ -413,6 +414,7 @@ export default function Header() {
           )}
         </div>
       </div>
-    </header>
+      </header>
+    </>
   );
 }
