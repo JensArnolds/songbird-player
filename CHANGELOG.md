@@ -5,6 +5,26 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.14] - 2026-02-12
+
+### Added
+
+- **Linux custom titlebar**: Added frameless window with custom titlebar for Linux Electron builds featuring centered app version display, dynamic track info when playing, full draggable area, and theme-matched window controls. Location: `src/components/LinuxTitlebar.tsx`.
+- **AudioPlayerContext export**: Exported `AudioPlayerContext` for direct context access in components outside the provider tree. Location: `src/contexts/AudioPlayerContext.tsx`.
+
+### Changed
+
+- **Linux Electron window configuration**: Switched from native frame to frameless window (`frame: false`) on Linux platform. Location: `electron/main.cjs`.
+- **Loopback host resolution**: Updated to consistently use `localhost` for all Electron builds (dev and production) to ensure OAuth callback compatibility with Discord and other providers. Location: `electron/main.cjs`.
+- **Header search bar layout**: Improved search bar centering (both vertical and horizontal), increased width to 90% of container, and added proper spacing below Linux titlebar. Location: `src/components/Header.tsx`.
+- **Platform-specific spacing**: Added 36px top padding to `DesktopShell` and 44px top offset to `Header` on Linux Electron to accommodate custom titlebar. Locations: `src/components/DesktopShell.tsx`, `src/components/Header.tsx`.
+
+### Fixed
+
+- **OAuth PKCE verification errors**: Fixed `pkceCodeVerifier value could not be parsed` errors in packaged Linux builds by ensuring consistent loopback hostname across OAuth flow.
+- **Component hydration timing**: Resolved state initialization issues in dev mode by implementing proper useEffect hooks for platform detection.
+- **Header obscured by titlebar**: Fixed Linux titlebar covering search header by adding conditional top offset based on platform detection.
+
 ## [0.15.13] - 2026-02-11
 
 ### Changed
