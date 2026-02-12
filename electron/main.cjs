@@ -1055,12 +1055,6 @@ const createWindow = async () => {
   const isMac = process.platform === "darwin";
   const isLinux = process.platform === "linux";
 
-  const linuxTitleBarOverlay = {
-    color: "#0b1020",
-    symbolColor: "#e3c98f",
-    height: 38,
-  };
-
   mainWindow = new BrowserWindow({
     title: "Starchild",
     width: windowState.width,
@@ -1076,8 +1070,7 @@ const createWindow = async () => {
       : {}),
     ...(isLinux
       ? {
-          titleBarStyle: "hidden",
-          titleBarOverlay: linuxTitleBarOverlay,
+          frame: false,
         }
       : {}),
     webPreferences: {
