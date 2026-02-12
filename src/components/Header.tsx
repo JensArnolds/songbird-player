@@ -26,6 +26,7 @@ export default function Header() {
   const [searchText, setSearchText] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [isLinuxElectron, setIsLinuxElectron] = useState(false);
   const lastHealthErrorLogRef = useRef(0);
   const headerSearchInputRef = useRef<HTMLInputElement>(null);
   const desktopHeaderRef = useRef<HTMLElement>(null);
@@ -139,6 +140,16 @@ export default function Header() {
       isMounted = false;
       clearInterval(interval);
     };
+  }, []);
+
+  useEffect(() => {
+    // Check if running on Linux Electron
+    if (typeof window !== "undefined") {
+      const isLinux =
+        window.electron?.isElectron &&
+        (window.electron as { platform?: string }).platform === "linux";
+      setIsLinuxElectron(isLinux);
+    }
   }, []);
 
   useEffect(() => {
@@ -275,11 +286,6 @@ export default function Header() {
   const isElectronRuntime =
     typeof window !== "undefined" && Boolean(window.electron?.isElectron);
 
-  const isLinuxElectron =
-    typeof window !== "undefined" &&
-    window.electron?.isElectron &&
-    (window.electron as { platform?: string }).platform === "linux";
-
   if (isMobile && isElectronRuntime) {
     return null;
   }
@@ -287,18 +293,19 @@ export default function Header() {
   return (
     <header
       ref={desktopHeaderRef}
-      className="electron-app-header fixed right-0 z-30 hidden px-2 pt-2 pb-1 md:block"
+      className="electron-app-header fixed right-0 z-30 hidden px-2 pb-1 md:block"
       style={{
-        top: isLinuxElectron ? "36px" : "0",
+        top: isLinuxElectron ? "44px" : "0",
+        paddingTop: isLinuxElectron ? "0.5rem" : "0.5rem",
         left: "var(--electron-sidebar-width, 0px)",
         right: "var(--desktop-right-rail-width, 0px)",
       }}
       suppressHydrationWarning
     >
       <div className="theme-chrome-header electron-header-main relative z-10 grid grid-cols-[minmax(0,1fr)_minmax(210px,auto)] gap-3 rounded-[1.25rem] border py-2 backdrop-blur-xl">
-        <div className="electron-no-drag relative">
+        <div className="electron-no-drag relative flex items-center justify-center">
           <form
-            className="electron-header-search flex h-11 w-full items-center gap-2 rounded-full border px-3"
+            className="electron-header-search flex h-11 w-full max-w-2xl items-center gap-2 rounded-full border px-3"
             onSubmit={(event) => {
               event.preventDefault();
               submitHeaderSearch(searchText);
