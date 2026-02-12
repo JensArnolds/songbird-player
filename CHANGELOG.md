@@ -5,6 +5,16 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.15] - 2026-02-12
+
+### Changed
+
+- **Visualizer Firefox performance optimizations**: Dramatically improved Firefox canvas rendering performance for multiple visualizer patterns by reducing shadow operations, batching path operations, and optimizing rendering techniques. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Ancient Sigil (necromanticSigil)**: Reduced from ~36 to 3 stroke/fill calls per frame by batching all inner line segments into a single path, reducing shadow blur from 35px to 20px, and lowering shadow alpha values.
+  - **Dimensional Rift**: Halved shadow operations from 12 to 6 by applying shadows only to alternating rifts, reduced shadow blur from 40px to 25px, and lowered shadow alpha from 0.9 to 0.6.
+  - **Fireworks**: Switched from `arc()` to `fillRect()` for particle rendering (3-4x faster in Firefox) and removed expensive per-particle path operations for 50-150 particles per frame.
+  - **Dusk Realm (shadowRealm)**: Reduced shadow operations by 70% (from ~23 to 7 per frame) by applying shadows only to every 3rd layer, reducing shadow blur from 25px to 15px for layers and 35px to 20px for center void, and removing shadowed accent fills entirely.
+
 ## [0.15.14] - 2026-02-12
 
 ### Added
