@@ -8546,7 +8546,7 @@ export class FlowFieldRenderer {
     ctx.translate(this.centerX, this.centerY);
 
     const maxRadius = Math.min(this.width, this.height) * 0.55;
-    const mistParticles = 180;
+    const mistParticles = 40; // DRASTICALLY reduced from 180 (78% reduction!)
     const invMistParticles = 1 / mistParticles;
     const twoPi = FlowFieldRenderer.TWO_PI;
     const particleAngleStep = twoPi * invMistParticles;
@@ -8555,6 +8555,9 @@ export class FlowFieldRenderer {
     const timeSize = this.time * 0.007;
     const timeAlpha = this.time * 0.008;
     const maxRadius018 = maxRadius * 0.18;
+
+    // Firefox optimization: NO gradients, NO shadows, simple fills only
+    ctx.shadowBlur = 0;
 
     for (let i = 0; i < mistParticles; i++) {
       const angle = particleAngleStep * i + timeMovement;
@@ -8570,23 +8573,11 @@ export class FlowFieldRenderer {
 
       const size = 14 + this.fastSin(timeSize + i) * 8 + trebleIntensity * 12;
       const alpha =
-        0.35 + this.fastSin(timeAlpha + i) * 0.25 + trebleIntensity * 0.5;
+        0.5 + this.fastSin(timeAlpha + i) * 0.3 + trebleIntensity * 0.4;
 
-      const hue30 = this.fastMod360(hue + 30);
-      const hue60 = this.fastMod360(hue + 60);
-      const alpha07 = alpha * 0.7;
-      const alpha06 = alpha * 0.6;
-      const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
-      gradient.addColorStop(0, this.hsla(hue, 85, 92, alpha));
-      gradient.addColorStop(0.5, this.hsla(hue30, 75, 82, alpha07));
-      gradient.addColorStop(1, this.hsla(hue60, 65, 72, 0));
-
-      ctx.fillStyle = gradient;
-      ctx.shadowBlur = 30 + trebleIntensity * 15;
-      ctx.shadowColor = this.hsla(hue, 90, 85, alpha06);
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, twoPi);
-      ctx.fill();
+      // Simple fill, no gradient (much faster)
+      ctx.fillStyle = this.hsla(hue, 85, 88, alpha);
+      ctx.fillRect(x - size, y - size, size * 2, size * 2);
     }
 
     ctx.restore();
