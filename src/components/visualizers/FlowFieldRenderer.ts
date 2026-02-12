@@ -2529,9 +2529,8 @@ export class FlowFieldRenderer {
 
     const pixelCount = this.width * this.height;
     const detailScale = this.getAdaptiveDetailScale(pixelCount);
-    const starStride = detailScale < 0.85 ? 2 : 1;
-    const useGradient = detailScale >= 0.85;
-    const drawTrails = detailScale >= 0.85;
+    // Firefox optimization: Always use stride to reduce star count
+    const starStride = detailScale < 0.85 ? 3 : 2;
     const zSpeed =
       (2 + bassIntensity * 15 + trebleIntensity * 10) * this.starSpeed;
     const inv1000 = 1 / 1000;
@@ -2556,7 +2555,7 @@ export class FlowFieldRenderer {
         star.y = rng2 * height2;
       }
 
-      if (starStride > 1 && i % starStride !== 0) continue;
+      if (i % starStride !== 0) continue;
 
       const invZ = 1 / star.z;
       const x = star.x * invZ * projectionScale + this.centerX;
@@ -2571,18 +2570,12 @@ export class FlowFieldRenderer {
       const size2 = size * 2;
       const size4 = size * 4;
 
-      if (useGradient) {
-        const gradient = ctx.createRadialGradient(x, y, 0, x, y, size2);
-        gradient.addColorStop(0, this.hsla(hue, 100, 90, alpha));
-        gradient.addColorStop(0.5, this.hsla(hue, 90, 80, alpha * 0.5));
-        gradient.addColorStop(1, this.hsla(hue, 80, 70, 0));
-        ctx.fillStyle = gradient;
-      } else {
-        ctx.fillStyle = this.hsla(hue, 95, 85, alpha);
-      }
+      // Firefox optimization: NO gradients (was creating 200-500 per frame!)
+      ctx.fillStyle = this.hsla(hue, 95, 85, alpha);
       ctx.fillRect(x - size2, y - size2, size4, size4);
 
-      if (drawTrails && bassIntensity > 0.3) {
+      // Firefox optimization: Only draw trails for every 4th star and higher bass
+      if ((i & 3) === 0 && bassIntensity > 0.5) {
         const prevZ = star.z + 5 + bassIntensity * 15;
         const invPrevZ = 1 / prevZ;
         const prevX = star.x * invPrevZ * projectionScale + this.centerX;
@@ -2608,8 +2601,8 @@ export class FlowFieldRenderer {
     const ctx = this.ctx;
     const pixelCount = this.width * this.height;
     const detailScale = this.getAdaptiveDetailScale(pixelCount);
-    const gridSize = Math.max(24, Math.round(30 / detailScale));
-    const useGradient = detailScale >= 0.85;
+    // Firefox optimization: Larger grid size = fewer operations (was 24, now 36)
+    const gridSize = Math.max(36, Math.round(42 / detailScale));
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -2622,41 +2615,46 @@ export class FlowFieldRenderer {
     const lineWidth = (2 + midIntensity * 3) * detailScale;
     const baseAlpha = 0.3 + audioIntensity * 0.4;
 
-    for (let y = 0; y < this.height; y += gridSize) {
-      for (let x = 0; x < this.width; x += gridSize) {
-        const dx = x - this.centerX;
-        const dy = y - this.centerY;
-        const distSq = dx * dx + dy * dy;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = "round";
 
-        const dist = this.fastSqrt(distSq);
+    // Firefox optimization: NO gradients (was creating 500-3600 per frame!)
+    // Batch all lines into a single path per hue range for massive performance gain
+    const hueRanges = 6; // Group lines by hue into 6 color ranges
+    for (let hueRange = 0; hueRange < hueRanges; hueRange++) {
+      const rangeHue = this.fastMod360(this.hueBase + (hueRange * 360) / hueRanges);
+      ctx.strokeStyle = this.hsla(rangeHue, 90, 70, baseAlpha);
 
-        const flow1 =
-          this.fastSin(x * flowFreq + time) + this.fastCos(y * flowFreq + time);
-        const flow2 = this.fastSin(dist * distFreq - time) * flowBassMultiplier;
+      ctx.beginPath();
+      for (let y = 0; y < this.height; y += gridSize) {
+        for (let x = 0; x < this.width; x += gridSize) {
+          const dx = x - this.centerX;
+          const dy = y - this.centerY;
+          const distSq = dx * dx + dy * dy;
+          const dist = this.fastSqrt(distSq);
 
-        const baseAngle = Math.atan2(dy, dx);
-        const angle = baseAngle + flow1 + flow2;
+          const flow1 =
+            this.fastSin(x * flowFreq + time) +
+            this.fastCos(y * flowFreq + time);
+          const flow2 = this.fastSin(dist * distFreq - time) * flowBassMultiplier;
 
-        const endX = x + this.fastCos(angle) * length;
-        const endY = y + this.fastSin(angle) * length;
+          const baseAngle = Math.atan2(dy, dx);
+          const angle = baseAngle + flow1 + flow2;
 
-        const hue = this.fastMod360(this.hueBase + dist * 0.3 + flow1 * 60);
-        if (useGradient) {
-          const hue60 = this.fastMod360(hue + 60);
-          const gradient = ctx.createLinearGradient(x, y, endX, endY);
-          gradient.addColorStop(0, this.hsla(hue, 90, 70, baseAlpha));
-          gradient.addColorStop(1, this.hsla(hue60, 85, 65, 0));
-          ctx.strokeStyle = gradient;
-        } else {
-          ctx.strokeStyle = this.hsla(hue, 90, 70, baseAlpha);
+          const endX = x + this.fastCos(angle) * length;
+          const endY = y + this.fastSin(angle) * length;
+
+          const hue = this.fastMod360(this.hueBase + dist * 0.3 + flow1 * 60);
+          const hueGroup = ((hue / 360) * hueRanges) | 0;
+
+          // Only draw lines that match this hue range
+          if (hueGroup === hueRange) {
+            ctx.moveTo(x, y);
+            ctx.lineTo(endX, endY);
+          }
         }
-        ctx.lineWidth = lineWidth;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
       }
+      ctx.stroke(); // Single stroke for all lines in this hue range
     }
 
     ctx.restore();
@@ -2835,6 +2833,9 @@ export class FlowFieldRenderer {
       if (star.y > this.height) star.y = 0;
     }
 
+    // Firefox optimization: Batch all connections into a single path (NO gradients!)
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
     for (const star of this.constellationStars) {
       if (!star) continue;
 
@@ -2845,38 +2846,25 @@ export class FlowFieldRenderer {
         const dx = other.x - star.x;
         const dy = other.y - star.y;
         const distSq = dx * dx + dy * dy;
-
         const dist = this.fastSqrt(distSq);
 
         const distRatio = 1 - dist * inv200;
-        const alpha = (distRatio > 0 ? distRatio : 0) * connectionAlpha;
-        const hue = this.fastMod360(this.hueBase + dist * 0.5);
-        const hue60 = this.fastMod360(hue + 60);
+        if (distRatio <= 0) continue;
 
-        const gradient = ctx.createLinearGradient(
-          star.x,
-          star.y,
-          other.x,
-          other.y,
-        );
-        gradient.addColorStop(0, this.hsla(hue, 80, 70, alpha));
-        gradient.addColorStop(0.5, this.hsla(hue, 85, 75, alpha * 1.2));
-        gradient.addColorStop(1, this.hsla(hue60, 80, 70, alpha));
-
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = lineWidth;
-        ctx.beginPath();
         ctx.moveTo(star.x, star.y);
         ctx.lineTo(other.x, other.y);
-        ctx.stroke();
       }
     }
+    // Single stroke for all connections with averaged color
+    const avgHue = this.fastMod360(this.hueBase + 30);
+    ctx.strokeStyle = this.hsla(avgHue, 82, 72, connectionAlpha);
+    ctx.stroke();
 
     const baseSize = 3 + bassIntensity * 5;
     const sizeRange = 4;
-    const starAlpha1 = 0.9 + audioIntensity * 0.1;
-    const starAlpha2 = 0.6 + audioIntensity * 0.2;
+    const starAlpha = 0.85 + audioIntensity * 0.15;
 
+    // Firefox optimization: NO gradients for stars (was creating 20 per frame!)
     for (let i = 0; i < this.constellationStars.length; i++) {
       const star = this.constellationStars[i];
       if (!star) continue;
@@ -2889,19 +2877,8 @@ export class FlowFieldRenderer {
       const size2 = size * 2;
       const size4 = size * 4;
 
-      const gradient = ctx.createRadialGradient(
-        star.x,
-        star.y,
-        0,
-        star.x,
-        star.y,
-        size2,
-      );
-      gradient.addColorStop(0, this.hsla(hue, 100, 90, starAlpha1));
-      gradient.addColorStop(0.4, this.hsla(hue, 95, 80, starAlpha2));
-      gradient.addColorStop(1, this.hsla(hue, 90, 70, 0));
-
-      ctx.fillStyle = gradient;
+      // Simple fill instead of gradient
+      ctx.fillStyle = this.hsla(hue, 98, 88, starAlpha);
       ctx.fillRect(star.x - size2, star.y - size2, size4, size4);
 
       const twinkleRng =
