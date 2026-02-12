@@ -1,4 +1,10 @@
 # File: .github/workflows/docker-build.yml
+#
+# SECURITY NOTICE:
+# - This workflow does NOT pass secrets as Docker build-args (uses SKIP_ENV_VALIDATION=true)
+# - Never add real secrets to build-args - they will appear in Docker layer metadata
+# - Docker Hub credentials are masked by docker/login-action
+# - All secret values must use GitHub secrets, never hardcoded values
 
 name: Docker Build and Test
 
@@ -36,6 +42,8 @@ jobs:
           tags: songbird-frontend:test
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          # SECURITY: Never add secrets here! Build args are visible in layer metadata.
+          # Use SKIP_ENV_VALIDATION=true to build without real credentials.
           build-args: |
             SKIP_ENV_VALIDATION=true
 
@@ -67,5 +75,6 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/songbird-frontend:latest
             ${{ secrets.DOCKER_USERNAME }}/songbird-frontend:${{ github.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
+          # SECURITY: Never add secrets here! Build args are visible in layer metadata.
           build-args: |
             SKIP_ENV_VALIDATION=true
