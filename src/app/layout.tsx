@@ -13,6 +13,7 @@ import { ElectronStorageInit } from "@/components/ElectronStorageInit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import Header from "@/components/Header";
+import { LinuxTitlebar } from "@/components/LinuxTitlebar";
 import MobileContentWrapper from "@/components/MobileContentWrapper";
 import { MobileFooterWrapper } from "@/components/MobileFooterWrapper";
 import MobileHeader from "@/components/MobileHeader";
@@ -106,6 +107,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://api.deezer.com" />
       </head>
       <body>
+        <LinuxTitlebar />
         <SuppressExtensionErrors />
         <ElectronStorageInit />
         <RegisterServiceWorker />
