@@ -15,6 +15,7 @@ interface FlowFieldCanvasProps {
   isPlaying: boolean;
   visualizerMode?: "random" | "off" | "specific";
   visualizerType?: string;
+  showFpsCounter?: boolean;
   className?: string;
 }
 
@@ -142,6 +143,7 @@ export function FlowFieldCanvas({
   isPlaying,
   visualizerMode = "random",
   visualizerType = "flowfield",
+  showFpsCounter = false,
   className,
 }: FlowFieldCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -230,6 +232,10 @@ export function FlowFieldCanvas({
       rendererRef.current = null;
     };
   }, [visualizerMode, visualizerType]);
+
+  useEffect(() => {
+    rendererRef.current?.setShowFpsCounter(showFpsCounter);
+  }, [showFpsCounter]);
 
   useEffect(() => {
     if (

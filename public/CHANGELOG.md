@@ -5,6 +5,22 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2026-02-13
+
+### Added
+
+- **Global keyboard shortcut provider**: Added app-wide media/control shortcuts by introducing a dedicated provider wired into the root layout, so playback/navigation shortcuts are no longer scoped to the player component. Locations: `src/contexts/KeyboardShortcutsProvider.tsx`, `src/app/layout.tsx`, `src/components/Player.tsx`.
+- **Visualizer FPS diagnostics toggle**: Added `showFpsCounter` user setting and rendered real-time FPS/frame-time/quality metrics overlay for visualizer debugging. Locations: `src/types/settings.ts`, `src/app/settings/page.tsx`, `src/components/FlowFieldBackground.tsx`, `src/components/visualizers/FlowFieldCanvas.tsx`, `src/components/visualizers/FlowFieldRenderer.ts`.
+- **Smart queue recommendation transparency**: Added smart-track metadata UI (sparkles indicator + tooltip) showing seed track, similarity score/method, and recommendation reason for auto-queued tracks. Location: `src/components/EnhancedQueue.tsx`.
+- **Sidebar loading skeletons**: Replaced plain playlist loading text with animated skeleton placeholders in the Electron sidebar library section. Location: `src/components/ElectronSidebar.tsx`.
+
+### Changed
+
+- **Keyboard shortcut stability and safety**: Updated shortcut handling to use ref-backed handlers (avoids re-binding listeners on render churn) and ignore modified key combos (`Ctrl`/`Meta`/`Alt`) to reduce accidental interception. Location: `src/hooks/useKeyboardShortcuts.ts`.
+- **Visualizer toggle/event plumbing**: Added a dedicated visualizer shortcut event bridge and runtime listener support in the persistent player so shortcut-triggered visualizer toggles work consistently across views. Locations: `src/contexts/KeyboardShortcutsProvider.tsx`, `src/components/PersistentPlayer.tsx`.
+- **Settings synchronization eventing**: Settings storage now emits a window event on writes, enabling live synchronization of visualizer FPS preference without reload. Locations: `src/utils/settingsStorage.ts`, `src/components/PersistentPlayer.tsx`.
+- **Collapsed sidebar tooltip consistency**: Added/normalized tooltip and accessibility labels for collapsed playlist items and playlist creation controls. Location: `src/components/ElectronSidebar.tsx`.
+
 ## [0.15.19] - 2026-02-13
 
 ### Added

@@ -7,6 +7,7 @@ import {
 } from "@/types/settings";
 
 const SETTINGS_STORAGE_KEY = "starchild_user_settings";
+export const SETTINGS_UPDATED_EVENT = "starchild:settings-updated";
 
 export const settingsStorage = {
   get(): Partial<UserSettings> {
@@ -31,6 +32,11 @@ export const settingsStorage = {
       const current = this.get();
       const updated = { ...current, [key]: value };
       localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updated));
+      window.dispatchEvent(
+        new CustomEvent(SETTINGS_UPDATED_EVENT, {
+          detail: { key, value, settings: updated },
+        }),
+      );
     } catch (error) {
       console.error("Failed to save settings to localStorage:", error);
     }

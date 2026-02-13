@@ -12,9 +12,14 @@ import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
+import {
+  SETTINGS_UPDATED_EVENT,
+  settingsStorage,
+} from "@/utils/settingsStorage";
 import { LightweightParticleBackground } from "./LightweightParticleBackground";
 import MaturePlayer from "./Player";
 import type { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
+import { VISUALIZER_SHORTCUT_TOGGLE_EVENT } from "@/contexts/KeyboardShortcutsProvider";
 
 const FlowFieldBackground = dynamic(
   () =>
@@ -63,6 +68,9 @@ export default function PersistentPlayer() {
   const [showQueue, setShowQueue] = useState(false);
   const [showEqualizer, setShowEqualizer] = useState(false);
   const [visualizerEnabled, setVisualizerEnabled] = useState(true);
+  const [showFpsCounter, setShowFpsCounter] = useState(() =>
+    settingsStorage.getSetting("showFpsCounter", false),
+  );
   const [showPatternControls, setShowPatternControls] = useState(false);
   const [renderer, setRenderer] = useState<FlowFieldRenderer | null>(null);
 
@@ -100,6 +108,24 @@ export default function PersistentPlayer() {
     player.isPlaying,
     visualizerEnabled,
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const syncFpsCounterPreference = () => {
+      setShowFpsCounter(settingsStorage.getSetting("showFpsCounter", false));
+    };
+
+    syncFpsCounterPreference();
+    window.addEventListener(SETTINGS_UPDATED_EVENT, syncFpsCounterPreference);
+
+    return () => {
+      window.removeEventListener(
+        SETTINGS_UPDATED_EVENT,
+        syncFpsCounterPreference,
+      );
+    };
+  }, []);
 
   useEffect(() => {
     if (
@@ -143,6 +169,26 @@ export default function PersistentPlayer() {
     persistVisualizerPreference(next);
 
   }, [persistVisualizerPreference, visualizerEnabled]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleShortcutToggle = () => {
+      handleVisualizerToggle();
+    };
+
+    window.addEventListener(
+      VISUALIZER_SHORTCUT_TOGGLE_EVENT,
+      handleShortcutToggle,
+    );
+
+    return () => {
+      window.removeEventListener(
+        VISUALIZER_SHORTCUT_TOGGLE_EVENT,
+        handleShortcutToggle,
+      );
+    };
+  }, [handleVisualizerToggle]);
 
   const playerProps = {
     currentTrack: player.currentTrack,
@@ -295,6 +341,7 @@ export default function PersistentPlayer() {
       {player.currentTrack && visualizerEnabled && !isMobile && (
         <FlowFieldBackground
           audioElement={player.audioElement}
+          showFpsCounter={showFpsCounter}
           onRendererReady={setRenderer}
         />
       )}
