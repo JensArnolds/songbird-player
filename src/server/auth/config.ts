@@ -106,13 +106,22 @@ export const authConfig = {
   },
   logger: {
     error(code, ...message) {
-      logAuthError("NextAuth internal error", { code, message });
+      logAuthError("NextAuth internal error", {
+        authjsErrorId: code,
+        message,
+      });
     },
     warn(code, ...message) {
-      logAuthWarn("NextAuth internal warning", { code, message });
+      logAuthWarn("NextAuth internal warning", {
+        authjsWarningId: code,
+        message,
+      });
     },
     debug(code, ...message) {
-      logAuthDebug("NextAuth internal debug", { code, message });
+      logAuthDebug("NextAuth internal debug", {
+        authjsDebugId: code,
+        message,
+      });
     },
   },
   callbacks: {

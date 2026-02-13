@@ -7,7 +7,6 @@ import {
 import { logAuthClientDebug } from "@/utils/authDebugClient";
 import { springPresets } from "@/utils/spring-animations";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
-import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { AnimatePresence, motion } from "framer-motion";
 import { getProviders, signIn } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
@@ -118,21 +117,14 @@ export function AuthModal({
 
   const handleProviderSignIn = async (providerId: string) => {
     setSubmittingProviderId(providerId);
-    const spotifyRedirectUri =
-      providerId === "spotify" ? getOAuthRedirectUri(providerId) : undefined;
 
     logAuthClientDebug("AuthModal starting OAuth sign-in", {
       providerId,
       callbackUrl,
-      redirectUri: spotifyRedirectUri,
     });
 
     try {
-      await signIn(
-        providerId,
-        { callbackUrl },
-        spotifyRedirectUri ? { redirect_uri: spotifyRedirectUri } : undefined,
-      );
+      await signIn(providerId, { callbackUrl });
       logAuthClientDebug("AuthModal signIn call resolved", { providerId });
     } catch (error: unknown) {
       logAuthClientDebug("AuthModal signIn call failed", { providerId, error });

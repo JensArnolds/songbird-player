@@ -9,7 +9,6 @@ import {
 } from "@/config/oauthProviders";
 import { localStorage as appStorage } from "@/services/storage";
 import { logAuthClientDebug } from "@/utils/authDebugClient";
-import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { getGenres, type GenreListItem } from "@/utils/api";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { parsePreferredGenreId } from "@/utils/genre";
@@ -268,10 +267,6 @@ function SignInContent() {
                 const providerClasses =
                   OAUTH_PROVIDER_BUTTON_STYLES[provider.id] ??
                   "border border-[var(--color-border)] bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:border-[var(--color-accent)]";
-                const spotifyRedirectUri =
-                  provider.id === "spotify"
-                    ? getOAuthRedirectUri(provider.id)
-                    : undefined;
                 return (
                   <button
                     key={provider.id}
@@ -280,15 +275,8 @@ function SignInContent() {
                       logAuthClientDebug("Starting OAuth sign-in from page", {
                         providerId: provider.id,
                         callbackUrl,
-                        redirectUri: spotifyRedirectUri,
                       });
-                      void signIn(
-                        provider.id,
-                        { callbackUrl },
-                        spotifyRedirectUri
-                          ? { redirect_uri: spotifyRedirectUri }
-                          : undefined,
-                      );
+                      void signIn(provider.id, { callbackUrl });
                     }}
                     className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition hover:opacity-90 ${providerClasses}`}
                   >
