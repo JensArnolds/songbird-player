@@ -50,6 +50,7 @@ export class FlowFieldRenderer {
   private qualityFrameTime = 16.67;
   private qualityLastTime = 0;
   private qualityWarmupFrames = 0;
+  private showFpsCounter = false;
 
   private patternTimer = 0;
   private patternDuration = 10;
@@ -2959,6 +2960,43 @@ export class FlowFieldRenderer {
         trebleIntensity,
       );
     }
+
+    this.renderFpsCounter(ctx);
+  }
+
+  private renderFpsCounter(ctx: CanvasRenderingContext2D): void {
+    if (!this.showFpsCounter) return;
+
+    const metrics = this.getPerformanceMetrics();
+
+    ctx.save();
+    ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, monospace";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    const right = this.width - 12;
+    const top = 12;
+    const lineHeight = 16;
+
+    const lines = [
+      `${metrics.fps} FPS`,
+      `${metrics.frameTime} ms`,
+      `${metrics.quality}% quality`,
+    ];
+
+    const boxWidth = 120;
+    const boxHeight = lineHeight * lines.length + 8;
+
+    ctx.fillStyle = "rgba(5, 5, 5, 0.55)";
+    ctx.fillRect(right - boxWidth, top - 6, boxWidth, boxHeight);
+
+    ctx.fillStyle = "rgba(244, 178, 102, 0.9)";
+    for (let i = 0; i < lines.length; i++) {
+      const text = lines[i] ?? "";
+      ctx.fillText(text, right - 6, top + lineHeight * i + 2);
+    }
+
+    ctx.restore();
   }
 
   private renderPattern(
@@ -15505,6 +15543,22 @@ export class FlowFieldRenderer {
 
   public getParticleCount(): number {
     return this.particleCount;
+  }
+
+  public setShowFpsCounter(show: boolean): void {
+    this.showFpsCounter = show;
+  }
+
+  public getPerformanceMetrics(): {
+    fps: number;
+    frameTime: number;
+    quality: number;
+  } {
+    return {
+      fps: Math.max(0, Math.round(1000 / Math.max(this.qualityFrameTime, 0.1))),
+      frameTime: Number(this.qualityFrameTime.toFixed(2)),
+      quality: Number((this.qualityScale * 100).toFixed(0)),
+    };
   }
 
   public setParticleCount(value: number): void {

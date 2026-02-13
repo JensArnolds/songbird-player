@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface KeyboardShortcutHandlers {
   onPlayPause?: () => void;
@@ -19,19 +19,25 @@ interface KeyboardShortcutHandlers {
 }
 
 export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
+  const handlersRef = useRef(handlers);
+
+  useEffect(() => {
+    handlersRef.current = handlers;
+  }, [handlers]);
+
   useEffect(() => {
 
     if (typeof window !== "undefined" && window.electron) {
       const handleMediaKey = (key: string) => {
         switch (key) {
           case "play-pause":
-            handlers.onPlayPause?.();
+            handlersRef.current.onPlayPause?.();
             break;
           case "next":
-            handlers.onNext?.();
+            handlersRef.current.onNext?.();
             break;
           case "previous":
-            handlers.onPrevious?.();
+            handlersRef.current.onPrevious?.();
             break;
         }
       };
@@ -42,7 +48,7 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
         window.electron?.removeMediaKeyListener();
       };
     }
-  }, [handlers]);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,18 +62,22 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
         return;
       }
 
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+
       if (e.code === "Space") {
         e.preventDefault();
-        handlers.onPlayPause?.();
+        handlersRef.current.onPlayPause?.();
         return;
       }
 
       if (e.code === "ArrowRight") {
         e.preventDefault();
         if (e.shiftKey) {
-          handlers.onNext?.();
+          handlersRef.current.onNext?.();
         } else {
-          handlers.onSeekForward?.();
+          handlersRef.current.onSeekForward?.();
         }
         return;
       }
@@ -75,51 +85,51 @@ export function useKeyboardShortcuts(handlers: KeyboardShortcutHandlers) {
       if (e.code === "ArrowLeft") {
         e.preventDefault();
         if (e.shiftKey) {
-          handlers.onPrevious?.();
+          handlersRef.current.onPrevious?.();
         } else {
-          handlers.onSeekBackward?.();
+          handlersRef.current.onSeekBackward?.();
         }
         return;
       }
 
       if (e.code === "ArrowUp") {
         e.preventDefault();
-        handlers.onVolumeUp?.();
+        handlersRef.current.onVolumeUp?.();
         return;
       }
 
       if (e.code === "ArrowDown") {
         e.preventDefault();
-        handlers.onVolumeDown?.();
+        handlersRef.current.onVolumeDown?.();
         return;
       }
 
       if (e.code === "KeyM") {
         e.preventDefault();
-        handlers.onMute?.();
+        handlersRef.current.onMute?.();
         return;
       }
 
       if (e.code === "KeyS") {
         e.preventDefault();
-        handlers.onToggleShuffle?.();
+        handlersRef.current.onToggleShuffle?.();
         return;
       }
 
       if (e.code === "KeyR") {
         e.preventDefault();
-        handlers.onToggleRepeat?.();
+        handlersRef.current.onToggleRepeat?.();
         return;
       }
 
       if (e.code === "KeyV") {
         e.preventDefault();
-        handlers.onToggleVisualizer?.();
+        handlersRef.current.onToggleVisualizer?.();
         return;
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handlers]);
+  }, []);
 }

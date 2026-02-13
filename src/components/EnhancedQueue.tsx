@@ -6,7 +6,13 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useToast } from "@/contexts/ToastContext";
 import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
 import { api } from "@/trpc/react";
-import type { QueuedTrack, SimilarityPreference, SmartQueueState, Track } from "@/types";
+import type {
+  QueuedTrack,
+  SimilarityPreference,
+  SmartQueueMetadata,
+  SmartQueueState,
+  Track,
+} from "@/types";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import {
@@ -59,7 +65,16 @@ interface QueueItemProps {
   onContextMenu: (e: React.MouseEvent) => void;
   sortableId: string;
   isSmartTrack?: boolean;
+  smartQueueMetadata?: SmartQueueMetadata;
+  seedTrackName?: string | null;
   canRemove: boolean;
+}
+
+function formatSimilarityMethodLabel(method: string): string {
+  return method
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function SortableQueueItem({
@@ -73,6 +88,8 @@ function SortableQueueItem({
   onContextMenu,
   sortableId,
   isSmartTrack,
+  smartQueueMetadata,
+  seedTrackName,
   canRemove,
 }: QueueItemProps) {
   const {
@@ -100,6 +117,19 @@ function SortableQueueItem({
     : "Unknown Artist";
   const albumTitle = track.album?.title?.trim()?.length
     ? track.album.title
+    : null;
+
+  const similarityPercent = smartQueueMetadata
+    ? Math.round(Math.max(0, Math.min(1, smartQueueMetadata.similarity)) * 100)
+    : null;
+  const seedLabel =
+    smartQueueMetadata && seedTrackName?.trim()
+      ? seedTrackName
+      : smartQueueMetadata
+        ? `Track #${smartQueueMetadata.seedTrackId}`
+        : null;
+  const methodLabel = smartQueueMetadata
+    ? formatSimilarityMethodLabel(smartQueueMetadata.method)
     : null;
 
   return (
@@ -172,9 +202,45 @@ function SortableQueueItem({
 
       { }
       <div className="min-w-0 flex-1">
-        <h4 className="truncate text-sm font-medium text-[var(--color-text)]">
-          {track.title}
-        </h4>
+        <div className="flex items-center gap-1.5">
+          <h4 className="truncate text-sm font-medium text-[var(--color-text)]">
+            {track.title}
+          </h4>
+          {isSmartTrack && smartQueueMetadata && (
+            <span className="relative inline-flex shrink-0 items-center">
+              <button
+                type="button"
+                onClick={(e) => e.stopPropagation()}
+                className="peer rounded p-0.5 text-[var(--color-accent)]/80 transition-colors hover:text-[var(--color-accent)] focus-visible:text-[var(--color-accent)]"
+                aria-label="Smart queue recommendation details"
+                title="Smart queue recommendation details"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+              </button>
+              <span
+                role="tooltip"
+                className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 z-20 w-64 -translate-x-1/2 rounded-lg border border-[rgba(88,198,177,0.35)] bg-[rgba(8,10,12,0.94)] px-3 py-2 text-left text-[11px] leading-relaxed text-[var(--color-subtext)] opacity-0 shadow-lg backdrop-blur-sm transition-all duration-150 peer-hover:translate-y-0 peer-hover:opacity-100 peer-focus-visible:translate-y-0 peer-focus-visible:opacity-100"
+              >
+                <span className="block font-semibold text-[var(--color-text)]">
+                  ✨ Auto-queued
+                </span>
+                {seedLabel && (
+                  <span className="mt-0.5 block">Similar to: {seedLabel}</span>
+                )}
+                {similarityPercent !== null && methodLabel && (
+                  <span className="mt-0.5 block">
+                    Match: {similarityPercent}% ({methodLabel})
+                  </span>
+                )}
+                {smartQueueMetadata.reason && (
+                  <span className="mt-0.5 block">
+                    Reason: {smartQueueMetadata.reason}
+                  </span>
+                )}
+              </span>
+            </span>
+          )}
+        </div>
         <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--color-subtext)]">
           <span className="truncate">{artistName}</span>
           {albumTitle && (
@@ -292,14 +358,28 @@ export function EnhancedQueue({
   }, [currentTrack, queue]);
 
   const queueEntries = useMemo(
-    () =>
-      queuedTracks.map((qt, index) => ({
-        track: qt.track,
-        index,
-        sortableId: qt.queueId,
-        isSmartTrack: qt.queueSource === 'smart',
-      })),
-    [queuedTracks],
+    () => {
+      const trackNameById = new Map<number, string>();
+      for (const queuedTrack of queuedTracks) {
+        trackNameById.set(queuedTrack.track.id, queuedTrack.track.title);
+      }
+      if (currentTrack) {
+        trackNameById.set(currentTrack.id, currentTrack.title);
+      }
+
+      return queuedTracks.map((qt, index) => {
+        const seedTrackId = qt.smartQueueMetadata?.seedTrackId;
+        return {
+          track: qt.track,
+          index,
+          sortableId: qt.queueId,
+          isSmartTrack: qt.queueSource === 'smart',
+          smartQueueMetadata: qt.smartQueueMetadata,
+          seedTrackName: seedTrackId ? (trackNameById.get(seedTrackId) ?? null) : null,
+        };
+      });
+    },
+    [currentTrack, queuedTracks],
   );
 
   const sensors = useSensors(
@@ -707,6 +787,8 @@ export function EnhancedQueue({
                         onToggleSelect={(e) => handleToggleSelect(filteredNowPlaying.index, e.shiftKey)}
                         onContextMenu={(e) => handleTrackContextMenu(filteredNowPlaying.track, filteredNowPlaying.index, e)}
                         isSmartTrack={filteredNowPlaying.isSmartTrack}
+                        smartQueueMetadata={filteredNowPlaying.smartQueueMetadata}
+                        seedTrackName={filteredNowPlaying.seedTrackName}
                         canRemove={filteredNowPlaying.index !== 0}
                       />
                     </div>
@@ -720,7 +802,7 @@ export function EnhancedQueue({
                       Next in queue
                     </div>
                     <div className="divide-y divide-[rgba(255,255,255,0.05)]">
-                      {filteredUserTracks.map(({ track, index, sortableId, isSmartTrack }) => (
+                      {filteredUserTracks.map(({ track, index, sortableId, isSmartTrack, smartQueueMetadata, seedTrackName }) => (
                         <div key={sortableId} data-track-id={track.id}>
                           <SortableQueueItem
                             sortableId={sortableId}
@@ -733,6 +815,8 @@ export function EnhancedQueue({
                             onToggleSelect={(e) => handleToggleSelect(index, e.shiftKey)}
                             onContextMenu={(e) => handleTrackContextMenu(track, index, e)}
                             isSmartTrack={isSmartTrack}
+                            smartQueueMetadata={smartQueueMetadata}
+                            seedTrackName={seedTrackName}
                             canRemove={index !== 0}
                           />
                         </div>
@@ -761,7 +845,7 @@ export function EnhancedQueue({
                       </div>
                     ) : (
                       <div className="divide-y divide-[rgba(255,255,255,0.05)]">
-                        {filteredSmartTracks.map(({ track, index, sortableId, isSmartTrack }) => (
+                        {filteredSmartTracks.map(({ track, index, sortableId, isSmartTrack, smartQueueMetadata, seedTrackName }) => (
                           <div key={sortableId} data-track-id={track.id}>
                             <SortableQueueItem
                               sortableId={sortableId}
@@ -774,6 +858,8 @@ export function EnhancedQueue({
                               onToggleSelect={(e) => handleToggleSelect(index, e.shiftKey)}
                               onContextMenu={(e) => handleTrackContextMenu(track, index, e)}
                               isSmartTrack={isSmartTrack}
+                              smartQueueMetadata={smartQueueMetadata}
+                              seedTrackName={seedTrackName}
                               canRemove={index !== 0}
                             />
                           </div>
