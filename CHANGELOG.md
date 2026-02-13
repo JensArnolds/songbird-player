@@ -5,6 +5,16 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.1] - 2026-02-13
+
+### Fixed
+
+- **Spotify OAuth sign-in configuration error path**: Removed client-side manual `redirect_uri` overrides from OAuth initiation flows so Auth.js can generate provider callback parameters consistently, resolving the `error=Configuration` failure during `POST /api/auth/signin/spotify`. Locations: `src/app/signin/page.tsx`, `src/components/AuthModal.tsx`.
+
+### Changed
+
+- **Auth.js logger diagnostics**: Improved NextAuth logger payload keys to preserve readable internal Auth.js identifiers in logs (`authjsErrorId`, `authjsWarningId`, `authjsDebugId`) for faster OAuth failure triage. Location: `src/server/auth/config.ts`.
+
 ## [0.16.0] - 2026-02-13
 
 ### Added
