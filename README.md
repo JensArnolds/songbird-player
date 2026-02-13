@@ -155,6 +155,8 @@
     AUTH_DISCORD_SECRET="your-discord-app-secret"
     AUTH_SPOTIFY_ENABLED=false
     NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=false
+    AUTH_DEBUG_OAUTH=false
+    NEXT_PUBLIC_AUTH_DEBUG_OAUTH=false
     SPOTIFY_CLIENT_ID="your-spotify-client-id"
     SPOTIFY_CLIENT_SECRET="your-spotify-client-secret"
     NEXTAUTH_URL="http://localhost:3222"  # Optional, auto-detected
@@ -180,6 +182,7 @@
 
     - Set both `AUTH_SPOTIFY_ENABLED=true` and `NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=true`
     - Provide `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`
+    - Optional debug tracing: set `AUTH_DEBUG_OAUTH=true` and `NEXT_PUBLIC_AUTH_DEBUG_OAUTH=true`
 
     **Generate NextAuth Secret:**
 
