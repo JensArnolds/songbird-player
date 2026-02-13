@@ -5,6 +5,41 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.18] - 2026-02-12
+
+### Added
+
+- **GitHub Actions security documentation**: Added comprehensive security policy documentation at `.github/SECURITY.md` explaining secret management, Docker build arg security trade-offs, mitigation strategies, and emergency response procedures.
+
+### Changed
+
+- **Environment variable cleanup (infrastructure)**: Streamlined environment variables to only essential secrets, removing redundant legacy database configuration variables. Locations: `.github/workflows/docker-build.yml`, `Dockerfile`, `.env.example`.
+  - **Removed redundant DB_* variables**: Eliminated `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` from all configurations (workflow, Dockerfile, env example). These were legacy fallbacks for drizzle-kit that are unnecessary when `DATABASE_URL` is always provided.
+  - **Simplified Dockerfile build args**: Reduced from 17 ARG declarations to 9 essential variables (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SONGBIRD_API_KEY`, `API_V2_URL`, `NEXTAUTH_URL`, `NODE_ENV`, `SKIP_ENV_VALIDATION`).
+  - **Cleaned up .env.example**: Removed all redundant variables including `NEXT_PUBLIC_NEXTAUTH_URL`, `NEXT_PUBLIC_NEXTAUTH_VERCEL_URL`, `NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER`, `DATABASE_UNPOOLED`, and `API_V2_HEALTH_URL`. Added clear section comments explaining each variable's purpose.
+  - **Updated GitHub Actions workflow**: Removed 5 redundant secret references from both test and production build steps, reducing secret exposure surface and improving clarity.
+
+- **GitHub Actions Docker workflow**: Updated to pass essential application secrets as build arguments (required for Next.js build process). While this creates a security trade-off (secrets visible in Docker layer metadata via `docker history`), mitigations are in place: test builds remain local to CI runner, production images should not be inspected, and all secrets are rotatable. Location: `.github/workflows/docker-build.yml`.
+
+### Fixed
+
+- **CI/CD build process**: Fixed GitHub Actions Docker builds that were failing due to missing environment variables during Next.js build step. Now correctly passes all required secrets (`DATABASE_URL`, `AUTH_SECRET`, OAuth credentials, API keys) as build arguments.
+
+## [0.15.17] - 2026-02-12
+
+### Changed
+
+- **Visualizer Firefox performance optimizations (gradient elimination)**: Eliminated gradient creation in three of the most performance-intensive visualizer patterns, achieving massive Firefox performance improvements. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Fluid**: Eliminated 500-3,600 gradient creations per frame by removing all `createLinearGradient()` calls and batching flow field lines into 6 hue-based paths (600x reduction in operations). Increased grid size from 24 to 36 for additional performance gain.
+  - **Starfield**: Eliminated 200-500 radial gradients per frame by removing all `createRadialGradient()` calls, using simple `fillStyle` instead. Reduced visible stars via stride (every 2nd-3rd star) and minimized trail rendering to every 4th star only when `bassIntensity > 0.5`.
+  - **Constellation**: Eliminated 70-120 gradients per frame (50-100 linear + 20 radial) by batching all connection lines into a single path with one stroke operation, and using simple fills for stars instead of radial gradients.
+- **Visualizer Firefox performance optimizations (high-cost dark set)**: Hyper-optimized the five heaviest dark-mode visualizers with adaptive detail scaling, reduced shadow churn, lower path density, and selective gradient fallback. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Abyssal Depth**: Removed redundant per-layer rotations, reduced layer/creature gradient pressure with low-detail flat-fill fallbacks, simplified creature glow/trails, and scaled counts by adaptive detail.
+  - **Demonic Gate**: Reused a single `Path2D` gate outline for fill/stroke, batched tendril strokes, reduced vortex/entity/sigil complexity on low detail, and switched pillars/core to conditional gradient use.
+  - **Shadow Dance**: Batched the dancer net into one path, cached dancer polar results per frame, replaced trail arcs with rect fills, reduced per-dancer shadow state flips, and lowered wisp/ring complexity in low detail.
+  - **Spectral Echo**: Reduced ring segment density and layer cadence adaptively, converted inner orbit particles to rect fills, batched beam and core segment strokes, and added low-detail center source fill fallback.
+  - **Twilight Zone**: Added adaptive zone/particle scaling, removed per-zone save/restore rotation overhead, batched tear strokes, converted wisps to grouped rect fills, and introduced low-detail core rendering fallback.
+
 ## [0.15.16] - 2026-02-12
 
 ### Added
