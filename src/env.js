@@ -22,12 +22,6 @@ export const env = createEnv({
     SPOTIFY_CLIENT_SECRET: z.string().optional(),
     NEXTAUTH_URL: z.string().url().optional(),
     DATABASE_URL: z.string().url().optional(),
-
-    DB_ADMIN_USER: z.string().optional(),
-    DB_ADMIN_PASSWORD: z.string().optional(),
-    DB_HOST: z.string().optional(),
-    DB_PORT: z.string().regex(/^\d+$/).optional(),
-    DB_NAME: z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -59,11 +53,6 @@ export const env = createEnv({
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,
-    DB_ADMIN_USER: process.env.DB_ADMIN_USER,
-    DB_ADMIN_PASSWORD: process.env.DB_ADMIN_PASSWORD,
-    DB_HOST: process.env.DB_HOST,
-    DB_PORT: process.env.DB_PORT,
-    DB_NAME: process.env.DB_NAME,
     NODE_ENV: process.env.NODE_ENV,
     API_V2_URL:
       process.env.API_V2_URL ??
