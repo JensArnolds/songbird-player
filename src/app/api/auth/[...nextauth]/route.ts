@@ -1,12 +1,29 @@
 // File: src/app/api/auth/[...nextauth]/route.ts
 
-import { handlers } from "@/server/auth";
+import { type NextRequest } from "next/server";
 
-function shouldLogAuthDebug(): boolean {
-  return (
-    process.env.NODE_ENV === "development" ||
-    process.env.ELECTRON_BUILD === "true"
-  );
+import { handlers } from "@/server/auth";
+import {
+  hashForLog,
+  logAuthDebug,
+  logAuthError,
+  summarizeUrlForLog,
+} from "@/server/auth/logging";
+
+function parseAuthRoute(pathname: string): {
+  action: string | null;
+  provider: string | null;
+} {
+  const segments = pathname.split("/").filter(Boolean);
+  const authIndex = segments.findIndex((segment) => segment === "auth");
+  if (authIndex === -1) {
+    return { action: null, provider: null };
+  }
+
+  return {
+    action: segments[authIndex + 1] ?? null,
+    provider: segments[authIndex + 2] ?? null,
+  };
 }
 
 function resolveRequestOrigin(request: Request): string | null {
@@ -40,6 +57,13 @@ function applyDynamicAuthOrigin(request: Request): void {
     process.env.AUTH_URL = parsed.origin;
     process.env.NEXTAUTH_URL = parsed.origin;
     process.env.NEXTAUTH_URL_INTERNAL = parsed.origin;
+
+    logAuthDebug("Applied dynamic auth origin", {
+      requestOrigin: parsed.origin,
+      authUrl: process.env.AUTH_URL ?? null,
+      nextAuthUrl: process.env.NEXTAUTH_URL ?? null,
+      nextAuthUrlInternal: process.env.NEXTAUTH_URL_INTERNAL ?? null,
+    });
   } catch {
     // Best effort only.
   }
@@ -57,11 +81,29 @@ function redactCookieHeader(cookieHeader: string | null): string[] {
     });
 }
 
-function logAuthRequest(request: Request): void {
-  if (!shouldLogAuthDebug()) return;
+function redactSetCookieHeader(setCookieHeader: string | null): string[] {
+  if (!setCookieHeader) return [];
 
+  return setCookieHeader
+    .split(/,(?=\s*[^;,=\s]+=)/g)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((cookie) => {
+      const firstPart = cookie.split(";")[0] ?? "";
+      const separatorIndex = firstPart.indexOf("=");
+      return separatorIndex > 0 ? firstPart.slice(0, separatorIndex) : firstPart;
+    })
+    .filter(Boolean);
+}
+
+function logAuthRequest(request: Request): void {
   try {
     const url = new URL(request.url);
+    const route = parseAuthRoute(url.pathname);
+    const state = url.searchParams.get("state");
+    const code = url.searchParams.get("code");
+    const error = url.searchParams.get("error");
+    const errorDescription = url.searchParams.get("error_description");
     const requestOrigin = resolveRequestOrigin(request);
     const cookieHeader = request.headers.get("cookie");
     const cookieKeys = redactCookieHeader(cookieHeader);
@@ -69,10 +111,17 @@ function logAuthRequest(request: Request): void {
     const forwardedHost = request.headers.get("x-forwarded-host");
     const forwardedProto = request.headers.get("x-forwarded-proto");
 
-    console.log("[Auth Debug] Incoming request", {
+    logAuthDebug("Incoming request", {
       method: request.method,
-      url: request.url,
+      routeAction: route.action,
+      provider: route.provider,
+      url: summarizeUrlForLog(request.url),
       pathname: url.pathname,
+      queryKeys: Array.from(url.searchParams.keys()),
+      stateHash: hashForLog(state),
+      codeLength: code?.length ?? 0,
+      error,
+      hasErrorDescription: Boolean(errorDescription),
       requestOrigin,
       host,
       forwardedHost,
@@ -83,35 +132,38 @@ function logAuthRequest(request: Request): void {
       cookieKeys,
     });
   } catch (error) {
-    console.error("[Auth Debug] Failed to log request details", error);
+    logAuthError("Failed to log incoming auth request details", { error });
   }
 }
 
 function logAuthResponse(response: Response): void {
-  if (!shouldLogAuthDebug()) return;
-
   try {
     const setCookie = response.headers.get("set-cookie");
+    const setCookieNames = redactSetCookieHeader(setCookie);
     const location = response.headers.get("location");
-    const hasPkceCookie =
-      typeof setCookie === "string" &&
-      (setCookie.includes("pkce.code_verifier") ||
-        setCookie.includes("pkceCodeVerifier"));
+    const hasPkceCookie = setCookieNames.some((cookieName) =>
+      cookieName.toLowerCase().includes("pkce"),
+    );
+    const hasStateCookie = setCookieNames.some((cookieName) =>
+      cookieName.toLowerCase().includes("state"),
+    );
 
-    console.log("[Auth Debug] Outgoing response", {
+    logAuthDebug("Outgoing response", {
       status: response.status,
-      location,
+      location: summarizeUrlForLog(location),
       hasSetCookie: Boolean(setCookie),
+      setCookieCount: setCookieNames.length,
+      setCookieNames,
       hasPkceCookie,
-      setCookiePreview: setCookie ? setCookie.slice(0, 400) : null,
+      hasStateCookie,
     });
   } catch (error) {
-    console.error("[Auth Debug] Failed to log response details", error);
+    logAuthError("Failed to log outgoing auth response details", { error });
   }
 }
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   _context: { params: Promise<{ nextauth: string[] }> },
 ) {
   applyDynamicAuthOrigin(request);
@@ -121,16 +173,13 @@ export async function GET(
     logAuthResponse(response);
     return response;
   } catch (error) {
-    console.error("[Auth Debug] GET handler threw", {
-      url: request.url,
-      error,
-    });
+    logAuthError("GET auth handler threw", { url: request.url, error });
     throw error;
   }
 }
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   _context: { params: Promise<{ nextauth: string[] }> },
 ) {
   applyDynamicAuthOrigin(request);
@@ -140,10 +189,7 @@ export async function POST(
     logAuthResponse(response);
     return response;
   } catch (error) {
-    console.error("[Auth Debug] POST handler threw", {
-      url: request.url,
-      error,
-    });
+    logAuthError("POST auth handler threw", { url: request.url, error });
     throw error;
   }
 }

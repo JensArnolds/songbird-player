@@ -4,6 +4,7 @@ import {
   OAUTH_PROVIDER_BUTTON_STYLES,
   isEnabledOAuthProviderId,
 } from "@/config/oauthProviders";
+import { logAuthClientDebug } from "@/utils/authDebugClient";
 import { springPresets } from "@/utils/spring-animations";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
@@ -39,10 +40,20 @@ export function AuthModal({
 
     let cancelled = false;
     let resolved = false;
+    logAuthClientDebug("AuthModal opened; fetching OAuth providers", {
+      callbackUrl,
+    });
+
     const timeoutId = setTimeout(() => {
       if (cancelled || resolved) return;
       console.warn(
         "[AuthModal] getProviders timed out; using fallback OAuth providers.",
+      );
+      logAuthClientDebug(
+        "AuthModal getProviders timed out; using fallback list",
+        {
+          fallbackProviders: Object.keys(OAUTH_PROVIDERS_FALLBACK),
+        },
       );
       setProviders(OAUTH_PROVIDERS_FALLBACK);
     }, 3000);
@@ -52,12 +63,21 @@ export function AuthModal({
         if (cancelled) return;
         resolved = true;
         clearTimeout(timeoutId);
-        setProviders(result ?? OAUTH_PROVIDERS_FALLBACK);
+        const resolvedProviders = result ?? OAUTH_PROVIDERS_FALLBACK;
+        logAuthClientDebug("AuthModal providers fetched", {
+          providerIds: Object.keys(resolvedProviders),
+          usedFallback: !result,
+        });
+        setProviders(resolvedProviders);
       })
-      .catch(() => {
+      .catch((providerError: unknown) => {
         if (cancelled) return;
         resolved = true;
         clearTimeout(timeoutId);
+        logAuthClientDebug("AuthModal getProviders failed; using fallback", {
+          fallbackProviders: Object.keys(OAUTH_PROVIDERS_FALLBACK),
+          error: providerError,
+        });
         setProviders(OAUTH_PROVIDERS_FALLBACK);
       });
 
@@ -65,7 +85,7 @@ export function AuthModal({
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [isOpen]);
+  }, [callbackUrl, isOpen]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -88,17 +108,38 @@ export function AuthModal({
     );
   }, [providers]);
 
+  useEffect(() => {
+    if (!isOpen || !providers) return;
+    logAuthClientDebug("AuthModal providers available", {
+      providerIds: oauthProviders.map((provider) => provider.id),
+      callbackUrl,
+    });
+  }, [callbackUrl, isOpen, oauthProviders, providers]);
+
   const handleProviderSignIn = async (providerId: string) => {
     setSubmittingProviderId(providerId);
     const spotifyRedirectUri =
       providerId === "spotify" ? getOAuthRedirectUri(providerId) : undefined;
 
-    await signIn(
+    logAuthClientDebug("AuthModal starting OAuth sign-in", {
       providerId,
-      { callbackUrl },
-      spotifyRedirectUri ? { redirect_uri: spotifyRedirectUri } : undefined,
-    );
-    setSubmittingProviderId(null);
+      callbackUrl,
+      redirectUri: spotifyRedirectUri,
+    });
+
+    try {
+      await signIn(
+        providerId,
+        { callbackUrl },
+        spotifyRedirectUri ? { redirect_uri: spotifyRedirectUri } : undefined,
+      );
+      logAuthClientDebug("AuthModal signIn call resolved", { providerId });
+    } catch (error: unknown) {
+      logAuthClientDebug("AuthModal signIn call failed", { providerId, error });
+      throw error;
+    } finally {
+      setSubmittingProviderId(null);
+    }
   };
 
   if (typeof document === "undefined") return null;

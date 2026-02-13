@@ -13,6 +13,15 @@ import {
   users,
   verificationTokens,
 } from "@/server/db/schema";
+import {
+  hashForLog,
+  isAuthDebugEnabled,
+  logAuthDebug,
+  logAuthError,
+  logAuthInfo,
+  logAuthWarn,
+  summarizeUrlForLog,
+} from "./logging";
 import { createSpotifyProvider } from "./spotifyProvider";
 
 declare module "next-auth" {
@@ -33,31 +42,48 @@ declare module "next-auth" {
   }
 }
 
-console.log("[NextAuth Config] ELECTRON_BUILD:", env.ELECTRON_BUILD);
-console.log("[NextAuth Config] NODE_ENV:", process.env.NODE_ENV);
-console.log(
-  "[NextAuth Config] DATABASE_URL:",
-  process.env.DATABASE_URL ? "✓ Set" : "✗ Missing",
-);
-console.log("[NextAuth Config] AUTH_SPOTIFY_ENABLED:", env.AUTH_SPOTIFY_ENABLED);
+const authDebugEnabled = isAuthDebugEnabled();
+
+logAuthInfo("NextAuth config bootstrap", {
+  authDebugEnabled,
+  nodeEnv: process.env.NODE_ENV,
+  electronBuild: env.ELECTRON_BUILD,
+  hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+  authSpotifyEnabled: env.AUTH_SPOTIFY_ENABLED,
+  publicAuthSpotifyEnabled: env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED,
+});
 
 if (env.AUTH_SPOTIFY_ENABLED && !env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED) {
-  console.warn(
-    "[NextAuth Config] AUTH_SPOTIFY_ENABLED=true but NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED is false. Spotify may be enabled server-side but hidden in the client UI.",
+  logAuthWarn(
+    "AUTH_SPOTIFY_ENABLED=true but NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=false",
+    {
+      impact:
+        "Spotify is available on the server but can be hidden in client UI.",
+    },
   );
 }
 
 if (!env.AUTH_SPOTIFY_ENABLED && env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED) {
-  console.warn(
-    "[NextAuth Config] NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=true but AUTH_SPOTIFY_ENABLED is false. Spotify can appear in fallback UI but sign-in will fail.",
+  logAuthWarn(
+    "NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=true but AUTH_SPOTIFY_ENABLED=false",
+    {
+      impact:
+        "Spotify may appear in fallback UI while server-side sign-in remains disabled.",
+      fix:
+        "Set AUTH_SPOTIFY_ENABLED=true and provide SPOTIFY_CLIENT_ID/SPOTIFY_CLIENT_SECRET.",
+    },
   );
 }
 
 const spotifyProvider = createSpotifyProvider();
 
+logAuthInfo("OAuth providers configured", {
+  providers: ["discord", ...(spotifyProvider ? ["spotify"] : [])],
+});
+
 export const authConfig = {
   trustHost: true,
-  debug: process.env.NODE_ENV === "development",
+  debug: authDebugEnabled,
   basePath: "/api/auth",
   pages: { signIn: "/signin" },
   providers: [
@@ -78,13 +104,29 @@ export const authConfig = {
     maxAge: 30 * 24 * 60 * 60,
     updateAge: 24 * 60 * 60,
   },
+  logger: {
+    error(code, ...message) {
+      logAuthError("NextAuth internal error", { code, message });
+    },
+    warn(code, ...message) {
+      logAuthWarn("NextAuth internal warning", { code, message });
+    },
+    debug(code, ...message) {
+      logAuthDebug("NextAuth internal debug", { code, message });
+    },
+  },
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        console.log("[NextAuth signIn] Callback triggered");
-        console.log("[NextAuth signIn] Provider:", account?.provider);
-        console.log("[NextAuth signIn] User exists:", !!user);
-        console.log("[NextAuth signIn] Profile exists:", !!profile);
+        logAuthInfo("signIn callback invoked", {
+          provider: account?.provider ?? null,
+          providerType: account?.type ?? null,
+          providerAccountHash: hashForLog(account?.providerAccountId),
+          scope: account?.scope ?? null,
+          userId: user?.id ?? null,
+          hasProfile: Boolean(profile),
+          profileKeys: profile ? Object.keys(profile) : [],
+        });
 
         if (user?.id) {
           const userId = user.id;
@@ -95,21 +137,27 @@ export const authConfig = {
               .where(eq(users.id, userId))
               .limit(1);
             if (dbUser?.banned) {
-              console.log("[NextAuth signIn] User is banned, denying sign in");
+              logAuthWarn("signIn denied because user is banned", {
+                userId,
+                provider: account?.provider ?? null,
+              });
               return "/signin?error=Banned";
             }
           } catch (error) {
-            console.error(
-              "[NextAuth signIn] Ban status check failed, denying sign in:",
+            logAuthError("signIn denied because ban status check failed", {
+              userId,
+              provider: account?.provider ?? null,
               error,
-            );
+            });
             return "/signin?error=AuthFailed";
           }
         }
 
         if (account?.provider === "discord" && profile && user.id) {
           try {
-            console.log("[NextAuth signIn] Updating Discord user profile...");
+            logAuthDebug("Updating Discord profile from OAuth payload", {
+              userId: user.id,
+            });
 
             const updates: { image?: string; name?: string } = {};
 
@@ -122,15 +170,20 @@ export const authConfig = {
             }
 
             if (Object.keys(updates).length > 0) {
-              console.log("[NextAuth signIn] Updates to apply:", updates);
+              logAuthDebug("Discord profile updates prepared", {
+                userId: user.id,
+                updateKeys: Object.keys(updates),
+              });
               await db.update(users).set(updates).where(eq(users.id, user.id));
-              console.log("[NextAuth signIn] Profile updated successfully");
+              logAuthDebug("Discord profile updated successfully", {
+                userId: user.id,
+              });
             }
           } catch (error) {
-            console.warn(
-              "[NextAuth signIn] Non-critical profile update failed:",
+            logAuthWarn("Discord profile update failed (non-blocking)", {
+              userId: user.id,
               error,
-            );
+            });
           }
         }
 
@@ -166,27 +219,38 @@ export const authConfig = {
             if (promoted) {
               user.admin = true;
               user.firstAdmin = true;
+              logAuthInfo("First-admin promotion granted", { userId });
             }
           } catch (error) {
-            console.error(
-              "[NextAuth signIn] First-admin promotion check failed, denying sign in:",
-              error,
+            logAuthError(
+              "signIn denied because first-admin promotion check failed",
+              {
+                userId,
+                error,
+              },
             );
             return "/signin?error=AuthFailed";
           }
         }
 
-        console.log("[NextAuth signIn] Callback completed - allowing sign in");
+        logAuthInfo("signIn callback completed", {
+          provider: account?.provider ?? null,
+          userId: user?.id ?? null,
+          allowed: true,
+        });
         return true;
       } catch (error) {
-        console.error("[NextAuth signIn] ERROR in callback:");
-        console.error(error);
+        logAuthError("signIn callback failed", {
+          provider: account?.provider ?? null,
+          userId: user?.id ?? null,
+          error,
+        });
 
         return "/signin?error=AuthFailed";
       }
     },
     session: ({ session, user }) => {
-      return {
+      const normalizedSession = {
         expires: session.expires,
         user: {
           id: String(user.id),
@@ -198,18 +262,86 @@ export const authConfig = {
           firstAdmin: user.firstAdmin ?? false,
         },
       };
+
+      logAuthDebug("session callback resolved", {
+        userId: normalizedSession.user.id,
+        expires: normalizedSession.expires,
+      });
+
+      return normalizedSession;
     },
 
     redirect: ({ url, baseUrl }) => {
+      let resolvedUrl = baseUrl;
+      let reason = "fallback-base-url";
+
       if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
+        resolvedUrl = `${baseUrl}${url}`;
+        reason = "relative-url";
+      } else {
+        try {
+          if (new URL(url).origin === baseUrl) {
+            resolvedUrl = url;
+            reason = "same-origin";
+          }
+        } catch {
+          reason = "invalid-url";
+        }
       }
 
-      if (new URL(url).origin === baseUrl) {
-        return url;
-      }
+      logAuthDebug("redirect callback evaluated", {
+        reason,
+        incomingUrl: summarizeUrlForLog(url),
+        baseUrl: summarizeUrlForLog(baseUrl),
+        resolvedUrl: summarizeUrlForLog(resolvedUrl),
+      });
 
-      return baseUrl;
+      return resolvedUrl;
+    },
+  },
+  events: {
+    async signIn({ user, account, profile, isNewUser }) {
+      logAuthInfo("event.signIn", {
+        userId: user?.id ?? null,
+        provider: account?.provider ?? null,
+        providerType: account?.type ?? null,
+        providerAccountHash: hashForLog(account?.providerAccountId),
+        isNewUser: Boolean(isNewUser),
+        hasProfile: Boolean(profile),
+      });
+    },
+    async signOut(message) {
+      logAuthInfo("event.signOut", {
+        hasSession: "session" in message,
+        hasToken: "token" in message,
+      });
+    },
+    async createUser({ user }) {
+      logAuthInfo("event.createUser", {
+        userId: user?.id ?? null,
+        hasEmail: Boolean(user?.email),
+      });
+    },
+    async updateUser({ user }) {
+      logAuthDebug("event.updateUser", {
+        userId: user?.id ?? null,
+        hasName: Boolean(user?.name),
+        hasImage: Boolean(user?.image),
+      });
+    },
+    async linkAccount({ user, account }) {
+      logAuthInfo("event.linkAccount", {
+        userId: user?.id ?? null,
+        provider: account.provider,
+        providerType: account.type,
+        providerAccountHash: hashForLog(account.providerAccountId),
+      });
+    },
+    async session(message) {
+      logAuthDebug("event.session", {
+        hasSession: Boolean(message.session),
+        hasToken: Boolean(message.token),
+      });
     },
   },
 } satisfies NextAuthConfig;
