@@ -8,6 +8,7 @@ import {
   isEnabledOAuthProviderId,
 } from "@/config/oauthProviders";
 import { localStorage as appStorage } from "@/services/storage";
+import { logAuthClientDebug } from "@/utils/authDebugClient";
 import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { getGenres, type GenreListItem } from "@/utils/api";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
@@ -42,12 +43,29 @@ function SignInContent() {
   });
 
   useEffect(() => {
+    if (!error) return;
+    logAuthClientDebug("Sign-in page received auth error", {
+      error,
+      callbackUrl,
+      url: window.location.href,
+    });
+  }, [error, callbackUrl]);
+
+  useEffect(() => {
     let isMounted = true;
     let resolved = false;
+    logAuthClientDebug("Fetching OAuth providers for sign-in page");
+
     const timeoutId = setTimeout(() => {
       if (!isMounted || resolved) return;
       console.warn(
         "[SignIn] getProviders timed out; using fallback OAuth providers.",
+      );
+      logAuthClientDebug(
+        "getProviders timed out; using fallback provider list",
+        {
+          fallbackProviders: Object.keys(OAUTH_PROVIDERS_FALLBACK),
+        },
       );
       setProviders(OAUTH_PROVIDERS_FALLBACK);
     }, 3000);
@@ -57,12 +75,21 @@ function SignInContent() {
         if (!isMounted) return;
         resolved = true;
         clearTimeout(timeoutId);
-        setProviders(nextProviders ?? OAUTH_PROVIDERS_FALLBACK);
+        const resolvedProviders = nextProviders ?? OAUTH_PROVIDERS_FALLBACK;
+        logAuthClientDebug("OAuth providers fetched", {
+          providerIds: Object.keys(resolvedProviders),
+          usedFallback: !nextProviders,
+        });
+        setProviders(resolvedProviders);
       })
-      .catch(() => {
+      .catch((providerError: unknown) => {
         if (!isMounted) return;
         resolved = true;
         clearTimeout(timeoutId);
+        logAuthClientDebug("getProviders failed; using fallback list", {
+          fallbackProviders: Object.keys(OAUTH_PROVIDERS_FALLBACK),
+          error: providerError,
+        });
         setProviders(OAUTH_PROVIDERS_FALLBACK);
       });
 
@@ -105,6 +132,14 @@ function SignInContent() {
         provider.type === "oauth" && isEnabledOAuthProviderId(provider.id),
     );
   }, [providers]);
+
+  useEffect(() => {
+    if (!providers) return;
+    logAuthClientDebug("OAuth providers available on sign-in page", {
+      providerIds: oauthProviders.map((provider) => provider.id),
+      callbackUrl,
+    });
+  }, [callbackUrl, oauthProviders, providers]);
 
   const featuredGenres = useMemo(() => genres.slice(0, 12), [genres]);
 
@@ -241,15 +276,20 @@ function SignInContent() {
                   <button
                     key={provider.id}
                     type="button"
-                    onClick={() =>
-                      signIn(
+                    onClick={() => {
+                      logAuthClientDebug("Starting OAuth sign-in from page", {
+                        providerId: provider.id,
+                        callbackUrl,
+                        redirectUri: spotifyRedirectUri,
+                      });
+                      void signIn(
                         provider.id,
                         { callbackUrl },
                         spotifyRedirectUri
                           ? { redirect_uri: spotifyRedirectUri }
                           : undefined,
-                      )
-                    }
+                      );
+                    }}
                     className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition hover:opacity-90 ${providerClasses}`}
                   >
                     Sign in with {provider.name}
