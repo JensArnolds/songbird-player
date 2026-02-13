@@ -5,6 +5,45 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.19] - 2026-02-13
+
+### Added
+
+- **End-to-end OAuth trace logging**: Added structured auth diagnostics that trace OAuth flow step-by-step across request entry, provider redirect, callback handling, and response output with sensitive field redaction. Locations: `src/server/auth/logging.ts`, `src/app/api/auth/[...nextauth]/route.ts`.
+- **Client-side OAuth debug instrumentation**: Added optional browser-side auth logging for provider discovery, redirect URI computation, and sign-in initiation from both `/signin` and auth modal flows. Locations: `src/utils/authDebugClient.ts`, `src/app/signin/page.tsx`, `src/components/AuthModal.tsx`, `src/utils/getOAuthRedirectUri.ts`.
+- **OAuth debug feature flags**: Added `AUTH_DEBUG_OAUTH` (server) and `NEXT_PUBLIC_AUTH_DEBUG_OAUTH` (client) to env validation and examples for controlled debug logging in production-like environments. Locations: `src/env.js`, `.env.example`.
+
+### Changed
+
+- **NextAuth observability and lifecycle logging**: Expanded auth configuration logging to include startup config validation, provider enablement decisions, callback decisions (`signIn`, `session`, `redirect`), auth events (`signIn`, `linkAccount`, `createUser`, `signOut`), and internal Auth.js logger hooks. Location: `src/server/auth/config.ts`.
+- **Spotify provider diagnostics**: Improved provider initialization logs to explicitly state why Spotify auth is enabled/disabled (feature flag and credential presence), reducing ambiguity during rollout and incident debugging. Location: `src/server/auth/spotifyProvider.ts`.
+- **Auth route diagnostics hardening**: Route wrapper now logs parsed auth action/provider context, request origin inference, callback query signal metadata (`state` hash, `code` length), and cookie name summaries without exposing raw cookie/token values. Location: `src/app/api/auth/[...nextauth]/route.ts`.
+- **OAuth env template completeness**: Updated `.env.example` to include missing `AUTH_SPOTIFY_ENABLED` and new OAuth debug toggles so server/client feature gating remains explicit and aligned.
+
+### Fixed
+
+- **Spotify OAuth server/client flag mismatch visibility**: Added explicit warning path when `NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=true` but `AUTH_SPOTIFY_ENABLED=false`, which could expose Spotify in UI fallback paths while server-side provider remained disabled. Location: `src/server/auth/config.ts`.
+
+## [0.15.18] - 2026-02-12
+
+### Added
+
+- **GitHub Actions security documentation**: Added comprehensive security policy documentation at `.github/SECURITY.md` explaining secret management, Docker build arg security trade-offs, mitigation strategies, and emergency response procedures.
+
+### Changed
+
+- **Environment variable cleanup (infrastructure)**: Streamlined environment variables to only essential secrets, removing redundant legacy database configuration variables. Locations: `.github/workflows/docker-build.yml`, `Dockerfile`, `.env.example`.
+  - **Removed redundant DB_* variables**: Eliminated `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` from all configurations (workflow, Dockerfile, env example). These were legacy fallbacks for drizzle-kit that are unnecessary when `DATABASE_URL` is always provided.
+  - **Simplified Dockerfile build args**: Reduced from 17 ARG declarations to 9 essential variables (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SONGBIRD_API_KEY`, `API_V2_URL`, `NEXTAUTH_URL`, `NODE_ENV`, `SKIP_ENV_VALIDATION`).
+  - **Cleaned up .env.example**: Removed all redundant variables including `NEXT_PUBLIC_NEXTAUTH_URL`, `NEXT_PUBLIC_NEXTAUTH_VERCEL_URL`, `NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER`, `DATABASE_UNPOOLED`, and `API_V2_HEALTH_URL`. Added clear section comments explaining each variable's purpose.
+  - **Updated GitHub Actions workflow**: Removed 5 redundant secret references from both test and production build steps, reducing secret exposure surface and improving clarity.
+
+- **GitHub Actions Docker workflow**: Updated to pass essential application secrets as build arguments (required for Next.js build process). While this creates a security trade-off (secrets visible in Docker layer metadata via `docker history`), mitigations are in place: test builds remain local to CI runner, production images should not be inspected, and all secrets are rotatable. Location: `.github/workflows/docker-build.yml`.
+
+### Fixed
+
+- **CI/CD build process**: Fixed GitHub Actions Docker builds that were failing due to missing environment variables during Next.js build step. Now correctly passes all required secrets (`DATABASE_URL`, `AUTH_SECRET`, OAuth credentials, API keys) as build arguments.
+
 ## [0.15.17] - 2026-02-12
 
 ### Changed

@@ -5,6 +5,25 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.19] - 2026-02-13
+
+### Added
+
+- **End-to-end OAuth trace logging**: Added structured auth diagnostics that trace OAuth flow step-by-step across request entry, provider redirect, callback handling, and response output with sensitive field redaction. Locations: `src/server/auth/logging.ts`, `src/app/api/auth/[...nextauth]/route.ts`.
+- **Client-side OAuth debug instrumentation**: Added optional browser-side auth logging for provider discovery, redirect URI computation, and sign-in initiation from both `/signin` and auth modal flows. Locations: `src/utils/authDebugClient.ts`, `src/app/signin/page.tsx`, `src/components/AuthModal.tsx`, `src/utils/getOAuthRedirectUri.ts`.
+- **OAuth debug feature flags**: Added `AUTH_DEBUG_OAUTH` (server) and `NEXT_PUBLIC_AUTH_DEBUG_OAUTH` (client) to env validation and examples for controlled debug logging in production-like environments. Locations: `src/env.js`, `.env.example`.
+
+### Changed
+
+- **NextAuth observability and lifecycle logging**: Expanded auth configuration logging to include startup config validation, provider enablement decisions, callback decisions (`signIn`, `session`, `redirect`), auth events (`signIn`, `linkAccount`, `createUser`, `signOut`), and internal Auth.js logger hooks. Location: `src/server/auth/config.ts`.
+- **Spotify provider diagnostics**: Improved provider initialization logs to explicitly state why Spotify auth is enabled/disabled (feature flag and credential presence), reducing ambiguity during rollout and incident debugging. Location: `src/server/auth/spotifyProvider.ts`.
+- **Auth route diagnostics hardening**: Route wrapper now logs parsed auth action/provider context, request origin inference, callback query signal metadata (`state` hash, `code` length), and cookie name summaries without exposing raw cookie/token values. Location: `src/app/api/auth/[...nextauth]/route.ts`.
+- **OAuth env template completeness**: Updated `.env.example` to include missing `AUTH_SPOTIFY_ENABLED` and new OAuth debug toggles so server/client feature gating remains explicit and aligned.
+
+### Fixed
+
+- **Spotify OAuth server/client flag mismatch visibility**: Added explicit warning path when `NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=true` but `AUTH_SPOTIFY_ENABLED=false`, which could expose Spotify in UI fallback paths while server-side provider remained disabled. Location: `src/server/auth/config.ts`.
+
 ## [0.15.18] - 2026-02-12
 
 ### Added
