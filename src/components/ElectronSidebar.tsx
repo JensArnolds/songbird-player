@@ -2,6 +2,7 @@
 
 "use client";
 
+import { APP_VERSION } from "@/config/version";
 import { STORAGE_KEYS } from "@/config/storage";
 import { CreatePlaylistModal } from "@/components/CreatePlaylistModal";
 import { api } from "@/trpc/react";
@@ -415,6 +416,14 @@ export function ElectronSidebar() {
               </button>
             </div>
           ) : null}
+
+          {!collapsed && (
+            <div className="px-3 pb-2 text-center">
+              <p className="text-[9px] text-[var(--color-muted)] opacity-30">
+                v{APP_VERSION}
+              </p>
+            </div>
+          )}
         </div>
       </aside>
 
