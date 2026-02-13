@@ -5,6 +5,31 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.17] - 2026-02-12
+
+### Changed
+
+- **Visualizer Firefox performance optimizations (gradient elimination)**: Eliminated gradient creation in three of the most performance-intensive visualizer patterns, achieving massive Firefox performance improvements. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Fluid**: Eliminated 500-3,600 gradient creations per frame by removing all `createLinearGradient()` calls and batching flow field lines into 6 hue-based paths (600x reduction in operations). Increased grid size from 24 to 36 for additional performance gain.
+  - **Starfield**: Eliminated 200-500 radial gradients per frame by removing all `createRadialGradient()` calls, using simple `fillStyle` instead. Reduced visible stars via stride (every 2nd-3rd star) and minimized trail rendering to every 4th star only when `bassIntensity > 0.5`.
+  - **Constellation**: Eliminated 70-120 gradients per frame (50-100 linear + 20 radial) by batching all connection lines into a single path with one stroke operation, and using simple fills for stars instead of radial gradients.
+- **Visualizer Firefox performance optimizations (high-cost dark set)**: Hyper-optimized the five heaviest dark-mode visualizers with adaptive detail scaling, reduced shadow churn, lower path density, and selective gradient fallback. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Abyssal Depth**: Removed redundant per-layer rotations, reduced layer/creature gradient pressure with low-detail flat-fill fallbacks, simplified creature glow/trails, and scaled counts by adaptive detail.
+  - **Demonic Gate**: Reused a single `Path2D` gate outline for fill/stroke, batched tendril strokes, reduced vortex/entity/sigil complexity on low detail, and switched pillars/core to conditional gradient use.
+  - **Shadow Dance**: Batched the dancer net into one path, cached dancer polar results per frame, replaced trail arcs with rect fills, reduced per-dancer shadow state flips, and lowered wisp/ring complexity in low detail.
+  - **Spectral Echo**: Reduced ring segment density and layer cadence adaptively, converted inner orbit particles to rect fills, batched beam and core segment strokes, and added low-detail center source fill fallback.
+  - **Twilight Zone**: Added adaptive zone/particle scaling, removed per-zone save/restore rotation overhead, batched tear strokes, converted wisps to grouped rect fills, and introduced low-detail core rendering fallback.
+
+## [0.15.16] - 2026-02-12
+
+### Added
+
+- **Automatic canvas state reset**: Implemented periodic deep canvas cleanup every 10 visualizer pattern switches to prevent performance degradation from accumulated canvas state. The reset clears transforms, shadows, filters, gradients, paths, and the HSL color cache. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+
+### Changed
+
+- **Canvas context management**: Added `patternsSinceReset` counter to track pattern switches and trigger `resetCanvasState()` method every 10 patterns, preventing memory pollution and canvas state accumulation that caused slowdowns over extended playback sessions.
+
 ## [0.15.15] - 2026-02-12
 
 ### Changed
@@ -14,6 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Dimensional Rift**: Halved shadow operations from 12 to 6 by applying shadows only to alternating rifts, reduced shadow blur from 40px to 25px, and lowered shadow alpha from 0.9 to 0.6.
   - **Fireworks**: Switched from `arc()` to `fillRect()` for particle rendering (3-4x faster in Firefox) and removed expensive per-particle path operations for 50-150 particles per frame.
   - **Dusk Realm (shadowRealm)**: Reduced shadow operations by 70% (from ~23 to 7 per frame) by applying shadows only to every 3rd layer, reducing shadow blur from 25px to 15px for layers and 35px to 20px for center void, and removing shadowed accent fills entirely.
+  - **Mystic Ceremony (forbiddenRitual)**: Reduced from 200+ to ~60 operations per frame by cutting rune count from 40-70 to 20-35, removing all 140 individual shadowed symbol arcs, eliminating pentagrams and flame particles, batching spike lines into single path, reducing wisps from 12-18 to 8-12 using fillRect, and simplifying center from 4 gradients to 1.
+  - **Crystal Grid**: Reduced from 36 to 16 crystals (56% reduction) and eliminated all 36 per-frame radial gradient creations, batched internal hexagon lines into single path per crystal, and removed connection lines with setLineDash overhead.
+  - **EM Field (emField)**: Reduced from up to 7,200 individual shadowed stroke calls to ~20 operations per frame by removing entire physics simulation, replacing with 16 simple curved field lines (no per-segment shadows), simplifying particles from 25-45 to 12 using fillRect, eliminating gradient trails, and removing contour and wave rings.
 
 ## [0.15.14] - 2026-02-12
 
