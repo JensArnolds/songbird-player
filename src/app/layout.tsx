@@ -13,6 +13,7 @@ import { ElectronStorageInit } from "@/components/ElectronStorageInit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import Header from "@/components/Header";
+import { LinuxTitlebar } from "@/components/LinuxTitlebar";
 import MobileContentWrapper from "@/components/MobileContentWrapper";
 import { MobileFooterWrapper } from "@/components/MobileFooterWrapper";
 import MobileHeader from "@/components/MobileHeader";
@@ -25,6 +26,7 @@ import { UIWrapper } from "@/components/UIWrapper";
 import CookieConsent from "@/components/CookieConsent";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
+import { KeyboardShortcutsProvider } from "@/contexts/KeyboardShortcutsProvider";
 import { MenuProvider } from "@/contexts/MenuContext";
 import { PlaylistContextMenuProvider } from "@/contexts/PlaylistContextMenuContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -106,6 +108,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://api.deezer.com" />
       </head>
       <body>
+        <LinuxTitlebar />
         <SuppressExtensionErrors />
         <ElectronStorageInit />
         <RegisterServiceWorker />
@@ -118,48 +121,50 @@ export default function RootLayout({
                   <ElectronChromeSync />
                   <ToastProvider>
                     <AudioPlayerProvider>
-                      {}
-                      <DynamicTitle />
-                      <MenuProvider>
-                        <TrackContextMenuProvider>
-                          <PlaylistContextMenuProvider>
-                            {}
-                            <UIWrapper>
+                      <KeyboardShortcutsProvider>
+                        {}
+                        <DynamicTitle />
+                        <MenuProvider>
+                          <TrackContextMenuProvider>
+                            <PlaylistContextMenuProvider>
                               {}
-                              <DesktopShell>
-                                <div suppressHydrationWarning>
-                                  <Suspense fallback={null}>
-                                    <Header />
-                                  </Suspense>
-                                </div>
+                              <UIWrapper>
                                 {}
-                                <Suspense fallback={null}>
-                                  <MobileHeader />
-                                </Suspense>
-                                {}
-                                <HamburgerMenu />
-                                {}
-                                <MobileContentWrapper>
-                                  {}
-                                  <div className="pt-16 pb-36 md:pt-0 md:pb-24">
-                                    {children}
+                                <DesktopShell>
+                                  <div suppressHydrationWarning>
+                                    <Suspense fallback={null}>
+                                      <Header />
+                                    </Suspense>
                                   </div>
-                                </MobileContentWrapper>
-                              </DesktopShell>
-                            </UIWrapper>
-                            {}
-                            <PersistentPlayer />
-                            {}
-                            <Suspense fallback={null}>
-                              <MobileFooterWrapper />
-                            </Suspense>
-                            {}
-                            <TrackContextMenu />
-                            {}
-                            <PlaylistContextMenu />
-                          </PlaylistContextMenuProvider>
-                        </TrackContextMenuProvider>
-                      </MenuProvider>
+                                  {}
+                                  <Suspense fallback={null}>
+                                    <MobileHeader />
+                                  </Suspense>
+                                  {}
+                                  <HamburgerMenu />
+                                  {}
+                                  <MobileContentWrapper>
+                                    {}
+                                    <div className="pt-16 pb-36 md:pt-0 md:pb-24">
+                                      {children}
+                                    </div>
+                                  </MobileContentWrapper>
+                                </DesktopShell>
+                              </UIWrapper>
+                              {}
+                              <PersistentPlayer />
+                              {}
+                              <Suspense fallback={null}>
+                                <MobileFooterWrapper />
+                              </Suspense>
+                              {}
+                              <TrackContextMenu />
+                              {}
+                              <PlaylistContextMenu />
+                            </PlaylistContextMenuProvider>
+                          </TrackContextMenuProvider>
+                        </MenuProvider>
+                      </KeyboardShortcutsProvider>
                     </AudioPlayerProvider>
                   </ToastProvider>
                 </AuthModalProvider>

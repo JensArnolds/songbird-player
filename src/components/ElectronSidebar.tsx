@@ -2,6 +2,7 @@
 
 "use client";
 
+import { APP_VERSION } from "@/config/version";
 import { STORAGE_KEYS } from "@/config/storage";
 import { CreatePlaylistModal } from "@/components/CreatePlaylistModal";
 import { api } from "@/trpc/react";
@@ -188,7 +189,7 @@ export function ElectronSidebar() {
                       ? `Hi ${
                           session.user?.name ??
                           session.user?.email ??
-                          session.user?.username ??
+                          session.user?.userHash ??
                           "there"
                         }`
                       : "Hi there"}
@@ -276,7 +277,7 @@ export function ElectronSidebar() {
                     className="electron-no-drag flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] text-[var(--color-subtext)] transition-colors hover:border-[rgba(244,178,102,0.35)] hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
                     onClick={() => setCreateModalOpen(true)}
                     aria-label="Create playlist"
-                    title="Create playlist"
+                    title={collapsed ? "Create playlist" : undefined}
                   >
                     <Plus className="h-4 w-4" />
                   </button>
@@ -284,8 +285,27 @@ export function ElectronSidebar() {
 
                 <div className="mt-2 min-h-0 overflow-y-auto pr-1">
                   {playlistsQuery.isLoading ? (
-                    <div className="px-3 py-2 text-sm text-[var(--color-subtext)]">
-                      {!collapsed ? "Loading..." : "…"}
+                    <div className="space-y-1 px-1 py-1">
+                      {Array.from({ length: collapsed ? 6 : 4 }).map(
+                        (_, index) => (
+                          <div
+                            key={`playlist-skeleton-${index}`}
+                            className={`flex items-center gap-3 rounded-xl ${
+                              collapsed
+                                ? "justify-center px-2 py-2"
+                                : "px-3 py-2.5"
+                            }`}
+                          >
+                            <div className="h-7 w-7 shrink-0 animate-pulse rounded-lg bg-[rgba(255,255,255,0.12)]" />
+                            {!collapsed && (
+                              <div className="min-w-0 flex-1 space-y-1.5">
+                                <div className="h-3 w-2/3 animate-pulse rounded bg-[rgba(255,255,255,0.14)]" />
+                                <div className="h-2.5 w-1/3 animate-pulse rounded bg-[rgba(255,255,255,0.1)]" />
+                              </div>
+                            )}
+                          </div>
+                        ),
+                      )}
                     </div>
                   ) : playlistsQuery.data && playlistsQuery.data.length > 0 ? (
                     <div className="space-y-1">
@@ -302,6 +322,7 @@ export function ElectronSidebar() {
                                 : "text-[var(--color-subtext)] hover:bg-[rgba(255,255,255,0.08)] hover:text-[var(--color-text)]"
                             }`}
                             title={collapsed ? playlist.name : undefined}
+                            aria-label={collapsed ? playlist.name : undefined}
                           >
                             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.1)] text-xs font-bold text-[var(--color-text)]">
                               {playlist.name?.charAt(0)?.toUpperCase() ?? "P"}
@@ -355,8 +376,8 @@ export function ElectronSidebar() {
                       Your Library
                     </div>
                     <div className="mt-2 text-[var(--color-subtext)]">
-                      Sign in to see your playlists, liked tracks, and recent
-                      activity.
+                      I know we&apos;re being pedantic at this point. It&apos;s
+                      purely optional.
                     </div>
                     <button
                       type="button"
@@ -415,6 +436,14 @@ export function ElectronSidebar() {
               </button>
             </div>
           ) : null}
+
+          {!collapsed && (
+            <div className="px-3 pb-2 text-center">
+              <p className="text-[9px] text-[var(--color-muted)] opacity-30">
+                v{APP_VERSION}
+              </p>
+            </div>
+          )}
         </div>
       </aside>
 

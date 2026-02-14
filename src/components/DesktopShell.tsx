@@ -3,7 +3,7 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { DesktopRightRail } from "./DesktopRightRail";
 import { ElectronSidebar } from "./ElectronSidebar";
@@ -11,6 +11,19 @@ import { ElectronSidebar } from "./ElectronSidebar";
 export function DesktopShell({ children }: { children: ReactNode }) {
   const isMobile = useIsMobile();
   const rightRailWidth = 320;
+  const [isLinuxElectron, setIsLinuxElectron] = useState(false);
+
+  useEffect(() => {
+    // Check if running on Linux Electron
+    if (typeof window !== "undefined") {
+      const isLinux =
+        (window as Window & { electron?: { isElectron: boolean; platform: string } })
+          .electron?.isElectron &&
+        (window as Window & { electron?: { isElectron: boolean; platform: string } })
+          .electron?.platform === "linux";
+      setIsLinuxElectron(isLinux);
+    }
+  }, []);
 
   useEffect(() => {
     if (isMobile) {
@@ -42,7 +55,10 @@ export function DesktopShell({ children }: { children: ReactNode }) {
   if (isMobile) return <>{children}</>;
 
   return (
-    <div className="desktop-shell flex h-screen w-full overflow-hidden">
+    <div
+      className="desktop-shell flex h-screen w-full overflow-hidden"
+      style={{ paddingTop: isLinuxElectron ? "36px" : "0" }}
+    >
       <ElectronSidebar />
       <div className="desktop-main min-w-0 flex-1 p-2 md:p-3">
         <div className="desktop-surface flex h-full min-h-0 flex-col overflow-hidden rounded-[1.25rem] border">

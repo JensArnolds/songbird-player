@@ -14,16 +14,18 @@ export const env = createEnv({
       .transform((val) => val === "true"),
     AUTH_DISCORD_ID: z.string(),
     AUTH_DISCORD_SECRET: z.string(),
+    AUTH_SPOTIFY_ENABLED: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
+    AUTH_DEBUG_OAUTH: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
     SPOTIFY_CLIENT_ID: z.string().optional(),
     SPOTIFY_CLIENT_SECRET: z.string().optional(),
     NEXTAUTH_URL: z.string().url().optional(),
     DATABASE_URL: z.string().url().optional(),
-
-    DB_ADMIN_USER: z.string().optional(),
-    DB_ADMIN_PASSWORD: z.string().optional(),
-    DB_HOST: z.string().optional(),
-    DB_PORT: z.string().regex(/^\d+$/).optional(),
-    DB_NAME: z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -39,7 +41,14 @@ export const env = createEnv({
     NEXT_PUBLIC_NEXTAUTH_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: z.string().url().optional(),
-    NEXT_PUBLIC_API_V2_HEALTH_URL: z.string().url().optional(),
+    NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
+    NEXT_PUBLIC_AUTH_DEBUG_OAUTH: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
   },
   runtimeEnv: {
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
@@ -47,15 +56,12 @@ export const env = createEnv({
     AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,
     AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
+    AUTH_SPOTIFY_ENABLED: process.env.AUTH_SPOTIFY_ENABLED,
+    AUTH_DEBUG_OAUTH: process.env.AUTH_DEBUG_OAUTH,
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,
-    DB_ADMIN_USER: process.env.DB_ADMIN_USER,
-    DB_ADMIN_PASSWORD: process.env.DB_ADMIN_PASSWORD,
-    DB_HOST: process.env.DB_HOST,
-    DB_PORT: process.env.DB_PORT,
-    DB_NAME: process.env.DB_NAME,
     NODE_ENV: process.env.NODE_ENV,
     API_V2_URL:
       process.env.API_V2_URL ??
@@ -66,7 +72,10 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL,
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER:
       process.env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER,
-    NEXT_PUBLIC_API_V2_HEALTH_URL: process.env.NEXT_PUBLIC_API_V2_HEALTH_URL,
+    NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED:
+      process.env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED,
+    NEXT_PUBLIC_AUTH_DEBUG_OAUTH:
+      process.env.NEXT_PUBLIC_AUTH_DEBUG_OAUTH,
     SONGBIRD_API_KEY: process.env.SONGBIRD_API_KEY,
     ELECTRON_BUILD: process.env.ELECTRON_BUILD,
   },

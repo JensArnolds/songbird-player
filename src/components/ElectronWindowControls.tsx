@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Minus, Square, X } from "lucide-react";
+import { Maximize2, Minimize2, Minus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type WindowStateMessage = {
@@ -17,16 +17,16 @@ const isWindowStateMessage = (value: unknown): value is WindowStateMessage => {
 };
 
 export function ElectronWindowControls() {
-  const [isWindowsElectron] = useState(
+  const [isLinuxElectron] = useState(
     () =>
       typeof window !== "undefined" &&
       Boolean(window.electron?.isElectron) &&
-      window.electron?.platform === "win32",
+      window.electron?.platform === "linux",
   );
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
-    if (!isWindowsElectron) return;
+    if (!isLinuxElectron) return;
 
     window.electron.receive?.("fromMain", (...args) => {
       const message = args[0];
@@ -35,9 +35,9 @@ export function ElectronWindowControls() {
     });
 
     window.electron.send?.("toMain", { type: "window:getState" });
-  }, [isWindowsElectron]);
+  }, [isLinuxElectron]);
 
-  if (!isWindowsElectron) return null;
+  if (!isLinuxElectron) return null;
 
   return (
     <div className="electron-window-controls" role="group" aria-label="Window controls">
@@ -59,7 +59,11 @@ export function ElectronWindowControls() {
           className="electron-window-control electron-window-control-maximize"
           onClick={() => window.electron?.send?.("toMain", { type: "window:toggleMaximize" })}
         >
-          <Square className={`h-3.5 w-3.5 stroke-[2.5] ${isMaximized ? "scale-90" : ""}`} />
+          {isMaximized ? (
+            <Minimize2 className="h-[11px] w-[11px] stroke-[2.3]" />
+          ) : (
+            <Maximize2 className="h-[11px] w-[11px] stroke-[2.3]" />
+          )}
         </button>
 
         <button

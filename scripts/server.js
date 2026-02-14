@@ -38,7 +38,8 @@ if (pm2Port) {
 console.log("=== Environment Variables Loaded ===");
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("PORT:", process.env.PORT);
-console.log("NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+// SECURITY: Don't print NEXTAUTH_URL as it may contain infrastructure details
+console.log("NEXTAUTH_URL:", process.env.NEXTAUTH_URL ? "✓ Set" : "✗ Missing");
 console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ Set" : "✗ Missing");
 console.log("AUTH_SECRET:", process.env.AUTH_SECRET ? "✓ Set (" + process.env.AUTH_SECRET.length + " chars)" : "✗ Missing");
 console.log("====================================\n");

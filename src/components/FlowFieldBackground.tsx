@@ -12,11 +12,13 @@ import { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
 
 interface FlowFieldBackgroundProps {
   audioElement: HTMLAudioElement | null;
+  showFpsCounter?: boolean;
   onRendererReady?: (renderer: FlowFieldRenderer | null) => void;
 }
 
 export function FlowFieldBackground({
   audioElement,
+  showFpsCounter = false,
   onRendererReady,
 }: FlowFieldBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -138,6 +140,10 @@ export function FlowFieldBackground({
       rendererRef.current = null;
     };
   }, [onRendererReady]);
+
+  useEffect(() => {
+    rendererRef.current?.setShowFpsCounter(showFpsCounter);
+  }, [showFpsCounter]);
 
   useEffect(() => {
     console.log("[FlowFieldBackground] Animation loop check", {

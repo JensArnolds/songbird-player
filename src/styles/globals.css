@@ -1902,16 +1902,86 @@ html.theme-light .theme-chrome-sidebar {
   box-shadow: 6px 0 24px rgba(0, 0, 0, 0.06);
 }
 
-/* Electron titlebar overlay: reserve a draggable strip that matches theme chrome */
+/* Electron desktop chrome */
 html.is-electron .theme-chrome-header {
   padding-top: 0;
-  -webkit-app-region: drag;
   user-select: none;
 }
 
 html.is-electron .theme-chrome-header .container {
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+html.is-electron .electron-titlebar-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 1fr) auto minmax(88px, 1fr);
+  min-height: 38px;
+  align-items: center;
+  margin: 0 0.15rem 0.45rem;
+  padding: 0 0.4rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    90deg,
+    rgba(49, 50, 60, 0.96) 0%,
+    rgba(56, 57, 67, 0.94) 42%,
+    rgba(47, 48, 58, 0.96) 100%
+  );
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+html.theme-light.is-electron .electron-titlebar-row {
+  border-color: rgba(15, 20, 25, 0.14);
+  background: linear-gradient(
+    90deg,
+    rgba(243, 245, 248, 0.98) 0%,
+    rgba(236, 239, 244, 0.95) 100%
+  );
+  box-shadow:
+    0 5px 14px rgba(15, 20, 25, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+html.is-electron .electron-titlebar-spacer {
+  justify-self: start;
+  width: 100%;
+}
+
+html.is-electron .electron-titlebar-title {
+  min-width: 0;
+  color: rgba(243, 244, 248, 0.96);
+  font-size: clamp(0.86rem, 1.65vmin, 1.03rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-align: center;
+  opacity: 0.98;
+}
+
+html.theme-light.is-electron .electron-titlebar-title {
+  color: rgba(23, 27, 32, 0.9);
+}
+
+html.is-electron .electron-titlebar-actions {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+}
+
+html.is-electron .electron-titlebar-overlay {
+  position: fixed;
+  top: 0.4rem;
+  left: 0.5rem;
+  right: 0.5rem;
+  margin: 0;
+  z-index: 70;
 }
 
 html.is-electron .electron-header-drag {
@@ -2034,21 +2104,18 @@ html.theme-light .desktop-scroll::-webkit-scrollbar-thumb {
 }
 
 html.is-electron .electron-window-controls {
-  position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 70;
-  display: flex;
-  height: 32px;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  -webkit-app-region: no-drag;
 }
 
 html.is-electron .electron-window-controls-shell {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0;
-  -webkit-app-region: drag;
+  gap: 0.3rem;
+  -webkit-app-region: no-drag;
   cursor: default;
 }
 
@@ -2057,63 +2124,74 @@ html.is-electron .electron-window-controls-shell:active {
 }
 
 html.is-electron .electron-window-control {
-  width: 46px;
-  height: 32px;
+  width: 21px;
+  height: 21px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 0;
-  background: transparent;
-  color: #ffffff;
-  transition: background-color 100ms ease;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(245, 246, 250, 0.86);
+  transition:
+    background-color 100ms ease,
+    color 100ms ease,
+    transform 80ms ease;
   cursor: pointer;
   -webkit-app-region: no-drag;
-  opacity: 0.9;
+  opacity: 0.98;
 }
 
 html.is-electron .electron-window-control:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
   opacity: 1;
 }
 
 html.is-electron .electron-window-control:active {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0.96);
 }
 
 html.theme-light.is-electron .electron-window-control {
-  color: #000000;
+  border-color: rgba(15, 20, 25, 0.14);
+  background: rgba(15, 20, 25, 0.08);
+  color: rgba(15, 20, 25, 0.76);
   opacity: 0.9;
 }
 
 html.theme-light.is-electron .electron-window-control:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(15, 20, 25, 0.14);
+  color: rgba(15, 20, 25, 0.92);
   opacity: 1;
 }
 
 html.theme-light.is-electron .electron-window-control:active {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(15, 20, 25, 0.18);
 }
 
 html.is-electron .electron-window-control-close:hover {
-  background: #e81123;
+  background: #dc5c64;
+  border-color: #dc5c64;
   color: #ffffff;
   opacity: 1;
 }
 
 html.is-electron .electron-window-control-close:active {
-  background: #f1707a;
-  color: #000000;
+  background: #cd4e56;
+  border-color: #cd4e56;
+  color: #ffffff;
 }
 
 html.theme-light.is-electron .electron-window-control-close:hover {
-  background: #e81123;
+  background: #d95a63;
   color: #ffffff;
   opacity: 1;
 }
 
 html.theme-light.is-electron .electron-window-control-close:active {
-  background: #f1707a;
-  color: #000000;
+  background: #c94b54;
+  color: #ffffff;
 }
 
 html.is-electron .electron-no-drag {

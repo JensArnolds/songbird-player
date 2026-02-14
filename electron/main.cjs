@@ -408,13 +408,15 @@ const loopbackOriginHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
  * Resolve the loopback hostname used by Electron and the bundled Next server.
  * Priority:
  * 1) explicit ELECTRON_LOOPBACK_HOST
- * 2) localhost default (matches OAuth callback behavior in NextAuth/Electron)
+ * 2) localhost (consistent for OAuth providers)
  * @returns {string}
  */
 const resolveLoopbackHost = () => {
   const explicitHost = (process.env.ELECTRON_LOOPBACK_HOST || "").trim();
   if (explicitHost) return explicitHost;
 
+  // Always use localhost for Electron to ensure OAuth callbacks work correctly
+  // OAuth providers like Discord expect the exact redirect_uri match
   return "localhost";
 };
 /** @type {string} */
@@ -447,6 +449,34 @@ const isEquivalentLoopbackOrigin = (target, appUrl) => {
     target.protocol === appUrl.protocol &&
     target.port === appUrl.port
   );
+};
+
+/** @type {Set<string>} */
+const oauthNavigationHosts = new Set([
+  "discord.com",
+  "www.discord.com",
+  "discordapp.com",
+  "www.discordapp.com",
+  "accounts.spotify.com",
+  "challenge.spotify.com",
+  "login5.spotify.com",
+  "login.spotify.com",
+]);
+
+/**
+ * Allow provider-hosted OAuth pages to stay inside Electron so callback cookies
+ * are written to the app session instead of the external browser.
+ * @param {string} rawUrl
+ * @returns {boolean}
+ */
+const isAllowedOAuthNavigation = (rawUrl) => {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== "https:") return false;
+    return oauthNavigationHosts.has(parsed.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
 };
 
 /** @type {BrowserWindow | null} */
@@ -1028,6 +1058,7 @@ const createWindow = async () => {
 
   const isWindows = process.platform === "win32";
   const isMac = process.platform === "darwin";
+  const isLinux = process.platform === "linux";
 
   mainWindow = new BrowserWindow({
     title: "Starchild",
@@ -1042,7 +1073,16 @@ const createWindow = async () => {
           frame: true,
         }
       : {}),
+    ...(isLinux
+      ? {
+          frame: false,
+        }
+      : {}),
     webPreferences: {
+      preload: path.join(__dirname, "preload.cjs"),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
       partition: "persist:darkfloor-art",
     },
     icon: iconPath || undefined,
@@ -1090,11 +1130,8 @@ const createWindow = async () => {
     ({ url }) => {
       log("Window open handler triggered for URL:", url);
 
-      if (
-        url.includes("discord.com/oauth2") ||
-        url.includes("discord.com/api/oauth2")
-      ) {
-        log("Opening Discord OAuth in same window");
+      if (isAllowedOAuthNavigation(url)) {
+        log("Opening OAuth flow in app window:", url);
         return {
           action: "allow",
           overrideBrowserWindowOptions: {
@@ -1136,11 +1173,8 @@ const createWindow = async () => {
         return;
       }
 
-      if (
-        url.includes("discord.com/oauth2") ||
-        url.includes("discord.com/api/oauth2")
-      ) {
-        log("Allowing Discord OAuth navigation");
+      if (isAllowedOAuthNavigation(url)) {
+        log("Allowing OAuth navigation in app:", url);
         return;
       }
 

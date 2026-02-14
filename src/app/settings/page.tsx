@@ -77,6 +77,13 @@ export default function SettingsPage() {
 
   const handleToggle = (key: string, value: boolean) => {
     hapticToggle();
+    if (key === "showFpsCounter") {
+      settingsStorage.set("showFpsCounter", value);
+      setLocalSettings((prev) => ({ ...prev, showFpsCounter: value }));
+      showToast("Visualizer debug setting updated", "success");
+      return;
+    }
+
     if (session) {
       updatePreferences.mutate({ [key]: value });
     } else {
@@ -361,6 +368,14 @@ export default function SettingsPage() {
             },
           ]
         : []),
+      {
+        id: "showFpsCounter",
+        label: "Show FPS Counter",
+        description: "Display visualizer performance metrics",
+        type: "toggle",
+        value: localSettings.showFpsCounter ?? false,
+        onChange: (value) => handleToggle("showFpsCounter", value as boolean),
+      },
       {
         id: "compactMode",
         label: "Compact Mode",

@@ -117,6 +117,34 @@ function getDeezerId(track: z.infer<typeof trackSchema>): number | undefined {
   return undefined;
 }
 
+type PostgresConstraintError = {
+  code?: string;
+  constraint?: string;
+};
+
+function isUniqueConstraintError(
+  error: unknown,
+  constraint?: string,
+): error is PostgresConstraintError {
+  if (!error || typeof error !== "object") return false;
+
+  const candidate = error as PostgresConstraintError;
+  if (candidate.code !== "23505") return false;
+  if (!constraint) return true;
+
+  return candidate.constraint === constraint;
+}
+
+async function syncPlaylistTrackIdSequence(database: typeof db): Promise<void> {
+  await database.execute(sql`
+    SELECT setval(
+      pg_get_serial_sequence('"hexmusic-stream_playlist_track"', 'id'),
+      COALESCE((SELECT MAX("id") FROM "hexmusic-stream_playlist_track"), 0) + 1,
+      false
+    )
+  `);
+}
+
 function normalizeDeezerId(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -1368,14 +1396,44 @@ export const musicRouter = createTRPCRouter({
         .where(eq(playlistTracks.playlistId, input.playlistId));
 
       const nextPosition = (maxPos[0]?.max ?? -1) + 1;
-
-      await ctx.db.insert(playlistTracks).values({
+      const trackEntry = {
         playlistId: input.playlistId,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
         trackData: input.track as unknown as Record<string, unknown>,
         position: nextPosition,
-      });
+      };
+
+      const insertTrack = async () =>
+        ctx.db
+          .insert(playlistTracks)
+          .values(trackEntry)
+          .onConflictDoNothing({
+            target: [playlistTracks.playlistId, playlistTracks.trackId],
+          })
+          .returning({ id: playlistTracks.id });
+
+      let inserted: Array<{ id: number }> = [];
+
+      try {
+        inserted = await insertTrack();
+      } catch (error) {
+        if (
+          isUniqueConstraintError(
+            error,
+            "hexmusic-stream_playlist_track_pkey",
+          )
+        ) {
+          await syncPlaylistTrackIdSequence(ctx.db);
+          inserted = await insertTrack();
+        } else {
+          throw error;
+        }
+      }
+
+      if (inserted.length === 0) {
+        return { success: true, alreadyExists: true };
+      }
 
       return { success: true };
     }),
