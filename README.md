@@ -293,15 +293,19 @@ src/
 
 ## Repository Shape
 
-**Repository Shape**
+The repository now includes a **workspace scaffold** for incremental monorepo migration:
 
-This is not a workspace-style monorepo (`apps/*`, `packages/*`). It is one package with multiple runtime surfaces.
+- Workspace config files: `pnpm-workspace.yaml`, `turbo.json`
+- App targets: `apps/web`, `apps/desktop`, `apps/mobile`
+- Shared package targets: `packages/*` (UI, types, player, config, auth, etc.)
+- Migration execution plan: `docs/monorepo/MIGRATION_PLAN.md`
 
-- Single npm package, no workspace config: `package.json:1`
+Current runtime is still rooted in existing paths while migration is in progress:
+
 - Web app surface (Next.js App Router): `src/app`
 - Desktop surface (Electron wrapper around the same app/server): `electron/main.cjs:1026`, `package.json:89`
-- Mobile surface is responsive web UI, not a separate native app: `src/hooks/useMediaQuery.ts:42`, `src/components/DesktopShell.tsx:55`
-- Shared code is organized by domain under `src/components`, `src/contexts`, `src/hooks`, `src/server`, `src/utils` (not separate publishable packages).
+- Mobile surface is currently responsive web UI, not a separate native app: `src/hooks/useMediaQuery.ts:42`, `src/components/DesktopShell.tsx:55`
+- Shared code is still organized under `src/components`, `src/contexts`, `src/hooks`, `src/server`, `src/utils` until extraction PRs land.
 
 **Apps Mapping (Conceptual)**
 
@@ -514,6 +518,20 @@ This project is licensed under the **GPL-3.0 License**. See the LICENSE file for
 npm run dev          # Development server (port 3222)
 npm run dev:next     # Next.js dev server only
 npm run electron:dev # Electron + Next.js dev
+```
+
+**Workspace (PR1 scaffold):**
+
+```bash
+npm run ws:dev          # Turbo dev pipeline (parallel)
+npm run ws:build        # Turbo build pipeline
+npm run ws:start        # Turbo start pipeline (parallel)
+npm run ws:check        # Turbo check pipeline
+npm run ws:lint         # Turbo lint pipeline
+npm run ws:typecheck    # Turbo typecheck pipeline
+npm run ws:test         # Turbo test pipeline
+npm run ws:format:check # Turbo format check
+npm run ws:format:write # Turbo format write
 ```
 
 **Database:**

@@ -1,0 +1,6 @@
+{
+  "name": "@starchild/desktop",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Planned Electron desktop workspace"
+}
