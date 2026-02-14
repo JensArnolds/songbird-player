@@ -3,10 +3,15 @@
 "use client";
 
 import { STORAGE_KEYS } from "@/config/storage";
+import {
+  OAUTH_PROVIDER_BUTTON_STYLES,
+  isEnabledOAuthProviderId,
+} from "@/config/oauthProviders";
 import { localStorage as appStorage } from "@/services/storage";
+import { logAuthClientDebug } from "@/utils/authDebugClient";
 import { getGenres, type GenreListItem } from "@/utils/api";
+import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { parsePreferredGenreId } from "@/utils/genre";
-import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
 import { getProviders, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -37,20 +42,59 @@ function SignInContent() {
   });
 
   useEffect(() => {
+    if (!error) return;
+    logAuthClientDebug("Sign-in page received auth error", {
+      error,
+      callbackUrl,
+      url: window.location.href,
+    });
+  }, [error, callbackUrl]);
+
+  useEffect(() => {
     let isMounted = true;
+    let resolved = false;
+    logAuthClientDebug("Fetching OAuth providers for sign-in page");
+
+    const timeoutId = setTimeout(() => {
+      if (!isMounted || resolved) return;
+      console.warn(
+        "[SignIn] getProviders timed out; using fallback OAuth providers.",
+      );
+      logAuthClientDebug(
+        "getProviders timed out; using fallback provider list",
+        {
+          fallbackProviders: Object.keys(OAUTH_PROVIDERS_FALLBACK),
+        },
+      );
+      setProviders(OAUTH_PROVIDERS_FALLBACK);
+    }, 3000);
 
     void getProviders()
       .then((nextProviders) => {
         if (!isMounted) return;
-        setProviders(nextProviders);
+        resolved = true;
+        clearTimeout(timeoutId);
+        const resolvedProviders = nextProviders ?? OAUTH_PROVIDERS_FALLBACK;
+        logAuthClientDebug("OAuth providers fetched", {
+          providerIds: Object.keys(resolvedProviders),
+          usedFallback: !nextProviders,
+        });
+        setProviders(resolvedProviders);
       })
-      .catch(() => {
+      .catch((providerError: unknown) => {
         if (!isMounted) return;
-        setProviders({});
+        resolved = true;
+        clearTimeout(timeoutId);
+        logAuthClientDebug("getProviders failed; using fallback list", {
+          fallbackProviders: Object.keys(OAUTH_PROVIDERS_FALLBACK),
+          error: providerError,
+        });
+        setProviders(OAUTH_PROVIDERS_FALLBACK);
       });
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -83,9 +127,18 @@ function SignInContent() {
   const oauthProviders = useMemo(() => {
     if (!providers) return [];
     return Object.values(providers).filter(
-      (provider) => provider.id === "discord" || provider.id === "spotify",
+      (provider) =>
+        provider.type === "oauth" && isEnabledOAuthProviderId(provider.id),
     );
   }, [providers]);
+
+  useEffect(() => {
+    if (!providers) return;
+    logAuthClientDebug("OAuth providers available on sign-in page", {
+      providerIds: oauthProviders.map((provider) => provider.id),
+      callbackUrl,
+    });
+  }, [callbackUrl, oauthProviders, providers]);
 
   const featuredGenres = useMemo(() => genres.slice(0, 12), [genres]);
 
@@ -211,23 +264,23 @@ function SignInContent() {
           ) : oauthProviders.length > 0 ? (
             <div className="space-y-3">
               {oauthProviders.map((provider) => {
-                const isDiscord = provider.id === "discord";
+                const providerClasses =
+                  OAUTH_PROVIDER_BUTTON_STYLES[provider.id] ??
+                  "border border-[var(--color-border)] bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:border-[var(--color-accent)]";
                 return (
                   <button
                     key={provider.id}
                     type="button"
-                    onClick={() =>
-                      signIn(
-                        provider.id,
-                        { callbackUrl },
-                        { redirect_uri: getOAuthRedirectUri(provider.id) },
-                      )
-                    }
-                    className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 ${
-                      isDiscord ? "bg-[#5865f2]" : "bg-[#1db954]"
-                    }`}
+                    onClick={() => {
+                      logAuthClientDebug("Starting OAuth sign-in from page", {
+                        providerId: provider.id,
+                        callbackUrl,
+                      });
+                      void signIn(provider.id, { callbackUrl });
+                    }}
+                    className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition hover:opacity-90 ${providerClasses}`}
                   >
-                    Sign in with {isDiscord ? "Discord" : "Spotify"}
+                    Sign in with {provider.name}
                   </button>
                 );
               })}

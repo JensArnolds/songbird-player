@@ -1,7 +1,12 @@
 "use client";
 
+import {
+  OAUTH_PROVIDER_BUTTON_STYLES,
+  isEnabledOAuthProviderId,
+} from "@/config/oauthProviders";
+import { logAuthClientDebug } from "@/utils/authDebugClient";
 import { springPresets } from "@/utils/spring-animations";
-import { getOAuthRedirectUri } from "@/utils/getOAuthRedirectUri";
+import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { AnimatePresence, motion } from "framer-motion";
 import { getProviders, signIn } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
@@ -16,13 +21,6 @@ interface AuthModalProps {
   message?: string;
   onClose: () => void;
 }
-
-const providerButtonStyles: Record<string, string> = {
-  discord:
-    "bg-[#5865F2] text-white hover:brightness-110 active:brightness-95",
-  spotify:
-    "bg-[#1DB954] text-white hover:brightness-110 active:brightness-95",
-};
 
 export function AuthModal({
   isOpen,
@@ -40,21 +38,53 @@ export function AuthModal({
     if (!isOpen) return;
 
     let cancelled = false;
+    let resolved = false;
+    logAuthClientDebug("AuthModal opened; fetching OAuth providers", {
+      callbackUrl,
+    });
+
+    const timeoutId = setTimeout(() => {
+      if (cancelled || resolved) return;
+      console.warn(
+        "[AuthModal] getProviders timed out; using fallback OAuth providers.",
+      );
+      logAuthClientDebug(
+        "AuthModal getProviders timed out; using fallback list",
+        {
+          fallbackProviders: Object.keys(OAUTH_PROVIDERS_FALLBACK),
+        },
+      );
+      setProviders(OAUTH_PROVIDERS_FALLBACK);
+    }, 3000);
 
     void getProviders()
       .then((result) => {
         if (cancelled) return;
-        setProviders(result);
+        resolved = true;
+        clearTimeout(timeoutId);
+        const resolvedProviders = result ?? OAUTH_PROVIDERS_FALLBACK;
+        logAuthClientDebug("AuthModal providers fetched", {
+          providerIds: Object.keys(resolvedProviders),
+          usedFallback: !result,
+        });
+        setProviders(resolvedProviders);
       })
-      .catch(() => {
+      .catch((providerError: unknown) => {
         if (cancelled) return;
-        setProviders({});
+        resolved = true;
+        clearTimeout(timeoutId);
+        logAuthClientDebug("AuthModal getProviders failed; using fallback", {
+          fallbackProviders: Object.keys(OAUTH_PROVIDERS_FALLBACK),
+          error: providerError,
+        });
+        setProviders(OAUTH_PROVIDERS_FALLBACK);
       });
 
     return () => {
       cancelled = true;
+      clearTimeout(timeoutId);
     };
-  }, [isOpen]);
+  }, [callbackUrl, isOpen]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -72,18 +102,36 @@ export function AuthModal({
     if (!providers) return [];
 
     return Object.values(providers).filter(
-      (provider) => provider.type === "oauth",
+      (provider) =>
+        provider.type === "oauth" && isEnabledOAuthProviderId(provider.id),
     );
   }, [providers]);
 
+  useEffect(() => {
+    if (!isOpen || !providers) return;
+    logAuthClientDebug("AuthModal providers available", {
+      providerIds: oauthProviders.map((provider) => provider.id),
+      callbackUrl,
+    });
+  }, [callbackUrl, isOpen, oauthProviders, providers]);
+
   const handleProviderSignIn = async (providerId: string) => {
     setSubmittingProviderId(providerId);
-    await signIn(
+
+    logAuthClientDebug("AuthModal starting OAuth sign-in", {
       providerId,
-      { callbackUrl },
-      { redirect_uri: getOAuthRedirectUri(providerId) },
-    );
-    setSubmittingProviderId(null);
+      callbackUrl,
+    });
+
+    try {
+      await signIn(providerId, { callbackUrl });
+      logAuthClientDebug("AuthModal signIn call resolved", { providerId });
+    } catch (error: unknown) {
+      logAuthClientDebug("AuthModal signIn call failed", { providerId, error });
+      throw error;
+    } finally {
+      setSubmittingProviderId(null);
+    }
   };
 
   if (typeof document === "undefined") return null;
@@ -125,7 +173,7 @@ export function AuthModal({
                 ) : oauthProviders.length > 0 ? (
                   oauthProviders.map((provider) => {
                     const providerClasses =
-                      providerButtonStyles[provider.id] ??
+                      OAUTH_PROVIDER_BUTTON_STYLES[provider.id] ??
                       "border border-[var(--color-border)] bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:border-[var(--color-accent)]";
                     const isSubmitting = submittingProviderId === provider.id;
 

@@ -3,7 +3,6 @@
 "use client";
 
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
@@ -140,20 +139,6 @@ export default function MaturePlayer({
     hapticLight();
     onCycleRepeat();
   };
-
-  useKeyboardShortcuts({
-    onPlayPause,
-    onNext,
-    onPrevious,
-    onVolumeUp: () => onVolumeChange(Math.min(1, volume + 0.1)),
-    onVolumeDown: () => onVolumeChange(Math.max(0, volume - 0.1)),
-    onMute: onToggleMute,
-    onSeekForward: onSkipForward,
-    onSeekBackward: onSkipBackward,
-    onToggleShuffle,
-    onToggleRepeat: onCycleRepeat,
-    onToggleVisualizer: onToggleVisualizer,
-  });
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressRef.current || !duration) return;

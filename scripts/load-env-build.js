@@ -12,6 +12,21 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 
 const command = process.argv.slice(2).join(" ");
+const localBinPath = path.resolve(__dirname, "../node_modules/.bin");
+const delimiter = path.delimiter;
+const existingPath = process.env.PATH ?? process.env.Path ?? "";
+const mergedPath = existingPath
+  ? `${localBinPath}${delimiter}${existingPath}`
+  : localBinPath;
+
+const childEnv = {
+  ...process.env,
+  PATH: mergedPath,
+};
+
+if ("Path" in process.env) {
+  childEnv.Path = mergedPath;
+}
 
 if (!command) {
   console.error("❌ No command provided");
@@ -25,7 +40,7 @@ console.log(`📦 Running: ${command}`);
 try {
   execSync(command, {
     stdio: "inherit",
-    env: process.env,
+    env: childEnv,
   });
   console.log("✅ Command completed successfully");
 } catch (error) {

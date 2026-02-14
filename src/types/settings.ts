@@ -9,6 +9,7 @@ export interface UserSettings {
   equalizerPreset: string;
   visualizerMode: "random" | "off" | "specific";
   visualizerType: string;
+  showFpsCounter: boolean;
   compactMode: boolean;
   theme: "light" | "dark";
   autoQueueEnabled: boolean;
@@ -27,6 +28,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   equalizerPreset: "Flat",
   visualizerMode: "random",
   visualizerType: "flowfield",
+  showFpsCounter: false,
   compactMode: false,
   theme: "dark",
   autoQueueEnabled: false,

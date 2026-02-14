@@ -5,6 +5,175 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.1] - 2026-02-13
+
+### Fixed
+
+- **Spotify OAuth sign-in configuration error path**: Removed client-side manual `redirect_uri` overrides from OAuth initiation flows so Auth.js can generate provider callback parameters consistently, resolving the `error=Configuration` failure during `POST /api/auth/signin/spotify`. Locations: `src/app/signin/page.tsx`, `src/components/AuthModal.tsx`.
+
+### Changed
+
+- **Auth.js logger diagnostics**: Improved NextAuth logger payload keys to preserve readable internal Auth.js identifiers in logs (`authjsErrorId`, `authjsWarningId`, `authjsDebugId`) for faster OAuth failure triage. Location: `src/server/auth/config.ts`.
+
+## [0.16.0] - 2026-02-13
+
+### Added
+
+- **Global keyboard shortcut provider**: Added app-wide media/control shortcuts by introducing a dedicated provider wired into the root layout, so playback/navigation shortcuts are no longer scoped to the player component. Locations: `src/contexts/KeyboardShortcutsProvider.tsx`, `src/app/layout.tsx`, `src/components/Player.tsx`.
+- **Visualizer FPS diagnostics toggle**: Added `showFpsCounter` user setting and rendered real-time FPS/frame-time/quality metrics overlay for visualizer debugging. Locations: `src/types/settings.ts`, `src/app/settings/page.tsx`, `src/components/FlowFieldBackground.tsx`, `src/components/visualizers/FlowFieldCanvas.tsx`, `src/components/visualizers/FlowFieldRenderer.ts`.
+- **Smart queue recommendation transparency**: Added smart-track metadata UI (sparkles indicator + tooltip) showing seed track, similarity score/method, and recommendation reason for auto-queued tracks. Location: `src/components/EnhancedQueue.tsx`.
+- **Sidebar loading skeletons**: Replaced plain playlist loading text with animated skeleton placeholders in the Electron sidebar library section. Location: `src/components/ElectronSidebar.tsx`.
+
+### Changed
+
+- **Keyboard shortcut stability and safety**: Updated shortcut handling to use ref-backed handlers (avoids re-binding listeners on render churn) and ignore modified key combos (`Ctrl`/`Meta`/`Alt`) to reduce accidental interception. Location: `src/hooks/useKeyboardShortcuts.ts`.
+- **Visualizer toggle/event plumbing**: Added a dedicated visualizer shortcut event bridge and runtime listener support in the persistent player so shortcut-triggered visualizer toggles work consistently across views. Locations: `src/contexts/KeyboardShortcutsProvider.tsx`, `src/components/PersistentPlayer.tsx`.
+- **Settings synchronization eventing**: Settings storage now emits a window event on writes, enabling live synchronization of visualizer FPS preference without reload. Locations: `src/utils/settingsStorage.ts`, `src/components/PersistentPlayer.tsx`.
+- **Collapsed sidebar tooltip consistency**: Added/normalized tooltip and accessibility labels for collapsed playlist items and playlist creation controls. Location: `src/components/ElectronSidebar.tsx`.
+
+## [0.15.19] - 2026-02-13
+
+### Added
+
+- **End-to-end OAuth trace logging**: Added structured auth diagnostics that trace OAuth flow step-by-step across request entry, provider redirect, callback handling, and response output with sensitive field redaction. Locations: `src/server/auth/logging.ts`, `src/app/api/auth/[...nextauth]/route.ts`.
+- **Client-side OAuth debug instrumentation**: Added optional browser-side auth logging for provider discovery, redirect URI computation, and sign-in initiation from both `/signin` and auth modal flows. Locations: `src/utils/authDebugClient.ts`, `src/app/signin/page.tsx`, `src/components/AuthModal.tsx`, `src/utils/getOAuthRedirectUri.ts`.
+- **OAuth debug feature flags**: Added `AUTH_DEBUG_OAUTH` (server) and `NEXT_PUBLIC_AUTH_DEBUG_OAUTH` (client) to env validation and examples for controlled debug logging in production-like environments. Locations: `src/env.js`, `.env.example`.
+
+### Changed
+
+- **NextAuth observability and lifecycle logging**: Expanded auth configuration logging to include startup config validation, provider enablement decisions, callback decisions (`signIn`, `session`, `redirect`), auth events (`signIn`, `linkAccount`, `createUser`, `signOut`), and internal Auth.js logger hooks. Location: `src/server/auth/config.ts`.
+- **Spotify provider diagnostics**: Improved provider initialization logs to explicitly state why Spotify auth is enabled/disabled (feature flag and credential presence), reducing ambiguity during rollout and incident debugging. Location: `src/server/auth/spotifyProvider.ts`.
+- **Auth route diagnostics hardening**: Route wrapper now logs parsed auth action/provider context, request origin inference, callback query signal metadata (`state` hash, `code` length), and cookie name summaries without exposing raw cookie/token values. Location: `src/app/api/auth/[...nextauth]/route.ts`.
+- **OAuth env template completeness**: Updated `.env.example` to include missing `AUTH_SPOTIFY_ENABLED` and new OAuth debug toggles so server/client feature gating remains explicit and aligned.
+
+### Fixed
+
+- **Spotify OAuth server/client flag mismatch visibility**: Added explicit warning path when `NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED=true` but `AUTH_SPOTIFY_ENABLED=false`, which could expose Spotify in UI fallback paths while server-side provider remained disabled. Location: `src/server/auth/config.ts`.
+
+## [0.15.18] - 2026-02-12
+
+### Added
+
+- **GitHub Actions security documentation**: Added comprehensive security policy documentation at `.github/SECURITY.md` explaining secret management, Docker build arg security trade-offs, mitigation strategies, and emergency response procedures.
+
+### Changed
+
+- **Environment variable cleanup (infrastructure)**: Streamlined environment variables to only essential secrets, removing redundant legacy database configuration variables. Locations: `.github/workflows/docker-build.yml`, `Dockerfile`, `.env.example`.
+  - **Removed redundant DB_* variables**: Eliminated `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` from all configurations (workflow, Dockerfile, env example). These were legacy fallbacks for drizzle-kit that are unnecessary when `DATABASE_URL` is always provided.
+  - **Simplified Dockerfile build args**: Reduced from 17 ARG declarations to 9 essential variables (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SONGBIRD_API_KEY`, `API_V2_URL`, `NEXTAUTH_URL`, `NODE_ENV`, `SKIP_ENV_VALIDATION`).
+  - **Cleaned up .env.example**: Removed all redundant variables including `NEXT_PUBLIC_NEXTAUTH_URL`, `NEXT_PUBLIC_NEXTAUTH_VERCEL_URL`, `NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER`, `DATABASE_UNPOOLED`, and `API_V2_HEALTH_URL`. Added clear section comments explaining each variable's purpose.
+  - **Updated GitHub Actions workflow**: Removed 5 redundant secret references from both test and production build steps, reducing secret exposure surface and improving clarity.
+
+- **GitHub Actions Docker workflow**: Updated to pass essential application secrets as build arguments (required for Next.js build process). While this creates a security trade-off (secrets visible in Docker layer metadata via `docker history`), mitigations are in place: test builds remain local to CI runner, production images should not be inspected, and all secrets are rotatable. Location: `.github/workflows/docker-build.yml`.
+
+### Fixed
+
+- **CI/CD build process**: Fixed GitHub Actions Docker builds that were failing due to missing environment variables during Next.js build step. Now correctly passes all required secrets (`DATABASE_URL`, `AUTH_SECRET`, OAuth credentials, API keys) as build arguments.
+
+## [0.15.17] - 2026-02-12
+
+### Changed
+
+- **Visualizer Firefox performance optimizations (gradient elimination)**: Eliminated gradient creation in three of the most performance-intensive visualizer patterns, achieving massive Firefox performance improvements. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Fluid**: Eliminated 500-3,600 gradient creations per frame by removing all `createLinearGradient()` calls and batching flow field lines into 6 hue-based paths (600x reduction in operations). Increased grid size from 24 to 36 for additional performance gain.
+  - **Starfield**: Eliminated 200-500 radial gradients per frame by removing all `createRadialGradient()` calls, using simple `fillStyle` instead. Reduced visible stars via stride (every 2nd-3rd star) and minimized trail rendering to every 4th star only when `bassIntensity > 0.5`.
+  - **Constellation**: Eliminated 70-120 gradients per frame (50-100 linear + 20 radial) by batching all connection lines into a single path with one stroke operation, and using simple fills for stars instead of radial gradients.
+- **Visualizer Firefox performance optimizations (high-cost dark set)**: Hyper-optimized the five heaviest dark-mode visualizers with adaptive detail scaling, reduced shadow churn, lower path density, and selective gradient fallback. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Abyssal Depth**: Removed redundant per-layer rotations, reduced layer/creature gradient pressure with low-detail flat-fill fallbacks, simplified creature glow/trails, and scaled counts by adaptive detail.
+  - **Demonic Gate**: Reused a single `Path2D` gate outline for fill/stroke, batched tendril strokes, reduced vortex/entity/sigil complexity on low detail, and switched pillars/core to conditional gradient use.
+  - **Shadow Dance**: Batched the dancer net into one path, cached dancer polar results per frame, replaced trail arcs with rect fills, reduced per-dancer shadow state flips, and lowered wisp/ring complexity in low detail.
+  - **Spectral Echo**: Reduced ring segment density and layer cadence adaptively, converted inner orbit particles to rect fills, batched beam and core segment strokes, and added low-detail center source fill fallback.
+  - **Twilight Zone**: Added adaptive zone/particle scaling, removed per-zone save/restore rotation overhead, batched tear strokes, converted wisps to grouped rect fills, and introduced low-detail core rendering fallback.
+
+## [0.15.16] - 2026-02-12
+
+### Added
+
+- **Automatic canvas state reset**: Implemented periodic deep canvas cleanup every 10 visualizer pattern switches to prevent performance degradation from accumulated canvas state. The reset clears transforms, shadows, filters, gradients, paths, and the HSL color cache. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+
+### Changed
+
+- **Canvas context management**: Added `patternsSinceReset` counter to track pattern switches and trigger `resetCanvasState()` method every 10 patterns, preventing memory pollution and canvas state accumulation that caused slowdowns over extended playback sessions.
+
+## [0.15.15] - 2026-02-12
+
+### Changed
+
+- **Visualizer Firefox performance optimizations**: Dramatically improved Firefox canvas rendering performance for multiple visualizer patterns by reducing shadow operations, batching path operations, and optimizing rendering techniques. Location: `src/components/visualizers/FlowFieldRenderer.ts`.
+  - **Ancient Sigil (necromanticSigil)**: Reduced from ~36 to 3 stroke/fill calls per frame by batching all inner line segments into a single path, reducing shadow blur from 35px to 20px, and lowering shadow alpha values.
+  - **Dimensional Rift**: Halved shadow operations from 12 to 6 by applying shadows only to alternating rifts, reduced shadow blur from 40px to 25px, and lowered shadow alpha from 0.9 to 0.6.
+  - **Fireworks**: Switched from `arc()` to `fillRect()` for particle rendering (3-4x faster in Firefox) and removed expensive per-particle path operations for 50-150 particles per frame.
+  - **Dusk Realm (shadowRealm)**: Reduced shadow operations by 70% (from ~23 to 7 per frame) by applying shadows only to every 3rd layer, reducing shadow blur from 25px to 15px for layers and 35px to 20px for center void, and removing shadowed accent fills entirely.
+  - **Mystic Ceremony (forbiddenRitual)**: Reduced from 200+ to ~60 operations per frame by cutting rune count from 40-70 to 20-35, removing all 140 individual shadowed symbol arcs, eliminating pentagrams and flame particles, batching spike lines into single path, reducing wisps from 12-18 to 8-12 using fillRect, and simplifying center from 4 gradients to 1.
+  - **Crystal Grid**: Reduced from 36 to 16 crystals (56% reduction) and eliminated all 36 per-frame radial gradient creations, batched internal hexagon lines into single path per crystal, and removed connection lines with setLineDash overhead.
+  - **EM Field (emField)**: Reduced from up to 7,200 individual shadowed stroke calls to ~20 operations per frame by removing entire physics simulation, replacing with 16 simple curved field lines (no per-segment shadows), simplifying particles from 25-45 to 12 using fillRect, eliminating gradient trails, and removing contour and wave rings.
+
+## [0.15.14] - 2026-02-12
+
+### Added
+
+- **Linux custom titlebar**: Added frameless window with custom titlebar for Linux Electron builds featuring centered app version display, dynamic track info when playing, full draggable area, and theme-matched window controls. Location: `src/components/LinuxTitlebar.tsx`.
+- **AudioPlayerContext export**: Exported `AudioPlayerContext` for direct context access in components outside the provider tree. Location: `src/contexts/AudioPlayerContext.tsx`.
+
+### Changed
+
+- **Linux Electron window configuration**: Switched from native frame to frameless window (`frame: false`) on Linux platform. Location: `electron/main.cjs`.
+- **Loopback host resolution**: Updated to consistently use `localhost` for all Electron builds (dev and production) to ensure OAuth callback compatibility with Discord and other providers. Location: `electron/main.cjs`.
+- **Header search bar layout**: Improved search bar centering (both vertical and horizontal), increased width to 90% of container, and added proper spacing below Linux titlebar. Location: `src/components/Header.tsx`.
+- **Platform-specific spacing**: Added 36px top padding to `DesktopShell` and 44px top offset to `Header` on Linux Electron to accommodate custom titlebar. Locations: `src/components/DesktopShell.tsx`, `src/components/Header.tsx`.
+
+### Fixed
+
+- **OAuth PKCE verification errors**: Fixed `pkceCodeVerifier value could not be parsed` errors in packaged Linux builds by ensuring consistent loopback hostname across OAuth flow.
+- **Component hydration timing**: Resolved state initialization issues in dev mode by implementing proper useEffect hooks for platform detection.
+- **Header obscured by titlebar**: Fixed Linux titlebar covering search header by adding conditional top offset based on platform detection.
+
+## [0.15.13] - 2026-02-11
+
+### Changed
+
+- **Standalone prep module alias handling**: Electron package preparation now materializes symlinked Turbopack module aliases under `.next/standalone/.next/node_modules` into real directories/files before packaging. Location: `electron/prepare-package.js`.
+- **After-pack alias hardening**: Electron `afterPack` now also materializes any remaining symlinked module aliases in the packaged standalone output and validates required `pg-*` aliases referenced by Turbopack runtime chunks. Location: `electron/builder/afterPack.cjs`.
+
+### Fixed
+
+- **Linux AppImage auth runtime regression**: Fixed packaged Linux/Electron OAuth flows (`/api/auth/*`) failing with `Internal Server Error` caused by unresolved `pg-<hash>` module aliases in AppImage runtime mounts. Locations: `electron/prepare-package.js`, `electron/builder/afterPack.cjs`.
+
+## [0.15.12] - 2026-02-11
+
+### Added
+
+- **Spotify auth readiness module**: Added a dedicated Spotify provider factory with resilient OAuth response normalization/retry handling so Spotify login can be enabled safely when required. Location: `src/server/auth/spotifyProvider.ts`.
+- **Centralized OAuth provider config**: Added a shared provider config layer for enabled OAuth IDs and provider button styles to keep sign-in surfaces consistent. Location: `src/config/oauthProviders.ts`.
+- **Explicit Spotify feature flags**: Added `AUTH_SPOTIFY_ENABLED` (server) and `NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED` (client) to env validation and templates for controlled rollout. Locations: `src/env.js`, `.env.example`, `README.md`.
+
+### Changed
+
+- **Auth provider wiring**: Reintroduced Spotify in NextAuth as an opt-in provider behind `AUTH_SPOTIFY_ENABLED` plus credential checks, with warning logs for server/client flag mismatch. Location: `src/server/auth/config.ts`.
+- **Sign-in provider discovery fallback**: Updated fallback provider generation to derive from enabled provider config (no hardcoded provider IDs), preventing stale UI options after env changes. Location: `src/utils/authProvidersFallback.ts`.
+- **OAuth UI behavior**: Updated `/signin` and `AuthModal` to filter and style providers via shared enabled-provider config, supporting a clean Discord-only baseline and Spotify-ready expansion. Locations: `src/app/signin/page.tsx`, `src/components/AuthModal.tsx`.
+- **Electron OAuth navigation**: Extended in-app OAuth allowlist to include Spotify host navigation so callback cookies stay within Electron session context. Location: `electron/main.cjs`.
+- **Build helper command resolution**: Updated env build runner to prepend local `node_modules/.bin` into `PATH`, preventing `electron-builder` command resolution failures outside npm script context. Location: `scripts/load-env-build.js`.
+
+### Fixed
+
+- **Packaged app static asset integrity**: Added after-pack verification for `.next/static` alongside standalone server/node_modules to fail fast on broken Linux/Electron artifacts that would otherwise render without CSS/assets. Location: `electron/builder/afterPack.cjs`.
+- **Auth handler diagnostics**: Added explicit GET/POST handler error logging in NextAuth route wrapper to surface root causes during OAuth callback failures in Electron/prod-style runs. Location: `src/app/api/auth/[...nextauth]/route.ts`.
+
+## [0.15.11] - 2026-02-11
+
+### Added
+
+- **New API V2 proxy surface**: Added Next.js proxy routes for upstream diagnostics, auth/session metadata, config, rate limits, cache operations, stream capabilities, track metadata, and metrics. Locations: `src/app/api/v2/_lib.ts` and `src/app/api/v2/**/route.ts`.
+- **Admin diagnostics panel**: Added an API diagnostics section to the Admin page with periodic probes, manual refresh, upstream auth refresh action, cache clear action, and quick links for OpenAPI + metrics. Location: `src/app/admin/page.tsx`.
+- **Proxy route coverage tests**: Added tests for new V2 route mappings, admin-only protections, and track metadata id validation. Location: `src/__tests__/api-v2-status-routes.test.ts`.
+
+### Changed
+
+- **Header health polling strategy**: Updated health badge checks to use `/api/v2/status` first with fallback to `/api/v2/health` for compatibility during upstream rollout. Location: `src/components/Header.tsx`.
+- **Health status normalization**: Extended parser support for additional upstream formats (`status: "up"` and `{ ok: boolean }`). Location: `src/utils/healthStatus.ts`, `src/__tests__/health-status.test.ts`.
+- **API route documentation**: Expanded route map docs to include all new V2 proxy endpoints and admin-session requirements for sensitive routes. Location: `docs/API_ROUTE_USE.md`.
+
 ## [0.15.10] - 2026-02-11
 
 ### Added
@@ -1036,7 +1205,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 ### Fixed
 
 - **API Health Check Configuration**: Corrected health check URLs to use local development endpoints instead of production
-  - Updated `NEXT_PUBLIC_API_HEALTH_URL` and `NEXT_PUBLIC_API_V2_HEALTH_URL` in environment configuration to point to local APIs (127.0.0.1)
+  - Updated `NEXT_PUBLIC_API_HEALTH_URL` and `API_V2_HEALTH_URL` in environment configuration to point to local APIs (127.0.0.1)
   - Resolved "API Down" false positive when developing locally with running API servers
   - Location: `.env`, `.env.local`
 
@@ -1355,14 +1524,14 @@ CallbackRouteError: r_: server responded with an error in the response body
   - **Location**: `src/env.js:37, 57`, `src/components/Header.tsx:47-53`
 
 - **Dual API Health Monitoring**: Added monitoring for both API v1 and v2 health endpoints
-  - **New Environment Variable**: `NEXT_PUBLIC_API_V2_HEALTH_URL` for secondary API health check
+  - **New Environment Variable**: `API_V2_HEALTH_URL` for secondary API health check
   - **Three-State Status**: Health indicator now shows three states:
     - 🟢 **Green "Api Healthy"**: Both APIs return `status: "ok"`
     - 🟡 **Yellow "Api Degraded"**: APIs respond but one returns `status: "degraded"` or `"unhealthy"`
     - 🔴 **Red "API Down"**: HTTP 400-500 errors or network failures
   - **Non-Clickable Indicator**: Removed link functionality, now shows status-only indicator
   - **Parallel Checks**: Both endpoints checked simultaneously every 30 seconds
-  - **Configuration**: Added `NEXT_PUBLIC_API_V2_HEALTH_URL` to client env schema
+  - **Configuration**: Added `API_V2_HEALTH_URL` to client env schema
   - **Location**: `src/env.js:37-38, 57-58`, `src/components/Header.tsx:44-108`
 
 ## [0.9.24] - 2026-01-22

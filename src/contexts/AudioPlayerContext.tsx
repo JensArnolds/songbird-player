@@ -91,7 +91,7 @@ interface AudioPlayerContextType {
   };
 }
 
-const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(
+export const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(
   undefined,
 );
 

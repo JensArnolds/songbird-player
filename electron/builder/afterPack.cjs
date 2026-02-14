@@ -35,12 +35,79 @@ module.exports = async function afterPack(context) {
     dereference: true,
   });
 
-  // Ensure installed packages (standalone node_modules) and server are delivered in the built app
+  /**
+   * Materialize symlinked module aliases that can otherwise become absolute
+   * links to build-machine paths inside linux-unpacked/AppImage.
+   *
+   * @param {string} modulesDir
+   * @returns {number}
+   */
+  const materializeSymlinkModules = (modulesDir) => {
+    if (!fs.existsSync(modulesDir)) return 0;
+
+    const entries = fs.readdirSync(modulesDir, { withFileTypes: true });
+    let replaced = 0;
+
+    for (const entry of entries) {
+      if (!entry.isSymbolicLink()) continue;
+
+      const entryPath = path.join(modulesDir, entry.name);
+      const targetPath = fs.realpathSync(entryPath);
+      const targetStat = fs.statSync(targetPath);
+
+      fs.rmSync(entryPath, { recursive: true, force: true });
+
+      if (targetStat.isDirectory()) {
+        fs.cpSync(targetPath, entryPath, { recursive: true, dereference: true });
+      } else {
+        fs.copyFileSync(targetPath, entryPath);
+      }
+
+      replaced += 1;
+      console.log(
+        `[afterPack] Materialized symlink module alias: ${entry.name} -> ${targetPath}`,
+      );
+    }
+
+    return replaced;
+  };
+
+  const aliasedNodeModules = path.join(destStandalone, ".next", "node_modules");
+  const materializedAliases = materializeSymlinkModules(aliasedNodeModules);
+  if (materializedAliases > 0) {
+    console.log(
+      `[afterPack] Materialized ${materializedAliases} aliased module symlink(s) in packaged standalone output.`,
+    );
+  }
+
+  // Ensure installed packages, server, and static assets are delivered in the built app
   const destNodeModules = path.join(destStandalone, "node_modules");
   const destServerJs = path.join(destStandalone, "server.js");
+  const destStaticDir = path.join(destStandalone, ".next", "static");
   const missing = [];
   if (!fs.existsSync(destNodeModules)) missing.push("node_modules");
   if (!fs.existsSync(destServerJs)) missing.push("server.js");
+  if (!fs.existsSync(destStaticDir)) missing.push(".next/static");
+  if (!fs.existsSync(aliasedNodeModules)) missing.push(".next/node_modules");
+
+  const turbopackRuntimePath = path.join(
+    destStandalone,
+    ".next",
+    "server",
+    "chunks",
+    "[turbopack]_runtime.js",
+  );
+  if (fs.existsSync(turbopackRuntimePath) && fs.existsSync(aliasedNodeModules)) {
+    const runtimeSource = fs.readFileSync(turbopackRuntimePath, "utf8");
+    const matches = runtimeSource.match(/\bpg-[a-f0-9]{8,}\b/g) ?? [];
+    const requiredPgAliases = Array.from(new Set(matches));
+    for (const alias of requiredPgAliases) {
+      const aliasPath = path.join(aliasedNodeModules, alias);
+      if (!fs.existsSync(aliasPath)) {
+        missing.push(`.next/node_modules/${alias}`);
+      }
+    }
+  }
   if (missing.length > 0) {
     const msg = `[afterPack] Packaged app missing required standalone files: ${missing.join(", ")}. Installer would be broken.`;
 
@@ -49,7 +116,7 @@ module.exports = async function afterPack(context) {
   }
 
   console.log(
-    "[afterPack] Verified standalone node_modules and server.js are present in packaged app.",
+    "[afterPack] Verified standalone node_modules, server.js, and .next/static are present in packaged app.",
   );
 
   // Ensure bundled Node.js runtime is present so the installed app can run the server without system Node
