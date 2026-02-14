@@ -52,6 +52,12 @@ export class FlowFieldRenderer {
   private qualityWarmupFrames = 0;
   private isFirefox = false;
   private showFpsCounter = false;
+  private firefoxLowFpsStreak = 0;
+  private firefoxLastContextResetAt = 0;
+
+  private static readonly FIREFOX_LOW_FPS_FRAME_TIME_MS = 200;
+  private static readonly FIREFOX_LOW_FPS_REQUIRED_FRAMES = 8;
+  private static readonly FIREFOX_LOW_FPS_RESET_COOLDOWN_MS = 10_000;
 
   private patternTimer = 0;
   private patternDuration = 10;
@@ -732,6 +738,7 @@ export class FlowFieldRenderer {
 
     const dt = now - this.qualityLastTime;
     this.qualityLastTime = now;
+    this.applyFirefoxLowFpsSafeguard(dt, now);
 
     if (dt <= 0 || dt > 120) return;
 
@@ -749,6 +756,44 @@ export class FlowFieldRenderer {
     } else if (pressure < 0.92) {
       this.qualityScale = Math.min(1, this.qualityScale + 0.03);
     }
+  }
+
+  private applyFirefoxLowFpsSafeguard(dt: number, now: number): void {
+    if (!this.isFirefox) return;
+
+    // Ignore tab/background pauses; only react to sustained live rendering stalls.
+    if (dt <= 0 || dt > 2500) {
+      this.firefoxLowFpsStreak = 0;
+      return;
+    }
+
+    const isLowFpsFrame =
+      dt >= FlowFieldRenderer.FIREFOX_LOW_FPS_FRAME_TIME_MS;
+    if (!isLowFpsFrame) {
+      this.firefoxLowFpsStreak = Math.max(0, this.firefoxLowFpsStreak - 2);
+      return;
+    }
+
+    this.firefoxLowFpsStreak++;
+    if (
+      this.firefoxLowFpsStreak <
+      FlowFieldRenderer.FIREFOX_LOW_FPS_REQUIRED_FRAMES
+    ) {
+      return;
+    }
+
+    if (
+      now - this.firefoxLastContextResetAt <
+      FlowFieldRenderer.FIREFOX_LOW_FPS_RESET_COOLDOWN_MS
+    ) {
+      return;
+    }
+
+    this.firefoxLastContextResetAt = now;
+    this.firefoxLowFpsStreak = 0;
+    this.qualityScale = Math.min(this.qualityScale, 0.6);
+    this.qualityWarmupFrames = 0;
+    this.resetCanvasState("firefox-low-fps");
   }
 
   private getAdaptiveDetailScale(
@@ -3799,10 +3844,13 @@ export class FlowFieldRenderer {
 
   /**
    * Deep canvas reset to prevent state accumulation and memory pollution.
-   * Called every 10 pattern switches to clear accumulated transforms, shadows,
-   * filters, and other context state that can degrade performance over time.
+   * Called every 10 pattern switches (or by Firefox low-FPS safeguard) to clear
+   * accumulated transforms, shadows, filters, and other context state that can
+   * degrade performance over time.
    */
-  private resetCanvasState(): void {
+  private resetCanvasState(
+    reason: "pattern-cycle" | "firefox-low-fps" = "pattern-cycle",
+  ): void {
     const ctx = this.ctx;
 
     // Reset all transform matrices
@@ -3822,6 +3870,7 @@ export class FlowFieldRenderer {
     ctx.lineCap = "butt";
     ctx.lineJoin = "miter";
     ctx.miterLimit = 10;
+    ctx.setLineDash([]);
 
     // Clear the canvas completely (not just fade)
     ctx.fillStyle = "#000000";
@@ -3833,8 +3882,11 @@ export class FlowFieldRenderer {
 
     // Clear HSL color cache to prevent unbounded growth
     this.hslCache.clear();
+    this.colorStringCache.clear();
 
-    console.log("[Visual] 🔄 Deep canvas reset performed (every 10 patterns)");
+    const reasonLabel =
+      reason === "firefox-low-fps" ? "Firefox low FPS safeguard" : "every 10 patterns";
+    console.log(`[Visual] 🔄 Deep canvas reset performed (${reasonLabel})`);
   }
 
   private renderPentagram(
