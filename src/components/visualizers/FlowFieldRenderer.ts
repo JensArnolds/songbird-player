@@ -50,6 +50,7 @@ export class FlowFieldRenderer {
   private qualityFrameTime = 16.67;
   private qualityLastTime = 0;
   private qualityWarmupFrames = 0;
+  private isFirefox = false;
 
   private patternTimer = 0;
   private patternDuration = 10;
@@ -519,6 +520,9 @@ export class FlowFieldRenderer {
     this.height = canvas.height;
     this.centerX = this.width >> 1;
     this.centerY = this.height >> 1;
+    if (typeof navigator !== "undefined") {
+      this.isFirefox = /firefox/i.test(navigator.userAgent ?? "");
+    }
 
     this.shufflePatterns();
     this.initializeParticles();
@@ -8871,8 +8875,23 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
 
+    const pixelCount = this.width * this.height;
+    const detailScale = Math.max(
+      0.35,
+      Math.min(
+        1,
+        this.getAdaptiveDetailScale(pixelCount) * (this.isFirefox ? 0.6 : 1),
+      ),
+    );
+    const lowDetail = detailScale < 0.8;
+    const shadowScale = detailScale;
+    const useShadows = detailScale >= 0.85 && !this.isFirefox;
+
     const maxRadius = Math.min(this.width, this.height) * 0.48;
-    const matterParticles = 80 + ((bassIntensity * 40) | 0);
+    const matterParticles = Math.max(
+      28,
+      ((80 + ((bassIntensity * 40) | 0)) * detailScale) | 0,
+    );
     const invMatterParticles = 1 / matterParticles;
     const twoPi = FlowFieldRenderer.TWO_PI;
     const particleAngleStep = twoPi * invMatterParticles;
@@ -8887,11 +8906,14 @@ export class FlowFieldRenderer {
     const darkHue230 = this.fastMod360(this.hueBase + 230);
     const darkHue260 = this.fastMod360(this.hueBase + 260);
 
-    const voidCount = 35 + ((trebleIntensity * 20) | 0);
+    const voidCount = Math.max(
+      10,
+      ((35 + ((trebleIntensity * 20) | 0)) * detailScale) | 0,
+    );
     const voidHue = this.fastMod360(this.hueBase + 245);
     const voidAlpha = 0.2 + audioIntensity * 0.15;
     ctx.fillStyle = this.hsla(voidHue, 25, 10, voidAlpha);
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = useShadows ? 15 * shadowScale : 0;
     ctx.shadowColor = this.hsla(voidHue, 35, 15, voidAlpha * 0.8);
 
     for (let v = 0; v < voidCount; v++) {
@@ -8900,13 +8922,17 @@ export class FlowFieldRenderer {
       const voidPulse = 1 + this.fastSin(this.time * 0.008 + v * 0.7) * 0.2;
       const voidX = this.fastCos(voidAngle) * voidRadius * voidPulse;
       const voidY = this.fastSin(voidAngle) * voidRadius * voidPulse;
-      const voidSize = 2 + (v % 4) * 0.6 + bassIntensity * 1.5;
+      const voidSize =
+        (2 + (v % 4) * 0.6 + bassIntensity * 1.5) *
+        (0.8 + detailScale * 0.25);
 
       ctx.beginPath();
       ctx.arc(voidX, voidY, voidSize, 0, twoPi);
       ctx.fill();
     }
 
+    ctx.shadowBlur = useShadows ? (25 + bassIntensity * 15) * shadowScale : 0;
+    ctx.shadowColor = this.hsla(darkHue240, 60, 30, 0.8);
     for (let i = 0; i < matterParticles; i++) {
       const angle = particleAngleStep * i + timeAngle;
       const baseRadius = maxRadius * (0.1 + (i % 5) * 0.12);
@@ -8916,27 +8942,37 @@ export class FlowFieldRenderer {
       const x = this.fastCos(angle) * radius;
       const y = this.fastSin(angle) * radius;
 
-      const size = 3 + this.fastSin(timeSize + i) * 2 + trebleIntensity * 2;
-      const alpha =
-        0.3 + this.fastSin(timeAlpha + i) * 0.2 + trebleIntensity * 0.3;
+      const size = Math.max(
+        1,
+        (3 + this.fastSin(timeSize + i) * 2 + trebleIntensity * 2) *
+          (0.75 + detailScale * 0.35),
+      );
+      const alpha = Math.max(
+        0.08,
+        Math.min(
+          0.95,
+          0.3 + this.fastSin(timeAlpha + i) * 0.2 + trebleIntensity * 0.3,
+        ),
+      );
 
       ctx.fillStyle = this.hsla(darkHue240, 40, 20, alpha);
-      ctx.shadowBlur = 25 + bassIntensity * 15;
-      ctx.shadowColor = this.hsla(darkHue240, 60, 30, 0.8);
 
       ctx.beginPath();
       ctx.arc(x, y, size, 0, twoPi);
       ctx.fill();
     }
 
-    const streamCount = 15 + ((audioIntensity * 10) | 0);
+    const streamCount = Math.max(
+      5,
+      ((15 + ((audioIntensity * 10) | 0)) * detailScale) | 0,
+    );
     const streamHue = this.fastMod360(this.hueBase + 235);
     const streamAlpha = 0.15 + trebleIntensity * 0.15;
 
     ctx.save();
     ctx.strokeStyle = this.hsla(streamHue, 45, 22, streamAlpha);
-    ctx.lineWidth = 1.5 + bassIntensity * 1;
-    ctx.shadowBlur = 12;
+    ctx.lineWidth = (1.5 + bassIntensity * 1) * (0.7 + detailScale * 0.3);
+    ctx.shadowBlur = useShadows ? 12 * shadowScale : 0;
     ctx.shadowColor = this.hsla(streamHue, 55, 28, streamAlpha * 0.8);
 
     for (let st = 0; st < streamCount; st++) {
@@ -8995,55 +9031,63 @@ export class FlowFieldRenderer {
 
     const singularityRadius = coreRadius3 * (0.3 + bassIntensity * 0.2);
     ctx.fillStyle = this.hsla(darkHue260, 15, 1, 1);
-    ctx.shadowBlur = 20 + audioIntensity * 15;
+    ctx.shadowBlur = useShadows
+      ? (20 + audioIntensity * 15) * shadowScale
+      : 0;
     ctx.shadowColor = this.hsla(darkHue250, 25, 3, 0.95);
     ctx.beginPath();
     ctx.arc(0, 0, singularityRadius, 0, twoPi);
     ctx.fill();
 
-    const gravityWaves = 12;
-    ctx.strokeStyle = this.hsla(
-      darkHue240,
-      50,
-      25,
-      0.2 + trebleIntensity * 0.2,
-    );
-    ctx.lineWidth = 1;
-    ctx.setLineDash([5, 10]);
+    if (!lowDetail) {
+      const gravityWaves = Math.max(4, (12 * detailScale) | 0);
+      ctx.strokeStyle = this.hsla(
+        darkHue240,
+        50,
+        25,
+        0.2 + trebleIntensity * 0.2,
+      );
+      ctx.lineWidth = Math.max(0.8, detailScale);
+      ctx.setLineDash([4 * detailScale, 9 * detailScale]);
 
-    for (let i = 0; i < gravityWaves; i++) {
-      const radius =
-        maxRadius * (0.35 + i * 0.06) + this.fastSin(timeGravity + i) * 5;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, twoPi);
-      ctx.stroke();
+      for (let i = 0; i < gravityWaves; i++) {
+        const radius =
+          maxRadius * (0.35 + i * 0.06) + this.fastSin(timeGravity + i) * 5;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, twoPi);
+        ctx.stroke();
+      }
     }
-
     ctx.setLineDash([]);
 
-    const lensingCount = 6 + ((bassIntensity * 4) | 0);
-    const lensingHue = this.fastMod360(this.hueBase + 242);
-    const lensingAlpha = 0.25 + audioIntensity * 0.2;
+    if (detailScale >= 0.6) {
+      const lensingCount = Math.max(
+        2,
+        ((6 + ((bassIntensity * 4) | 0)) * detailScale) | 0,
+      );
+      const lensingHue = this.fastMod360(this.hueBase + 242);
+      const lensingAlpha = 0.25 + audioIntensity * 0.2;
 
-    ctx.save();
-    ctx.strokeStyle = this.hsla(lensingHue, 55, 30, lensingAlpha);
-    ctx.lineWidth = 2 + trebleIntensity * 1.5;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = this.hsla(lensingHue, 60, 35, lensingAlpha * 0.7);
+      ctx.save();
+      ctx.strokeStyle = this.hsla(lensingHue, 55, 30, lensingAlpha);
+      ctx.lineWidth = (2 + trebleIntensity * 1.5) * (0.75 + detailScale * 0.25);
+      ctx.shadowBlur = useShadows ? 15 * shadowScale : 0;
+      ctx.shadowColor = this.hsla(lensingHue, 60, 35, lensingAlpha * 0.7);
 
-    for (let lens = 0; lens < lensingCount; lens++) {
-      const lensAngle = this.fastMod360(lens * 60 + this.time * 0.1);
-      const lensRadius = maxRadius * (0.42 + (lens % 3) * 0.08);
-      const arcStart = this.fastMod360(lensAngle - 25);
-      const arcEnd = this.fastMod360(lensAngle + 25);
-      const arcStartRad = (arcStart * Math.PI) / 180;
-      const arcEndRad = (arcEnd * Math.PI) / 180;
+      for (let lens = 0; lens < lensingCount; lens++) {
+        const lensAngle = this.fastMod360(lens * 60 + this.time * 0.1);
+        const lensRadius = maxRadius * (0.42 + (lens % 3) * 0.08);
+        const arcStart = this.fastMod360(lensAngle - 25);
+        const arcEnd = this.fastMod360(lensAngle + 25);
+        const arcStartRad = (arcStart * Math.PI) / 180;
+        const arcEndRad = (arcEnd * Math.PI) / 180;
 
-      ctx.beginPath();
-      ctx.arc(0, 0, lensRadius, arcStartRad, arcEndRad);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, lensRadius, arcStartRad, arcEndRad);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
-    ctx.restore();
 
     ctx.setLineDash([]);
     ctx.restore();
