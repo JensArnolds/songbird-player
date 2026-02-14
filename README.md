@@ -291,6 +291,54 @@ src/
     └── globals.css        # TailwindCSS + custom styles
 ```
 
+## Repository Shape
+
+**Repository Shape**
+
+This is not a workspace-style monorepo (`apps/*`, `packages/*`). It is one package with multiple runtime surfaces.
+
+- Single npm package, no workspace config: `package.json:1`
+- Web app surface (Next.js App Router): `src/app`
+- Desktop surface (Electron wrapper around the same app/server): `electron/main.cjs:1026`, `package.json:89`
+- Mobile surface is responsive web UI, not a separate native app: `src/hooks/useMediaQuery.ts:42`, `src/components/DesktopShell.tsx:55`
+- Shared code is organized by domain under `src/components`, `src/contexts`, `src/hooks`, `src/server`, `src/utils` (not separate publishable packages).
+
+**Apps Mapping (Conceptual)**
+
+- Web: Next.js pages + API routes via `scripts/server.js`: `scripts/server.js:25`, `scripts/server.js:56`
+- Electron: Starts/loads the same app on loopback and, in prod, spawns standalone Next server: `electron/main.cjs:1034`, `electron/main.cjs:956`, `electron/main.cjs:1227`
+- Mobile: Same routes/components, different UI behavior by media query and component branching: `src/hooks/useMediaQuery.ts:42`, `src/app/layout.tsx:140`
+
+**Routing Structure**
+
+- App Router pages live in `src/app` (e.g. `/`, `/signin`, `/settings`, `/track/[id]`, `/[userhash]`): `src/app/page.tsx:161`, `src/app/signin/page.tsx:1`, `src/app/track/[id]/page.tsx:162`, `src/app/[userhash]/page.tsx:18`
+- Dynamic route behavior example: `/track/[id]` resolves metadata then redirects client-side to `/?track=...`: `src/app/track/[id]/TrackRedirect.tsx:13`
+- API routing is split:
+  - tRPC endpoint: `src/app/api/trpc/[trpc]/route.ts:16`
+  - Auth endpoint: `src/app/api/auth/[...nextauth]/route.ts:165`
+  - External proxy routes (`/api/music/*`, `/api/stream`, `/api/v2/*`): `docs/API_ROUTE_USE.md:3`
+- Root layout mounts global providers and persistent shells/player once for all routes: `src/app/layout.tsx:100`
+
+**Auth Structure**
+
+- NextAuth config + Drizzle adapter + DB session strategy: `src/server/auth/config.ts:84`, `src/server/auth/config.ts:96`, `src/server/auth/config.ts:102`
+- OAuth providers are Discord (+ optional Spotify): `src/server/auth/config.ts:89`
+- Route handler wraps NextAuth handlers and dynamically aligns origin for OAuth/PKCE correctness: `src/app/api/auth/[...nextauth]/route.ts:47`, `src/app/api/auth/[...nextauth]/route.ts:57`
+- tRPC context injects `session` and `db`; `protectedProcedure` enforces auth: `src/server/api/trpc.ts:10`, `src/server/api/trpc.ts:57`
+- App router composition: `admin`, `music`, `equalizer`, etc.: `src/server/api/root.ts:9`
+
+**Playback State Structure**
+
+- Playback is globally scoped in `AudioPlayerProvider` mounted at app root: `src/app/layout.tsx:123`, `src/contexts/AudioPlayerContext.tsx:824`
+- Core engine is `useAudioPlayer`; queue model uses `queue[0]` as current track: `src/hooks/useAudioPlayer.ts:154`, `src/hooks/useAudioPlayer.ts:158`
+- Uses a single hidden global `HTMLAudioElement` + Web Audio gain integration: `src/hooks/useAudioPlayer.ts:297`, `src/hooks/useAudioPlayer.ts:328`
+- State exposed through context (`currentTrack`, queue ops, smart queue, transport controls): `src/contexts/AudioPlayerContext.tsx:720`
+- Persistence strategy:
+  - Local persistence for anonymous/always-on client state: `src/hooks/useAudioPlayer.ts:277`
+  - DB queue-state persistence for authenticated users via tRPC: `src/contexts/AudioPlayerContext.tsx:484`
+  - Session/user switch clears queue/history to avoid cross-user bleed: `src/contexts/AudioPlayerContext.tsx:542`
+- UI surface for playback is persistent across routes (`PersistentPlayer`): `src/app/layout.tsx:155`, `src/components/PersistentPlayer.tsx:48`
+
 ## 🎨 Design System
 
 | Element | Description |
