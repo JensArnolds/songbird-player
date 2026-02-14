@@ -291,29 +291,23 @@ src/
     └── globals.css        # TailwindCSS + custom styles
 ```
 
-## Repository Shape
+## 🏗️ Repository Shape
 
-The repository now includes a **workspace scaffold** for incremental monorepo migration:
+This is not a workspace-style monorepo (`apps/*`, `packages/*`). It is one package with multiple runtime surfaces. (about to change to a monorepo)
 
-- Workspace config files: `pnpm-workspace.yaml`, `turbo.json`
-- App targets: `apps/web`, `apps/desktop`, `apps/mobile`
-- Shared package targets: `packages/*` (UI, types, player, config, auth, etc.)
-- Migration execution plan: `docs/monorepo/MIGRATION_PLAN.md`
-
-Current runtime is still rooted in existing paths while migration is in progress:
-
+- Single npm package, no workspace config: `package.json:1`
 - Web app surface (Next.js App Router): `src/app`
 - Desktop surface (Electron wrapper around the same app/server): `electron/main.cjs:1026`, `package.json:89`
-- Mobile surface is currently responsive web UI, not a separate native app: `src/hooks/useMediaQuery.ts:42`, `src/components/DesktopShell.tsx:55`
-- Shared code is still organized under `src/components`, `src/contexts`, `src/hooks`, `src/server`, `src/utils` until extraction PRs land.
+- Mobile surface is responsive web UI, not a separate native app: `src/hooks/useMediaQuery.ts:42`, `src/components/DesktopShell.tsx:55`
+- Shared code is organized by domain under `src/components`, `src/contexts`, `src/hooks`, `src/server`, `src/utils` (not separate publishable packages).
 
-**Apps Mapping (Conceptual)**
+### Apps Mapping (Conceptual)
 
 - Web: Next.js pages + API routes via `scripts/server.js`: `scripts/server.js:25`, `scripts/server.js:56`
 - Electron: Starts/loads the same app on loopback and, in prod, spawns standalone Next server: `electron/main.cjs:1034`, `electron/main.cjs:956`, `electron/main.cjs:1227`
 - Mobile: Same routes/components, different UI behavior by media query and component branching: `src/hooks/useMediaQuery.ts:42`, `src/app/layout.tsx:140`
 
-**Routing Structure**
+### Routing Structure
 
 - App Router pages live in `src/app` (e.g. `/`, `/signin`, `/settings`, `/track/[id]`, `/[userhash]`): `src/app/page.tsx:161`, `src/app/signin/page.tsx:1`, `src/app/track/[id]/page.tsx:162`, `src/app/[userhash]/page.tsx:18`
 - Dynamic route behavior example: `/track/[id]` resolves metadata then redirects client-side to `/?track=...`: `src/app/track/[id]/TrackRedirect.tsx:13`
@@ -323,7 +317,7 @@ Current runtime is still rooted in existing paths while migration is in progress
   - External proxy routes (`/api/music/*`, `/api/stream`, `/api/v2/*`): `docs/API_ROUTE_USE.md:3`
 - Root layout mounts global providers and persistent shells/player once for all routes: `src/app/layout.tsx:100`
 
-**Auth Structure**
+### Auth Structure
 
 - NextAuth config + Drizzle adapter + DB session strategy: `src/server/auth/config.ts:84`, `src/server/auth/config.ts:96`, `src/server/auth/config.ts:102`
 - OAuth providers are Discord (+ optional Spotify): `src/server/auth/config.ts:89`
@@ -331,7 +325,7 @@ Current runtime is still rooted in existing paths while migration is in progress
 - tRPC context injects `session` and `db`; `protectedProcedure` enforces auth: `src/server/api/trpc.ts:10`, `src/server/api/trpc.ts:57`
 - App router composition: `admin`, `music`, `equalizer`, etc.: `src/server/api/root.ts:9`
 
-**Playback State Structure**
+### Playback State Structure
 
 - Playback is globally scoped in `AudioPlayerProvider` mounted at app root: `src/app/layout.tsx:123`, `src/contexts/AudioPlayerContext.tsx:824`
 - Core engine is `useAudioPlayer`; queue model uses `queue[0]` as current track: `src/hooks/useAudioPlayer.ts:154`, `src/hooks/useAudioPlayer.ts:158`
