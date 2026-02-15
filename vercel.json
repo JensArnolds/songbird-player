@@ -9,15 +9,15 @@
   },
 
   "functions": {
-    "src/app/api/**/*.ts": {
+    "apps/web/src/app/api/**/*.ts": {
       "maxDuration": 30,
       "memory": 1024
     },
-    "src/app/api/trpc/**/*.ts": {
+    "apps/web/src/app/api/trpc/**/*.ts": {
       "maxDuration": 30,
       "memory": 1024
     },
-    "src/app/api/stream/route.ts": {
+    "apps/web/src/app/api/stream/route.ts": {
       "maxDuration": 60,
       "memory": 2048
     }

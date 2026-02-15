@@ -1,20 +1,5 @@
 // File: vitest.config.ts
 
-import react from "@vitejs/plugin-react";
-import { fileURLToPath } from "node:url";
-import { defineConfig } from "vitest/config";
+import config from "./apps/web/vitest.config";
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-    },
-  },
-  test: {
-    environment: "jsdom",
-    setupFiles: ["./src/test/setup.ts"],
-    globals: true,
-    css: true,
-  },
-});
+export default config;

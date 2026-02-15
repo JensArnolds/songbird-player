@@ -1,9 +1,7 @@
 # Apps
 
-This directory is the target home for application runtimes:
+This directory is the home for application runtimes:
 
-- `web`: Next.js App Router app (current `src/*` + `public/*` + server routes)
+- `web`: Next.js App Router app (`apps/web/src/*`, `apps/web/public/*`)
 - `desktop`: Electron shell (current `electron/*` and desktop packaging scripts)
 - `mobile`: Future React Native / Expo client
-
-Current runtime remains at repository root until migration PRs move code.

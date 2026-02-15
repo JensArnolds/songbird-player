@@ -82,11 +82,17 @@ module.exports = async function afterPack(context) {
 
   // Ensure installed packages, server, and static assets are delivered in the built app
   const destNodeModules = path.join(destStandalone, "node_modules");
-  const destServerJs = path.join(destStandalone, "server.js");
+  const destServerCandidates = [
+    path.join(destStandalone, "server.js"),
+    path.join(destStandalone, "apps", "web", "server.js"),
+  ];
+  const destServerJs = destServerCandidates.find((candidate) =>
+    fs.existsSync(candidate),
+  );
   const destStaticDir = path.join(destStandalone, ".next", "static");
   const missing = [];
   if (!fs.existsSync(destNodeModules)) missing.push("node_modules");
-  if (!fs.existsSync(destServerJs)) missing.push("server.js");
+  if (!destServerJs) missing.push("server.js");
   if (!fs.existsSync(destStaticDir)) missing.push(".next/static");
   if (!fs.existsSync(aliasedNodeModules)) missing.push(".next/node_modules");
 

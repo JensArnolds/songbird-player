@@ -5,25 +5,41 @@ const path = require("path");
 
 console.log("🔍 Checking Next.js build output...\n");
 
+const resolveFirstExisting = (paths) => {
+  for (const candidate of paths) {
+    const fullPath = path.join(__dirname, "..", candidate);
+    if (fs.existsSync(fullPath)) {
+      return fullPath;
+    }
+  }
+  return path.join(__dirname, "..", paths[0]);
+};
+
 const checks = [
   {
     name: "Standalone server",
-    path: ".next/standalone/server.js",
+    path: resolveFirstExisting([
+      ".next/standalone/server.js",
+      ".next/standalone/apps/web/server.js",
+    ]),
     required: true,
   },
   {
     name: "Standalone package.json",
-    path: ".next/standalone/package.json",
+    path: resolveFirstExisting([
+      ".next/standalone/package.json",
+      ".next/standalone/apps/web/package.json",
+    ]),
     required: true,
   },
   {
     name: "Static files",
-    path: ".next/static",
+    path: path.join(__dirname, "..", ".next/static"),
     required: true,
   },
   {
     name: "Build manifest",
-    path: ".next/build-manifest.json",
+    path: path.join(__dirname, "..", ".next/build-manifest.json"),
     required: false,
   },
 ];
@@ -31,7 +47,7 @@ const checks = [
 let allGood = true;
 
 checks.forEach((check) => {
-  const fullPath = path.join(__dirname, "..", check.path);
+  const fullPath = check.path;
   const exists = fs.existsSync(fullPath);
 
   const icon = exists ? "✅" : check.required ? "❌" : "⚠️";

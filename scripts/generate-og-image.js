@@ -22,7 +22,7 @@ const ACCENT_COLOR = "#f4b266";
 async function generateOgImage() {
   console.log("Generating OG image...");
 
-  const logoPath = join(rootDir, "public", "emily-the-strange.png");
+  const logoPath = join(rootDir, "apps", "web", "public", "emily-the-strange.png");
   const logoBuffer = readFileSync(logoPath);
 
   const logoMeta = await sharp(logoBuffer).metadata();
@@ -116,9 +116,9 @@ async function generateOgImage() {
       },
     ])
     .png({ quality: 90, compressionLevel: 9 })
-    .toFile(join(rootDir, "public", "og-image.png"));
+    .toFile(join(rootDir, "apps", "web", "public", "og-image.png"));
 
-  console.log("OG image generated: public/og-image.png");
+  console.log("OG image generated: apps/web/public/og-image.png");
   console.log(`Size: ${result.width}x${result.height}`);
 }
 

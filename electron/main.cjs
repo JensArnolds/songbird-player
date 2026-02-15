@@ -816,6 +816,18 @@ const waitForServer = (
 const startServer = async () => {
   const serverPort = await findAvailablePort(port, loopbackHost);
 
+  /**
+   * @param {string} dir
+   * @returns {string | undefined}
+   */
+  const resolveStandaloneServerPath = (dir) => {
+    const candidates = [
+      path.join(dir, "server.js"),
+      path.join(dir, "apps", "web", "server.js"),
+    ];
+    return candidates.find((candidate) => fs.existsSync(candidate));
+  };
+
   let standaloneDir;
   if (app.isPackaged) {
     const exeDirStandalone = path.join(
@@ -828,11 +840,11 @@ const startServer = async () => {
       ".next",
       "standalone",
     );
-    const exeDirServer = path.join(exeDirStandalone, "server.js");
-    const resourcesServer = path.join(resourcesStandalone, "server.js");
-    if (fs.existsSync(exeDirServer)) {
+    const exeDirServer = resolveStandaloneServerPath(exeDirStandalone);
+    const resourcesServer = resolveStandaloneServerPath(resourcesStandalone);
+    if (exeDirServer) {
       standaloneDir = exeDirStandalone;
-    } else if (fs.existsSync(resourcesServer)) {
+    } else if (resourcesServer) {
       standaloneDir = resourcesStandalone;
     } else {
       standaloneDir = exeDirStandalone;
@@ -841,15 +853,15 @@ const startServer = async () => {
     standaloneDir = path.join(__dirname, "..", ".next", "standalone");
   }
 
-  const serverPath = path.join(standaloneDir, "server.js");
+  const serverPath = resolveStandaloneServerPath(standaloneDir);
 
   log("Paths:");
   log("  Standalone dir:", standaloneDir);
   log("  Server:", serverPath);
   log("  isPackaged:", app.isPackaged);
 
-  if (!fs.existsSync(serverPath)) {
-    const error = `Server file not found: ${serverPath}`;
+  if (!serverPath) {
+    const error = `Server file not found under standalone output: ${standaloneDir}`;
     log("ERROR:", error);
     dialog.showErrorBox("Server Error", error);
     throw new Error(error);

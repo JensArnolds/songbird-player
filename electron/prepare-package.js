@@ -17,19 +17,38 @@ console.log("[Prepare] Preparing standalone package for Electron...\n");
 
 const rootDir = path.join(__dirname, "..");
 const standaloneDir = path.join(rootDir, ".next", "standalone");
+const standaloneServerCandidates = [
+  path.join(standaloneDir, "server.js"),
+  path.join(standaloneDir, "apps", "web", "server.js"),
+];
+const standalonePackageCandidates = [
+  path.join(standaloneDir, "package.json"),
+  path.join(standaloneDir, "apps", "web", "package.json"),
+];
 
 // Ensure Next.js standalone output includes installed packages and server (fail early if not)
 const standaloneNodeModules = path.join(standaloneDir, "node_modules");
-const standaloneServerJs = path.join(standaloneDir, "server.js");
-if (!fs.existsSync(standaloneNodeModules) || !fs.existsSync(standaloneServerJs)) {
+const standaloneServerJs = standaloneServerCandidates.find((candidate) =>
+  fs.existsSync(candidate),
+);
+const standalonePackageJson = standalonePackageCandidates.find((candidate) =>
+  fs.existsSync(candidate),
+);
+if (
+  !fs.existsSync(standaloneNodeModules) ||
+  !standaloneServerJs ||
+  !standalonePackageJson
+) {
   console.error("[Prepare] ERROR: .next/standalone is incomplete. Required: node_modules and server.js.");
   console.error("[Prepare] Run 'next build' with ELECTRON_BUILD=true first. Standalone dir:", standaloneDir);
   process.exit(1);
 }
-console.log("[Prepare] Verified .next/standalone has node_modules and server.js\n");
+console.log("[Prepare] Verified .next/standalone has node_modules and server.js");
+console.log("[Prepare] Server entry:", standaloneServerJs);
+console.log("[Prepare] Package entry:", standalonePackageJson, "\n");
 const staticSource = path.join(rootDir, ".next", "static");
 const staticDest = path.join(standaloneDir, ".next", "static");
-const publicSource = path.join(rootDir, "public");
+const publicSource = path.join(rootDir, "apps", "web", "public");
 const publicDest = path.join(standaloneDir, "public");
 const certsSource = path.join(rootDir, "certs");
 const certsDest = path.join(standaloneDir, "certs");
