@@ -49,7 +49,7 @@ RUN npm install -g pm2@5
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/apps/web/public ./public
 
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
@@ -57,10 +57,10 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
-COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
-COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./
-COPY --from=builder --chown=nextjs:nodejs /app/drizzle.env.ts ./
-COPY --from=builder --chown=nextjs:nodejs /app/src/server/db ./src/server/db
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/drizzle ./drizzle
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/drizzle.env.ts ./drizzle.env.ts
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/src/server/db ./src/server/db
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-kit ./node_modules/drizzle-kit
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/drizzle-kit ./node_modules/.bin/drizzle-kit
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
