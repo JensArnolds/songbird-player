@@ -293,18 +293,18 @@ src/
 
 ## 🏗️ Repository Shape
 
-This is not a workspace-style monorepo (`apps/*`, `packages/*`). It is one package with multiple runtime surfaces. (about to change to a monorepo)
+This repo now uses a workspace scaffold (`apps/*`, `packages/*`) while runtime compatibility scripts are still kept at root during migration.
 
-- Single npm package, no workspace config: `package.json:1`
-- Web app surface (Next.js App Router): `src/app`
-- Desktop surface (Electron wrapper around the same app/server): `electron/main.cjs:1026`, `package.json:89`
+- Workspace scaffold: `pnpm-workspace.yaml:1`, `turbo.json:1`
+- Web app surface (Next.js App Router): `apps/web/src/app`
+- Desktop surface (Electron wrapper around the same app/server): `apps/desktop/electron/main.cjs`, `package.json:147`
 - Mobile surface is responsive web UI, not a separate native app: `src/hooks/useMediaQuery.ts:42`, `src/components/DesktopShell.tsx:55`
 - Shared code is organized by domain under `src/components`, `src/contexts`, `src/hooks`, `src/server`, `src/utils` (not separate publishable packages).
 
 ### Apps Mapping (Conceptual)
 
 - Web: Next.js pages + API routes via `scripts/server.js`: `scripts/server.js:25`, `scripts/server.js:56`
-- Electron: Starts/loads the same app on loopback and, in prod, spawns standalone Next server: `electron/main.cjs:1034`, `electron/main.cjs:956`, `electron/main.cjs:1227`
+- Electron: Starts/loads the same app on loopback and, in prod, spawns standalone Next server: `apps/desktop/electron/main.cjs`
 - Mobile: Same routes/components, different UI behavior by media query and component branching: `src/hooks/useMediaQuery.ts:42`, `src/app/layout.tsx:140`
 
 ### Routing Structure

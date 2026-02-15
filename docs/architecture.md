@@ -27,7 +27,7 @@ flowchart LR
   Auth --> DB
 
   subgraph Desktop[Electron]
-    ElectronMain[electron/main.cjs] --> UI
+    ElectronMain[apps/desktop/electron/main.cjs] --> UI
   end
 ```
 
@@ -135,9 +135,9 @@ The player uses **HTML5 Audio** for playback and **Web Audio API** for equalizer
 
 ## Desktop (Electron)
 
-- Main process: `electron/main.cjs`
-- Preload: `electron/preload.cjs`
-- Packaging: `electron-builder` config in `package.json` and helper scripts under `electron/` and `scripts/`
+- Main process: `apps/desktop/electron/main.cjs`
+- Preload: `apps/desktop/electron/preload.cjs`
+- Packaging: `electron-builder` config in `package.json` and helper scripts under `apps/desktop/electron/` and `apps/desktop/scripts/`
 
 In development, Electron runs alongside the dev server (`npm run electron:dev`) and loads `http://localhost:3222`.
 

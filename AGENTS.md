@@ -43,7 +43,7 @@ Default local URL: `http://localhost:3222`
 - Auth (NextAuth): `src/server/auth/*` + `src/app/api/auth/[...nextauth]/route.ts`
 - DB (Drizzle + pg Pool): `src/server/db/*` + `drizzle/` migrations
 - Player: `src/contexts/AudioPlayerContext.tsx`, `src/hooks/useAudioPlayer.ts`
-- Electron: `electron/*`
+- Electron: `apps/desktop/electron/*` (compat wrappers remain under `electron/*`)
 
 ## Working conventions for this repo
 

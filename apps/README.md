@@ -3,5 +3,5 @@
 This directory is the home for application runtimes:
 
 - `web`: Next.js App Router app (`apps/web/src/*`, `apps/web/public/*`)
-- `desktop`: Electron shell (current `electron/*` and desktop packaging scripts)
+- `desktop`: Electron shell (`apps/desktop/electron/*`) and desktop packaging scripts
 - `mobile`: Future React Native / Expo client
