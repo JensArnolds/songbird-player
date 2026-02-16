@@ -57,17 +57,61 @@ export function createTRPCServerHelpers<
   TRouter extends AnyRouter = AppRouter,
   TCaller = unknown,
 >(options: CreateTRPCServerHelpersOptions<TCaller>) {
+  if (typeof options.createContext !== "function") {
+    console.error(
+      "[api-client/trpc/server] Invalid createContext option:",
+      options.createContext,
+    );
+    throw new TypeError("createTRPCServerHelpers: createContext must be a function");
+  }
+
+  if (typeof options.createCaller !== "function") {
+    console.error(
+      "[api-client/trpc/server] Invalid createCaller option:",
+      options.createCaller,
+    );
+    throw new TypeError("createTRPCServerHelpers: createCaller must be a function");
+  }
+
   const createContext = cache(async () => {
     const requestHeadersInstance = new Headers(await headers());
     requestHeadersInstance.set("x-trpc-source", "rsc");
 
-    return options.createContext({
-      headers: requestHeadersInstance,
-    });
+    try {
+      const context = await options.createContext({
+        headers: requestHeadersInstance,
+      });
+      if (context == null) {
+        console.warn(
+          "[api-client/trpc/server] createContext returned null/undefined. This can cause downstream caller failures.",
+        );
+      }
+      return context;
+    } catch (error) {
+      console.error(
+        "[api-client/trpc/server] createContext failed while building RSC helpers:",
+        error,
+      );
+      throw error;
+    }
   });
 
   const getQueryClient = cache(createQueryClient);
-  const caller = options.createCaller(createContext);
+  let caller: TCaller;
+  try {
+    caller = options.createCaller(createContext);
+    if (caller == null) {
+      console.warn(
+        "[api-client/trpc/server] createCaller returned null/undefined. Verify router caller wiring.",
+      );
+    }
+  } catch (error) {
+    console.error(
+      "[api-client/trpc/server] createCaller failed while building RSC helpers:",
+      error,
+    );
+    throw error;
+  }
 
   // Type assertion: TCaller should match the decorated router type expected by createHydrationHelpers.
   // The actual type is correctly inferred at the call site when createCaller is provided.

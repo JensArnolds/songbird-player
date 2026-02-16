@@ -6,22 +6,23 @@ import { useContext, useEffect, useState } from "react";
 import { Minus, Square, X, Maximize2 } from "lucide-react";
 import { AudioPlayerContext } from "@starchild/player-react/AudioPlayerContext";
 
-declare global {
-  interface Window {
-    electron?: {
-      isElectron: boolean;
-      platform: string;
-      send: (channel: string, data: unknown) => void;
-      receive: (channel: string, func: (...args: unknown[]) => void) => void;
-    };
-  }
-}
-
-const APP_VERSION = "0.15.14";
+const APP_VERSION = "1.0.0";
 
 export function LinuxTitlebar() {
   const [isMaximized, setIsMaximized] = useState(false);
-  const [isLinux, setIsLinux] = useState(false);
+  const isLinux =
+    typeof window !== "undefined" &&
+    window.electron?.isElectron === true &&
+    window.electron?.platform === "linux";
+  const sendToMain = (type: "window:getState" | "window:minimize" | "window:toggleMaximize" | "window:close") => {
+    if (!window.electron?.send) {
+      console.warn(
+        `[LinuxTitlebar] Missing window.electron.send while dispatching "${type}"`,
+      );
+      return;
+    }
+    window.electron.send("toMain", { type });
+  };
 
   // Use context directly to avoid throwing error if provider isn't available yet
   const audioPlayerContext = useContext(AudioPlayerContext);
@@ -29,21 +30,19 @@ export function LinuxTitlebar() {
   const isPlaying = audioPlayerContext?.isPlaying ?? false;
 
   useEffect(() => {
-    // Only show on Linux Electron
-    const isElectronLinux =
-      typeof window !== "undefined" &&
-      window.electron?.isElectron &&
-      window.electron?.platform === "linux";
-
-    setIsLinux(isElectronLinux);
-
-    if (!isElectronLinux) return;
+    if (!isLinux) return;
+    if (!window.electron?.receive) {
+      console.warn(
+        "[LinuxTitlebar] Missing window.electron.receive; maximize state updates will not arrive.",
+      );
+      return;
+    }
 
     // Request initial window state
-    window.electron?.send("toMain", { type: "window:getState" });
+    sendToMain("window:getState");
 
     // Listen for window state updates
-    window.electron?.receive("fromMain", (message: unknown) => {
+    window.electron.receive("fromMain", (message: unknown) => {
       if (
         message &&
         typeof message === "object" &&
@@ -54,20 +53,20 @@ export function LinuxTitlebar() {
         setIsMaximized(Boolean(message.isMaximized));
       }
     });
-  }, []);
+  }, [isLinux]);
 
   if (!isLinux) return null;
 
   const handleMinimize = () => {
-    window.electron?.send("toMain", { type: "window:minimize" });
+    sendToMain("window:minimize");
   };
 
   const handleMaximize = () => {
-    window.electron?.send("toMain", { type: "window:toggleMaximize" });
+    sendToMain("window:toggleMaximize");
   };
 
   const handleClose = () => {
-    window.electron?.send("toMain", { type: "window:close" });
+    sendToMain("window:close");
   };
 
   // Determine title text based on playback state

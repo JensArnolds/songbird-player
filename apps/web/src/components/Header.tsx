@@ -26,7 +26,10 @@ export default function Header() {
   const [searchText, setSearchText] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
-  const [isLinuxElectron, setIsLinuxElectron] = useState(false);
+  const isLinuxElectron =
+    typeof window !== "undefined" &&
+    window.electron?.isElectron === true &&
+    window.electron?.platform === "linux";
   const lastHealthErrorLogRef = useRef(0);
   const headerSearchInputRef = useRef<HTMLInputElement>(null);
   const desktopHeaderRef = useRef<HTMLElement>(null);
@@ -140,16 +143,6 @@ export default function Header() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
-
-  useEffect(() => {
-    // Check if running on Linux Electron
-    if (typeof window !== "undefined") {
-      const isLinux =
-        window.electron?.isElectron &&
-        (window.electron as { platform?: string }).platform === "linux";
-      setIsLinuxElectron(isLinux);
-    }
   }, []);
 
   useEffect(() => {

@@ -3,7 +3,7 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { DesktopRightRail } from "./DesktopRightRail";
 import { ElectronSidebar } from "./ElectronSidebar";
@@ -11,19 +11,10 @@ import { ElectronSidebar } from "./ElectronSidebar";
 export function DesktopShell({ children }: { children: ReactNode }) {
   const isMobile = useIsMobile();
   const rightRailWidth = 320;
-  const [isLinuxElectron, setIsLinuxElectron] = useState(false);
-
-  useEffect(() => {
-    // Check if running on Linux Electron
-    if (typeof window !== "undefined") {
-      const isLinux =
-        (window as Window & { electron?: { isElectron: boolean; platform: string } })
-          .electron?.isElectron &&
-        (window as Window & { electron?: { isElectron: boolean; platform: string } })
-          .electron?.platform === "linux";
-      setIsLinuxElectron(isLinux);
-    }
-  }, []);
+  const isLinuxElectron =
+    typeof window !== "undefined" &&
+    window.electron?.isElectron === true &&
+    window.electron?.platform === "linux";
 
   useEffect(() => {
     if (isMobile) {
