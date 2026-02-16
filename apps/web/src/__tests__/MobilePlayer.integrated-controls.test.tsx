@@ -3,7 +3,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import type { Track } from "@/types";
+import type { Track } from "@starchild/types";
 import MobilePlayer from "@/components/MobilePlayer";
 
 const mockTrack: Track = {
@@ -93,7 +93,7 @@ vi.mock("next-auth/react", () => ({
   useSession: () => ({ data: sessionState.data }),
 }));
 
-vi.mock("@/contexts/AudioPlayerContext", () => ({
+vi.mock("@starchild/player-react/AudioPlayerContext", () => ({
   useGlobalPlayer: () => globalPlayerState,
 }));
 
@@ -101,7 +101,7 @@ vi.mock("@/contexts/ToastContext", () => ({
   useToast: () => ({ showToast: vi.fn() }),
 }));
 
-vi.mock("@/trpc/react", () => ({
+vi.mock("@starchild/api-client/trpc/react", () => ({
   api: {
     music: {
       getUserPreferences: {
