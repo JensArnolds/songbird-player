@@ -76,7 +76,7 @@ Use incremental PRs that keep the app runnable at every step.
   8. `packages/ui`
 - Replace deep relative imports with package imports.
 
-### PR 5 - Add mobile app shell
+### PR 5 - Add mobile app shell (scaffolded)
 
 - Introduce `apps/mobile` with shared packages only.
 - No changes to web/desktop runtime behavior.
