@@ -393,8 +393,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // Queue is running out - check if we should generate smart tracks
       // Require at least 2 tracks in history to make decent recommendations
-      const hasEnoughHistory =
-        history.length >= MIN_HISTORY_FOR_AUTO_QUEUE;
+      const hasEnoughHistory = history.length >= MIN_HISTORY_FOR_AUTO_QUEUE;
 
       const shouldAutoQueue =
         optionsRef.current.smartQueueSettings?.autoQueueEnabled &&
