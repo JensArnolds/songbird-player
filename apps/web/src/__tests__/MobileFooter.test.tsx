@@ -22,7 +22,7 @@ vi.mock("next-auth/react", () => ({
   useSession: () => ({ data: { user: { id: "user-1" } } }),
 }));
 
-vi.mock("@/trpc/react", () => ({
+vi.mock("@starchild/api-client/trpc/react", () => ({
   api: {
     music: {
       getCurrentUserHash: {
