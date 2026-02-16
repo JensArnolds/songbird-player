@@ -12,7 +12,11 @@ import type {
   Track,
 } from "@starchild/types";
 import { getStreamUrlById } from "@starchild/api-client/rest";
-import { getAudioConnection } from "@starchild/audio-adapters";
+import {
+  getAudioConnection,
+  ensureConnectionChain,
+  verifyConnectionChain,
+} from "@starchild/audio-adapters";
 import { logger } from "./logger";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -956,8 +960,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const resumePlayback = async (reason: string) => {
       if (!audio.src) return;
       try {
-        const { getAudioConnection } =
-          await import("@starchild/audio-adapters");
         const connection = getAudioConnection(audio);
         if (connection?.audioContext.state === "suspended") {
           await connection.audioContext.resume();
@@ -1280,8 +1282,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       preserve.preservesPitch = true;
       preserve.webkitPreservesPitch = true;
 
-      const { getAudioConnection, ensureConnectionChain } =
-        await import("@starchild/audio-adapters");
       const connection = getAudioConnection(audioRef.current);
       if (connection) {
         logger.debug("[useAudioPlayer] Audio connected to Web Audio API", {
@@ -1355,15 +1355,11 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         logger.debug(
           "[useAudioPlayer] Verifying connection chain after play...",
         );
-        const { verifyConnectionChain } =
-          await import("@starchild/audio-adapters");
         const isValid = verifyConnectionChain(connection);
         if (!isValid) {
           logger.warn(
             "[useAudioPlayer] Connection chain invalid, rebuilding...",
           );
-          const { ensureConnectionChain } =
-            await import("@starchild/audio-adapters");
           ensureConnectionChain(connection);
         } else {
           logger.debug("[useAudioPlayer] Connection chain verified");

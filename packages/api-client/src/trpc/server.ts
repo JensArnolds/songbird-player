@@ -10,20 +10,59 @@ import { cache } from "react";
 import { type AppRouter } from "./router";
 import { createQueryClient } from "./query-client";
 
-interface CreateTRPCServerHelpersOptions {
+/**
+ * Options for creating tRPC server-side helpers with proper type inference.
+ *
+ * @template TCaller - The router caller type returned by the caller factory.
+ *                     This should match the return type of your `createCallerFactory(router)(...)`
+ */
+interface CreateTRPCServerHelpersOptions<TCaller = unknown> {
+  /**
+   * Function to create the tRPC context with request headers.
+   * Should match your `createTRPCContext` signature.
+   */
   createContext: (options: { headers: Headers }) => Promise<unknown> | unknown;
-  createCaller: (createContext: () => Promise<unknown>) => any;
+
+  /**
+   * Function to create a router caller given a context factory.
+   * Typically this is the result of `createCallerFactory(appRouter)`.
+   *
+   * @param createContext - Factory function that returns the tRPC context
+   * @returns A typed router caller that can invoke procedures server-side
+   */
+  createCaller: (createContext: () => Promise<unknown>) => TCaller;
 }
 
-export function createTRPCServerHelpers<TRouter extends AnyRouter = AppRouter>(
-  options: CreateTRPCServerHelpersOptions,
-) {
+/**
+ * Creates server-side tRPC helpers for React Server Components (RSC).
+ *
+ * @template TRouter - The tRPC router type (inferred or explicitly provided)
+ * @template TCaller - The caller type returned by `createCaller` (inferred from options)
+ *
+ * @param options - Configuration with context and caller factories
+ * @returns Hydration helpers including `trpc` caller and `HydrateClient` component
+ *
+ * @example
+ * ```ts
+ * import { createCaller, type AppRouter } from "@/server/api/root";
+ * import { createTRPCContext } from "@/server/api/trpc";
+ *
+ * const helpers = createTRPCServerHelpers<AppRouter>({
+ *   createContext: ({ headers }) => createTRPCContext({ headers }),
+ *   createCaller: (ctx) => createCaller(ctx),
+ * });
+ * ```
+ */
+export function createTRPCServerHelpers<
+  TRouter extends AnyRouter = AppRouter,
+  TCaller = unknown,
+>(options: CreateTRPCServerHelpersOptions<TCaller>) {
   const createContext = cache(async () => {
-    const requestHeaders = new Headers(await headers());
-    requestHeaders.set("x-trpc-source", "rsc");
+    const requestHeadersInstance = new Headers(await headers());
+    requestHeadersInstance.set("x-trpc-source", "rsc");
 
     return options.createContext({
-      headers: requestHeaders,
+      headers: requestHeadersInstance,
     });
   });
 

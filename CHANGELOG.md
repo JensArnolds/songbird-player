@@ -5,6 +5,89 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-02-16
+
+### Added
+
+- **Monorepo workspace orchestration (PR1)**: Added `pnpm-workspace.yaml` and `turbo.json`, plus app/package workspace manifests so web, desktop, mobile, and shared packages can be built and checked as coordinated workspaces.
+- **App runtime separation (PR2/PR3/PR5)**: Introduced clear runtime boundaries under `apps/web`, `apps/desktop`, and `apps/mobile`, including dedicated READMEs and app-level package manifests.
+- **Shared package surface (PR4)**: Established first-class shared libraries under `packages/*` for:
+  - `@starchild/types`
+  - `@starchild/config`
+  - `@starchild/auth`
+  - `@starchild/api-client`
+  - `@starchild/player-core`
+  - `@starchild/player-react`
+  - `@starchild/audio-adapters`
+  - `@starchild/visualizers`
+  - `@starchild/ui`
+- **Typed tRPC router registry for cross-app consumption (PR4)**: Added package-level router typing hooks (`@starchild/api-client/trpc/router`) and server helper factory wiring to remove hard package dependency on web-internal router file paths.
+- **Mobile shell scaffold (PR5)**: Added typed mobile shell entrypoint and package alias wiring to validate shared package compatibility without introducing React Native runtime yet.
+
+### Changed
+
+- **Repository architecture (PR1-PR5)**: Transitioned from a single-root app layout to an apps+packages monorepo with a stable target shape documented in `docs/monorepo/MIGRATION_PLAN.md`.
+- **Web app home moved to workspace (PR2)**: Next.js App Router runtime, public assets, Drizzle config/migrations, and web server wiring are now centered in `apps/web/*`.
+- **Electron runtime moved to workspace (PR3)**: Electron main/preload/build pipeline and packaging helpers moved into `apps/desktop/*` and root Electron scripts were updated accordingly.
+- **Command topology stabilized across root + workspaces (PR1/PR2/PR3)**:
+  - Root scripts remain compatibility entrypoints.
+  - App-scoped scripts are now available via `npm --prefix apps/<app> ...`.
+  - Workspace scripts were added (`ws:*`) for Turbo-driven multi-package operations.
+- **Import and alias strategy standardized (PR4)**: Large-scale migration from deep relative and app-local imports to package imports (`@starchild/*`) across web runtime, tests, and shared code.
+- **Audio stack modularization (PR4)**:
+  - `audioContextManager` moved from web app internals into `@starchild/audio-adapters`.
+  - Player and visualizer consumers now import audio adapter utilities via package exports.
+- **Auth package decoupling (PR4)**:
+  - Spotify provider creation now receives explicit config from caller.
+  - Package-level auth helpers no longer depend directly on web app env module paths.
+- **Player package decoupling (PR4)**:
+  - Added package-local storage/logger/media-query utilities in `@starchild/player-react`.
+  - Provider-to-toast bridging introduced to avoid direct dependency on web toast context internals.
+- **UI package decoupling (PR4)**:
+  - Introduced package-local UI utilities (`cn`, haptics, spring presets) and exported them through `@starchild/ui`.
+  - Added shared `SkeletonGrid` export and removed UI package dependence on web-only component paths.
+- **API client boundary hardening (PR4 finish)**:
+  - Replaced direct `apps/web/src/server/api/*` imports from `@starchild/api-client`.
+  - Introduced app-provided router typing via module augmentation.
+
+### Migration PR Breakdown
+
+- **PR1 - Workspace bootstrap**
+  - Added workspace/tooling foundation (`pnpm-workspace.yaml`, `turbo.json`).
+  - Added workspace package manifests for `apps/*` and `packages/*`.
+  - Preserved existing runtime behavior while preparing for physical moves.
+
+- **PR2 - Move web app into `apps/web`**
+  - Relocated web runtime and DB migration/config assets into `apps/web`.
+  - Updated docs and app mapping references to reflect new runtime home.
+  - Kept root-level command compatibility during transition.
+
+- **PR3 - Move Electron into `apps/desktop`**
+  - Relocated Electron runtime, preload, signing, verification, and packaging scripts into `apps/desktop`.
+  - Updated root package metadata and build hooks to point to `apps/desktop/electron/*`.
+  - Preserved desktop build behavior while changing directory ownership.
+
+- **PR4 - Extract and decouple shared packages**
+  - Extracted shared concerns into package boundaries and exported stable entrypoints.
+  - Migrated broad import surfaces to `@starchild/*` aliases across app/runtime/test code.
+  - Removed residual app-internal coupling in shared packages (auth, player-react, audio-adapters, UI, visualizers, api-client).
+  - Added typed tRPC router registry pattern so API client package can remain app-agnostic.
+
+- **PR5 - Add mobile app shell**
+  - Added `apps/mobile` scaffold with typed entrypoint and package alias wiring.
+  - Added mobile scripts (`dev`, `build`, `check`, `typecheck`) focused on compatibility validation.
+  - Kept web/desktop production behavior unchanged while enabling future mobile iteration.
+
+### Breaking Changes
+
+- **Path and import topology**: Legacy single-root locations (`src/*`, `electron/*`, `drizzle/*`, and app-internal shared utility paths) are no longer the primary integration points for new code.
+- **Shared-code consumption model**: Cross-runtime shared logic should now be consumed from `@starchild/*` packages rather than web app internals.
+- **tRPC package typing contract**: `@starchild/api-client` now expects app runtime to provide router typing via `@starchild/api-client/trpc/router` augmentation for strict end-to-end typing.
+
+### Notes
+
+- This release marks the completion of the planned monorepo migration sequence (PR1-PR5) with app/runtime boundaries in place and shared package extraction established as the default development model.
+
 ## [0.16.1] - 2026-02-13
 
 ### Fixed
