@@ -3,7 +3,7 @@
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import { Suspense, type ReactNode } from "react";
 
 import { DynamicTitle } from "@/components/DynamicTitle";
@@ -37,8 +37,20 @@ import { TRPCReactProvider } from "@starchild/api-client/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { RegisterServiceWorker } from "./register-sw";
 
-const manrope = Manrope({
-  subsets: ["latin"],
+const appSans = localFont({
+  src: [
+    {
+      path: "./fonts/DejaVuSans-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "./fonts/DejaVuSans-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  display: "swap",
   variable: "--font-spotify-sans",
 });
 
@@ -101,7 +113,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={manrope.variable} suppressHydrationWarning>
+    <html lang="en" className={appSans.variable} suppressHydrationWarning>
       <head>
         {}
         <link rel="preconnect" href="https://cdn-images.dzcdn.net" />
