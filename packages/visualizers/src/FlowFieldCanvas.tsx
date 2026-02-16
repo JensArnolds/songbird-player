@@ -5,7 +5,7 @@
 import {
     ensureConnectionChain,
     getOrCreateAudioConnection,
-} from "@/utils/audioContextManager";
+} from "@starchild/audio-adapters/web/audioContextManager";
 import { useEffect, useRef } from "react";
 import { FlowFieldRenderer } from "./FlowFieldRenderer";
 import type { Pattern } from "./flowfieldPatterns/patternIds";

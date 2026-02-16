@@ -2,5 +2,11 @@
   "name": "@starchild/audio-adapters",
   "private": true,
   "version": "0.0.0",
-  "description": "Planned audio adapters workspace"
+  "type": "module",
+  "description": "Shared audio adapter utilities",
+  "exports": {
+    ".": "./src/index.ts",
+    "./index": "./src/index.ts",
+    "./web/audioContextManager": "./src/web/audioContextManager.ts"
+  }
 }

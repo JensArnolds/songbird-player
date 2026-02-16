@@ -1,6 +1,6 @@
 // File: src/components/LoadingSpinner.tsx
 
-import { cn } from "@/lib/utils";
+import { cn } from "./utils/cn";
 
 export interface LoadingSpinnerProps {
 

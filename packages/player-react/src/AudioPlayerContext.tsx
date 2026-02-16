@@ -2,9 +2,8 @@
 
 "use client";
 
-import { useToast } from "@/contexts/ToastContext";
-import { useAudioPlayer } from "@starchild/player-react/useAudioPlayer";
-import { useIsMobile } from "@/hooks/useMediaQuery";
+import { useAudioPlayer } from "./useAudioPlayer";
+import { useIsMobile } from "./useMediaQuery";
 import { api } from "@starchild/api-client/trpc/react";
 import type {
   QueuedTrack,
@@ -101,10 +100,48 @@ const isRepeatMode = (value: unknown): value is "none" | "one" | "all" =>
 const coerceRepeatMode = (value: unknown): "none" | "one" | "all" =>
   isRepeatMode(value) ? value : "none";
 
-export function AudioPlayerProvider({ children }: { children: ReactNode }) {
+type ToastKind = "success" | "error" | "info" | "warning";
+
+interface AudioPlayerProviderProps {
+  children: ReactNode;
+  onToast?: (message: string, type?: ToastKind, duration?: number) => void;
+}
+
+export function AudioPlayerProvider({
+  children,
+  onToast,
+}: AudioPlayerProviderProps) {
   const { data: session } = useSession();
-  const { showToast } = useToast();
   const isMobile = useIsMobile();
+  const showToast = useCallback(
+    (
+      message: string,
+      type: ToastKind = "info",
+      duration = 3000,
+    ) => {
+      if (onToast) {
+        onToast(message, type, duration);
+        return;
+      }
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("starchild:toast", {
+            detail: { message, type, duration },
+          }),
+        );
+        return;
+      }
+
+      const prefix = `[AudioPlayerContext:${type}]`;
+      if (type === "error") {
+        console.error(prefix, message);
+      } else {
+        console.warn(prefix, message);
+      }
+    },
+    [onToast],
+  );
   const [showMobilePlayer, setShowMobilePlayer] = useState(false);
   const [hideUI, setHideUI] = useState(false);
   const [lastUserId, setLastUserId] = useState<string | null>(null);

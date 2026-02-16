@@ -11,7 +11,7 @@ import {
   getOrCreateAudioConnection,
   ensureConnectionChain,
   shouldBypassWebAudio,
-} from "@/utils/audioContextManager";
+} from "@starchild/audio-adapters/web/audioContextManager";
 
 export interface EqualizerBand {
   frequency: number;

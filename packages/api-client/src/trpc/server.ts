@@ -6,8 +6,11 @@ import { createHydrationHelpers } from "@trpc/react-query/rsc";
 import { headers } from "next/headers";
 import { cache } from "react";
 
-import { createCaller, type AppRouter } from "@/server/api/root";
-import { createTRPCContext } from "@/server/api/trpc";
+import {
+  createCaller,
+  type AppRouter,
+} from "../../../../apps/web/src/server/api/root";
+import { createTRPCContext } from "../../../../apps/web/src/server/api/trpc";
 import { createQueryClient } from "./query-client";
 
 const createContext = cache(async () => {

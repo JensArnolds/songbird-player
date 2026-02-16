@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getOrCreateAudioConnection,
   ensureConnectionChain,
-} from "@/utils/audioContextManager";
+} from "@starchild/audio-adapters/web/audioContextManager";
 
 export interface AudioVisualizerOptions {
   fftSize?: number;

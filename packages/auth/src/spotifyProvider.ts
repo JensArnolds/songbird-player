@@ -1,16 +1,21 @@
 import SpotifyProvider from "next-auth/providers/spotify";
 
-import { env } from "@/env";
 import { logAuthInfo, logAuthWarn } from "./logging";
 
-export function createSpotifyProvider() {
-  if (!env.AUTH_SPOTIFY_ENABLED) {
+export interface SpotifyProviderConfig {
+  enabled: boolean;
+  clientId?: string;
+  clientSecret?: string;
+}
+
+export function createSpotifyProvider(config: SpotifyProviderConfig) {
+  if (!config.enabled) {
     logAuthInfo("Spotify provider disabled (AUTH_SPOTIFY_ENABLED is not true)");
     return null;
   }
 
-  const clientId = env.SPOTIFY_CLIENT_ID;
-  const clientSecret = env.SPOTIFY_CLIENT_SECRET;
+  const clientId = config.clientId;
+  const clientSecret = config.clientSecret;
 
   if (!clientId || !clientSecret) {
     logAuthWarn(

@@ -1,7 +1,7 @@
 // File: src/components/Section.tsx
 
 import type { ReactNode } from "react";
-import SkeletonGrid from "@/components/SkeletonGrid";
+import SkeletonGrid from "./SkeletonGrid";
 
 interface SectionProps<T> {
   title: string;

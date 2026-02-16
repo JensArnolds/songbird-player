@@ -75,7 +75,11 @@ if (!env.AUTH_SPOTIFY_ENABLED && env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED) {
   );
 }
 
-const spotifyProvider = createSpotifyProvider();
+const spotifyProvider = createSpotifyProvider({
+  enabled: env.AUTH_SPOTIFY_ENABLED,
+  clientId: env.SPOTIFY_CLIENT_ID,
+  clientSecret: env.SPOTIFY_CLIENT_SECRET,
+});
 
 logAuthInfo("OAuth providers configured", {
   providers: ["discord", ...(spotifyProvider ? ["spotify"] : [])],

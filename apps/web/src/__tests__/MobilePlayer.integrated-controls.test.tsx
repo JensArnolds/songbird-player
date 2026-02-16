@@ -197,7 +197,7 @@ vi.mock("@/utils/colorExtractor", () => ({
     }),
 }));
 
-vi.mock("@/utils/audioContextManager", () => ({
+vi.mock("@starchild/audio-adapters/web/audioContextManager", () => ({
   getAudioConnection: vi.fn(() => null),
   getOrCreateAudioConnection: vi.fn(() => null),
   releaseAudioConnection: vi.fn(),

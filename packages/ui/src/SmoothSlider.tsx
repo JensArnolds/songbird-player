@@ -2,8 +2,8 @@
 
 "use client";
 
-import { haptic } from "@/utils/haptics";
-import { springPresets } from "@/utils/spring-animations";
+import { haptic } from "./utils/haptics";
+import { springPresets } from "./utils/spring-animations";
 import {
     animate,
     motion,

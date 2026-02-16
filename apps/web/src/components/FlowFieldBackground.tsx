@@ -6,7 +6,7 @@ import {
   ensureConnectionChain,
   getOrCreateAudioConnection,
   releaseAudioConnection,
-} from "@/utils/audioContextManager";
+} from "@starchild/audio-adapters/web/audioContextManager";
 import { useEffect, useRef, useState } from "react";
 import { FlowFieldRenderer } from "@starchild/visualizers/FlowFieldRenderer";
 

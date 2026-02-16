@@ -7,6 +7,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -43,6 +44,30 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
+
+  useEffect(() => {
+    const handleBridgeToast = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        message?: string;
+        type?: "success" | "error" | "info" | "warning";
+        duration?: number;
+      }>;
+
+      const message = customEvent.detail?.message;
+      if (!message) return;
+
+      showToast(
+        message,
+        customEvent.detail?.type ?? "info",
+        customEvent.detail?.duration ?? 3000,
+      );
+    };
+
+    window.addEventListener("starchild:toast", handleBridgeToast);
+    return () => {
+      window.removeEventListener("starchild:toast", handleBridgeToast);
+    };
+  }, [showToast]);
 
   return (
     <ToastContext.Provider value={{ showToast }}>

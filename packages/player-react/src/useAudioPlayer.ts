@@ -4,7 +4,7 @@
 
 import { AUDIO_CONSTANTS } from "@starchild/config/constants";
 import { STORAGE_KEYS } from "@starchild/config/storage";
-import { localStorage } from "@/services/storage";
+import { localStorage } from "./storageService";
 import type {
   QueuedTrack,
   SmartQueueSettings,
@@ -12,8 +12,8 @@ import type {
   Track,
 } from "@starchild/types";
 import { getStreamUrlById } from "@starchild/api-client/rest";
-import { getAudioConnection } from "@/utils/audioContextManager";
-import { logger } from "@/utils/logger";
+import { getAudioConnection } from "@starchild/audio-adapters/web/audioContextManager";
+import { logger } from "./logger";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   clearPersistedQueueState,
@@ -945,7 +945,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       if (!audio.src) return;
       try {
         const { getAudioConnection } =
-          await import("@/utils/audioContextManager");
+          await import("@starchild/audio-adapters/web/audioContextManager");
         const connection = getAudioConnection(audio);
         if (connection?.audioContext.state === "suspended") {
           await connection.audioContext.resume();
@@ -1269,7 +1269,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       preserve.webkitPreservesPitch = true;
 
       const { getAudioConnection, ensureConnectionChain } =
-        await import("@/utils/audioContextManager");
+        await import("@starchild/audio-adapters/web/audioContextManager");
       const connection = getAudioConnection(audioRef.current);
       if (connection) {
         logger.debug("[useAudioPlayer] Audio connected to Web Audio API", {
@@ -1344,14 +1344,14 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           "[useAudioPlayer] Verifying connection chain after play...",
         );
         const { verifyConnectionChain } =
-          await import("@/utils/audioContextManager");
+          await import("@starchild/audio-adapters/web/audioContextManager");
         const isValid = verifyConnectionChain(connection);
         if (!isValid) {
           logger.warn(
             "[useAudioPlayer] Connection chain invalid, rebuilding...",
           );
           const { ensureConnectionChain } =
-            await import("@/utils/audioContextManager");
+            await import("@starchild/audio-adapters/web/audioContextManager");
           ensureConnectionChain(connection);
         } else {
           logger.debug("[useAudioPlayer] Connection chain verified");

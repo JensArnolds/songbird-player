@@ -75,6 +75,12 @@
       "@starchild/player-react/*": [
         "../../packages/player-react/src/*"
       ],
+      "@starchild/audio-adapters": [
+        "../../packages/audio-adapters/src/index.ts"
+      ],
+      "@starchild/audio-adapters/*": [
+        "../../packages/audio-adapters/src/*"
+      ],
       "@starchild/visualizers": [
         "../../packages/visualizers/src/index.ts"
       ],

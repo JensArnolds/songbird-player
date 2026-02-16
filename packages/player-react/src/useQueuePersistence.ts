@@ -4,7 +4,7 @@
 
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import { AUDIO_CONSTANTS } from "@starchild/config/constants";
-import { localStorage } from "@/services/storage";
+import { localStorage } from "./storageService";
 import type { QueuedTrack, SmartQueueState, Track } from "@starchild/types";
 import { useEffect, useRef } from "react";
 
