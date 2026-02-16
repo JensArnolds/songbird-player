@@ -37,6 +37,7 @@ import type { AnyRouter } from "@trpc/server";
  *
  * @see {@link AppRouter} - The resolved router type based on this registry
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TRPCRouterRegistry {}
 
 /**

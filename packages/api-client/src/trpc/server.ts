@@ -21,7 +21,7 @@ interface CreateTRPCServerHelpersOptions<TCaller = unknown> {
    * Function to create the tRPC context with request headers.
    * Should match your `createTRPCContext` signature.
    */
-  createContext: (options: { headers: Headers }) => Promise<unknown> | unknown;
+  createContext: (options: { headers: Headers }) => unknown;
 
   /**
    * Function to create a router caller given a context factory.
@@ -69,5 +69,10 @@ export function createTRPCServerHelpers<
   const getQueryClient = cache(createQueryClient);
   const caller = options.createCaller(createContext);
 
-  return createHydrationHelpers<TRouter>(caller, getQueryClient);
+  // Type assertion: TCaller should match the decorated router type expected by createHydrationHelpers.
+  // The actual type is correctly inferred at the call site when createCaller is provided.
+  return createHydrationHelpers<TRouter>(
+    caller as Parameters<typeof createHydrationHelpers<TRouter>>[0],
+    getQueryClient,
+  );
 }
