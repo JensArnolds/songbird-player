@@ -2,9 +2,9 @@
 
 "use client";
 
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import { api } from "@/trpc/react";
-import type { Track } from "@/types";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
+import { api } from "@starchild/api-client/trpc/react";
+import type { Track } from "@starchild/types";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { formatTime } from "@/utils/time";
 import { Heart, Layers, ListPlus, Maximize2, Minimize2 } from "lucide-react";

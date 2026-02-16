@@ -1,6 +1,6 @@
 // File: src/utils/electronStorage.ts
 
-import { STORAGE_KEYS } from "@/config/storage";
+import { STORAGE_KEYS } from "@starchild/config/storage";
 import { localStorage as storage } from "@/services/storage";
 
 export const isElectron = (): boolean => {

@@ -5,7 +5,7 @@
 import { SearchSuggestionsList } from "@/components/SearchSuggestionsList";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import type { SearchSuggestionItem } from "@/types/searchSuggestions";
+import type { SearchSuggestionItem } from "@starchild/types/searchSuggestions";
 import {
   hapticError,
   hapticLight,

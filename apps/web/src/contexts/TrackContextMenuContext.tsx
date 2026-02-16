@@ -2,7 +2,7 @@
 
 "use client";
 
-import type { Track } from "@/types";
+import type { Track } from "@starchild/types";
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
 interface MenuPosition {

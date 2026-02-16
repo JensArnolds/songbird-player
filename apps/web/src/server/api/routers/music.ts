@@ -36,7 +36,7 @@ import {
   shuffleWithDiversity,
 } from "@/server/services/recommendations";
 import { songbird } from "@/services/songbird";
-import { isTrack, type Track } from "@/types";
+import { isTrack, type Track } from "@starchild/types";
 
 const trackSchema = z.object({
   id: z.number(),

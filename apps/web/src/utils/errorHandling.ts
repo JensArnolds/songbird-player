@@ -1,6 +1,6 @@
 // File: src/utils/errorHandling.ts
 
-import type { ApiError } from "@/types";
+import type { ApiError } from "@starchild/types";
 
 export type ErrorSeverity = "info" | "warning" | "error" | "critical";
 

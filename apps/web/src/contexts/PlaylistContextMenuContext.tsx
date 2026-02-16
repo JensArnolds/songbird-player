@@ -2,7 +2,7 @@
 
 "use client";
 
-import type { PlaylistWithTracks } from "@/types";
+import type { PlaylistWithTracks } from "@starchild/types";
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
 interface MenuPosition {

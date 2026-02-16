@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { type ReactNode, useMemo } from "react";
 

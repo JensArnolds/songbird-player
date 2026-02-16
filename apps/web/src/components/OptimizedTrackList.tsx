@@ -3,7 +3,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { Track } from "@/types";
+import type { Track } from "@starchild/types";
 import TrackCard from "./TrackCard";
 import { listAnimation, listItemAnimation } from "@/utils/spring-animations";
 

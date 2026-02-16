@@ -2,7 +2,7 @@
 
 "use client";
 
-import Toast, { type ToastProps } from "@/components/Toast";
+import Toast, { type ToastProps } from "@starchild/ui/Toast";
 import {
   createContext,
   useCallback,

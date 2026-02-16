@@ -1,6 +1,6 @@
 // File: src/services/storage.ts
 
-import type { StorageKey } from "@/config/storage";
+import type { StorageKey } from "@starchild/config/storage";
 
 type StorageResult<T> =
   | { success: true; data: T }

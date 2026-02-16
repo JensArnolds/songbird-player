@@ -5,8 +5,8 @@
 import { useToast } from "@/contexts/ToastContext";
 import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
 import { useWebShare } from "@/hooks/useWebShare";
-import { api } from "@/trpc/react";
-import type { Track } from "@/types";
+import { api } from "@starchild/api-client/trpc/react";
+import type { Track } from "@starchild/types";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
 import { springPresets } from "@/utils/spring-animations";

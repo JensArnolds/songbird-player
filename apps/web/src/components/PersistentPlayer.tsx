@@ -2,11 +2,11 @@
 
 "use client";
 
-import { STORAGE_KEYS } from "@/config/storage";
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { STORAGE_KEYS } from "@starchild/config/storage";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useEqualizer } from "@/hooks/useEqualizer";
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import { useSession } from "next-auth/react";

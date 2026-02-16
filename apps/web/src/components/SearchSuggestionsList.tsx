@@ -1,6 +1,6 @@
 "use client";
 
-import type { SearchSuggestionItem } from "@/types/searchSuggestions";
+import type { SearchSuggestionItem } from "@starchild/types/searchSuggestions";
 import { Disc3, Music2, Search, UserRound } from "lucide-react";
 import Image from "next/image";
 

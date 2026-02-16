@@ -18,11 +18,11 @@ import {
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
 import { useWebShare } from "@/hooks/useWebShare";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";

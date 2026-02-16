@@ -1,7 +1,7 @@
 "use client";
 
-import type { SearchSuggestionItem } from "@/types/searchSuggestions";
-import { searchTracks } from "@/utils/api";
+import type { SearchSuggestionItem } from "@starchild/types/searchSuggestions";
+import { searchTracks } from "@starchild/api-client/rest";
 import { useEffect, useMemo, useState } from "react";
 
 interface UseSearchSuggestionsOptions {

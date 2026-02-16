@@ -4,7 +4,7 @@ import {
   ENABLE_AUDIO_FEATURES,
   RECOMMENDATION_CACHE_HOURS,
 } from "@/config/features";
-import type { Track } from "@/types";
+import type { Track } from "@starchild/types";
 
 interface DeezerArtist {
   id: number;

@@ -3,8 +3,8 @@
 "use client";
 
 import { useToast } from "@/contexts/ToastContext";
-import { api } from "@/trpc/react";
-import type { Track } from "@/types";
+import { api } from "@starchild/api-client/trpc/react";
+import type { Track } from "@starchild/types";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
 import { springPresets } from "@/utils/spring-animations";

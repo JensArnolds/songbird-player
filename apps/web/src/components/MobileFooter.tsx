@@ -3,7 +3,7 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { useAuthModal } from "@/contexts/AuthModalContext";

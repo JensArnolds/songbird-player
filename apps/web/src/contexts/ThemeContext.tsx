@@ -2,7 +2,7 @@
 
 "use client";
 
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { settingsStorage } from "@/utils/settingsStorage";
 import { useSession } from "next-auth/react";
 import { createContext, useContext, useEffect, useState } from "react";

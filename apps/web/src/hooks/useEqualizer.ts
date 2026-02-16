@@ -2,9 +2,9 @@
 
 "use client";
 
-import { STORAGE_KEYS } from "@/config/storage";
+import { STORAGE_KEYS } from "@starchild/config/storage";
 import { localStorage as storage } from "@/services/storage";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {

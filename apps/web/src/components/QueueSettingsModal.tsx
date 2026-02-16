@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Settings, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
-import type { SimilarityPreference } from "@/types";
+import type { SimilarityPreference } from "@starchild/types";
 
 export interface QueueSettingsModalProps {
   isOpen: boolean;

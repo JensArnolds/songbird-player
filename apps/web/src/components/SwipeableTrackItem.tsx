@@ -2,7 +2,7 @@
 
 "use client";
 
-import type { Track } from "@/types";
+import type { Track } from "@starchild/types";
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
 import { springPresets } from "@/utils/spring-animations";

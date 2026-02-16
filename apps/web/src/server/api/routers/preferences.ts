@@ -6,7 +6,7 @@ import { z } from "zod";
 import { DEFAULT_EQUALIZER } from "@/config/audioDefaults";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { userPreferences } from "@/server/db/schema";
-import { type EqualizerSettings } from "@/types";
+import { type EqualizerSettings } from "@starchild/types";
 
 const SAFE_DEFAULTS: EqualizerSettings = DEFAULT_EQUALIZER;
 

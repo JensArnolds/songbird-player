@@ -6,7 +6,7 @@ import MobileSearchBar from "@/components/MobileSearchBar";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useMenu } from "@/contexts/MenuContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { motion } from "framer-motion";

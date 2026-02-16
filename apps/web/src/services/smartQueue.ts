@@ -1,7 +1,7 @@
 // File: src/services/smartQueue.ts
 
 import { env } from "@/env";
-import { type Track } from "@/types";
+import { type Track } from "@starchild/types";
 
 const API_BASE_URL =
   typeof window === "undefined"

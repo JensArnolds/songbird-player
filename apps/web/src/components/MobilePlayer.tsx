@@ -2,13 +2,13 @@
 
 "use client";
 
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { STORAGE_KEYS } from "@/config/storage";
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { LoadingSpinner } from "@starchild/ui/LoadingSpinner";
+import { STORAGE_KEYS } from "@starchild/config/storage";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
-import { api } from "@/trpc/react";
-import type { SimilarityPreference, Track } from "@/types";
+import { api } from "@starchild/api-client/trpc/react";
+import type { SimilarityPreference, Track } from "@starchild/types";
 import {
     extractColorsFromImage,
     type ColorPalette,

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { type ReactNode } from "react";
 
