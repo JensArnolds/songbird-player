@@ -2,8 +2,8 @@
 
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import type { Track } from "@/types";
+import { useAudioPlayer } from "@starchild/player-react/useAudioPlayer";
+import type { Track } from "@starchild/types";
 
 const mockTrack: Track = {
   id: 1,
@@ -28,7 +28,7 @@ const renderPlayerHook = (options?: Parameters<typeof useAudioPlayer>[0]) =>
     useAudioPlayer(options),
   );
 
-vi.mock("@/utils/api", () => ({
+vi.mock("@starchild/api-client/rest", () => ({
   getStreamUrlById: vi.fn().mockResolvedValue("https://example.com/stream.mp3"),
 }));
 

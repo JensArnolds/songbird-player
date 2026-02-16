@@ -1,7 +1,7 @@
 // File: src/__tests__/Toast.test.tsx
 
 import { render, screen } from "@testing-library/react";
-import Toast from "@/components/Toast";
+import Toast from "@starchild/ui/Toast";
 
 describe("Toast", () => {
   it("renders a warning toast with the warning style", () => {

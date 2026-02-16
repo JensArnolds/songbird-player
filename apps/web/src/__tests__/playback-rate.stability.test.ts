@@ -1,7 +1,7 @@
 // File: src/__tests__/playback-rate.stability.test.ts
 
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import type { Track } from "@/types";
+import { useAudioPlayer } from "@starchild/player-react/useAudioPlayer";
+import type { Track } from "@starchild/types";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -14,7 +14,7 @@ const mockTrack: Track = {
   preview: "https://example.com/preview.mp3",
 };
 
-vi.mock("@/utils/api", () => ({
+vi.mock("@starchild/api-client/rest", () => ({
   getStreamUrlById: vi.fn().mockResolvedValue("https://example.com/stream.mp3"),
 }));
 

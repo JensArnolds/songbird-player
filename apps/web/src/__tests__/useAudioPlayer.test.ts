@@ -2,8 +2,8 @@
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import type { Track } from "@/types";
+import { useAudioPlayer } from "@starchild/player-react/useAudioPlayer";
+import type { Track } from "@starchild/types";
 
 const createTrack = (id: number, title: string): Track => ({
   id,

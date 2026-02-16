@@ -1,7 +1,7 @@
 // File: src/__tests__/og-image-darkfloor-links.test.ts
 
 import { GET } from "@/app/api/og/route";
-import type { SearchResponse, Track } from "@/types";
+import type { SearchResponse, Track } from "@starchild/types";
 import { mkdir, writeFile } from "fs/promises";
 import type { NextRequest } from "next/server";
 import { join } from "path";
