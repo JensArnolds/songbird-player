@@ -36,7 +36,7 @@ vi.mock("@/contexts/MenuContext", () => ({
   useMenu: () => ({ openMenu: vi.fn() }),
 }));
 
-vi.mock("@/trpc/react", () => ({
+vi.mock("@starchild/api-client/trpc/react", () => ({
   api: {
     music: {
       getRecentSearches: {
