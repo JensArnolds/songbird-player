@@ -4,7 +4,7 @@ import {
   DEFAULT_SETTINGS,
   type SettingsKey,
   type UserSettings,
-} from "@/types/settings";
+} from "@starchild/types/settings";
 
 const SETTINGS_STORAGE_KEY = "starchild_user_settings";
 export const SETTINGS_UPDATED_EVENT = "starchild:settings-updated";

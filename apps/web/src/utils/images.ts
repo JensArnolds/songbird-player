@@ -1,6 +1,6 @@
 // File: src/utils/images.ts
 
-import type { Album, Artist, Track } from "@/types";
+import type { Album, Artist, Track } from "@starchild/types";
 
 export function getCoverImage(
   track: Track,

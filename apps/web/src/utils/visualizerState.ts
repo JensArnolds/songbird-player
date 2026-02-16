@@ -1,11 +1,11 @@
 // File: src/utils/visualizerState.ts
 
-import { STORAGE_KEYS } from "@/config/storage";
+import { STORAGE_KEYS } from "@starchild/config/storage";
 import {
   DEFAULT_VISUALIZER_STATE,
   type VisualizerSerializedState,
   type VisualizerLayoutState,
-} from "@/constants/visualizer";
+} from "@starchild/config/visualizer";
 
 const isBrowser = typeof window !== "undefined";
 
