@@ -9,6 +9,7 @@
     "./index": "./src/index.ts",
     "./rest": "./src/rest.ts",
     "./trpc/query-client": "./src/trpc/query-client.ts",
+    "./trpc/router": "./src/trpc/router.ts",
     "./trpc/react": "./src/trpc/react.tsx",
     "./trpc/server": "./src/trpc/server.ts"
   }

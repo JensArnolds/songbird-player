@@ -3,29 +3,32 @@
 import "server-only";
 
 import { createHydrationHelpers } from "@trpc/react-query/rsc";
+import type { AnyRouter } from "@trpc/server";
 import { headers } from "next/headers";
 import { cache } from "react";
 
-import {
-  createCaller,
-  type AppRouter,
-} from "../../../../apps/web/src/server/api/root";
-import { createTRPCContext } from "../../../../apps/web/src/server/api/trpc";
+import { type AppRouter } from "./router";
 import { createQueryClient } from "./query-client";
 
-const createContext = cache(async () => {
-  const heads = new Headers(await headers());
-  heads.set("x-trpc-source", "rsc");
+interface CreateTRPCServerHelpersOptions {
+  createContext: (options: { headers: Headers }) => Promise<unknown> | unknown;
+  createCaller: (createContext: () => Promise<unknown>) => any;
+}
 
-  return createTRPCContext({
-    headers: heads,
+export function createTRPCServerHelpers<TRouter extends AnyRouter = AppRouter>(
+  options: CreateTRPCServerHelpersOptions,
+) {
+  const createContext = cache(async () => {
+    const requestHeaders = new Headers(await headers());
+    requestHeaders.set("x-trpc-source", "rsc");
+
+    return options.createContext({
+      headers: requestHeaders,
+    });
   });
-});
 
-const getQueryClient = cache(createQueryClient);
-const caller = createCaller(createContext);
+  const getQueryClient = cache(createQueryClient);
+  const caller = options.createCaller(createContext);
 
-export const { trpc: api, HydrateClient } = createHydrationHelpers<AppRouter>(
-  caller,
-  getQueryClient,
-);
+  return createHydrationHelpers<TRouter>(caller, getQueryClient);
+}
