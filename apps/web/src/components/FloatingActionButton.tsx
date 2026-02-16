@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";

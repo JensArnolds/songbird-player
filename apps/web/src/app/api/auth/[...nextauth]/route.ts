@@ -8,7 +8,7 @@ import {
   logAuthDebug,
   logAuthError,
   summarizeUrlForLog,
-} from "@/server/auth/logging";
+} from "@starchild/auth/logging";
 
 function parseAuthRoute(pathname: string): {
   action: string | null;

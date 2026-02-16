@@ -1,6 +1,6 @@
 "use client";
 
-import type { Track } from "@/types";
+import type { Track } from "@starchild/types";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import { Play } from "lucide-react";

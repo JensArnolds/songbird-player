@@ -1,7 +1,7 @@
 "use client";
 
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import type { Track } from "@/types";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
+import type { Track } from "@starchild/types";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import {

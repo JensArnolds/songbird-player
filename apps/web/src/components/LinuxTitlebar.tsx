@@ -4,7 +4,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { Minus, Square, X, Maximize2 } from "lucide-react";
-import { AudioPlayerContext } from "@/contexts/AudioPlayerContext";
+import { AudioPlayerContext } from "@starchild/player-react/AudioPlayerContext";
 
 declare global {
   interface Window {

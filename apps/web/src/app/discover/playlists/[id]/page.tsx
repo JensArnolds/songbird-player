@@ -3,10 +3,10 @@
 "use client";
 
 import EnhancedTrackCard from "@/components/EnhancedTrackCard";
-import { LoadingState } from "@/components/LoadingSpinner";
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import type { Track } from "@/types";
-import { isTrack } from "@/types";
+import { LoadingState } from "@starchild/ui/LoadingSpinner";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
+import type { Track } from "@starchild/types";
+import { isTrack } from "@starchild/types";
 import { hapticLight } from "@/utils/haptics";
 import { Play, Shuffle } from "lucide-react";
 import Image from "next/image";

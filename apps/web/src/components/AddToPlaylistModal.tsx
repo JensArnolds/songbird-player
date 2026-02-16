@@ -11,8 +11,8 @@ import { useSession } from "next-auth/react";
 
 import { useToast } from "@/contexts/ToastContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
-import { api } from "@/trpc/react";
-import type { Track } from "@/types";
+import { api } from "@starchild/api-client/trpc/react";
+import type { Track } from "@starchild/types";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 

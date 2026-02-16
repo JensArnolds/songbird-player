@@ -24,7 +24,7 @@ import SuppressExtensionErrors from "@/components/SuppressExtensionErrors";
 import { TrackContextMenu } from "@/components/TrackContextMenu";
 import { UIWrapper } from "@/components/UIWrapper";
 import CookieConsent from "@/components/CookieConsent";
-import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
+import { AudioPlayerProvider } from "@starchild/player-react/AudioPlayerContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { KeyboardShortcutsProvider } from "@/contexts/KeyboardShortcutsProvider";
 import { MenuProvider } from "@/contexts/MenuContext";
@@ -33,7 +33,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TrackContextMenuProvider } from "@/contexts/TrackContextMenuContext";
 import { env } from "@/env";
-import { TRPCReactProvider } from "@/trpc/react";
+import { TRPCReactProvider } from "@starchild/api-client/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { RegisterServiceWorker } from "./register-sw";
 

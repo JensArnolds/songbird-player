@@ -3,9 +3,9 @@
 "use client";
 
 import EnhancedTrackCard from "@/components/EnhancedTrackCard";
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";

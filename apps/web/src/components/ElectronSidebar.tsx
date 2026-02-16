@@ -3,9 +3,9 @@
 "use client";
 
 import { APP_VERSION } from "@/config/version";
-import { STORAGE_KEYS } from "@/config/storage";
+import { STORAGE_KEYS } from "@starchild/config/storage";
 import { CreatePlaylistModal } from "@/components/CreatePlaylistModal";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { localStorage } from "@/services/storage";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import {

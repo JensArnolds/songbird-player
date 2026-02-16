@@ -5,14 +5,14 @@
 import { PullToRefreshWrapper } from "@/components/PullToRefreshWrapper";
 import { HomeFeedRow } from "@/components/HomeFeedRow";
 import SwipeableTrackCard from "@/components/SwipeableTrackCard";
-import { STORAGE_KEYS } from "@/config/storage";
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { STORAGE_KEYS } from "@starchild/config/storage";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { localStorage as appStorage } from "@/services/storage";
 import { useWebShare } from "@/hooks/useWebShare";
-import { api } from "@/trpc/react";
-import type { Track } from "@/types";
+import { api } from "@starchild/api-client/trpc/react";
+import type { Track } from "@starchild/types";
 import {
   getAlbumTracks,
   getLatestReleases,
@@ -23,7 +23,7 @@ import {
   getTrackById,
   searchTracks,
   searchTracksByArtist,
-} from "@/utils/api";
+} from "@starchild/api-client/rest";
 import { parsePreferredGenreId } from "@/utils/genre";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import {

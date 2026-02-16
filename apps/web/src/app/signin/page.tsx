@@ -2,14 +2,14 @@
 
 "use client";
 
-import { STORAGE_KEYS } from "@/config/storage";
+import { STORAGE_KEYS } from "@starchild/config/storage";
 import {
   OAUTH_PROVIDER_BUTTON_STYLES,
   isEnabledOAuthProviderId,
 } from "@/config/oauthProviders";
 import { localStorage as appStorage } from "@/services/storage";
 import { logAuthClientDebug } from "@/utils/authDebugClient";
-import { getGenres, type GenreListItem } from "@/utils/api";
+import { getGenres, type GenreListItem } from "@starchild/api-client/rest";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { parsePreferredGenreId } from "@/utils/genre";
 import { getProviders, signIn } from "next-auth/react";

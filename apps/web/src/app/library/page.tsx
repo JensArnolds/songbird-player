@@ -4,10 +4,10 @@
 
 import { EmptyState } from "@/components/EmptyState";
 import EnhancedTrackCard from "@/components/EnhancedTrackCard";
-import { LoadingState } from "@/components/LoadingSpinner";
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import { api } from "@/trpc/react";
-import type { FavoriteItem, ListeningHistoryItem } from "@/types";
+import { LoadingState } from "@starchild/ui/LoadingSpinner";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
+import { api } from "@starchild/api-client/trpc/react";
+import type { FavoriteItem, ListeningHistoryItem } from "@starchild/types";
 import { Clock, Heart } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";

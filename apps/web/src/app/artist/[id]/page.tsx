@@ -3,9 +3,9 @@
 "use client";
 
 import EnhancedTrackCard from "@/components/EnhancedTrackCard";
-import { LoadingState } from "@/components/LoadingSpinner";
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import type { Track } from "@/types";
+import { LoadingState } from "@starchild/ui/LoadingSpinner";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
+import type { Track } from "@starchild/types";
 import Image from "next/image";
 import Link from "next/link";
 import { use } from "react";

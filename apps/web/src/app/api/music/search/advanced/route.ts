@@ -1,7 +1,7 @@
 // File: src/app/api/music/search/advanced/route.ts
 
 import { env } from "@/env";
-import { type SearchResponse } from "@/types";
+import { type SearchResponse } from "@starchild/types";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";

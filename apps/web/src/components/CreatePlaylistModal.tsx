@@ -4,7 +4,7 @@
 
 import { useToast } from "@/contexts/ToastContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";

@@ -3,10 +3,10 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
-import { LoadingState } from "@/components/LoadingSpinner";
+import { LoadingState } from "@starchild/ui/LoadingSpinner";
 import { useToast } from "@/contexts/ToastContext";
 import { usePlaylistContextMenu } from "@/contexts/PlaylistContextMenuContext";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight } from "@/utils/haptics";
 import { Music, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";

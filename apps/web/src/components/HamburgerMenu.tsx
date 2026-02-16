@@ -5,7 +5,7 @@
 import { APP_VERSION } from "@/config/version";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useMenu } from "@/contexts/MenuContext";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { AnimatePresence, motion } from "framer-motion";

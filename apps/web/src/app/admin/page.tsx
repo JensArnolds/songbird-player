@@ -3,7 +3,7 @@
 "use client";
 
 import { useToast } from "@/contexts/ToastContext";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import {
   Activity,
   BarChart3,

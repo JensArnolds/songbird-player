@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useIsElectron } from "@/hooks/useIsElectron";
 import { useEffect } from "react";
 

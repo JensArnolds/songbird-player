@@ -2,14 +2,14 @@
 
 "use client";
 
-import Button from "@/components/Button";
+import Button from "@starchild/ui/Button";
 import EnhancedTrackCard from "@/components/EnhancedTrackCard";
 import ProfileHeader from "@/components/ProfileHeader";
-import Section from "@/components/Section";
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import Section from "@starchild/ui/Section";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useWebShare } from "@/hooks/useWebShare";
-import { api } from "@/trpc/react";
-import type { Track } from "@/types";
+import { api } from "@starchild/api-client/trpc/react";
+import type { Track } from "@starchild/types";
 import { haptic } from "@/utils/haptics";
 import Image from "next/image";
 import Link from "next/link";

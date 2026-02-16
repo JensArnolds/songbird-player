@@ -2,12 +2,12 @@
 
 "use client";
 
-import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
+import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { api } from "@/trpc/react";
-import type { SettingsKey } from "@/types/settings";
+import { api } from "@starchild/api-client/trpc/react";
+import type { SettingsKey } from "@starchild/types/settings";
 import { hapticLight, hapticToggle } from "@/utils/haptics";
 import { settingsStorage } from "@/utils/settingsStorage";
 import { springPresets } from "@/utils/spring-animations";

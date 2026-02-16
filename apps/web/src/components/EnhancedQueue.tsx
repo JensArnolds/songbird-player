@@ -2,17 +2,17 @@
 
 "use client";
 
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LoadingSpinner } from "@starchild/ui/LoadingSpinner";
 import { useToast } from "@/contexts/ToastContext";
 import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 import type {
   QueuedTrack,
   SimilarityPreference,
   SmartQueueMetadata,
   SmartQueueState,
   Track,
-} from "@/types";
+} from "@starchild/types";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import {

@@ -1,7 +1,7 @@
 // File: src/app/page.tsx
 
 import { env } from "@/env";
-import type { SearchResponse, Track } from "@/types";
+import type { SearchResponse, Track } from "@starchild/types";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { type Metadata } from "next";
 import { headers } from "next/headers";

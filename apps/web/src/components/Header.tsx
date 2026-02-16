@@ -5,8 +5,8 @@
 import { SearchSuggestionsList } from "@/components/SearchSuggestionsList";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { api } from "@/trpc/react";
-import type { SearchSuggestionItem } from "@/types/searchSuggestions";
+import { api } from "@starchild/api-client/trpc/react";
+import type { SearchSuggestionItem } from "@starchild/types/searchSuggestions";
 import { normalizeHealthStatus } from "@/utils/healthStatus";
 import { Home, Library, Search } from "lucide-react";
 import { useSession } from "next-auth/react";
