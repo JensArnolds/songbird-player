@@ -3,8 +3,8 @@
 "use client";
 
 import {
-    ensureConnectionChain,
-    getOrCreateAudioConnection,
+  ensureConnectionChain,
+  getOrCreateAudioConnection,
 } from "@starchild/audio-adapters/web/audioContextManager";
 import { useEffect, useRef } from "react";
 import { FlowFieldRenderer } from "./FlowFieldRenderer";
