@@ -4,8 +4,8 @@
 
 import { ChevronDown, Layers } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
-import type { Pattern } from "./visualizers/flowfieldPatterns/patternIds";
+import type { FlowFieldRenderer } from "@starchild/visualizers/FlowFieldRenderer";
+import type { Pattern } from "@starchild/visualizers/flowfieldPatterns/patternIds";
 
 interface PatternControlsProps {
   renderer: FlowFieldRenderer | null;

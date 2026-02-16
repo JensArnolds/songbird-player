@@ -18,7 +18,7 @@ import {
 } from "@/utils/settingsStorage";
 import { LightweightParticleBackground } from "./LightweightParticleBackground";
 import MaturePlayer from "./Player";
-import type { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
+import type { FlowFieldRenderer } from "@starchild/visualizers/FlowFieldRenderer";
 import { VISUALIZER_SHORTCUT_TOGGLE_EVENT } from "@/contexts/KeyboardShortcutsProvider";
 
 const FlowFieldBackground = dynamic(

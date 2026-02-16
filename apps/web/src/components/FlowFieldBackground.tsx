@@ -8,7 +8,7 @@ import {
   releaseAudioConnection,
 } from "@/utils/audioContextManager";
 import { useEffect, useRef, useState } from "react";
-import { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
+import { FlowFieldRenderer } from "@starchild/visualizers/FlowFieldRenderer";
 
 interface FlowFieldBackgroundProps {
   audioElement: HTMLAudioElement | null;

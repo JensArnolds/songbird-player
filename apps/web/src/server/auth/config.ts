@@ -21,8 +21,8 @@ import {
   logAuthInfo,
   logAuthWarn,
   summarizeUrlForLog,
-} from "./logging";
-import { createSpotifyProvider } from "./spotifyProvider";
+} from "@starchild/auth/logging";
+import { createSpotifyProvider } from "@starchild/auth/spotifyProvider";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
