@@ -2,5 +2,15 @@
   "name": "@starchild/ui",
   "private": true,
   "version": "0.0.0",
-  "description": "Planned shared UI workspace"
+  "type": "module",
+  "description": "Shared UI components",
+  "exports": {
+    ".": "./src/index.ts",
+    "./index": "./src/index.ts",
+    "./Button": "./src/Button.tsx",
+    "./LoadingSpinner": "./src/LoadingSpinner.tsx",
+    "./Section": "./src/Section.tsx",
+    "./Toast": "./src/Toast.tsx",
+    "./SmoothSlider": "./src/SmoothSlider.tsx"
+  }
 }

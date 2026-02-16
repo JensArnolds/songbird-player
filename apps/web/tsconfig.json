@@ -38,6 +38,54 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@starchild/types": [
+        "../../packages/types/src/index.ts"
+      ],
+      "@starchild/types/*": [
+        "../../packages/types/src/*"
+      ],
+      "@starchild/config": [
+        "../../packages/config/src/index.ts"
+      ],
+      "@starchild/config/*": [
+        "../../packages/config/src/*"
+      ],
+      "@starchild/auth": [
+        "../../packages/auth/src/index.ts"
+      ],
+      "@starchild/auth/*": [
+        "../../packages/auth/src/*"
+      ],
+      "@starchild/api-client": [
+        "../../packages/api-client/src/index.ts"
+      ],
+      "@starchild/api-client/*": [
+        "../../packages/api-client/src/*"
+      ],
+      "@starchild/player-core": [
+        "../../packages/player-core/src/index.ts"
+      ],
+      "@starchild/player-core/*": [
+        "../../packages/player-core/src/*"
+      ],
+      "@starchild/player-react": [
+        "../../packages/player-react/src/index.ts"
+      ],
+      "@starchild/player-react/*": [
+        "../../packages/player-react/src/*"
+      ],
+      "@starchild/visualizers": [
+        "../../packages/visualizers/src/index.ts"
+      ],
+      "@starchild/visualizers/*": [
+        "../../packages/visualizers/src/*"
+      ],
+      "@starchild/ui": [
+        "../../packages/ui/src/index.ts"
+      ],
+      "@starchild/ui/*": [
+        "../../packages/ui/src/*"
       ]
     }
   },
@@ -47,6 +95,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
+    "../../packages/**/*.ts",
+    "../../packages/**/*.tsx",
     "../../.next/types/**/*.ts",
     "../../.next/dev/types/**/*.ts"
   ],

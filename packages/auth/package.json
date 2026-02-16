@@ -2,5 +2,12 @@
   "name": "@starchild/auth",
   "private": true,
   "version": "0.0.0",
-  "description": "Planned shared auth workspace"
+  "type": "module",
+  "description": "Shared auth helpers",
+  "exports": {
+    ".": "./src/index.ts",
+    "./index": "./src/index.ts",
+    "./logging": "./src/logging.ts",
+    "./spotifyProvider": "./src/spotifyProvider.ts"
+  }
 }

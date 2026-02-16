@@ -163,6 +163,7 @@ const config = {
   },
 
   experimental: {
+    externalDir: true,
     optimizePackageImports: [
       "lucide-react",
       "framer-motion",
