@@ -1,4 +1,4 @@
-// File: src/components/ElectronSidebar.tsx
+// File: src/components/DesktopSidebar.tsx
 
 "use client";
 
@@ -24,7 +24,7 @@ import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 type NavItem = {
   href: string;
@@ -34,7 +34,24 @@ type NavItem = {
   callbackUrl?: string;
 };
 
-export function ElectronSidebar() {
+const COLLAPSED_WIDTH = 76;
+const DEFAULT_EXPANDED_WIDTH = 272;
+const MIN_EXPANDED_WIDTH = 220;
+const MAX_EXPANDED_WIDTH = 420;
+
+const clampSidebarWidth = (value: unknown): number => {
+  const numericValue =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : Number.NaN;
+
+  if (!Number.isFinite(numericValue)) return DEFAULT_EXPANDED_WIDTH;
+  return Math.max(MIN_EXPANDED_WIDTH, Math.min(MAX_EXPANDED_WIDTH, Math.round(numericValue)));
+};
+
+export function DesktopSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isAdmin = session?.user?.admin === true;
@@ -47,9 +64,21 @@ export function ElectronSidebar() {
       false,
     );
   });
+  const [expandedWidth, setExpandedWidth] = useState(() => {
+    if (typeof window === "undefined") return DEFAULT_EXPANDED_WIDTH;
+    const storedWidth = localStorage.getOrDefault<number>(
+      STORAGE_KEYS.DESKTOP_SIDEBAR_WIDTH,
+      DEFAULT_EXPANDED_WIDTH,
+    );
+    return clampSidebarWidth(storedWidth);
+  });
+  const [isResizing, setIsResizing] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const resizePointerIdRef = useRef<number | null>(null);
+  const resizeStartXRef = useRef(0);
+  const resizeStartWidthRef = useRef(DEFAULT_EXPANDED_WIDTH);
 
-  const width = collapsed ? 76 : 272;
+  const width = collapsed ? COLLAPSED_WIDTH : expandedWidth;
 
   // Set sidebar width CSS variable (used by Header positioning)
   useEffect(() => {
@@ -65,6 +94,74 @@ export function ElectronSidebar() {
       document.documentElement.style.removeProperty("--electron-sidebar-width");
     };
   }, []);
+
+  useEffect(() => {
+    if (collapsed || isResizing) return;
+    localStorage.set(STORAGE_KEYS.DESKTOP_SIDEBAR_WIDTH, expandedWidth);
+  }, [collapsed, isResizing, expandedWidth]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (
+        resizePointerIdRef.current !== null &&
+        event.pointerId !== resizePointerIdRef.current
+      ) {
+        return;
+      }
+
+      const deltaX = event.clientX - resizeStartXRef.current;
+      const nextWidth = clampSidebarWidth(resizeStartWidthRef.current + deltaX);
+      setExpandedWidth((previousWidth) =>
+        previousWidth === nextWidth ? previousWidth : nextWidth,
+      );
+    };
+
+    const finishResize = (event?: PointerEvent) => {
+      if (
+        event &&
+        resizePointerIdRef.current !== null &&
+        event.pointerId !== resizePointerIdRef.current
+      ) {
+        return;
+      }
+
+      resizePointerIdRef.current = null;
+      setIsResizing(false);
+    };
+
+    const previousCursor = document.body.style.cursor;
+    const previousUserSelect = document.body.style.userSelect;
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", finishResize);
+    window.addEventListener("pointercancel", finishResize);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", finishResize);
+      window.removeEventListener("pointercancel", finishResize);
+      document.body.style.cursor = previousCursor;
+      document.body.style.userSelect = previousUserSelect;
+    };
+  }, [isResizing]);
+
+  const startResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (collapsed || event.button !== 0) return;
+    if (!Number.isFinite(event.clientX)) {
+      console.warn("[DesktopSidebar] Invalid pointer position while starting resize.");
+      return;
+    }
+
+    resizePointerIdRef.current = event.pointerId;
+    resizeStartXRef.current = event.clientX;
+    resizeStartWidthRef.current = expandedWidth;
+    setIsResizing(true);
+    event.preventDefault();
+  };
 
   const { data: userHash } = api.music.getCurrentUserHash.useQuery(undefined, {
     enabled: !!session,
@@ -147,6 +244,23 @@ export function ElectronSidebar() {
         className="electron-sidebar theme-chrome-sidebar relative sticky top-0 z-40 flex h-screen shrink-0 border-r max-md:hidden"
         style={{ width }}
       >
+        <div
+          className={`electron-no-drag absolute top-0 right-0 z-50 h-full w-2 cursor-ew-resize transition-colors ${
+            collapsed
+              ? "pointer-events-none"
+              : isResizing
+                ? "bg-[rgba(244,178,102,0.35)]"
+                : "hover:bg-[rgba(244,178,102,0.2)]"
+          }`}
+          onPointerDown={startResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          aria-valuemin={MIN_EXPANDED_WIDTH}
+          aria-valuemax={MAX_EXPANDED_WIDTH}
+          aria-valuenow={expandedWidth}
+        />
+
         {/* Drawer-style toggle button */}
         {/* Offset down by 10% */}
         <button

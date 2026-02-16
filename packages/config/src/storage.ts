@@ -37,6 +37,7 @@ export const STORAGE_KEYS = {
   PREFERRED_GENRE_NAME: `${STORAGE_PREFIX}preferred_genre_name`,
 
   DESKTOP_SIDEBAR_COLLAPSED: `${STORAGE_PREFIX}desktop_sidebar_collapsed`,
+  DESKTOP_SIDEBAR_WIDTH: `${STORAGE_PREFIX}desktop_sidebar_width`,
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

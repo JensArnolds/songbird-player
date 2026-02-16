@@ -6,7 +6,7 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { DesktopRightRail } from "./DesktopRightRail";
-import { ElectronSidebar } from "./ElectronSidebar";
+import { DesktopSidebar } from "./DesktopSidebar";
 
 export function DesktopShell({ children }: { children: ReactNode }) {
   const isMobile = useIsMobile();
@@ -50,7 +50,7 @@ export function DesktopShell({ children }: { children: ReactNode }) {
       className="desktop-shell flex h-screen w-full overflow-hidden"
       style={{ paddingTop: isLinuxElectron ? "36px" : "0" }}
     >
-      <ElectronSidebar />
+      <DesktopSidebar />
       <div className="desktop-main min-w-0 flex-1 p-2 md:p-3">
         <div className="desktop-surface flex h-full min-h-0 flex-col overflow-hidden rounded-[1.25rem] border">
           <div className="desktop-scroll min-h-0 flex-1 overflow-y-auto">
