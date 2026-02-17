@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Resizable desktop sidebar**: Added horizontal drag resizing with persisted expanded width to improve desktop layout control and cross-session consistency. Locations: `apps/web/src/components/DesktopSidebar.tsx`, `packages/config/src/storage.ts`.
+- **Five new Firefox-friendly FlowField visuals**: Added `scanGrid`, `pulseColumns`, `radarSweep`, `cometTrails`, and `phaseBands` as new selectable patterns designed for low-overhead rendering and stable frame pacing. Locations: `packages/visualizers/src/FlowFieldRenderer.ts`, `packages/visualizers/src/flowfieldPatterns/patternIds.ts`, `packages/visualizers/src/FlowFieldCanvas.tsx`.
 
 ### Changed
 
 - **Sidebar naming for cross-platform use**: Renamed the sidebar component from `ElectronSidebar` to `DesktopSidebar` to better reflect usage across desktop web, PWA, and Electron shells. Locations: `apps/web/src/components/DesktopShell.tsx`, `apps/web/src/components/DesktopSidebar.tsx`.
 - **OAuth provider selection/styling consolidation**: Sign-in surfaces now use shared OAuth provider guards and style helpers, reducing duplicated provider filtering logic and improving type safety. Locations: `apps/web/src/config/oauthProviders.ts`, `apps/web/src/app/signin/page.tsx`, `apps/web/src/components/AuthModal.tsx`.
+- **FlowField renderer pattern registry update**: Extended typed pattern unions, renderer switch routing, and runtime pattern validation to include the new visuals while preserving DRY/KISS structure and strict pattern typing. Locations: `packages/visualizers/src/flowfieldPatterns/patternIds.ts`, `packages/visualizers/src/FlowFieldRenderer.ts`, `packages/visualizers/src/FlowFieldCanvas.tsx`.
 
 ### Removed
 

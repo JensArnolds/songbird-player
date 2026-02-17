@@ -182,6 +182,11 @@ export class FlowFieldRenderer {
     "nebulaDrift",
     "crystalPulse",
     "tesseractSpin",
+    "scanGrid",
+    "pulseColumns",
+    "radarSweep",
+    "cometTrails",
+    "phaseBands",
     "valknut",
   ];
 
@@ -3504,6 +3509,21 @@ export class FlowFieldRenderer {
           bassIntensity,
           trebleIntensity,
         );
+        break;
+      case "scanGrid":
+        this.renderScanGrid(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "pulseColumns":
+        this.renderPulseColumns(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "radarSweep":
+        this.renderRadarSweep(audioIntensity, bassIntensity, midIntensity);
+        break;
+      case "cometTrails":
+        this.renderCometTrails(audioIntensity, bassIntensity, trebleIntensity);
+        break;
+      case "phaseBands":
+        this.renderPhaseBands(audioIntensity, bassIntensity, midIntensity);
         break;
       case "valknut":
         this.renderValknut(audioIntensity, bassIntensity, trebleIntensity);
@@ -15512,6 +15532,352 @@ export class FlowFieldRenderer {
       if (useShadows && depth > 0.6) {
         ctx.shadowBlur = 0;
       }
+    }
+
+    ctx.restore();
+  }
+
+  private renderScanGrid(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const time = this.time * 0.001;
+    const detailScale = this.getAdaptiveDetailScale(this.width * this.height);
+    const spacingScale = detailScale < 1 ? 1 / detailScale : 1;
+    const spacing = (22 + audioIntensity * 12) * spacingScale;
+    const halfWidth = this.width * 0.7;
+    const halfHeight = this.height * 0.7;
+    const lines = ((halfHeight / spacing) | 0) + 2;
+    const baseRotation = time * (0.45 + bassIntensity * 0.4);
+    const lineWidth = 0.9 + trebleIntensity * 1.5;
+    const driftBase = 4 + bassIntensity * 12;
+    const baseHue = this.fastMod360(this.hueBase + time * 110);
+
+    for (let layer = 0; layer < 2; layer++) {
+      ctx.save();
+      ctx.rotate(baseRotation + layer * (Math.PI * 0.5 + 0.16));
+      ctx.strokeStyle = this.hsla(
+        this.fastMod360(baseHue + layer * 120),
+        84,
+        60 + layer * 6,
+        0.16 + audioIntensity * 0.22,
+      );
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+
+      for (let i = -lines; i <= lines; i++) {
+        const wobble =
+          driftBase * this.fastSin(time * 1.9 + i * 0.33 + layer * 0.8);
+        const y = i * spacing + wobble;
+        ctx.moveTo(-halfWidth, y);
+        ctx.lineTo(halfWidth, y);
+      }
+
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  private renderPulseColumns(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+
+    const time = this.time * 0.024;
+    const detailScale = this.getAdaptiveDetailScale(this.width * this.height);
+    const columnCount = Math.max(
+      16,
+      ((30 + ((audioIntensity * 26) | 0)) * detailScale) | 0,
+    );
+    const stride = this.width / columnCount;
+    const columnWidth = Math.max(2, stride * 0.72);
+    const maxHeight = this.height * (0.22 + bassIntensity * 0.38);
+    const baselineY = this.height * 0.88;
+    const baseHue = this.fastMod360(this.hueBase + time * 30);
+    const globalGain = 0.58 + audioIntensity * 0.72;
+
+    for (let bucket = 0; bucket < 3; bucket++) {
+      ctx.fillStyle = this.hsla(
+        this.fastMod360(baseHue + bucket * 42),
+        86,
+        60 + bucket * 5,
+        0.26 + audioIntensity * 0.26,
+      );
+
+      for (let i = bucket; i < columnCount; i += 3) {
+        const phase = time * (1.5 + bassIntensity * 0.7) + i * 0.31;
+        const overtone = time * 2.9 + i * 0.12;
+        const response =
+          (this.fastSin(phase) * 0.65 + this.fastSin(overtone) * 0.35 + 1) *
+          0.5;
+        const height =
+          maxHeight * (0.18 + response * 0.82) * globalGain;
+        const x = i * stride + (stride - columnWidth) * 0.5;
+        const y = baselineY - height;
+
+        ctx.fillRect(x, y, columnWidth, height);
+      }
+    }
+
+    const capHeight = Math.max(1.2, 1.4 + trebleIntensity * 2.2);
+    ctx.fillStyle = this.hsla(
+      this.fastMod360(baseHue + 120),
+      92,
+      78,
+      0.35 + audioIntensity * 0.28,
+    );
+    for (let i = 0; i < columnCount; i += 2) {
+      const phase = time * (1.5 + bassIntensity * 0.7) + i * 0.31;
+      const overtone = time * 2.9 + i * 0.12;
+      const response =
+        (this.fastSin(phase) * 0.65 + this.fastSin(overtone) * 0.35 + 1) * 0.5;
+      const height = maxHeight * (0.18 + response * 0.82) * globalGain;
+      const x = i * stride + (stride - columnWidth) * 0.5;
+      const y = baselineY - height;
+      ctx.fillRect(x, y - capHeight, columnWidth, capHeight);
+    }
+
+    ctx.restore();
+  }
+
+  private renderRadarSweep(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const time = this.time * 0.0012;
+    const detailScale = this.getAdaptiveDetailScale(this.width * this.height);
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const maxRadius = Math.min(this.width, this.height) * 0.42;
+    const ringCount = Math.max(
+      3,
+      ((6 + ((audioIntensity * 4) | 0)) * detailScale) | 0,
+    );
+    const spokeCount = Math.max(
+      8,
+      ((12 + ((midIntensity * 10) | 0)) * detailScale) | 0,
+    );
+    const ringStep = maxRadius / ringCount;
+    const baseHue = this.fastMod360(this.hueBase + time * 90);
+    const sweepAngle = time * (1.5 + bassIntensity * 0.8);
+    const sweepWidth = 0.26 + bassIntensity * 0.28;
+
+    ctx.strokeStyle = this.hsla(baseHue, 74, 56, 0.2 + audioIntensity * 0.2);
+    ctx.lineWidth = 1 + midIntensity * 1.4;
+    ctx.beginPath();
+    for (let ring = 1; ring <= ringCount; ring++) {
+      const radius = ring * ringStep;
+      ctx.moveTo(radius, 0);
+      ctx.arc(0, 0, radius, 0, twoPi);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = this.hsla(
+      this.fastMod360(baseHue + 90),
+      80,
+      62,
+      0.12 + audioIntensity * 0.14,
+    );
+    ctx.lineWidth = 0.8 + midIntensity * 0.9;
+    ctx.beginPath();
+    for (let spoke = 0; spoke < spokeCount; spoke++) {
+      const angle = (twoPi * spoke) / spokeCount;
+      const x = this.fastCos(angle) * maxRadius;
+      const y = this.fastSin(angle) * maxRadius;
+      ctx.moveTo(0, 0);
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = this.hsla(
+      this.fastMod360(baseHue + 25),
+      88,
+      62,
+      0.08 + audioIntensity * 0.12,
+    );
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, maxRadius, sweepAngle - sweepWidth, sweepAngle);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = this.hsla(
+      this.fastMod360(baseHue + 10),
+      92,
+      74,
+      0.38 + audioIntensity * 0.3,
+    );
+    ctx.lineWidth = 1.2 + midIntensity * 1.6;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(
+      this.fastCos(sweepAngle) * maxRadius,
+      this.fastSin(sweepAngle) * maxRadius,
+    );
+    ctx.stroke();
+
+    const nodeCount = Math.max(
+      12,
+      ((20 + ((midIntensity * 14) | 0)) * detailScale) | 0,
+    );
+    for (let node = 0; node < nodeCount; node++) {
+      const ring = 1 + (node % ringCount);
+      const radius = ring * ringStep;
+      const angle = (twoPi * node) / nodeCount + time * 0.3;
+      const wrapped =
+        ((angle - sweepAngle + Math.PI * 3) % twoPi) - Math.PI;
+      const visibility = Math.max(
+        0,
+        1 - Math.abs(wrapped) / (0.9 + bassIntensity * 0.9),
+      );
+      if (visibility <= 0.08) continue;
+
+      const x = this.fastCos(angle) * radius;
+      const y = this.fastSin(angle) * radius;
+      const size = 1.2 + visibility * 2.4 + midIntensity * 1.3;
+      ctx.fillStyle = this.hsla(
+        this.fastMod360(baseHue + ring * 20),
+        92,
+        74,
+        0.25 + visibility * 0.45,
+      );
+      ctx.fillRect(x - size * 0.5, y - size * 0.5, size, size);
+    }
+
+    ctx.restore();
+  }
+
+  private renderCometTrails(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+
+    const time = this.time * 0.0009;
+    const detailScale = this.getAdaptiveDetailScale(this.width * this.height);
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const cometCount = Math.max(
+      14,
+      ((26 + ((audioIntensity * 24) | 0)) * detailScale) | 0,
+    );
+    const maxRadius = Math.min(this.width, this.height) * 0.48;
+    const baseHue = this.fastMod360(this.hueBase + time * 85);
+
+    for (let bucket = 0; bucket < 3; bucket++) {
+      ctx.strokeStyle = this.hsla(
+        this.fastMod360(baseHue + bucket * 36),
+        88,
+        62 + bucket * 4,
+        0.2 + audioIntensity * 0.24,
+      );
+      ctx.lineWidth = 0.9 + trebleIntensity * 1.5;
+      ctx.beginPath();
+
+      for (let i = bucket; i < cometCount; i += 3) {
+        const t = i / cometCount;
+        const orbitRadius = maxRadius * (0.2 + t * 0.8);
+        const angle = t * twoPi + time * (0.9 + (i % 5) * 0.13);
+        const wobble = this.fastSin(time * 2.3 + i * 0.31) * (8 + bassIntensity * 18);
+        const radius = orbitRadius + wobble;
+        const x = this.fastCos(angle) * radius;
+        const y = this.fastSin(angle) * radius;
+        const tailLength = 12 + bassIntensity * 24 + t * 9;
+        const tailAngle = angle + time * 0.55;
+        const tailX = x - this.fastCos(tailAngle) * tailLength;
+        const tailY = y - this.fastSin(tailAngle) * tailLength;
+
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(x, y);
+
+        const head = 1.6 + trebleIntensity * 2.1 + (i % 3) * 0.45;
+        ctx.fillStyle = this.hsla(
+          this.fastMod360(baseHue + bucket * 36 + 18),
+          95,
+          74,
+          0.34 + audioIntensity * 0.34,
+        );
+        ctx.fillRect(x - head * 0.5, y - head * 0.5, head, head);
+      }
+
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  private renderPhaseBands(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+
+    const time = this.time * 0.017;
+    const detailScale = this.getAdaptiveDetailScale(this.width * this.height);
+    const bandCount = Math.max(
+      3,
+      ((5 + ((audioIntensity * 3) | 0)) * detailScale) | 0,
+    );
+    const points = Math.max(72, (160 * detailScale) | 0);
+    const stepX = this.width / points;
+    const baseHue = this.fastMod360(this.hueBase + time * 40);
+    const verticalSpacing = this.height / (bandCount + 1);
+
+    for (let band = 0; band < bandCount; band++) {
+      const yBase = verticalSpacing * (band + 1);
+      const amplitude =
+        (12 + bassIntensity * 34) * (1 + band * 0.08);
+      const frequency = 0.72 + band * 0.24 + midIntensity * 0.95;
+      const drift = time * (1 + band * 0.17);
+
+      ctx.strokeStyle = this.hsla(
+        this.fastMod360(baseHue + band * 34),
+        84,
+        60 + band * 4,
+        0.22 + audioIntensity * 0.24,
+      );
+      ctx.lineWidth = 1.1 + midIntensity * 1.5;
+      ctx.beginPath();
+
+      for (let p = 0; p <= points; p++) {
+        const x = p * stepX;
+        const angle = p * 0.12 * frequency + drift;
+        const y =
+          yBase +
+          this.fastSin(angle) * amplitude +
+          this.fastSin(angle * 0.47 + time * 0.85) * amplitude * 0.35;
+
+        if (p === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+
+      ctx.stroke();
     }
 
     ctx.restore();

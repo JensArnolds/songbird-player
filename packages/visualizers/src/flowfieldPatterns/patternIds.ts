@@ -116,4 +116,9 @@ export type Pattern =
   | "nebulaDrift"
   | "crystalPulse"
   | "tesseractSpin"
+  | "scanGrid"
+  | "pulseColumns"
+  | "radarSweep"
+  | "cometTrails"
+  | "phaseBands"
   | "valknut";

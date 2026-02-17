@@ -135,6 +135,11 @@ const VALID_PATTERNS = new Set<string>([
   "nebulaDrift",
   "crystalPulse",
   "tesseractSpin",
+  "scanGrid",
+  "pulseColumns",
+  "radarSweep",
+  "cometTrails",
+  "phaseBands",
   "valknut",
 ]);
 
