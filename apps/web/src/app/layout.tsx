@@ -64,7 +64,8 @@ export const metadata: Metadata = {
     "Modern music streaming and discovery platform with advanced audio features and visual patterns",
   applicationName: "Starchild Music",
   icons: [
-    { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },
+    { rel: "icon", url: "/emily-the-strange.png", type: "image/png" },
+    { rel: "apple-touch-icon", url: "/emily-the-strange.png", type: "image/png" },
     { rel: "icon", url: "/favicon.ico" },
   ],
   manifest: "/manifest.json",

@@ -290,7 +290,7 @@ export function DesktopSidebar() {
               className={`flex items-center ${collapsed ? "justify-center" : "justify-start"} rounded-xl px-2 py-1.5`}
             >
               <Image
-                src="/icon.png"
+                src="/emily-the-strange.png"
                 alt="Starchild"
                 width={36}
                 height={36}

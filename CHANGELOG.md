@@ -5,6 +5,21 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-02-17
+
+### Changed
+
+- **Emily icon unified as canonical app icon**: Updated shell branding surfaces to use `/emily-the-strange.png` so sidebar/drawer icon rendering is consistent. Locations: `apps/web/src/components/DesktopSidebar.tsx`, `apps/web/src/components/HamburgerMenu.tsx`.
+- **Web app icon metadata switched to Emily**: Root metadata now publishes `emily-the-strange.png` for browser/app icon + Apple touch icon, with `favicon.ico` retained as fallback. Location: `apps/web/src/app/layout.tsx`.
+- **Electron/Linux icon resolution updated**: Main process now prefers `emily-the-strange.png` for window icon lookup, with legacy `icon.png` fallback preserved. Location: `apps/desktop/electron/main.cjs`.
+- **Linux build icon source updated**: Electron Builder Linux icon path now points to Emily source art. Location: `package.json`.
+- **Icon assets regenerated from Emily source**: Refreshed `icon.png`, `icon-192.png`, `icon-512.png`, `icon.ico`, and `favicon.ico` from `apps/web/public/emily-the-strange.png`. Locations: `apps/web/public/icon.png`, `apps/web/public/icon-192.png`, `apps/web/public/icon-512.png`, `apps/web/public/icon.ico`, `apps/web/public/favicon.ico`.
+- **Proxy matcher hardened for static icon/PWA assets**: Excluded `manifest.json`, `sw.js`, and icon files (including Emily) from proxy middleware matching. Location: `apps/web/src/proxy.ts`.
+
+### Removed
+
+- **Obsolete icon placeholder note**: Deleted the temporary icon reminder file now that generated PWA icons are present. Location: `apps/web/public/icon-192.png.txt`.
+
 ## [1.0.2] - 2026-02-17
 
 ### Added

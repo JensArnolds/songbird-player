@@ -585,7 +585,25 @@ const getIconPath = () => {
           ".next",
           "standalone",
           "public",
+          "emily-the-strange.png",
+        )
+      : undefined,
+    app.isPackaged
+      ? path.join(
+          path.dirname(process.execPath),
+          ".next",
+          "standalone",
+          "public",
           "icon.png",
+        )
+      : undefined,
+    process.resourcesPath
+      ? path.join(
+          process.resourcesPath,
+          ".next",
+          "standalone",
+          "public",
+          "emily-the-strange.png",
         )
       : undefined,
     process.resourcesPath
@@ -597,6 +615,7 @@ const getIconPath = () => {
           "icon.png",
         )
       : undefined,
+    path.join(webPublicDir, "emily-the-strange.png"),
     path.join(webPublicDir, "icon.png"),
   ].filter(Boolean);
 
