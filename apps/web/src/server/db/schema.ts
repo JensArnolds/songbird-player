@@ -8,6 +8,7 @@ import {
   unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import type { Track } from "@starchild/types";
 
 export const createTable = pgTableCreator((name) => `hexmusic-stream_${name}`);
 
@@ -114,7 +115,7 @@ export const favorites = createTable(
       .references(() => users.id, { onDelete: "cascade" }),
     trackId: d.bigint({ mode: "number" }).notNull(),
     deezerId: d.bigint({ mode: "number" }),
-    trackData: d.jsonb().notNull(),
+    trackData: d.jsonb().$type<Track>().notNull(),
     createdAt: d
       .timestamp({ withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -163,7 +164,7 @@ export const playlistTracks = createTable(
       .references(() => playlists.id, { onDelete: "cascade" }),
     trackId: d.bigint({ mode: "number" }).notNull(),
     deezerId: d.bigint({ mode: "number" }),
-    trackData: d.jsonb().notNull(),
+    trackData: d.jsonb().$type<Track>().notNull(),
     position: d.integer().notNull(),
     addedAt: d
       .timestamp({ withTimezone: true })
@@ -188,7 +189,7 @@ export const listeningHistory = createTable(
       .references(() => users.id, { onDelete: "cascade" }),
     trackId: d.bigint({ mode: "number" }).notNull(),
     deezerId: d.bigint({ mode: "number" }),
-    trackData: d.jsonb().notNull(),
+    trackData: d.jsonb().$type<Track>().notNull(),
     playedAt: d
       .timestamp({ withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -358,14 +359,14 @@ export const playbackState = createTable(
     sessionId: d
       .integer()
       .references(() => playerSessions.id, { onDelete: "set null" }),
-    currentTrack: d.jsonb(),
+    currentTrack: d.jsonb().$type<Track | null>(),
     currentTrackDeezerId: d.bigint({ mode: "number" }),
     currentPosition: d.integer().default(0),
-    queue: d.jsonb(),
-    history: d.jsonb(),
+    queue: d.jsonb().$type<Track[]>(),
+    history: d.jsonb().$type<Track[]>(),
     isShuffled: d.boolean().default(false).notNull(),
     repeatMode: d.varchar({ length: 20 }).default("none").notNull(),
-    originalQueueOrder: d.jsonb(),
+    originalQueueOrder: d.jsonb().$type<Track[]>(),
     lastUpdated: d
       .timestamp({ withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -389,7 +390,7 @@ export const listeningAnalytics = createTable(
       .references(() => users.id, { onDelete: "cascade" }),
     trackId: d.bigint({ mode: "number" }).notNull(),
     deezerId: d.bigint({ mode: "number" }),
-    trackData: d.jsonb().notNull(),
+    trackData: d.jsonb().$type<Track>().notNull(),
     sessionId: d
       .integer()
       .references(() => playerSessions.id, { onDelete: "set null" }),
@@ -422,8 +423,8 @@ export const recommendationCache = createTable(
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     seedTrackId: d.bigint({ mode: "number" }).notNull(),
     seedDeezerId: d.bigint({ mode: "number" }),
-    recommendedTrackIds: d.jsonb().notNull(),
-    recommendedTracksData: d.jsonb().notNull(),
+    recommendedTrackIds: d.jsonb().$type<number[]>().notNull(),
+    recommendedTracksData: d.jsonb().$type<Track[]>().notNull(),
     source: d.varchar({ length: 50 }).default("deezer").notNull(),
     createdAt: d
       .timestamp({ withTimezone: true })
@@ -446,12 +447,12 @@ export const recommendationLogs = createTable(
     userId: d
       .varchar({ length: 255 })
       .references(() => users.id, { onDelete: "set null" }),
-    seedTrackIds: d.jsonb().notNull(),
-    seedTrackData: d.jsonb().notNull(),
-    recommendedTrackIds: d.jsonb().notNull(),
-    recommendedTracksData: d.jsonb().notNull(),
+    seedTrackIds: d.jsonb().$type<number[]>().notNull(),
+    seedTrackData: d.jsonb().$type<Track[]>().notNull(),
+    recommendedTrackIds: d.jsonb().$type<number[]>().notNull(),
+    recommendedTracksData: d.jsonb().$type<Track[]>().notNull(),
     source: d.varchar({ length: 50 }).notNull(),
-    requestParams: d.jsonb(),
+    requestParams: d.jsonb().$type<Record<string, unknown>>(),
     responseTime: d.integer(),
     success: d.boolean().notNull(),
     errorMessage: d.text(),

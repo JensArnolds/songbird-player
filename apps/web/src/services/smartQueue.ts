@@ -46,8 +46,10 @@ async function apiRequest<T>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
   };
+  new Headers(options.headers).forEach((value, key) => {
+    headers[key] = value;
+  });
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -72,7 +74,7 @@ async function apiRequest<T>(
     throw new Error(error.message ?? `API Error: ${response.status}`);
   }
 
-  const data = (await response.json()) as Promise<T>;
+  const data = (await response.json()) as T;
   console.log("[SmartQueue API] ✅ Response data received");
   return data;
 }

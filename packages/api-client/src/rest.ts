@@ -156,35 +156,35 @@ async function fetchFeed<T>(
   return { data: [] };
 }
 
+async function fetchMusicSearch(
+  query: string,
+  offset: number,
+  context: string,
+): Promise<SearchResponse> {
+  const url = new URL("/api/music/search", getBrowserOrigin(context));
+  url.searchParams.set("q", query);
+  if (offset > 0) url.searchParams.set("offset", offset.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`Search failed (${res.status})`);
+  return (await res.json()) as SearchResponse;
+}
+
 export async function searchTracks(
   query: string,
   offset = 0,
 ): Promise<SearchResponse> {
-  const url = new URL("/api/music/search", getBrowserOrigin("searchTracks"));
-  url.searchParams.set("q", query);
-  if (offset > 0) {
-    url.searchParams.set("offset", offset.toString());
-  }
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`Search failed (${res.status})`);
-  return (await res.json()) as SearchResponse;
+  return fetchMusicSearch(query, offset, "searchTracks");
 }
 
 export async function searchTracksByArtist(
   artistName: string,
   offset = 0,
 ): Promise<SearchResponse> {
-  const url = new URL(
-    "/api/music/search",
-    getBrowserOrigin("searchTracksByArtist"),
+  const response = await fetchMusicSearch(
+    artistName,
+    offset,
+    "searchTracksByArtist",
   );
-  url.searchParams.set("q", artistName);
-  if (offset > 0) {
-    url.searchParams.set("offset", offset.toString());
-  }
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`Search failed (${res.status})`);
-  const response = (await res.json()) as SearchResponse;
 
   const filtered = response.data
     .filter(

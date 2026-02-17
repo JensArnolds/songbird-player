@@ -1022,7 +1022,7 @@ export const musicRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-        trackData: input.track as unknown as Record<string, unknown>,
+        trackData: input.track,
       });
 
       return { success: true, alreadyExists: false };
@@ -1400,7 +1400,7 @@ export const musicRouter = createTRPCRouter({
         playlistId: input.playlistId,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-        trackData: input.track as unknown as Record<string, unknown>,
+        trackData: input.track,
         position: nextPosition,
       };
 
@@ -1535,7 +1535,7 @@ export const musicRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-        trackData: input.track as unknown as Record<string, unknown>,
+        trackData: input.track,
         duration: input.duration,
       });
 
@@ -2031,22 +2031,16 @@ export const musicRouter = createTRPCRouter({
 
       const stateData = {
         sessionId: input.sessionId,
-        currentTrack: input.currentTrack as unknown as
-          | Record<string, unknown>
-          | undefined,
+        currentTrack: input.currentTrack,
         currentTrackDeezerId: input.currentTrack
           ? getDeezerId(input.currentTrack)
           : undefined,
         currentPosition: input.currentPosition,
-        queue: input.queue as unknown as Record<string, unknown>[] | undefined,
-        history: input.history as unknown as
-          | Record<string, unknown>[]
-          | undefined,
+        queue: input.queue,
+        history: input.history,
         isShuffled: input.isShuffled,
         repeatMode: input.repeatMode,
-        originalQueueOrder: input.originalQueueOrder as unknown as
-          | Record<string, unknown>[]
-          | undefined,
+        originalQueueOrder: input.originalQueueOrder,
         lastUpdated: new Date(),
       };
 
@@ -2116,7 +2110,7 @@ export const musicRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
-        trackData: input.track as unknown as Record<string, unknown>,
+        trackData: input.track,
         sessionId: input.sessionId,
         duration: input.duration,
         totalDuration: input.totalDuration,
@@ -2341,11 +2335,8 @@ export const musicRouter = createTRPCRouter({
       await ctx.db.insert(recommendationCache).values({
         seedTrackId: input.seedTrackId,
         seedDeezerId: getDeezerId(seedTrack as z.infer<typeof trackSchema>),
-        recommendedTrackIds: filtered.map((t) => t.id) as unknown as Record<
-          string,
-          unknown
-        >,
-        recommendedTracksData: filtered as unknown as Record<string, unknown>,
+        recommendedTrackIds: filtered.map((t) => t.id),
+        recommendedTracksData: filtered,
         source: "deezer",
         expiresAt: getCacheExpiryDate(),
       });
@@ -2526,13 +2517,8 @@ export const musicRouter = createTRPCRouter({
               await ctx.db.insert(recommendationCache).values({
                 seedTrackId: input.trackId,
                 seedDeezerId,
-                recommendedTrackIds: filtered.map(
-                  (t) => t.id,
-                ) as unknown as Record<string, unknown>,
-                recommendedTracksData: filtered as unknown as Record<
-                  string,
-                  unknown
-                >,
+                recommendedTrackIds: filtered.map((t) => t.id),
+                recommendedTracksData: filtered,
                 source: "deezer",
                 expiresAt: getCacheExpiryDate(),
               });
@@ -3070,17 +3056,11 @@ export const musicRouter = createTRPCRouter({
       await ctx.db.insert(recommendationLogs).values({
         userId: ctx.session.user.id,
         seedTrackIds: input.seedTracks.map((t) => t.id),
-        seedTrackData: input.seedTracks as unknown as Record<string, unknown>,
+        seedTrackData: input.seedTracks,
         recommendedTrackIds: input.recommendedTracks.map((t) => t.id),
-        recommendedTracksData: input.recommendedTracks as unknown as Record<
-          string,
-          unknown
-        >,
+        recommendedTracksData: input.recommendedTracks,
         source: input.source,
-        requestParams: input.requestParams as unknown as Record<
-          string,
-          unknown
-        >,
+        requestParams: input.requestParams,
         responseTime: input.responseTime,
         success: input.success,
         errorMessage: input.errorMessage,

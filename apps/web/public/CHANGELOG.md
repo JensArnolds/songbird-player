@@ -5,6 +5,33 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-02-17
+
+### Added
+
+- **Resizable desktop sidebar**: Added horizontal drag resizing with persisted expanded width to improve desktop layout control and cross-session consistency. Locations: `apps/web/src/components/DesktopSidebar.tsx`, `packages/config/src/storage.ts`.
+
+### Changed
+
+- **Sidebar naming for cross-platform use**: Renamed the sidebar component from `ElectronSidebar` to `DesktopSidebar` to better reflect usage across desktop web, PWA, and Electron shells. Locations: `apps/web/src/components/DesktopShell.tsx`, `apps/web/src/components/DesktopSidebar.tsx`.
+- **OAuth provider selection/styling consolidation**: Sign-in surfaces now use shared OAuth provider guards and style helpers, reducing duplicated provider filtering logic and improving type safety. Locations: `apps/web/src/config/oauthProviders.ts`, `apps/web/src/app/signin/page.tsx`, `apps/web/src/components/AuthModal.tsx`.
+
+### Removed
+
+- **Monorepo migration compatibility wrappers**: Deleted 22 single-line re-export shim files left over from the monorepo migration (across `apps/web/src/types/`, `contexts/`, `hooks/`, `trpc/`, `utils/`, `config/`, `components/`, and `components/visualizers/`). All consumers now import directly from `@starchild/*` packages.
+
+### Fixed
+
+- **`apiRequest` return type bug** (`apps/web/src/services/smartQueue.ts`): `response.json()` was cast to `Promise<T>` despite already being awaited — corrected to `as T`.
+- **Unsafe `headers` spread** (`apps/web/src/services/smartQueue.ts`): Replaced `...(options.headers as Record<string, string>)` with `new Headers(options.headers).forEach(...)` to handle all three `HeadersInit` variants correctly without an unsafe cast.
+- **Vercel function pattern deployment failure**: Removed unmatched `functions` path globs from `vercel.json` and moved execution time limits to route-level `maxDuration` exports for Next.js App Router handlers. Locations: `vercel.json`, `apps/web/src/app/api/stream/route.ts`, `apps/web/src/app/api/trpc/[trpc]/route.ts`.
+
+### Refactored
+
+- **Drizzle schema jsonb column types** (`apps/web/src/server/db/schema.ts`): Added `.$type<T>()` to all previously untyped `jsonb()` columns (`trackData`, `currentTrack`, `queue`, `history`, `originalQueueOrder`, `recommendedTrackIds`, `recommendedTracksData`, `seedTrackIds`, `seedTrackData`, `requestParams`). Columns now carry their actual TypeScript types (`Track`, `Track[]`, `number[]`, etc.) instead of defaulting to `Record<string, unknown>`.
+- **Eliminated 11 unsafe DB insert casts** (`apps/web/src/server/api/routers/music.ts`): All `as unknown as Record<string, unknown>` casts on `trackData`, `queue`, `history`, `currentTrack`, `originalQueueOrder`, `recommendedTrackIds`, `recommendedTracksData`, `seedTrackData`, and `requestParams` columns removed — now that the schema carries the correct types, values can be passed directly.
+- **DRY search URL building** (`packages/api-client/src/rest.ts`): Extracted private `fetchMusicSearch` helper shared by `searchTracks` and `searchTracksByArtist`, removing duplicated URL construction, fetch, and error-handling logic.
+
 ## [1.0.0] - 2026-02-16
 
 ### Added
