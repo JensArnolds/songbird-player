@@ -8,21 +8,6 @@
     "silent": true
   },
 
-  "functions": {
-    "apps/web/src/app/api/**/*.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "apps/web/src/app/api/trpc/**/*.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "apps/web/src/app/api/stream/route.ts": {
-      "maxDuration": 60,
-      "memory": 2048
-    }
-  },
-
   "headers": [
     {
       "source": "/(.*)",

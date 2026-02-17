@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
