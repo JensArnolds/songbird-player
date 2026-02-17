@@ -409,7 +409,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 ### Fixed
 
 - **Lint remediation for tests and hooks**: Typed the search, toast, TRPC, and audio-player stability specs, added the shared `renderPlayerHook`, and started calling the typed `api.music.addToPlaylist` helper so ESLint no-unsafe rules now pass cleanly. Locations: `src/__tests__/api-search-v2.test.ts`, `src/__tests__/Toast.test.tsx`, `src/__tests__/trpc.music.test.ts`, `src/__tests__/useAudioPlayer.stability.test.ts`, `src/components/PlaylistContextMenu.tsx`.
-- **Track metadata safety**: Ensured the `/track/[id]/page` data fetching narrows Songbird/Deezer responses before returning a `Track`, so runtime errors stop surfacing as unsafe assignments. Location: `src/app/track/[id]/page.tsx`.
+- **Track metadata safety**: Ensured the `/track/[id]/page` data fetching narrows Songbird/Starchild responses before returning a `Track`, so runtime errors stop surfacing as unsafe assignments. Location: `src/app/track/[id]/page.tsx`.
 - **Visualization and config housekeeping**: Declared `twoPi` inside `FlowFieldRenderer`’s cloverleaf helper and added `vitest/globals` to `tsconfig.json` so the lint and test tooling stay aligned. Locations: `src/components/visualizers/FlowFieldRenderer.ts`, `tsconfig.json`.
 - **Desktop greeting update**: Sidebar branding now greets signed-in users by `Hi <username>` (falling back to email, username, or “Hi there” when absent). Location: `src/components/ElectronSidebar.tsx`.
 
@@ -523,9 +523,9 @@ CallbackRouteError: r_: server responded with an error in the response body
 ### Added
 
 - **docs/ index**: New [docs/README.md](docs/README.md) lists all files under `docs/` as a single entry-point.
-- **Architecture doc**: [docs/architecture.md](docs/architecture.md) covers the full system layout (web + Electron), runtime entry-points, and sequence diagrams for search, streaming, track-metadata (V2 → Deezer fallback), and auth flows.
+- **Architecture doc**: [docs/architecture.md](docs/architecture.md) covers the full system layout (web + Electron), runtime entry-points, and sequence diagrams for search, streaming, track-metadata (V2 → Starchild fallback), and auth flows.
 - **API route map**: [docs/API_ROUTE_USE.md](docs/API_ROUTE_USE.md) tabulates every Next.js route handler — method, source file, upstream target, and required env vars — plus notes on the two Songbird V2 auth styles (query-string vs header).
-- **External-API guide**: [docs/API_USE.md](docs/API_USE.md) documents each upstream service (Songbird V2, Deezer, Last.fm), what this app uses from each, and how they're configured.
+- **External-API guide**: [docs/API_USE.md](docs/API_USE.md) documents each upstream service (Songbird V2, Starchild, Last.fm), what this app uses from each, and how they're configured.
 - **Agent entry-point**: [AGENTS.md](AGENTS.md) provides a quick-start for AI coding agents — commands, env-loading rules, project layout, and working conventions.
 - **Claude Code guidance**: [CLAUDE.md](CLAUDE.md) documents cross-file architecture that isn't visible from any single file: provider nesting order, the three-layer audio stack, queue-model conventions, tRPC-vs-proxy decision rules, and DB/Electron/test-setup constraints.
 
@@ -558,7 +558,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 ### Changed
 
 - **Smart Queue recommendations**: Auto-queue now uses the unified spice-up endpoint for broader variety, while manual smart-track actions prefer Spotify-only for faster, more consistent matches. Multi-seed inputs are always sent and queue/history IDs are excluded to reduce repeats. Locations: [src/contexts/AudioPlayerContext.tsx](src/contexts/AudioPlayerContext.tsx), [src/hooks/useAudioPlayer.ts](src/hooks/useAudioPlayer.ts), [src/server/api/routers/music.ts](src/server/api/routers/music.ts), [src/services/smartQueue.ts](src/services/smartQueue.ts).
-- **Spice-up integration**: Updated to the new envelope response and new request options (exclude Deezer + Spotify IDs, exclude explicit), resolving Deezer IDs from response metadata when available. Locations: [src/server/api/routers/music.ts](src/server/api/routers/music.ts), [src/services/smartQueue.ts](src/services/smartQueue.ts).
+- **Spice-up integration**: Updated to the new envelope response and new request options (exclude Starchild + Spotify IDs, exclude explicit), resolving Starchild IDs from response metadata when available. Locations: [src/server/api/routers/music.ts](src/server/api/routers/music.ts), [src/services/smartQueue.ts](src/services/smartQueue.ts).
 
 ## [0.12.6] - 2026-02-01
 
@@ -1347,7 +1347,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 - **V2-Only Search & Stream**: `/api/music/search` and `/api/stream` now require V2 (`NEXT_PUBLIC_V2_API_URL` + `SONGBIRD_API_KEY`) with no V1 fallback
   - Location: `src/app/api/music/search/route.ts`, `src/app/api/stream/route.ts`
-- **Track SEO Metadata via V2**: Track page metadata now fetches from V2 batch endpoint (Deezer fallback only)
+- **Track SEO Metadata via V2**: Track page metadata now fetches from V2 batch endpoint (Starchild fallback only)
   - Location: `src/app/track/[id]/page.tsx`
 - **OG Track Previews via V2**: `/api/og` uses V2 track preview for trackId and search hits
   - Location: `src/app/api/og/route.tsx`
@@ -1926,11 +1926,11 @@ CallbackRouteError: r_: server responded with an error in the response body
 ### Added
 
 - **Share Button on All Track Cards**: Added share button next to heart (favorite) button on every song card
-  - **Deezer ID-Based Sharing**: Share URLs use `track.deezer_id` when available, falling back to `track.id`
+  - **Starchild ID-Based Sharing**: Share URLs use `track.deezer_id` when available, falling back to `track.id`
   - **Consistent Placement**: Share button positioned immediately after heart button on all card types
   - **Always Visible**: Share button is now always visible (removed conditional rendering restrictions)
   - **Universal Support**: Implemented across all track card components (TrackCard, EnhancedTrackCard, SwipeableTrackCard)
-  - **Impact**: Easy sharing of tracks with Deezer ID-based URLs for reliable track identification
+  - **Impact**: Easy sharing of tracks with Starchild ID-based URLs for reliable track identification
   - Locations:
     - `src/components/TrackCard.tsx`
     - `src/components/EnhancedTrackCard.tsx`
@@ -2050,7 +2050,7 @@ CallbackRouteError: r_: server responded with an error in the response body
     - `public/manifest.json` (scope and prefer_related_applications)
 
 - **Track Sharing with Rich Previews**: Created dedicated share routes with SEO metadata
-  - **Deezer ID-Based URLs**: All track sharing now uses `/track/{id}` format instead of current page URL
+  - **Starchild ID-Based URLs**: All track sharing now uses `/track/{id}` format instead of current page URL
   - **Rich Social Media Previews**: Album art, track title, artist, and album shown in link previews
   - **SEO Metadata**: OpenGraph and Twitter Card tags for optimal social sharing
   - **Dynamic Track Routes**: Created `/track/[id]` page with server-side metadata generation
@@ -2140,8 +2140,8 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 ### Fixed
 
-- **Smart Queue Recommendations**: Smart tracks now use Songbird's Last.fm + Deezer conversion flow
-  - **Impact**: Auto-queue pulls richer recommendations with Deezer IDs
+- **Smart Queue Recommendations**: Smart tracks now use Songbird's Last.fm + Starchild conversion flow
+  - **Impact**: Auto-queue pulls richer recommendations with Starchild IDs
   - Locations:
     - `src/server/api/routers/music.ts`
     - `src/contexts/AudioPlayerContext.tsx`
@@ -2172,31 +2172,31 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 ### Added
 
-- **Deezer ID Database Columns**: Added `deezer_id` as dedicated columns to all tables storing song/track data
+- **Starchild ID Database Columns**: Added `deezer_id` as dedicated columns to all tables storing song/track data
   - Added `deezerId` column to `favorites`, `playlist_tracks`, `listening_history`, `listening_analytics`, and `audio_features` tables
   - Added `seedDeezerId` column to `recommendation_cache` table
   - Added `currentTrackDeezerId` column to `playback_state` table
   - All columns are indexed for fast lookups and querying
-  - **Impact**: Deezer song IDs are now stored as dedicated columns, enabling efficient querying and serving as the basis for sharing songs
+  - **Impact**: Starchild song IDs are now stored as dedicated columns, enabling efficient querying and serving as the basis for sharing songs
   - **Migration**: Run `npm run db:migrate` or `npm run db:push` to apply schema changes
   - Locations:
     - `src/server/db/schema.ts`
     - `src/server/api/routers/music.ts`
     - `drizzle/0016_add_deezer_id_columns.sql`
 
-- **Deezer ID Type Support**: Added `deezer_id` field to Track type definition and validation
+- **Starchild ID Type Support**: Added `deezer_id` field to Track type definition and validation
   - Track interface now includes optional `deezer_id` field
   - API routes automatically extract and preserve `deezer_id` from responses
-  - **Impact**: Type-safe handling of Deezer IDs throughout the application
+  - **Impact**: Type-safe handling of Starchild IDs throughout the application
   - Locations:
     - `src/types/index.ts`
     - `src/app/api/album/[id]/tracks/route.ts`
     - `src/app/api/artist/[id]/tracks/route.ts`
 
-- **Deezer ID in Sharing**: Updated all sharing functionality to prefer `deezer_id` when available
+- **Starchild ID in Sharing**: Updated all sharing functionality to prefer `deezer_id` when available
   - Share URLs now use `deezer_id` as the primary identifier for tracks
   - Falls back to `track.id` if `deezer_id` is not present
-  - **Impact**: Shared song links use consistent Deezer IDs for reliable sharing
+  - **Impact**: Shared song links use consistent Starchild IDs for reliable sharing
   - Locations:
     - `src/components/TrackContextMenu.tsx`
     - `src/components/TrackCard.tsx`
@@ -3205,7 +3205,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 #### Track Validation Errors (Album & Search)
 
 - **Add to Playlist/Favorites Validation**: Fixed validation errors when adding tracks from various sources to playlists or favorites
-  - Root cause: Some tracks have incomplete metadata from the Deezer API
+  - Root cause: Some tracks have incomplete metadata from the Starchild API
   - Issues fixed:
     1. Artist objects from album endpoints lacked picture fields (link, picture, picture_small, picture_medium, picture_big, picture_xl, tracklist)
     2. Some tracks missing `title_version` field entirely
@@ -5019,7 +5019,7 @@ setQueue([track, ...queue.slice(1)]); // Keep queue[1..n], replace queue[0]
 
 #### Music Streaming Platform
 
-- **Deezer Integration**: Full integration with Deezer API for music streaming
+- **Starchild Integration**: Full integration with Starchild API for music streaming
 - **Audio Player**: Advanced audio player with full playback controls
 - **Queue Management**: Comprehensive queue system with drag-and-drop reordering
 - **Search**: Real-time music search with artist, album, and track results
@@ -5178,7 +5178,7 @@ This release transforms darkfloor.art into a full-featured desktop application w
 
 The initial release of darkfloor.art provides a comprehensive music streaming platform with intelligent recommendations, advanced audio features, and a modern user interface. Key highlights:
 
-- Stream music from Deezer's extensive catalog
+- Stream music from Starchild's extensive catalog
 - Intelligent auto-queue with similarity-based recommendations
 - Professional 9-band equalizer with multiple visualization options
 - Full mobile and desktop responsive design
@@ -5264,7 +5264,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- Deezer API for music streaming
+- Starchild API for music streaming
 - NextAuth for authentication
 - Electron for desktop application framework
 - All open-source contributors
