@@ -156,7 +156,10 @@ export function PlaylistContextMenu() {
         .sort((a, b) => a.position - b.position)
         .map((pt) => pt.track);
     } catch (error) {
-      console.error("Failed to fetch owned playlist, falling back to public playlist:", error);
+      console.error(
+        "Failed to fetch owned playlist, falling back to public playlist:",
+        error,
+      );
       // Fall back to public playlist resolution for non-owned/public contexts.
     }
     try {
@@ -170,7 +173,6 @@ export function PlaylistContextMenu() {
       console.error("Failed to resolve public playlist tracks:", error);
       return [];
     }
-      .map((pt) => pt.track);
   };
 
   const handlePlayAll = async () => {
@@ -389,7 +391,11 @@ export function PlaylistContextMenu() {
               <button
                 onClick={handleShare}
                 className="group flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all hover:bg-[rgba(244,178,102,0.15)] active:scale-95"
-                title={canShare ? "Share playlist" : "Only public playlists can be shared"}
+                title={
+                  canShare
+                    ? "Share playlist"
+                    : "Only public playlists can be shared"
+                }
                 disabled={!canShare}
               >
                 <Share2
