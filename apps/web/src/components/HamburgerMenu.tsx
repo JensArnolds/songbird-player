@@ -163,12 +163,13 @@ export default function HamburgerMenu() {
             <div className="border-b border-[var(--color-border)] p-6">
               <div className="flex items-center gap-3">
                 <Image
-                  src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
+                  src="/icon.png"
                   alt="Starchild Music"
                   width={40}
                   height={40}
                   className="rounded-xl ring-2 ring-[rgba(244,178,102,0.3)]"
                   priority
+                  unoptimized
                 />
                 <div>
                   <h2 className="text-lg font-bold text-[var(--color-text)]">

@@ -2,11 +2,10 @@
 
 "use client";
 
+import { APP_VERSION } from "@/config/version";
 import { useContext, useEffect, useState } from "react";
 import { Minus, Square, X, Maximize2 } from "lucide-react";
 import { AudioPlayerContext } from "@starchild/player-react/AudioPlayerContext";
-
-const APP_VERSION = "1.0.0";
 
 export function LinuxTitlebar() {
   const [isMaximized, setIsMaximized] = useState(false);
@@ -27,7 +26,6 @@ export function LinuxTitlebar() {
   // Use context directly to avoid throwing error if provider isn't available yet
   const audioPlayerContext = useContext(AudioPlayerContext);
   const currentTrack = audioPlayerContext?.currentTrack ?? null;
-  const isPlaying = audioPlayerContext?.isPlaying ?? false;
 
   useEffect(() => {
     if (!isLinux) return;
@@ -71,7 +69,7 @@ export function LinuxTitlebar() {
 
   // Determine title text based on playback state
   const titleText =
-    currentTrack && isPlaying
+    currentTrack?.title && currentTrack.artist?.name
       ? `${currentTrack.title} - ${currentTrack.artist.name}`
       : `Starchild ${APP_VERSION}`;
 

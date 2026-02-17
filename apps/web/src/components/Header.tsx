@@ -288,8 +288,8 @@ export default function Header() {
       ref={desktopHeaderRef}
       className="electron-app-header fixed right-0 z-30 hidden px-2 pb-1 md:block"
       style={{
-        top: isLinuxElectron ? "44px" : "0",
-        paddingTop: isLinuxElectron ? "0.5rem" : "0.5rem",
+        top: isLinuxElectron ? "36px" : "0",
+        paddingTop: "0.5rem",
         left: "var(--electron-sidebar-width, 0px)",
         right: "var(--desktop-right-rail-width, 0px)",
       }}
@@ -298,7 +298,7 @@ export default function Header() {
       <div className="theme-chrome-header electron-header-main relative z-10 grid grid-cols-[minmax(0,1fr)_minmax(210px,auto)] items-center gap-3 rounded-[1.25rem] border py-2 backdrop-blur-xl">
         <div className="electron-no-drag relative flex items-center justify-center">
           <form
-            className="electron-header-search flex h-11 w-[90%] items-center gap-2 rounded-full border px-3"
+            className="electron-header-search flex h-11 w-[90%] items-center gap-2.5 rounded-full border px-3"
             onSubmit={(event) => {
               event.preventDefault();
               submitHeaderSearch(searchText);
@@ -328,14 +328,14 @@ export default function Header() {
                 }, 120);
               }}
               onKeyDown={handleSearchKeyDown}
-              className="w-full bg-transparent text-sm text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none"
+              className="h-8 min-w-0 flex-1 bg-transparent text-sm leading-none text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none"
               placeholder="Search for songs, artists, or albums..."
               aria-label="Search music"
               autoComplete="off"
             />
             <button
               type="submit"
-              className="flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 py-1.5 text-xs font-bold text-[var(--color-on-accent)] transition-all hover:brightness-110 active:scale-[0.98]"
+              className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-3 text-xs leading-none font-bold text-[var(--color-on-accent)] transition-all hover:brightness-110 active:scale-[0.98]"
             >
               <Search className="h-3.5 w-3.5" />
               <span className="hidden lg:inline">Search</span>

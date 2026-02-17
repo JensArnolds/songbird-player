@@ -18,7 +18,6 @@
 - **Real-Time Results**: Debounced search with instant results
 - **Context Menus**: Right-click (or long-press) tracks for quick actions (play, queue, favorite, add to playlist)
 - **Search History**: Track search queries for authenticated users
-- **Deezer API Format**: Compatible with Deezer API response structure
 
 ### Audio Playback System
 
@@ -268,6 +267,7 @@ packages/
 ```
 
 **Import rules:**
+
 - Inside `apps/web`: use `@starchild/*` for shared packages, `@/` for app-local code.
 - Inside `packages/*`: only `@starchild/*` cross-package imports are allowed — never `@/` (app-local) or any path into `apps/`. Enforced by `npm run check:boundaries`.
 
@@ -366,13 +366,13 @@ Handles search, streaming, track metadata, and recommendations. Configured via `
 
 Full OpenAPI spec is vendored at `docs/API_V2_SWAGGER.yaml`.
 
-#### Deezer (metadata fallback)
+#### Metadata Fallback
 
 Public API, no auth required. Used as a fallback when Songbird V2 is unavailable or for album/artist detail pages:
 
-- `/api/track/[id]` — falls back to Deezer if V2 fails
-- `/api/album/[id]` and `/api/album/[id]/tracks` — Deezer only
-- `/api/artist/[id]` and `/api/artist/[id]/tracks` — Deezer only
+- `/api/track/[id]` — falls back to Starchild if V2 fails
+- `/api/album/[id]` and `/api/album/[id]/tracks` — Starchild only
+- `/api/artist/[id]` and `/api/artist/[id]/tracks` — Starchild only
 
 ### tRPC Type-Safe API
 
@@ -432,7 +432,7 @@ const streamUrl = getStreamUrlById(trackId.toString());
 
 **Supported Formats:**
 
-The application expects JSON responses compatible with **Deezer API format**:
+The application expects JSON responses compatible with **Starchild API format**:
 
 ```json
 {
@@ -466,8 +466,8 @@ This project does **not** include or distribute copyrighted music. It is a front
 
 The application connects to two upstream services:
 
-1. **Songbird V2** (configured via `API_V2_URL`) — primary source for search, streaming, metadata, and recommendations. Orchestrates Spotify, Last.fm, and Deezer under the hood.
-2. **Deezer API** (public) — metadata fallback for albums, artists, and tracks.
+1. **Songbird V2** (configured via `API_V2_URL`) — primary source for search, streaming, metadata, and recommendations. Orchestrates Spotify, Last.fm, and Starchild under the hood.
+2. **Starchild API** (public) — metadata fallback for albums, artists, and tracks.
 
 All upstream calls are made server-side through Next.js proxy routes. The frontend never contacts these APIs directly.
 

@@ -55,6 +55,10 @@ export function DesktopSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isAdmin = session?.user?.admin === true;
+  const isLinuxElectron =
+    typeof window !== "undefined" &&
+    window.electron?.isElectron === true &&
+    window.electron?.platform === "linux";
   const { openAuthModal } = useAuthModal();
 
   const [collapsed, setCollapsed] = useState(() => {
@@ -241,7 +245,7 @@ export function DesktopSidebar() {
   return (
     <>
       <aside
-        className="electron-sidebar theme-chrome-sidebar relative sticky top-0 z-40 flex h-screen shrink-0 border-r max-md:hidden"
+        className="electron-sidebar theme-chrome-sidebar relative sticky top-0 z-40 flex h-full shrink-0 border-r max-md:hidden"
         style={{ width }}
       >
         <div
@@ -286,12 +290,13 @@ export function DesktopSidebar() {
               className={`flex items-center ${collapsed ? "justify-center" : "justify-start"} rounded-xl px-2 py-1.5`}
             >
               <Image
-                src="/AppIcons/Assets.xcassets/AppIcon.appiconset/48.png"
+                src="/icon.png"
                 alt="Starchild"
                 width={36}
                 height={36}
                 className="h-9 w-9 rounded-xl shadow-lg ring-2 ring-[rgba(244,178,102,0.35)]"
                 priority
+                unoptimized={isLinuxElectron}
               />
               {!collapsed && (
                 <div className="ml-4 min-w-0">
