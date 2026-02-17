@@ -1182,11 +1182,24 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                                           { cache: "no-store" },
                                         );
                                         if (!response.ok) {
-                                          throw new Error(
-                                            `Failed to fetch playlist tracks (${response.status})`,
-                                          );
+                                          let message = `Failed to fetch playlist tracks (${response.status} ${response.statusText})`;
+                                          try {
+                                            const errorBody =
+                                              await response.text();
+                                            if (errorBody) {
+                                              const snippet =
+                                                errorBody.length > 500
+                                                  ? `${errorBody.slice(0, 500)}…`
+                                                  : errorBody;
+                                              message += `: ${snippet}`;
+                                            }
+                                          } catch {
+                                            // Ignore errors while reading error body; fall back to base message.
+                                          }
+                                          throw new Error(message);
                                         }
-                                        const payload = (await response.json()) as unknown;
+                                        const payload =
+                                          (await response.json()) as unknown;
                                         return parseFeedPlaylistTracks(payload);
                                       },
                                     },

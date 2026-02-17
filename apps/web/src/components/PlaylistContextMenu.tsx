@@ -155,15 +155,21 @@ export function PlaylistContextMenu() {
       return [...(ownedPlaylist.tracks ?? [])]
         .sort((a, b) => a.position - b.position)
         .map((pt) => pt.track);
-    } catch {
+    } catch (error) {
+      console.error("Failed to fetch owned playlist, falling back to public playlist:", error);
       // Fall back to public playlist resolution for non-owned/public contexts.
     }
-
-    const publicPlaylist = await utils.music.getPublicPlaylist.fetch({
-      id: playlist.id,
-    });
-    return [...(publicPlaylist.tracks ?? [])]
-      .sort((a, b) => a.position - b.position)
+    try {
+      const publicPlaylist = await utils.music.getPublicPlaylist.fetch({
+        id: playlist.id,
+      });
+      return [...(publicPlaylist.tracks ?? [])]
+        .sort((a, b) => a.position - b.position)
+        .map((pt) => pt.track);
+    } catch (error) {
+      console.error("Failed to resolve public playlist tracks:", error);
+      return [];
+    }
       .map((pt) => pt.track);
   };
 
