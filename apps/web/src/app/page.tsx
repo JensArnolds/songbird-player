@@ -34,10 +34,10 @@ function buildOgImageUrl(track: Track | null, baseUrl: string, query?: string | 
       params.set("q", query);
       return `${baseUrl}/api/og?${params.toString()}`;
     }
-    const songbirdApiUrl = env.API_V2_URL;
-    if (songbirdApiUrl) {
-      const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-      return `${normalizedSongbirdUrl}/api/preview/default`;
+    const bluesixApiUrl = env.API_V2_URL;
+    if (bluesixApiUrl) {
+      const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
+      return `${normalizedBluesixUrl}/api/preview/default`;
     }
     // Fallback to static OG image served by this app if env not configured
     return `${baseUrl}/og-image.png`;

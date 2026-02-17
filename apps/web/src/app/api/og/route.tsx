@@ -12,12 +12,12 @@ export async function GET(request: NextRequest) {
 
   const trackId = searchParams.get("trackId");
   const query = searchParams.get("q");
-  const songbirdApiUrl = env.API_V2_URL;
+  const bluesixApiUrl = env.API_V2_URL;
 
   if (trackId) {
-    if (songbirdApiUrl) {
-      const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-      const previewUrl = `${normalizedSongbirdUrl}/api/track/${encodeURIComponent(
+    if (bluesixApiUrl) {
+      const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
+      const previewUrl = `${normalizedBluesixUrl}/api/track/${encodeURIComponent(
         trackId,
       )}/preview`;
       console.log("[OG Route] Redirecting to V2 track preview:", previewUrl);
@@ -55,9 +55,9 @@ export async function GET(request: NextRequest) {
           // Found a track! Use trackId-based preview (most reliable)
           console.log("[OG Route] Found track via search, using trackId:", firstTrack.id);
           
-          if (songbirdApiUrl) {
-            const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-            const previewUrl = `${normalizedSongbirdUrl}/api/track/${encodeURIComponent(
+          if (bluesixApiUrl) {
+            const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
+            const previewUrl = `${normalizedBluesixUrl}/api/track/${encodeURIComponent(
               String(firstTrack.id),
             )}/preview`;
             console.log("[OG Route] Redirecting to V2 track preview:", previewUrl);
@@ -123,9 +123,9 @@ export async function GET(request: NextRequest) {
   }
 
   console.log("[OG Route] No track data found, using default image");
-  if (songbirdApiUrl) {
-    const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-    return Response.redirect(`${normalizedSongbirdUrl}/api/preview/default`, 302);
+  if (bluesixApiUrl) {
+    const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
+    return Response.redirect(`${normalizedBluesixUrl}/api/preview/default`, 302);
   }
   // Fallback to static OG image on the current origin if env not configured
   const fallbackUrl = new URL("/og-image.png", origin);

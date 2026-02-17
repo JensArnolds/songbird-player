@@ -13,7 +13,7 @@ describe("Music Search API (V2-only)", () => {
     vi.doMock("@/env", () => ({
       env: {
         API_V2_URL: "https://darkfloor.one/",
-        SONGBIRD_API_KEY: "test-key",
+        BLUESIX_API_KEY: "test-key",
       },
     }));
 
@@ -68,7 +68,7 @@ describe("Music Search API (V2-only)", () => {
     vi.doMock("@/env", () => ({
       env: {
         API_V2_URL: undefined,
-        SONGBIRD_API_KEY: undefined,
+        BLUESIX_API_KEY: undefined,
       },
     }));
 
@@ -84,7 +84,7 @@ describe("Music Search API (V2-only)", () => {
     const body = (await res.json()) as { error?: string };
 
     expect(res.status).toBe(500);
-    expect(body.error).toMatch(/API_V2_URL|SONGBIRD_API_KEY/);
+    expect(body.error).toMatch(/API_V2_URL|BLUESIX_API_KEY/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

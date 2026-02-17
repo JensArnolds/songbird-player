@@ -1,11 +1,11 @@
 # Architecture
 
-Starchild Music (songbird-player) is a **Next.js App Router** application that runs as:
+Starchild Music (bluesix-library) is a **Next.js App Router** application that runs as:
 
 - **Web** app (Next.js server)
 - **Desktop** app (Electron wrapper that loads the Next.js server)
 
-It combines a local backend (tRPC + Postgres via Drizzle) with proxy routes that integrate external music APIs (Songbird V2 and Deezer).
+It combines a local backend (tRPC + Postgres via Drizzle) with proxy routes that integrate external music APIs (Bluesix V2 and Deezer).
 
 ## High-level component view
 
@@ -19,7 +19,7 @@ flowchart LR
   Routers --> DB[Postgres via Drizzle/pg<br/>src/server/db]
 
   UI --> Proxy[/api/* proxy routes<br/>src/app/api/**/route.ts(x)]
-  Proxy --> Songbird[Songbird V2 API<br/>API_V2_URL + SONGBIRD_API_KEY]
+  Proxy --> Bluesix[Bluesix V2 API<br/>API_V2_URL + BLUESIX_API_KEY]
   Proxy --> Deezer[Deezer API<br/>api.deezer.com]
 
   UI --> Auth[/api/auth/* (NextAuth)<br/>src/app/api/auth/[...nextauth]/route.ts]
@@ -45,7 +45,7 @@ flowchart LR
 - App Router UI: `src/app/**`
 - API routes:
   - tRPC: `src/app/api/trpc/[trpc]/route.ts`
-  - External proxy routes (Songbird/Deezer): `src/app/api/**/route.ts(x)`
+  - External proxy routes (Bluesix/Deezer): `src/app/api/**/route.ts(x)`
   - Health: `src/app/api/health/route.ts`
   - Auth: `src/app/api/auth/[...nextauth]/route.ts`
 
@@ -53,29 +53,29 @@ flowchart LR
 
 ### Search flow (V2-only)
 
-`/api/music/search` is a proxy route that calls Songbird V2 directly and returns a Deezer-shaped payload.
+`/api/music/search` is a proxy route that calls Bluesix V2 directly and returns a Deezer-shaped payload.
 
 ```mermaid
 sequenceDiagram
   participant UI as UI (React)
   participant FE as Next.js route<br/>/api/music/search
-  participant V2 as Songbird V2<br/>music/search
+  participant V2 as Bluesix V2<br/>music/search
 
   UI->>FE: GET /api/music/search?q=...
-  FE->>V2: GET {API_V2_URL}/music/search?key={SONGBIRD_API_KEY}&q=...
+  FE->>V2: GET {API_V2_URL}/music/search?key={BLUESIX_API_KEY}&q=...
   V2-->>FE: JSON { data: [...], total: n }
   FE-->>UI: JSON (validated shape)
 ```
 
 ### Streaming flow (V2-only)
 
-`/api/stream` proxies audio from Songbird V2 and preserves `Range` semantics for seeking.
+`/api/stream` proxies audio from Bluesix V2 and preserves `Range` semantics for seeking.
 
 ```mermaid
 sequenceDiagram
   participant Player as Player (HTMLAudioElement)
   participant FE as Next.js route<br/>/api/stream
-  participant V2 as Songbird V2<br/>music/stream/direct
+  participant V2 as Bluesix V2<br/>music/stream/direct
 
   Player->>FE: GET /api/stream?id=... (Range: bytes=...)
   FE->>V2: GET {API_V2_URL}/music/stream/direct?key=...&id=... (Range passthrough)
@@ -85,13 +85,13 @@ sequenceDiagram
 
 ### Track metadata flow (V2 preferred, Deezer fallback)
 
-`/api/track/[id]` tries Songbird V2 batch metadata first, then falls back to Deezer if V2 is unavailable or fails.
+`/api/track/[id]` tries Bluesix V2 batch metadata first, then falls back to Deezer if V2 is unavailable or fails.
 
 ```mermaid
 sequenceDiagram
   participant UI as UI (React)
   participant FE as Next.js route<br/>/api/track/:id
-  participant V2 as Songbird V2<br/>music/tracks/batch
+  participant V2 as Bluesix V2<br/>music/tracks/batch
   participant DZ as Deezer<br/>/track/:id
 
   UI->>FE: GET /api/track/123

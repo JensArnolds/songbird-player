@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const songbirdApiUrl = env.API_V2_URL;
-    const songbirdApiKey = env.SONGBIRD_API_KEY;
+    const bluesixApiUrl = env.API_V2_URL;
+    const bluesixApiKey = env.BLUESIX_API_KEY;
 
     const rangeHeader = req.headers.get("Range");
     const fetchHeaders: HeadersInit = {};
@@ -55,9 +55,9 @@ export async function GET(req: NextRequest) {
       });
     };
 
-    if (!songbirdApiUrl || !songbirdApiKey) {
+    if (!bluesixApiUrl || !bluesixApiKey) {
       console.error(
-        "[Stream API] API_V2_URL or SONGBIRD_API_KEY not configured",
+        "[Stream API] API_V2_URL or BLUESIX_API_KEY not configured",
       );
       return NextResponse.json(
         { error: "V2 API not configured" },
@@ -65,9 +65,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-    const url = new URL("music/stream/direct", normalizedSongbirdUrl);
-    url.searchParams.set("key", songbirdApiKey);
+    const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
+    const url = new URL("music/stream/direct", normalizedBluesixUrl);
+    url.searchParams.set("key", bluesixApiKey);
     url.searchParams.set(
       "kbps",
       req.nextUrl.searchParams.get("kbps") ?? "320",
@@ -84,11 +84,11 @@ export async function GET(req: NextRequest) {
     const requestUrl = url.toString();
     console.log(
       "[Stream API] Fetching stream from:",
-      requestUrl.replace(songbirdApiKey, "***"),
+      requestUrl.replace(bluesixApiKey, "***"),
     );
     console.log(
       "[Stream API] Full URL (key hidden):",
-      requestUrl.replace(songbirdApiKey, "***"),
+      requestUrl.replace(bluesixApiKey, "***"),
     );
 
     let response: Response;
@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
               message:
                 "The backend server did not respond in time. Check if the backend is running and accessible.",
               type: "timeout",
-              backendUrl: normalizedSongbirdUrl,
+              backendUrl: normalizedBluesixUrl,
             },
             { status: 504 },
           );
@@ -130,9 +130,9 @@ export async function GET(req: NextRequest) {
           return NextResponse.json(
             {
               error: "Cannot connect to backend",
-              message: `Failed to connect to backend at ${normalizedSongbirdUrl}. Check if the backend is running and API_V2_URL is correct.`,
+              message: `Failed to connect to backend at ${normalizedBluesixUrl}. Check if the backend is running and API_V2_URL is correct.`,
               type: "connection_error",
-              backendUrl: normalizedSongbirdUrl,
+              backendUrl: normalizedBluesixUrl,
             },
             { status: 502 },
           );
@@ -172,7 +172,7 @@ export async function GET(req: NextRequest) {
         "[Stream API] Response headers:",
         Object.fromEntries(response.headers.entries()),
       );
-      console.error("[Stream API] Request URL:", requestUrl.replace(songbirdApiKey, "***"));
+      console.error("[Stream API] Request URL:", requestUrl.replace(bluesixApiKey, "***"));
 
       const isUpstreamError =
         statusCode === 502 ||
@@ -196,13 +196,13 @@ export async function GET(req: NextRequest) {
           message: errorData.message ?? errorText,
           details: errorData,
           status: statusCode,
-          backendUrl: requestUrl.replace(songbirdApiKey, "***"),
+          backendUrl: requestUrl.replace(bluesixApiKey, "***"),
           type: isUpstreamError ? "upstream_error" : "stream_error",
           diagnostics: {
             trackId: id ?? null,
             query: query ?? null,
-            backendBaseUrl: normalizedSongbirdUrl,
-            hasApiKey: !!songbirdApiKey,
+            backendBaseUrl: normalizedBluesixUrl,
+            hasApiKey: !!bluesixApiKey,
           },
         },
         { status: statusCode },

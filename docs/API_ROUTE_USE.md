@@ -3,7 +3,7 @@
 This repo uses **Next.js route handlers** under `src/app/api/**` for two purposes:
 
 1. **Internal API** (tRPC, NextAuth, health checks)
-2. **Proxy API** to external services (Songbird V2 / Deezer) to avoid CORS issues and keep secrets server-side
+2. **Proxy API** to external services (Bluesix V2 / Deezer) to avoid CORS issues and keep secrets server-side
 
 > If you add or change environment variables used by these routes, update both `.env.example` and `src/env.js`.
 
@@ -13,24 +13,24 @@ Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.js
 
 | Route | Method(s) | Source | Upstream / Behavior | Env required |
 |---|---:|---|---|---|
-| `/api/music/search` | GET | `src/app/api/music/search/route.ts` | Proxies to Songbird V2 `music/search` (V2-only; no Deezer fallback). | `API_V2_URL`, `SONGBIRD_API_KEY` |
-| `/api/stream` | GET | `src/app/api/stream/route.ts` | Proxies to Songbird V2 `music/stream/direct`, including `Range` passthrough for seeking (V2-only). | `API_V2_URL`, `SONGBIRD_API_KEY` |
-| `/api/track/[id]` | GET | `src/app/api/track/[id]/route.ts` | Tries Songbird V2 `music/tracks/batch?ids=...` (header `X-API-Key`), falls back to Deezer `track/:id`. | Optional: `API_V2_URL`, `SONGBIRD_API_KEY` |
-| `/api/og` | GET | `src/app/api/og/route.tsx` | Redirects to Songbird V2 preview endpoints; supports `trackId` and `q` flows; falls back to `/og-image.png` if V2 not configured. | Optional: `API_V2_URL` |
+| `/api/music/search` | GET | `src/app/api/music/search/route.ts` | Proxies to Bluesix V2 `music/search` (V2-only; no Deezer fallback). | `API_V2_URL`, `BLUESIX_API_KEY` |
+| `/api/stream` | GET | `src/app/api/stream/route.ts` | Proxies to Bluesix V2 `music/stream/direct`, including `Range` passthrough for seeking (V2-only). | `API_V2_URL`, `BLUESIX_API_KEY` |
+| `/api/track/[id]` | GET | `src/app/api/track/[id]/route.ts` | Tries Bluesix V2 `music/tracks/batch?ids=...` (header `X-API-Key`), falls back to Deezer `track/:id`. | Optional: `API_V2_URL`, `BLUESIX_API_KEY` |
+| `/api/og` | GET | `src/app/api/og/route.tsx` | Redirects to Bluesix V2 preview endpoints; supports `trackId` and `q` flows; falls back to `/og-image.png` if V2 not configured. | Optional: `API_V2_URL` |
 | `/api/music/releases/latest` | GET | `src/app/api/music/releases/latest/route.ts` | Proxies latest release catalog entries from the upstream discovery service. | `API_V2_URL` |
 | `/api/music/playlists/popular` | GET | `src/app/api/music/playlists/popular/route.ts` | Proxies popular curated playlists from the upstream discovery service. | `API_V2_URL` |
 | `/api/music/playlists/by-genre-id` | GET | `src/app/api/music/playlists/by-genre-id/route.ts` | Proxies genre-scoped playlists using numeric `genreId` with optional bounded `limit`. | `API_V2_URL` |
 | `/api/music/playlists/by-genre` | GET | `src/app/api/music/playlists/by-genre/route.ts` | Proxies genre-scoped playlists using text `genre` as a fallback selector. | `API_V2_URL` |
 | `/api/music/genres` | GET | `src/app/api/music/genres/route.ts` | Proxies genre taxonomy for discovery and personalization selectors. | `API_V2_URL` |
-| `/api/playlist/[id]` | GET | `src/app/api/playlist/[id]/route.ts` | Proxies discovered playlist tracks from Songbird V2 `api/music/playlists/{id}` for UI playback pages. | `API_V2_URL` |
+| `/api/playlist/[id]` | GET | `src/app/api/playlist/[id]/route.ts` | Proxies discovered playlist tracks from Bluesix V2 `api/music/playlists/{id}` for UI playback pages. | `API_V2_URL` |
 | `/api/album/[id]` | GET | `src/app/api/album/[id]/route.ts` | Proxies to Deezer `album/:id`. | none |
 | `/api/album/[id]/tracks` | GET | `src/app/api/album/[id]/tracks/route.ts` | Proxies to Deezer `album/:id/tracks` (also fetches album info to enrich track payload). | none |
 | `/api/artist/[id]` | GET | `src/app/api/artist/[id]/route.ts` | Proxies to Deezer `artist/:id`. | none |
 | `/api/artist/[id]/tracks` | GET | `src/app/api/artist/[id]/tracks/route.ts` | Proxies to Deezer `artist/:id/top?limit=50`. | none |
-| `/api/v2/status` | GET | `src/app/api/v2/status/route.ts` | Proxies Songbird V2 liveness endpoint `/status`; used for lightweight UI health checks. | `API_V2_URL` |
-| `/api/v2/version` | GET | `src/app/api/v2/version/route.ts` | Proxies Songbird V2 diagnostics endpoint `/version` (`name`, `version`, `commitSha`, `buildTime`). | `API_V2_URL` |
-| `/api/v2/health` | GET | `src/app/api/v2/health/route.ts` | Proxies Songbird V2 `/health` endpoint (legacy compatibility fallback for client checks). | `API_V2_URL` |
-| `/api/v2/health/ready` | GET | `src/app/api/v2/health/ready/route.ts` | Proxies Songbird V2 readiness endpoint `/health/ready` (DB/cache/external dependency checks). | `API_V2_URL` |
+| `/api/v2/status` | GET | `src/app/api/v2/status/route.ts` | Proxies Bluesix V2 liveness endpoint `/status`; used for lightweight UI health checks. | `API_V2_URL` |
+| `/api/v2/version` | GET | `src/app/api/v2/version/route.ts` | Proxies Bluesix V2 diagnostics endpoint `/version` (`name`, `version`, `commitSha`, `buildTime`). | `API_V2_URL` |
+| `/api/v2/health` | GET | `src/app/api/v2/health/route.ts` | Proxies Bluesix V2 `/health` endpoint (legacy compatibility fallback for client checks). | `API_V2_URL` |
+| `/api/v2/health/ready` | GET | `src/app/api/v2/health/ready/route.ts` | Proxies Bluesix V2 readiness endpoint `/health/ready` (DB/cache/external dependency checks). | `API_V2_URL` |
 | `/api/v2/auth/me` | GET | `src/app/api/v2/auth/me/route.ts` | Proxies upstream session/user identity endpoint `/auth/me`. | `API_V2_URL` |
 | `/api/v2/auth/refresh` | GET | `src/app/api/v2/auth/refresh/route.ts` | Proxies upstream token/session refresh endpoint `/auth/refresh`. | `API_V2_URL` |
 | `/api/v2/config/public` | GET | `src/app/api/v2/config/public/route.ts` | Proxies upstream non-secret runtime flags endpoint `/config/public`. | `API_V2_URL` |
@@ -45,9 +45,9 @@ Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.js
 | `/api/auth/[...nextauth]` | GET, POST | `src/app/api/auth/[...nextauth]/route.ts` | NextAuth handlers (Discord OAuth). | `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `DATABASE_URL` (+ URLs) |
 | `/api/trpc/[trpc]` | GET, POST | `src/app/api/trpc/[trpc]/route.ts` | tRPC fetch adapter → `appRouter` (`src/server/api/root.ts`). | Typically: `DATABASE_URL` (+ auth vars if using protected procedures) |
 
-## Songbird V2 authentication notes
+## Bluesix V2 authentication notes
 
-Songbird V2 is called in two slightly different ways:
+Bluesix V2 is called in two slightly different ways:
 
 - `/api/music/search` and `/api/stream` pass the key as a **query param** named `key`.
 - `/api/track/[id]` passes the key via **header** `X-API-Key`.

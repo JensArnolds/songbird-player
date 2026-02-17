@@ -1,4 +1,4 @@
-songbird-frontend
+bluesix-frontend
 ├───.annot8_backup.json
 ├───.dockerignore
 ├───.env.example
@@ -177,7 +177,7 @@ songbird-frontend
 │       │   ├───icon.png
 │       │   ├───manifest.json
 │       │   ├───og-image.png
-│       │   ├───songbird.svg
+│       │   ├───bluesix.svg
 │       │   ├───sw.js
 │       │   ├───AppIcons/
 │       │   │   ├───appstore.png
@@ -500,7 +500,7 @@ songbird-frontend
 │           │       └───recommendations.ts
 │           ├───services/
 │           │   ├───smartQueue.ts
-│           │   ├───songbird.ts
+│           │   ├───bluesix.ts
 │           │   └───storage.ts
 │           ├───styles/
 │           │   └───globals.css

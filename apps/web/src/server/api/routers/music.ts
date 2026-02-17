@@ -35,7 +35,7 @@ import {
   getCacheExpiryDate,
   shuffleWithDiversity,
 } from "@/server/services/recommendations";
-import { songbird } from "@/services/songbird";
+import { bluesix } from "@/services/bluesix";
 import { isTrack, type Track } from "@starchild/types";
 
 const trackSchema = z.object({
@@ -424,7 +424,7 @@ async function loadGenreCatalog(): Promise<GenreCatalogItem[]> {
   }
 
   try {
-    const payload = await songbird.request<unknown>("/api/music/genres");
+    const payload = await bluesix.request<unknown>("/api/music/genres");
     const payloadRecord =
       payload && typeof payload === "object"
         ? (payload as Record<string, unknown>)
@@ -810,7 +810,7 @@ async function fetchTracksByDeezerIds(
 
   const params = new URLSearchParams();
   params.set("ids", uniqueIds.join(","));
-  const tracksResponse = await songbird.request<unknown>(
+  const tracksResponse = await bluesix.request<unknown>(
     `/music/tracks/batch?${params.toString()}`,
   );
   const tracks = Array.isArray(tracksResponse)
@@ -841,7 +841,7 @@ async function convertToDeezerIds(
   tracks: Array<{ name: string; artist?: string }>,
 ): Promise<number[]> {
   if (tracks.length === 0) return [];
-  const conversionResponse = await songbird.request<{
+  const conversionResponse = await bluesix.request<{
     tracks?: Array<{ deezerId?: unknown }>;
   }>("/api/music/tracks/convert", {
     method: "POST",
@@ -896,7 +896,7 @@ async function resolveSpiceUpTracksToDeezer(
   }
 
   if (missingCandidates.length > 0) {
-    const conversionResponse = await songbird.request<{
+    const conversionResponse = await bluesix.request<{
       tracks?: Array<{ deezerId?: unknown }>;
     }>("/api/music/tracks/convert", {
       method: "POST",
@@ -2393,7 +2393,7 @@ export const musicRouter = createTRPCRouter({
           }
         }
 
-        const payload = await songbird.request<SpiceUpResponse>(
+        const payload = await bluesix.request<SpiceUpResponse>(
           recommendationEndpoint,
           {
             method: "POST",
@@ -2645,7 +2645,7 @@ export const musicRouter = createTRPCRouter({
               : "/api/spotify/recommendations/spice-up/unified";
 
           const recommendationResponse =
-            await songbird.request<SpiceUpResponse>(recommendationEndpoint, {
+            await bluesix.request<SpiceUpResponse>(recommendationEndpoint, {
               method: "POST",
               body: JSON.stringify({
                 songs: seedInputs,
@@ -2712,7 +2712,7 @@ export const musicRouter = createTRPCRouter({
             "limit",
             Math.min(input.limit + 10, 100).toString(),
           );
-          const similarResponse = await songbird.request<unknown>(
+          const similarResponse = await bluesix.request<unknown>(
             `/api/lastfm/track/similar?${similarParams.toString()}`,
           );
 
@@ -2764,7 +2764,7 @@ export const musicRouter = createTRPCRouter({
             }
           }
 
-          const spotifyResponse = await songbird.request<{
+          const spotifyResponse = await bluesix.request<{
             tracks?: Array<{
               name?: string;
               artists?: Array<{ name?: string }>;
@@ -2803,7 +2803,7 @@ export const musicRouter = createTRPCRouter({
           }
         } catch (error) {
           console.error(
-            "[getSimilarTracks] Songbird recommendations failed:",
+            "[getSimilarTracks] Bluesix recommendations failed:",
             error,
           );
         }
@@ -2887,7 +2887,7 @@ export const musicRouter = createTRPCRouter({
           }
         }
 
-        const payload = await songbird.request<SpiceUpResponse>(
+        const payload = await bluesix.request<SpiceUpResponse>(
           recommendationEndpoint,
           {
             method: "POST",

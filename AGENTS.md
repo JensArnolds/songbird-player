@@ -1,4 +1,4 @@
-# Agent Guide (songbird-player / Starchild Music)
+# Agent Guide (bluesix-library / Starchild Music)
 
 This repository is a **Next.js (App Router) + tRPC + Drizzle/Postgres** app with an **Electron** desktop wrapper.
 
@@ -38,7 +38,7 @@ Default local URL: `http://localhost:3222`
 ## Project layout (high-signal)
 
 - UI / routes: `src/app/*`
-- API proxies (Songbird V2): `src/app/api/*/route.ts(x)`
+- API proxies (Bluesix V2): `src/app/api/*/route.ts(x)`
 - tRPC: `src/server/api/*` + `src/app/api/trpc/[trpc]/route.ts`
 - Auth (NextAuth): `src/server/auth/*` + `src/app/api/auth/[...nextauth]/route.ts`
 - DB (Drizzle + pg Pool): `src/server/db/*` + `drizzle/` migrations

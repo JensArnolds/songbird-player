@@ -28,28 +28,28 @@ export async function GET(
     return record;
   };
 
-  const songbirdApiUrl = env.API_V2_URL;
-  const songbirdApiKey = env.SONGBIRD_API_KEY;
+  const bluesixApiUrl = env.API_V2_URL;
+  const bluesixApiKey = env.BLUESIX_API_KEY;
 
   try {
-    if (songbirdApiUrl && songbirdApiKey) {
+    if (bluesixApiUrl && bluesixApiKey) {
       try {
-        const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-        const songbirdUrl = new URL("music/tracks/batch", normalizedSongbirdUrl);
-        songbirdUrl.searchParams.set("ids", id);
+        const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
+        const bluesixUrl = new URL("music/tracks/batch", normalizedBluesixUrl);
+        bluesixUrl.searchParams.set("ids", id);
 
-        console.log("[Track API] Trying Songbird V2:", songbirdUrl.toString());
+        console.log("[Track API] Trying Bluesix V2:", bluesixUrl.toString());
 
-        const songbirdResponse = await fetch(songbirdUrl.toString(), {
+        const bluesixResponse = await fetch(bluesixUrl.toString(), {
           headers: {
             "Content-Type": "application/json",
-            "X-API-Key": songbirdApiKey,
+            "X-API-Key": bluesixApiKey,
           },
           signal: AbortSignal.timeout(8000),
         });
 
-        if (songbirdResponse.ok) {
-          const payload = (await songbirdResponse.json()) as unknown;
+        if (bluesixResponse.ok) {
+          const payload = (await bluesixResponse.json()) as unknown;
           const tracks = Array.isArray(payload)
             ? payload
             : typeof payload === "object" && payload !== null
@@ -66,13 +66,13 @@ export async function GET(
           }
         } else {
           console.warn(
-            "[Track API] Songbird V2 error:",
-            songbirdResponse.status,
-            songbirdResponse.statusText,
+            "[Track API] Bluesix V2 error:",
+            bluesixResponse.status,
+            bluesixResponse.statusText,
           );
         }
       } catch (err) {
-        console.warn("[Track API] Songbird V2 request failed:", err);
+        console.warn("[Track API] Bluesix V2 request failed:", err);
       }
     }
 

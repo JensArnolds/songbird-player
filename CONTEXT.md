@@ -1,4 +1,4 @@
-# Context (songbird-player / Starchild Music)
+# Context (bluesix-library / Starchild Music)
 
 Last updated: 2026-02-17
 
@@ -9,7 +9,7 @@ Last updated: 2026-02-17
 - Desktop wrapper: `apps/desktop/electron` (legacy compatibility wrappers also exist under `electron/`).
 - API model:
   - Internal app data: tRPC (`/api/trpc`).
-  - External music integrations: Next.js proxy routes under `apps/web/src/app/api/**` (Songbird V2 + Deezer).
+  - External music integrations: Next.js proxy routes under `apps/web/src/app/api/**` (Bluesix V2 + Deezer).
 
 ## Read First
 
@@ -47,7 +47,7 @@ Player internals moved out of app-local `src/`:
 ## Runtime Flow (Mental Model)
 
 - UI -> `@starchild/api-client/trpc/react` -> `/api/trpc` -> `apps/web/src/server/api/*` -> Postgres (Drizzle).
-- UI -> `/api/*` proxy routes -> Songbird V2 / Deezer.
+- UI -> `/api/*` proxy routes -> Bluesix V2 / Deezer.
 - Auth -> `/api/auth/*` -> NextAuth -> DB-backed sessions.
 - Electron -> loads local web app (`http://localhost:3222` in dev).
 

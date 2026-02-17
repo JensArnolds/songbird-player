@@ -7,7 +7,7 @@ const PORT = process.env.PORT || "3222";
 module.exports = {
   apps: [
     {
-      name: "songbird-frontend-prod",
+      name: "bluesix-frontend-prod",
       script: "scripts/server.js",
       args: "",
       interpreter: "node",
@@ -64,7 +64,7 @@ module.exports = {
     },
     {
 
-      name: "songbird-frontend-dev",
+      name: "bluesix-frontend-dev",
       script: "scripts/server.js",
       args: "",
       interpreter: "node",

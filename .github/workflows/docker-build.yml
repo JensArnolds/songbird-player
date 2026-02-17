@@ -53,7 +53,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/songbird-frontend
+          images: ${{ secrets.DOCKER_USERNAME }}/bluesix-frontend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -67,7 +67,7 @@ jobs:
           file: ./Dockerfile
           push: false
           load: true
-          tags: songbird-frontend:test
+          tags: bluesix-frontend:test
           cache-from: ${{ env.CACHE_FROM }}
           cache-to: ${{ env.CACHE_TO }}
           # SECURITY WARNING: Secrets passed as build-args are visible in layer metadata
@@ -78,12 +78,12 @@ jobs:
             AUTH_SECRET=${{ secrets.AUTH_SECRET }}
             AUTH_DISCORD_ID=${{ secrets.AUTH_DISCORD_ID }}
             AUTH_DISCORD_SECRET=${{ secrets.AUTH_DISCORD_SECRET }}
-            SONGBIRD_API_KEY=${{ secrets.SONGBIRD_API_KEY }}
+            BLUESIX_API_KEY=${{ secrets.BLUESIX_API_KEY }}
             API_V2_URL=${{ secrets.API_V2_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
 
       - name: Inspect image size
-        run: docker images songbird-frontend:test --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+        run: docker images bluesix-frontend:test --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
 
       - name: Validate Docker Compose configuration
         run: |
@@ -120,6 +120,6 @@ jobs:
             AUTH_SECRET=${{ secrets.AUTH_SECRET }}
             AUTH_DISCORD_ID=${{ secrets.AUTH_DISCORD_ID }}
             AUTH_DISCORD_SECRET=${{ secrets.AUTH_DISCORD_SECRET }}
-            SONGBIRD_API_KEY=${{ secrets.SONGBIRD_API_KEY }}
+            BLUESIX_API_KEY=${{ secrets.BLUESIX_API_KEY }}
             API_V2_URL=${{ secrets.API_V2_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}

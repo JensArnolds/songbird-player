@@ -10,8 +10,8 @@ vi.mock("@/server/db", () => ({
   db: {},
 }));
 
-vi.mock("@/services/songbird", () => ({
-  songbird: {
+vi.mock("@/services/bluesix", () => ({
+  bluesix: {
     request: vi.fn(),
   },
 }));

@@ -29,7 +29,7 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    SONGBIRD_API_KEY: z.string().optional(),
+    BLUESIX_API_KEY: z.string().optional(),
     API_V2_URL: z.string().url().optional(),
     ELECTRON_BUILD: z
       .string()
@@ -76,7 +76,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED,
     NEXT_PUBLIC_AUTH_DEBUG_OAUTH:
       process.env.NEXT_PUBLIC_AUTH_DEBUG_OAUTH,
-    SONGBIRD_API_KEY: process.env.SONGBIRD_API_KEY,
+    BLUESIX_API_KEY: process.env.BLUESIX_API_KEY,
     ELECTRON_BUILD: process.env.ELECTRON_BUILD,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

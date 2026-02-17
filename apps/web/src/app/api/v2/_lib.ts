@@ -81,8 +81,8 @@ function getForwardHeaders(request?: NextRequest | Request): Headers {
     }
   }
 
-  if (env.SONGBIRD_API_KEY && !headers.has("x-api-key")) {
-    headers.set("x-api-key", env.SONGBIRD_API_KEY);
+  if (env.BLUESIX_API_KEY && !headers.has("x-api-key")) {
+    headers.set("x-api-key", env.BLUESIX_API_KEY);
   }
 
   return headers;

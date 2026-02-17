@@ -16,7 +16,7 @@ describe("Stream API (V2-only)", () => {
     vi.doMock("@/env", () => ({
       env: {
         API_V2_URL: "https://darkfloor.one/",
-        SONGBIRD_API_KEY: "test-key",
+        BLUESIX_API_KEY: "test-key",
       },
     }));
 
@@ -74,7 +74,7 @@ describe("Stream API (V2-only)", () => {
     vi.doMock("@/env", () => ({
       env: {
         API_V2_URL: undefined,
-        SONGBIRD_API_KEY: undefined,
+        BLUESIX_API_KEY: undefined,
       },
     }));
 

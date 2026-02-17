@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const songbirdApiUrl = env.API_V2_URL;
-    const songbirdApiKey = env.SONGBIRD_API_KEY;
+    const bluesixApiUrl = env.API_V2_URL;
+    const bluesixApiKey = env.BLUESIX_API_KEY;
 
     const parseSearchResponse = (data: unknown): SearchResponse | null => {
       if (
@@ -48,16 +48,16 @@ export async function GET(req: NextRequest) {
       return null;
     };
 
-    if (!songbirdApiUrl || !songbirdApiKey) {
+    if (!bluesixApiUrl || !bluesixApiKey) {
       return NextResponse.json(
-        { error: "API_V2_URL or SONGBIRD_API_KEY not configured" },
+        { error: "API_V2_URL or BLUESIX_API_KEY not configured" },
         { status: 500 },
       );
     }
 
-    const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-    const url = new URL("music/search", normalizedSongbirdUrl);
-    url.searchParams.set("key", songbirdApiKey);
+    const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
+    const url = new URL("music/search", normalizedBluesixUrl);
+    url.searchParams.set("key", bluesixApiKey);
     url.searchParams.set(
       "kbps",
       req.nextUrl.searchParams.get("kbps") ?? "320",
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
 
     console.log(
       "[Music Search API] Fetching from:",
-      url.toString().replace(songbirdApiKey, "***"),
+      url.toString().replace(bluesixApiKey, "***"),
     );
 
     const response = await fetch(url.toString(), {
@@ -82,12 +82,12 @@ export async function GET(req: NextRequest) {
 
     if (!response.ok) {
       console.error(
-        "[Music Search API] Songbird returned error:",
+        "[Music Search API] Bluesix returned error:",
         response.status,
         response.statusText,
       );
       return NextResponse.json(
-        { error: `Songbird API error: ${response.status}` },
+        { error: `Bluesix API error: ${response.status}` },
         { status: response.status },
       );
     }
@@ -99,12 +99,12 @@ export async function GET(req: NextRequest) {
     }
 
     console.error(
-      "[Music Search API] Invalid response structure from Songbird:",
+      "[Music Search API] Invalid response structure from Bluesix:",
       data,
     );
     return NextResponse.json(
       {
-        error: "Invalid response from Songbird API: missing required fields (data: Track[], total: number)",
+        error: "Invalid response from Bluesix API: missing required fields (data: Track[], total: number)",
       },
       { status: 502 },
     );

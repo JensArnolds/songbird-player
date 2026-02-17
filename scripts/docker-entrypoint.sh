@@ -3,7 +3,7 @@
 
 set -e
 
-echo "🚀 Starting Songbird Frontend..."
+echo "🚀 Starting Bluesix Frontend..."
 
 export HOSTNAME="${HOSTNAME:-0.0.0.0}"
 export PORT="${PORT:-3222}"

@@ -98,7 +98,7 @@
 
 ### Smart Features
 
-- **Smart Queue**: Similarity-based track recommendations using Songbird API
+- **Smart Queue**: Similarity-based track recommendations using Bluesix API
 - **Smart Mix**: Generate personalized mixes from seed tracks
 - **Audio Analysis**: Spotify audio features integration
 - **Similarity Filtering**: Adjustable similarity levels (strict, balanced, diverse)
@@ -139,7 +139,7 @@
 
     ```bash
     git clone https://github.com/soulwax/starchild-music-frontend.git
-    cd songbird-player
+    cd bluesix-library
     npm install
     ```
 
@@ -166,12 +166,12 @@
     DB_PORT="5432"
     DB_ADMIN_USER="postgres"
     DB_ADMIN_PASSWORD="your-password"
-    DB_NAME="songbird"
+    DB_NAME="bluesix"
     DB_SSL_CA=""  # Optional: Path to SSL certificate (PEM format)
 
     # API Configuration
-    API_V2_URL="https://songbird.darkfloor.art/"  # V2 API (streaming, search, track metadata)
-    SONGBIRD_API_KEY=""  # For Songbird API (streaming, recommendations)
+    API_V2_URL="https://bluesix.darkfloor.art/"  # V2 API (streaming, search, track metadata)
+    BLUESIX_API_KEY=""  # For Bluesix API (streaming, recommendations)
 
     # Environment
     NODE_ENV="development"
@@ -355,9 +355,9 @@ Available in `src/styles/globals.css`:
 
 The application integrates two upstream services. All calls are made server-side through Next.js proxy routes — API keys never reach the browser.
 
-#### Songbird V2 (primary)
+#### Bluesix V2 (primary)
 
-Handles search, streaming, track metadata, and recommendations. Configured via `API_V2_URL` (server-only base URL, trailing slash required) and `SONGBIRD_API_KEY`.
+Handles search, streaming, track metadata, and recommendations. Configured via `API_V2_URL` (server-only base URL, trailing slash required) and `BLUESIX_API_KEY`.
 
 - Search: proxied through `/api/music/search`
 - Streaming: proxied through `/api/stream` (supports `Range` headers for seeking)
@@ -368,7 +368,7 @@ Full OpenAPI spec is vendored at `docs/API_V2_SWAGGER.yaml`.
 
 #### Metadata Fallback
 
-Public API, no auth required. Used as a fallback when Songbird V2 is unavailable or for album/artist detail pages:
+Public API, no auth required. Used as a fallback when Bluesix V2 is unavailable or for album/artist detail pages:
 
 - `/api/track/[id]` — falls back to Starchild if V2 fails
 - `/api/album/[id]` and `/api/album/[id]/tracks` — Starchild only
@@ -385,7 +385,7 @@ The application uses **tRPC** for end-to-end type safety between the client and 
    - `getPlaylists`, `getPlaylistById` - Retrieve playlists
    - `addToFavorites`, `removeFromFavorites`, `getFavorites` - Favorites
    - `addToHistory`, `getHistory` - Listening history
-   - `getRecommendations` - Track recommendations (calls Songbird V2 server-side)
+   - `getRecommendations` - Track recommendations (calls Bluesix V2 server-side)
    - `saveQueueState`, `getQueueState`, `clearQueueState` - Queue persistence
    - `getSmartQueueSettings` - Smart queue configuration
    - `getUserPreferences` - User preferences
@@ -412,13 +412,13 @@ addToPlaylist.mutate({ playlistId: "123", trackId: 456 });
 **Search Flow:**
 
 ```text
-UI (fetch) → /api/music/search (proxy route) → Songbird V2 → Response
+UI (fetch) → /api/music/search (proxy route) → Bluesix V2 → Response
 ```
 
 **Streaming Flow:**
 
 ```text
-HTMLAudioElement → /api/stream (proxy route, Range passthrough) → Songbird V2 → audio/mpeg
+HTMLAudioElement → /api/stream (proxy route, Range passthrough) → Bluesix V2 → audio/mpeg
 ```
 
 **Stream URL Generation:**
@@ -427,7 +427,7 @@ Stream URLs are generated via `getStreamUrlById()` from `@starchild/api-client/r
 
 ```typescript
 const streamUrl = getStreamUrlById(trackId.toString());
-// Returns: `/api/stream?id=${trackId}` (proxy adds SONGBIRD_API_KEY server-side)
+// Returns: `/api/stream?id=${trackId}` (proxy adds BLUESIX_API_KEY server-side)
 ```
 
 **Supported Formats:**
@@ -466,7 +466,7 @@ This project does **not** include or distribute copyrighted music. It is a front
 
 The application connects to two upstream services:
 
-1. **Songbird V2** (configured via `API_V2_URL`) — primary source for search, streaming, metadata, and recommendations. Orchestrates Spotify, Last.fm, and Starchild under the hood.
+1. **Bluesix V2** (configured via `API_V2_URL`) — primary source for search, streaming, metadata, and recommendations. Orchestrates Spotify, Last.fm, and Starchild under the hood.
 2. **Starchild API** (public) — metadata fallback for albums, artists, and tracks.
 
 All upstream calls are made server-side through Next.js proxy routes. The frontend never contacts these APIs directly.
@@ -557,7 +557,7 @@ npm run deploy       # Build + reload
 
 ### Docker (Recommended)
 
-The easiest way to deploy Songbird Frontend is using Docker. The app runs in a single container and connects to an external PostgreSQL database (e.g. Neon, Aiven) using your `.env` configuration.
+The easiest way to deploy Bluesix Frontend is using Docker. The app runs in a single container and connects to an external PostgreSQL database (e.g. Neon, Aiven) using your `.env` configuration.
 
 #### Prerequisites
 
@@ -574,7 +574,7 @@ cp .env.example .env
 # 2. Edit .env with your values (required for build and runtime):
 #    - AUTH_SECRET, AUTH_DISCORD_ID, AUTH_DISCORD_SECRET, NEXTAUTH_URL
 #    - DATABASE_URL (or DB_HOST, DB_PORT, DB_NAME, DB_ADMIN_USER, DB_ADMIN_PASSWORD)
-#    - API_V2_URL, SONGBIRD_API_KEY
+#    - API_V2_URL, BLUESIX_API_KEY
 # Generate AUTH_SECRET: npx auth secret
 
 # 3. Build and start the app (build reads .env and bakes required vars into the image)
@@ -1049,7 +1049,7 @@ This project uses **TailwindCSS v4** with pure CSS Variables (no `@apply` direct
 **Audio Chain:**
 
 ```text
-Track → getStreamUrlById() → /api/stream (proxy) → Songbird V2 → HTMLAudioElement → Web Audio API → EQ filters → Speakers
+Track → getStreamUrlById() → /api/stream (proxy) → Bluesix V2 → HTMLAudioElement → Web Audio API → EQ filters → Speakers
                                                                                             ↓
                                                                                     AnalyserNode → Visualizers (canvas)
 ```
@@ -1142,8 +1142,8 @@ For a basic search-only interface without authentication:
 ```yaml
 # Required
 AUTH_SECRET="your-secret"  # Still required by NextAuth
-API_V2_URL="https://songbird.darkfloor.art/"  # V2 API
-SONGBIRD_API_KEY="your-key"  # For streaming/search
+API_V2_URL="https://bluesix.darkfloor.art/"  # V2 API
+BLUESIX_API_KEY="your-key"  # For streaming/search
 
 # Database (minimal - for NextAuth sessions)
 DATABASE_URL="postgres://user:pass@host:5432/db?sslmode=require"
@@ -1151,7 +1151,7 @@ DB_HOST="localhost"
 DB_PORT="5432"
 DB_ADMIN_USER="postgres"
 DB_ADMIN_PASSWORD="password"
-DB_NAME="songbird"
+DB_NAME="bluesix"
 ```
 
 ### Full Production Setup
@@ -1173,8 +1173,8 @@ DB_NAME="starchild"
 DB_SSL_CA="/path/to/ca.pem"  # Optional: SSL certificate
 
 # API Configuration
-API_V2_URL="https://songbird.darkfloor.art/"  # V2 API (streaming, search, recommendations)
-SONGBIRD_API_KEY="your-songbird-key"  # For Songbird API
+API_V2_URL="https://bluesix.darkfloor.art/"  # V2 API (streaming, search, recommendations)
+BLUESIX_API_KEY="your-bluesix-key"  # For Bluesix API
 
 # Environment
 NODE_ENV="production"

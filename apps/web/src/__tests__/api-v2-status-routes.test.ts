@@ -42,8 +42,8 @@ describe("API V2 proxy routes", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        API_V2_URL: "https://songbirdapi.com/",
-        SONGBIRD_API_KEY: "test-api-key",
+        API_V2_URL: "https://bluesixapi.com/",
+        BLUESIX_API_KEY: "test-api-key",
       },
     }));
     vi.doMock("@/server/auth", () => ({
@@ -152,7 +152,7 @@ describe("API V2 proxy routes", () => {
     vi.doMock("@/env", () => ({
       env: {
         API_V2_URL: undefined,
-        SONGBIRD_API_KEY: undefined,
+        BLUESIX_API_KEY: undefined,
       },
     }));
 
@@ -171,8 +171,8 @@ describe("API V2 proxy routes", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        API_V2_URL: "https://songbirdapi.com/",
-        SONGBIRD_API_KEY: "test-api-key",
+        API_V2_URL: "https://bluesixapi.com/",
+        BLUESIX_API_KEY: "test-api-key",
       },
     }));
 
@@ -196,8 +196,8 @@ describe("API V2 proxy routes", () => {
     vi.resetModules();
     vi.doMock("@/env", () => ({
       env: {
-        API_V2_URL: "https://songbirdapi.com/",
-        SONGBIRD_API_KEY: "test-api-key",
+        API_V2_URL: "https://bluesixapi.com/",
+        BLUESIX_API_KEY: "test-api-key",
       },
     }));
     vi.doMock("@/server/auth", () => ({

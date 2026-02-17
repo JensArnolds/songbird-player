@@ -4,14 +4,14 @@ This document summarizes the external services Starchild Music integrates with a
 
 Upstream OpenAPI reference (not this repo’s API): `docs/API_V2_SWAGGER.yaml` (service base URL is configured via `API_V2_URL`).
 
-## Songbird V2 (Darkfloor)
+## Bluesix V2 (Darkfloor)
 
 **Purpose:** search, streaming, metadata enrichment, and OG preview images.
 
 **Configured by:**
 
 - `API_V2_URL` (server-side base URL)
-- `SONGBIRD_API_KEY` (server-side key)
+- `BLUESIX_API_KEY` (server-side key)
 - `API_V2_HEALTH_URL` (public URL used for the UI health indicator)
 
 **Used by:**

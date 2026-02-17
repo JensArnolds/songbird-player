@@ -3,7 +3,7 @@
 .PHONY: help build up down restart logs shell migrate clean up-local down-local db-shell
 
 help:
-	@echo "Songbird Frontend - Docker Commands"
+	@echo "Bluesix Frontend - Docker Commands"
 	@echo ""
 	@echo "🌐 Production (External Database - Neon/Aiven):"
 	@echo "  make build      - Build Docker images"
@@ -55,7 +55,7 @@ down-local:
 	docker compose -f docker-compose.local.yml down
 
 db-shell:
-	docker compose -f docker-compose.local.yml exec db psql -U songbird -d songbird
+	docker compose -f docker-compose.local.yml exec db psql -U bluesix -d bluesix
 
 clean:
 	@echo "⚠️  WARNING: This will remove all containers, volumes, and images!"

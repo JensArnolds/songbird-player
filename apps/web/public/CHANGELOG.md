@@ -202,7 +202,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Environment variable cleanup (infrastructure)**: Streamlined environment variables to only essential secrets, removing redundant legacy database configuration variables. Locations: `.github/workflows/docker-build.yml`, `Dockerfile`, `.env.example`.
   - **Removed redundant DB_* variables**: Eliminated `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` from all configurations (workflow, Dockerfile, env example). These were legacy fallbacks for drizzle-kit that are unnecessary when `DATABASE_URL` is always provided.
-  - **Simplified Dockerfile build args**: Reduced from 17 ARG declarations to 9 essential variables (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SONGBIRD_API_KEY`, `API_V2_URL`, `NEXTAUTH_URL`, `NODE_ENV`, `SKIP_ENV_VALIDATION`).
+  - **Simplified Dockerfile build args**: Reduced from 17 ARG declarations to 9 essential variables (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `BLUESIX_API_KEY`, `API_V2_URL`, `NEXTAUTH_URL`, `NODE_ENV`, `SKIP_ENV_VALIDATION`).
   - **Cleaned up .env.example**: Removed all redundant variables including `NEXT_PUBLIC_NEXTAUTH_URL`, `NEXT_PUBLIC_NEXTAUTH_VERCEL_URL`, `NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER`, `DATABASE_UNPOOLED`, and `API_V2_HEALTH_URL`. Added clear section comments explaining each variable's purpose.
   - **Updated GitHub Actions workflow**: Removed 5 redundant secret references from both test and production build steps, reducing secret exposure surface and improving clarity.
 
@@ -424,7 +424,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 ### Fixed
 
 - **Lint remediation for tests and hooks**: Typed the search, toast, TRPC, and audio-player stability specs, added the shared `renderPlayerHook`, and started calling the typed `api.music.addToPlaylist` helper so ESLint no-unsafe rules now pass cleanly. Locations: `src/__tests__/api-search-v2.test.ts`, `src/__tests__/Toast.test.tsx`, `src/__tests__/trpc.music.test.ts`, `src/__tests__/useAudioPlayer.stability.test.ts`, `src/components/PlaylistContextMenu.tsx`.
-- **Track metadata safety**: Ensured the `/track/[id]/page` data fetching narrows Songbird/Starchild responses before returning a `Track`, so runtime errors stop surfacing as unsafe assignments. Location: `src/app/track/[id]/page.tsx`.
+- **Track metadata safety**: Ensured the `/track/[id]/page` data fetching narrows Bluesix/Starchild responses before returning a `Track`, so runtime errors stop surfacing as unsafe assignments. Location: `src/app/track/[id]/page.tsx`.
 - **Visualization and config housekeeping**: Declared `twoPi` inside `FlowFieldRenderer`’s cloverleaf helper and added `vitest/globals` to `tsconfig.json` so the lint and test tooling stay aligned. Locations: `src/components/visualizers/FlowFieldRenderer.ts`, `tsconfig.json`.
 - **Desktop greeting update**: Sidebar branding now greets signed-in users by `Hi <username>` (falling back to email, username, or “Hi there” when absent). Location: `src/components/ElectronSidebar.tsx`.
 
@@ -539,8 +539,8 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 - **docs/ index**: New [docs/README.md](docs/README.md) lists all files under `docs/` as a single entry-point.
 - **Architecture doc**: [docs/architecture.md](docs/architecture.md) covers the full system layout (web + Electron), runtime entry-points, and sequence diagrams for search, streaming, track-metadata (V2 → Starchild fallback), and auth flows.
-- **API route map**: [docs/API_ROUTE_USE.md](docs/API_ROUTE_USE.md) tabulates every Next.js route handler — method, source file, upstream target, and required env vars — plus notes on the two Songbird V2 auth styles (query-string vs header).
-- **External-API guide**: [docs/API_USE.md](docs/API_USE.md) documents each upstream service (Songbird V2, Starchild, Last.fm), what this app uses from each, and how they're configured.
+- **API route map**: [docs/API_ROUTE_USE.md](docs/API_ROUTE_USE.md) tabulates every Next.js route handler — method, source file, upstream target, and required env vars — plus notes on the two Bluesix V2 auth styles (query-string vs header).
+- **External-API guide**: [docs/API_USE.md](docs/API_USE.md) documents each upstream service (Bluesix V2, Starchild, Last.fm), what this app uses from each, and how they're configured.
 - **Agent entry-point**: [AGENTS.md](AGENTS.md) provides a quick-start for AI coding agents — commands, env-loading rules, project layout, and working conventions.
 - **Claude Code guidance**: [CLAUDE.md](CLAUDE.md) documents cross-file architecture that isn't visible from any single file: provider nesting order, the three-layer audio stack, queue-model conventions, tRPC-vs-proxy decision rules, and DB/Electron/test-setup constraints.
 
@@ -1360,7 +1360,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 ### Changed
 
-- **V2-Only Search & Stream**: `/api/music/search` and `/api/stream` now require V2 (`NEXT_PUBLIC_V2_API_URL` + `SONGBIRD_API_KEY`) with no V1 fallback
+- **V2-Only Search & Stream**: `/api/music/search` and `/api/stream` now require V2 (`NEXT_PUBLIC_V2_API_URL` + `BLUESIX_API_KEY`) with no V1 fallback
   - Location: `src/app/api/music/search/route.ts`, `src/app/api/stream/route.ts`
 - **Track SEO Metadata via V2**: Track page metadata now fetches from V2 batch endpoint (Starchild fallback only)
   - Location: `src/app/track/[id]/page.tsx`
@@ -1655,7 +1655,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 - **Repository Link**: Updated homepage link from GitLab to GitHub
   - Changed "View on GitLab" button to "View on GitHub"
-  - Updated URL from `https://gitlab.com/soulwax/songbird-player` to `https://github.com/soulwax/songbird-player`
+  - Updated URL from `https://gitlab.com/soulwax/bluesix-library` to `https://github.com/soulwax/bluesix-library`
   - Replaced GitLab logo SVG with GitHub octocat logo SVG
   - **Location**: `src/app/HomePageClient.tsx:635-668`
 
@@ -1919,7 +1919,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 ### Changed
 
-- **Songbird API v1.0.0 Compatibility**: Updated frontend to handle breaking changes in Songbird API v1.0.0
+- **Bluesix API v1.0.0 Compatibility**: Updated frontend to handle breaking changes in Bluesix API v1.0.0
   - **Mode Parameter Update**: Changed default mode from `"normal"` to `"balanced"` (breaking change in API)
     - The `"normal"` mode is no longer accepted by the API
     - All similarity level mappings now use `"balanced"` as the default instead of `"normal"`
@@ -1932,7 +1932,7 @@ CallbackRouteError: r_: server responded with an error in the response body
     - Logs warnings when present in API response
     - Logs when `foundSongs < inputSongs` to detect partial song matching failures
   - **Backward Compatibility**: All new fields are optional in type definitions, ensuring graceful degradation
-  - **Impact**: Frontend is now fully compatible with Songbird API v1.0.0 breaking changes
+  - **Impact**: Frontend is now fully compatible with Bluesix API v1.0.0 breaking changes
   - Locations:
     - `src/server/api/routers/music.ts` (getSimilarTracks procedure)
 
@@ -2147,20 +2147,20 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 ### Changed
 
-- **Songbird Env Alias**: Support `SONGBIRD_PUBLIC_API_URL` for the Songbird base URL
+- **Bluesix Env Alias**: Support `BLUESIX_PUBLIC_API_URL` for the Bluesix base URL
   - **Impact**: Easier env configuration across environments
-  - Location: `src/services/songbird.ts`
+  - Location: `src/services/bluesix.ts`
 
 ## [0.9.12] - 2026-01-17
 
 ### Fixed
 
-- **Smart Queue Recommendations**: Smart tracks now use Songbird's Last.fm + Starchild conversion flow
+- **Smart Queue Recommendations**: Smart tracks now use Bluesix's Last.fm + Starchild conversion flow
   - **Impact**: Auto-queue pulls richer recommendations with Starchild IDs
   - Locations:
     - `src/server/api/routers/music.ts`
     - `src/contexts/AudioPlayerContext.tsx`
-    - `src/services/songbird.ts`
+    - `src/services/bluesix.ts`
 
 - **tRPC Preferences Tests**: Added coverage for smart queue defaults and preference persistence
   - **Impact**: Validates server preferences behavior
@@ -4049,7 +4049,7 @@ The visualizer implements the Bohr model energy formula: E_n = -13.6 eV / n²
   - Prevents port binding conflicts (Next.js binds directly to port)
   - Reduced database connections from 120 to ~10 (single instance × ~10 connections)
   - Zero-downtime deployments still supported via graceful reload
-  - Updated process names from `darkfloor-art-*` to `songbird-frontend-*`
+  - Updated process names from `darkfloor-art-*` to `bluesix-frontend-*`
   - Memory limit increased to 2560M for single instance
   - Location: `ecosystem.config.cjs:16-122`
   - Location: `pm2-setup.sh:106-149`
@@ -4256,7 +4256,7 @@ ctx.arc(fw.x, fw.y, fw.size * 3, 0, TAU);    // Outer glow
 
 - **GitHub Repository Button**: Added link to GitHub repository on home page
   - Located at the bottom center of the empty state (when no search results are displayed)
-  - Links to `https://github.com/soulwax/songbird-player`
+  - Links to `https://github.com/soulwax/bluesix-library`
   - Opens in new tab with proper security attributes
   - Features GitHub icon with "View on GitHub" text
   - Styled with subtle white background and hover effects

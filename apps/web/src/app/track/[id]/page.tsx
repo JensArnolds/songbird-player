@@ -47,17 +47,17 @@ function isTrackPayload(value: unknown): value is Track {
 
 async function getTrack(id: string): Promise<Track | null> {
   try {
-    const songbirdApiUrl = env.API_V2_URL;
-    const songbirdApiKey = env.SONGBIRD_API_KEY;
+    const bluesixApiUrl = env.API_V2_URL;
+    const bluesixApiKey = env.BLUESIX_API_KEY;
 
-    if (songbirdApiUrl && songbirdApiKey) {
-      const normalizedSongbirdUrl = songbirdApiUrl.replace(/\/+$/, "");
-      const url = new URL("music/tracks/batch", normalizedSongbirdUrl);
+    if (bluesixApiUrl && bluesixApiKey) {
+      const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
+      const url = new URL("music/tracks/batch", normalizedBluesixUrl);
       url.searchParams.set("ids", id);
 
       const response = await fetch(url.toString(), {
         headers: {
-          "X-API-Key": songbirdApiKey,
+          "X-API-Key": bluesixApiKey,
         },
         signal: AbortSignal.timeout(10000),
         cache: "no-store",
@@ -80,11 +80,11 @@ async function getTrack(id: string): Promise<Track | null> {
         }
       }
     } else {
-      if (!songbirdApiUrl) {
+      if (!bluesixApiUrl) {
         console.error("[Track Page] API_V2_URL not configured");
       }
-      if (!songbirdApiKey) {
-        console.error("[Track Page] SONGBIRD_API_KEY not configured");
+      if (!bluesixApiKey) {
+        console.error("[Track Page] BLUESIX_API_KEY not configured");
       }
     }
 

@@ -75,7 +75,7 @@ Windows drives are mounted at `/mnt/` in WSL:
 
 ```bash
 # Navigate to your project
-cd /mnt/d/Workspace/Web/Next.JS/songbird-player
+cd /mnt/d/Workspace/Web/Next.JS/bluesix-library
 
 # Verify you're in the right place
 pwd
@@ -122,13 +122,13 @@ For best performance, work directly in the WSL2 filesystem:
 ```bash
 # Clone your project inside WSL2 (faster builds)
 cd ~
-git clone https://github.com/soulwax/songbird-player.git
-cd songbird-player
+git clone https://github.com/soulwax/bluesix-library.git
+cd bluesix-library
 ```
 
 Or continue using Windows filesystem (easier file access from Windows apps):
 ```bash
-cd /mnt/d/Workspace/Web/Next.JS/songbird-player
+cd /mnt/d/Workspace/Web/Next.JS/bluesix-library
 ```
 
 ### Access WSL Files from Windows
