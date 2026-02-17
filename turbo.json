@@ -1,5 +1,5 @@
 {
-  "$schema": "turborepo.schema.dev.json",
+  "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [
     ".env",
     ".env.local",

@@ -1,4 +1,12 @@
 {
-    "chatgpt.openOnStartup": true,
-    "python-envs.defaultPackageManager": "ms-python.python:conda"
+  "json.schemaDownload.enable": true,
+  "json.schemaDownload.trustedDomains": {
+    "https://schemastore.azurewebsites.net/": true,
+    "https://raw.githubusercontent.com/": true,
+    "https://www.schemastore.org/": true,
+    "https://json.schemastore.org/": true,
+    "https://json-schema.org/": true,
+    "https://turbo.build/": true,
+    "https://openapi.vercel.sh/": true
+  }
 }
