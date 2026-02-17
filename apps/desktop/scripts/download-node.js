@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File: scripts/download-node.js
+// File: apps/desktop/scripts/download-node.js
 
 import { exec } from "child_process";
 import fs from "fs";

@@ -1,4 +1,4 @@
-// File: src/types/player.ts
+// File: packages/types/src/player.ts
 
 import type { Track } from "./index";
 

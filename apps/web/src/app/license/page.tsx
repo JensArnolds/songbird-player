@@ -1,4 +1,4 @@
-// File: src/app/license/page.tsx
+// File: apps/web/src/app/license/page.tsx
 
 import Link from "next/link";
 

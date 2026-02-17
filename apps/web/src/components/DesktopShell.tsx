@@ -1,4 +1,4 @@
-// File: src/components/DesktopShell.tsx
+// File: apps/web/src/components/DesktopShell.tsx
 
 "use client";
 

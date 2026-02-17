@@ -1,4 +1,4 @@
-// File: electron/prepare-package.js
+// File: apps/desktop/electron/prepare-package.js
 
 const fs = require("fs");
 const path = require("path");

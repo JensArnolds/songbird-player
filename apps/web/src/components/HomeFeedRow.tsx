@@ -1,3 +1,5 @@
+// File: apps/web/src/components/HomeFeedRow.tsx
+
 "use client";
 
 import type { Track } from "@starchild/types";

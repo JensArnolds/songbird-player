@@ -1,4 +1,4 @@
-// File: src/__tests__/og-image-generation.test.ts
+// File: apps/web/src/__tests__/og-image-generation.test.ts
 
 import { GET } from "@/app/api/og/route";
 import { mkdir, writeFile } from "fs/promises";

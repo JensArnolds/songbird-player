@@ -1,4 +1,4 @@
-// File: src/components/PatternControls.tsx
+// File: apps/web/src/components/PatternControls.tsx
 
 "use client";
 

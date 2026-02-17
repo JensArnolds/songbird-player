@@ -1,4 +1,4 @@
-// File: src/components/PlaylistContextMenu.tsx
+// File: apps/web/src/components/PlaylistContextMenu.tsx
 
 "use client";
 

@@ -1,4 +1,4 @@
-// File: src/app/library/page.tsx
+// File: apps/web/src/app/library/page.tsx
 
 "use client";
 

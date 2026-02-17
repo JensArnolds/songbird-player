@@ -1,4 +1,4 @@
-// File: drizzle.env.ts
+// File: apps/web/drizzle.env.ts
 
 import { config as dotenvConfig } from "dotenv";
 import { dirname, resolve } from "path";

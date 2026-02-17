@@ -1,4 +1,4 @@
-// File: src/app/track/[id]/TrackRedirect.tsx
+// File: apps/web/src/app/track/[id]/TrackRedirect.tsx
 
  "use client";
 

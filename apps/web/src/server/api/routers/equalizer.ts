@@ -1,4 +1,4 @@
-// File: src/server/api/routers/equalizer.ts
+// File: apps/web/src/server/api/routers/equalizer.ts
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { userPreferences } from "@/server/db/schema";

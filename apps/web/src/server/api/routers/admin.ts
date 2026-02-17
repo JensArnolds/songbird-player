@@ -1,4 +1,4 @@
-// File: src/server/api/routers/admin.ts
+// File: apps/web/src/server/api/routers/admin.ts
 
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, ne } from "drizzle-orm";

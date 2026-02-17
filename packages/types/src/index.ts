@@ -1,4 +1,4 @@
-// File: src/types/index.ts
+// File: packages/types/src/index.ts
 
 export interface Artist {
   id: number;

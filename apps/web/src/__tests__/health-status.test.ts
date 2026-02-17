@@ -1,4 +1,4 @@
-// File: src/__tests__/health-status.test.ts
+// File: apps/web/src/__tests__/health-status.test.ts
 
 import { describe, expect, it } from "vitest";
 import { normalizeHealthStatus } from "@/utils/healthStatus";

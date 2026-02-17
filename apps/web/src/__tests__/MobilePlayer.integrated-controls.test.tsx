@@ -1,4 +1,4 @@
-// File: src/__tests__/MobilePlayer.integrated-controls.test.tsx
+// File: apps/web/src/__tests__/MobilePlayer.integrated-controls.test.tsx
 
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";

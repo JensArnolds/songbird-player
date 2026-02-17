@@ -123,8 +123,7 @@ function parseArgs(argv) {
   return {
     help: args.help === true,
     force: args.force === true,
-    privateKeyPath:
-      typeof args.private === "string" ? args.private : undefined,
+    privateKeyPath: typeof args.private === "string" ? args.private : undefined,
     publicKeyPath: typeof args.public === "string" ? args.public : undefined,
     bits: typeof args.bits === "string" ? Number(args.bits) : undefined,
   };

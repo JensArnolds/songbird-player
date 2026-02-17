@@ -1,4 +1,4 @@
-// File: src/components/ChangelogModal.tsx
+// File: apps/web/src/components/ChangelogModal.tsx
 
 "use client";
 

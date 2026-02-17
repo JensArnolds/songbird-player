@@ -1,4 +1,4 @@
-// File: src/components/visualizers/FlowFieldRenderer.ts
+// File: packages/visualizers/src/FlowFieldRenderer.ts
 
 import type { Pattern } from "./flowfieldPatterns/patternIds";
 import { renderHexGrid } from "./flowfieldPatterns/renderHexGrid";

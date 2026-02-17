@@ -227,115 +227,90 @@
 
 ## 📁 Project Structure
 
+This project uses a **Turborepo monorepo**. All deployable applications live under `apps/`; all shared libraries live under `packages/`.
+
 ```shell
-src/
-├── app/                    # Next.js App Router pages
-│   ├── [userhash]/        # User profile pages
-│   ├── album/             # Album detail pages
-│   ├── artist/            # Artist detail pages
-│   ├── library/           # User library (playlists, favorites)
-│   ├── playlists/         # Playlist management
-│   ├── api/               # API routes (NextAuth, health checks)
-│   ├── layout.tsx         # Root layout with providers
-│   └── page.tsx           # Home page
+apps/
+├── web/                   # Next.js 16 web application (primary)
+│   └── src/
+│       ├── app/           # Next.js App Router pages & API proxy routes
+│       │   ├── [userhash]/    # User profile pages
+│       │   ├── album/, artist/, library/, playlists/
+│       │   ├── api/           # tRPC, auth, music proxies, streaming
+│       │   ├── layout.tsx     # Root layout with providers
+│       │   └── page.tsx       # Home page
+│       ├── components/    # App-local React components
+│       ├── hooks/         # App-local hooks (useEqualizer, useMediaQuery, …)
+│       ├── server/        # Server-only code
+│       │   ├── api/       # tRPC routers (music, equalizer, preferences)
+│       │   ├── auth/      # NextAuth config + Drizzle adapter
+│       │   └── db/        # Drizzle schema + pg connection
+│       ├── services/      # Client-side service calls (smartQueue)
+│       ├── utils/         # App-local utilities
+│       └── env.js         # Zod-validated environment variables
 │
-├── components/            # React components
-│   ├── Player.tsx         # Basic audio player
-│   ├── EnhancedPlayer.tsx # Advanced player with equalizer
-│   ├── MobilePlayer.tsx   # Mobile-optimized player
-│   ├── MiniPlayer.tsx     # Compact player bar
-│   ├── Queue.tsx          # Queue management
-│   ├── EnhancedQueue.tsx # Advanced queue with multi-select
-│   ├── TrackCard.tsx      # Track display component
-│   ├── AudioVisualizer.tsx # Audio visualization
-│   ├── Equalizer.tsx      # 9-band equalizer
-│   ├── Header.tsx         # Desktop header
-│   ├── MobileHeader.tsx    # Mobile header
-│   ├── MobileNavigation.tsx # Bottom navigation
-│   └── visualizers/       # Visualization components
+├── desktop/               # Electron wrapper (loads the web app on loopback)
+│   └── electron/
+│       └── main.cjs       # Electron main process
 │
-├── contexts/              # React Context providers
-│   ├── AudioPlayerContext.tsx  # Global player state
-│   ├── ToastContext.tsx        # Toast notifications
-│   ├── MenuContext.tsx         # Menu state
-│   └── TrackContextMenuContext.tsx # Context menu state
-│
-├── hooks/                 # Custom React hooks
-│   ├── useAudioPlayer.ts  # Core audio player logic
-│   ├── useEqualizer.ts    # Equalizer processing
-│   ├── useMediaQuery.ts   # Responsive breakpoints
-│   └── ...
-│
-├── server/                # Server-side code
-│   ├── api/               # tRPC API layer
-│   │   ├── routers/       # API route handlers
-│   │   │   ├── music.ts   # Music search, playlists, recommendations
-│   │   │   ├── equalizer.ts # Equalizer presets
-│   │   │   ├── preferences.ts # User preferences
-│   │   │   └── post.ts    # Example post router
-│   │   ├── root.ts        # Root router
-│   │   └── trpc.ts        # tRPC configuration
-│   ├── auth/              # NextAuth configuration
-│   ├── db/                # Database layer
-│   │   ├── schema.ts      # Drizzle ORM schema
-│   │   └── index.ts       # Database connection
-│   └── services/          # Business logic
-│
-├── trpc/                  # tRPC client setup
-├── types/                 # TypeScript type definitions
-├── utils/                 # Utility functions
-├── config/                # Configuration files
-├── constants/             # App constants
-├── services/              # Client-side services
-└── styles/                # Global styles
-    └── globals.css        # TailwindCSS + custom styles
+└── mobile/                # Planned: React Native app
+
+packages/
+├── api-client/            # tRPC client factory + REST helpers
+├── audio-adapters/        # Audio adapter utilities
+├── auth/                  # NextAuth session helpers
+├── config/                # Shared constants (storage keys, defaults)
+├── player-core/           # Core playback domain primitives (no React)
+├── player-react/          # React context + hooks (AudioPlayerContext, useAudioPlayer, …)
+├── types/                 # Shared TypeScript types (Track, Album, Artist, …)
+├── ui/                    # Shared React components (Button, Section, LoadingSpinner)
+└── visualizers/           # Canvas renderers (FlowFieldRenderer, patterns, …)
 ```
 
-## 🏗️ Repository Shape
+**Import rules:**
+- Inside `apps/web`: use `@starchild/*` for shared packages, `@/` for app-local code.
+- Inside `packages/*`: only `@starchild/*` cross-package imports are allowed — never `@/` (app-local) or any path into `apps/`. Enforced by `npm run check:boundaries`.
 
-This repo now uses a workspace scaffold (`apps/*`, `packages/*`) while runtime compatibility scripts are still kept at root during migration.
+## 🏗️ Turborepo Monorepo Architecture
 
-- Workspace scaffold: `pnpm-workspace.yaml:1`, `turbo.json:1`
-- Web app surface (Next.js App Router): `apps/web/src/app`
-- Desktop surface (Electron wrapper around the same app/server): `apps/desktop/electron/main.cjs`, `package.json:147`
-- Mobile surface is responsive web UI, not a separate native app: `src/hooks/useMediaQuery.ts:42`, `src/components/DesktopShell.tsx:55`
-- Shared code is organized by domain under `src/components`, `src/contexts`, `src/hooks`, `src/server`, `src/utils` (not separate publishable packages).
+### What is Turborepo?
 
-### Apps Mapping (Conceptual)
+[Turborepo](https://turbo.build/repo) is an incremental build system for JavaScript/TypeScript monorepos. It understands the dependency graph between packages and apps, and uses aggressive caching to only re-run tasks (build, lint, test, typecheck) for packages that have actually changed — or that depend on something that changed.
 
-- Web: Next.js pages + API routes via `scripts/server.js`: `scripts/server.js:25`, `scripts/server.js:56`
-- Electron: Starts/loads the same app on loopback and, in prod, spawns standalone Next server: `apps/desktop/electron/main.cjs`
-- Mobile: Same routes/components, different UI behavior by media query and component branching: `src/hooks/useMediaQuery.ts:42`, `src/app/layout.tsx:140`
+The workspace layout is defined in `pnpm-workspace.yaml`, and task dependencies are declared in `turbo.json`. Running `npm run ws:build` (which runs `turbo run build`) will build all packages in the correct topological order before building `apps/web`.
 
-### Routing Structure
+### Upsides
 
-- App Router pages live in `src/app` (e.g. `/`, `/signin`, `/settings`, `/track/[id]`, `/[userhash]`): `src/app/page.tsx:161`, `src/app/signin/page.tsx:1`, `src/app/track/[id]/page.tsx:162`, `src/app/[userhash]/page.tsx:18`
-- Dynamic route behavior example: `/track/[id]` resolves metadata then redirects client-side to `/?track=...`: `src/app/track/[id]/TrackRedirect.tsx:13`
-- API routing is split:
-  - tRPC endpoint: `src/app/api/trpc/[trpc]/route.ts:16`
-  - Auth endpoint: `src/app/api/auth/[...nextauth]/route.ts:165`
-  - External proxy routes (`/api/music/*`, `/api/stream`, `/api/v2/*`): `docs/API_ROUTE_USE.md:3`
-- Root layout mounts global providers and persistent shells/player once for all routes: `src/app/layout.tsx:100`
+- **Incremental builds**: Unchanged packages are served from cache. After the first full build, a change to `packages/ui` only rebuilds `ui` and `apps/web` — not `player-core`, `types`, etc.
+- **Parallel execution**: Independent tasks across packages run concurrently, saturating available CPU cores.
+- **Single version policy**: All packages share one `node_modules` tree and one lockfile, eliminating version drift between local packages.
+- **Type-safe package boundaries**: Shared code in `packages/*` is imported via TypeScript path aliases (`@starchild/*`), giving full IDE navigation and type inference across the whole repo with no publish/build step required during development.
+- **Boundary enforcement**: The `check:boundaries` script prevents packages from accidentally depending on app internals, keeping shared code genuinely reusable.
+- **Colocation**: Related code (types, audio engine, visualizers) lives alongside the app that uses it, making refactoring and code review tractable.
 
-### Auth Structure
+### Downsides
 
-- NextAuth config + Drizzle adapter + DB session strategy: `src/server/auth/config.ts:84`, `src/server/auth/config.ts:96`, `src/server/auth/config.ts:102`
-- OAuth providers are Discord (+ optional Spotify): `src/server/auth/config.ts:89`
-- Route handler wraps NextAuth handlers and dynamically aligns origin for OAuth/PKCE correctness: `src/app/api/auth/[...nextauth]/route.ts:47`, `src/app/api/auth/[...nextauth]/route.ts:57`
-- tRPC context injects `session` and `db`; `protectedProcedure` enforces auth: `src/server/api/trpc.ts:10`, `src/server/api/trpc.ts:57`
-- App router composition: `admin`, `music`, `equalizer`, etc.: `src/server/api/root.ts:9`
+- **Cold build cost**: The very first `ws:build` (or after clearing `.turbo/`) must build every package from scratch — slower than a single-package repo.
+- **npm workspace overhead**: `npm install` installs all workspace dependencies, which is heavier than a focused single-app install.
+- **Tooling complexity**: ESLint, TypeScript, and Vitest configs must be coordinated across packages. Mistakes in one `tsconfig.json` can silently break type resolution elsewhere.
+- **`"use client"` / `"use server"` boundaries**: Shared React packages (`player-react`, `ui`) must be careful about RSC directives, since they are imported into a Next.js app.
+- **No independent versioning**: All packages are at the same version and released together. There is no per-package publish flow.
 
-### Playback State Structure
+### Routing & App Surfaces
 
-- Playback is globally scoped in `AudioPlayerProvider` mounted at app root: `src/app/layout.tsx:123`, `src/contexts/AudioPlayerContext.tsx:824`
-- Core engine is `useAudioPlayer`; queue model uses `queue[0]` as current track: `src/hooks/useAudioPlayer.ts:154`, `src/hooks/useAudioPlayer.ts:158`
-- Uses a single hidden global `HTMLAudioElement` + Web Audio gain integration: `src/hooks/useAudioPlayer.ts:297`, `src/hooks/useAudioPlayer.ts:328`
-- State exposed through context (`currentTrack`, queue ops, smart queue, transport controls): `src/contexts/AudioPlayerContext.tsx:720`
-- Persistence strategy:
-  - Local persistence for anonymous/always-on client state: `src/hooks/useAudioPlayer.ts:277`
-  - DB queue-state persistence for authenticated users via tRPC: `src/contexts/AudioPlayerContext.tsx:484`
-  - Session/user switch clears queue/history to avoid cross-user bleed: `src/contexts/AudioPlayerContext.tsx:542`
-- UI surface for playback is persistent across routes (`PersistentPlayer`): `src/app/layout.tsx:155`, `src/components/PersistentPlayer.tsx:48`
+| Surface | Entry point | Notes |
+|---------|-------------|-------|
+| Web | `apps/web/src/app/` | Next.js App Router; served by `scripts/server.js` on port 3222 |
+| Desktop | `apps/desktop/electron/main.cjs` | Electron loads the web app on loopback; in production spawns the standalone Next.js server |
+| Mobile | Media-query branches in web app | `useMediaQuery` + component branching; no separate native app yet |
+
+### Key Architectural Paths
+
+- **Routing**: App Router pages in `apps/web/src/app/` (e.g. `/`, `/signin`, `/settings`, `/track/[id]`, `/[userhash]`). `/track/[id]` resolves metadata then redirects client-side to `/?track=…`.
+- **API routing**: tRPC at `apps/web/src/app/api/trpc/[trpc]/route.ts`; auth at `apps/web/src/app/api/auth/[...nextauth]/route.ts`; all external music calls proxied via `apps/web/src/app/api/music/*`, `/api/stream`, `/api/v2/*`.
+- **Auth**: NextAuth config + Drizzle adapter + DB session strategy in `apps/web/src/server/auth/`; `protectedProcedure` in `apps/web/src/server/api/trpc.ts` enforces auth for mutations.
+- **Playback**: `AudioPlayerProvider` mounted at root (`apps/web/src/app/layout.tsx`); core engine is `useAudioPlayer` from `@starchild/player-react`; single hidden `HTMLAudioElement` → Web Audio API → EQ filters → speakers / AnalyserNode → visualizers.
+- **Queue persistence**: localStorage for anonymous users; tRPC `saveQueueState` for authenticated users; session switch clears queue to avoid cross-user bleed.
 
 ## 🎨 Design System
 
@@ -423,7 +398,7 @@ The application uses **tRPC** for end-to-end type safety between the client and 
 **Usage Example:**
 
 ```typescript
-import { api } from "@/trpc/react";
+import { api } from "@starchild/api-client/trpc/react";
 
 // In a React component
 const playlists = api.music.getPlaylists.useQuery();
@@ -448,7 +423,7 @@ HTMLAudioElement → /api/stream (proxy route, Range passthrough) → Songbird V
 
 **Stream URL Generation:**
 
-Stream URLs are generated via `getStreamUrlById()` in `src/utils/api.ts`:
+Stream URLs are generated via `getStreamUrlById()` from `@starchild/api-client/rest`:
 
 ```typescript
 const streamUrl = getStreamUrlById(trackId.toString());
@@ -514,7 +489,7 @@ npm run dev:next     # Next.js dev server only
 npm run electron:dev # Electron + Next.js dev
 ```
 
-**Workspace (PR1 scaffold):**
+**Workspace (Turborepo — runs across all apps + packages):**
 
 ```bash
 npm run ws:dev          # Turbo dev pipeline (parallel)
@@ -1216,8 +1191,8 @@ Contributions are welcome! Please ensure:
 1. **TypeScript**: All code is TypeScript with strict mode enabled
 2. **Type Safety**: Components properly typed with interfaces
 3. **Styling**: Follow TailwindCSS v4 conventions
-4. **Environment**: Add new variables to `src/env.js` validation
-5. **tRPC**: Use tRPC procedures for all API calls (no direct fetch)
+4. **Environment**: Add new variables to `apps/web/src/env.js` validation
+5. **tRPC**: Use tRPC procedures for all app-data API calls (no direct fetch)
 6. **Testing**: Test on both mobile and desktop views
 7. **Code Style**: Run `npm run format:write` before committing
 

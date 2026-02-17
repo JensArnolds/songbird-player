@@ -1,4 +1,4 @@
-// File: src/utils/audioAnalysis.ts
+// File: apps/web/src/utils/audioAnalysis.ts
 
 export interface FrequencyBands {
   bass: number;

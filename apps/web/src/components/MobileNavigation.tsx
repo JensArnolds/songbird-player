@@ -1,4 +1,4 @@
-// File: src/components/MobileNavigation.tsx
+// File: apps/web/src/components/MobileNavigation.tsx
 
 "use client";
 

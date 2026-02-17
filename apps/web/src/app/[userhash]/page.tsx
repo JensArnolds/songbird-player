@@ -1,4 +1,4 @@
-// File: src/app/[userhash]/page.tsx
+// File: apps/web/src/app/[userhash]/page.tsx
 
 "use client";
 

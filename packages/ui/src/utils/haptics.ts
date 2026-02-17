@@ -1,4 +1,4 @@
-// File: src/utils/haptics.ts
+// File: packages/ui/src/utils/haptics.ts
 
 export type HapticPattern =
   | "light"

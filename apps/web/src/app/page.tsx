@@ -1,4 +1,4 @@
-// File: src/app/page.tsx
+// File: apps/web/src/app/page.tsx
 
 import { env } from "@/env";
 import type { SearchResponse, Track } from "@starchild/types";

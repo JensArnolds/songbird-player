@@ -1,4 +1,4 @@
-// File: src/utils/healthStatus.ts
+// File: apps/web/src/utils/healthStatus.ts
 
 export type NormalizedHealthStatus = "ok" | "degraded" | "unhealthy";
 

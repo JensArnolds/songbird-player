@@ -1,4 +1,4 @@
-// File: src/global.d.ts
+// File: apps/web/src/global.d.ts
 
 declare module "*.css";
 declare module "eslint-plugin-drizzle";

@@ -1,4 +1,4 @@
--- File: drizzle/0016_add_deezer_id_columns.sql
+-- File: apps/web/drizzle/0016_add_deezer_id_columns.sql
 -- Migration: Add deezer_id columns to all tables that store song/track data
 -- This ensures deezer_id is available as a dedicated column for querying and indexing
 -- Add deezerId to favorites table

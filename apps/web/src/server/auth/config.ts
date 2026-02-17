@@ -1,4 +1,4 @@
-// File: src/server/auth/config.ts
+// File: apps/web/src/server/auth/config.ts
 
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { and, eq, sql } from "drizzle-orm";

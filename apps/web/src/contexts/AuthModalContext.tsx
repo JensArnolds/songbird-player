@@ -1,3 +1,5 @@
+// File: apps/web/src/contexts/AuthModalContext.tsx
+
 "use client";
 
 import { AuthModal } from "@/components/AuthModal";

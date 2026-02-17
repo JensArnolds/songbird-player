@@ -1,4 +1,4 @@
-// File: src/components/CookieConsent.tsx
+// File: apps/web/src/components/CookieConsent.tsx
 
 "use client";
 

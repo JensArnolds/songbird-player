@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File: scripts/run-electron-builder-win.js
+// File: apps/desktop/scripts/run-electron-builder-win.js
 
 import { spawnSync } from "child_process";
 import fs from "fs";

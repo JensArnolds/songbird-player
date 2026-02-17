@@ -1,4 +1,4 @@
-// File: src/__tests__/og-image-trackid-query.test.ts
+// File: apps/web/src/__tests__/og-image-trackid-query.test.ts
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { GET } from "@/app/api/og/route";

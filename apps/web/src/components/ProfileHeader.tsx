@@ -1,4 +1,4 @@
-// File: src/components/ProfileHeader.tsx
+// File: apps/web/src/components/ProfileHeader.tsx
 
 "use client";
 

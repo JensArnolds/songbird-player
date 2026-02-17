@@ -1,4 +1,4 @@
-// File: src/utils/logger.ts
+// File: apps/web/src/utils/logger.ts
 
 type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 

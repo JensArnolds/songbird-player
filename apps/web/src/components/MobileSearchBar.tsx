@@ -1,4 +1,4 @@
-// File: src/components/MobileSearchBar.tsx
+// File: apps/web/src/components/MobileSearchBar.tsx
 
 "use client";
 

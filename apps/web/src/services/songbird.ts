@@ -1,4 +1,4 @@
-// File: src/services/songbird.ts
+// File: apps/web/src/services/songbird.ts
 
 import { env } from "@/env";
 

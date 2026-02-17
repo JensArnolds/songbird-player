@@ -1,3 +1,5 @@
+// File: apps/web/src/hooks/useSearchSuggestions.ts
+
 "use client";
 
 import type { SearchSuggestionItem } from "@starchild/types/searchSuggestions";

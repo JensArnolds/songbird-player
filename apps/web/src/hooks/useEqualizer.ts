@@ -1,4 +1,4 @@
-// File: src/hooks/useEqualizer.ts
+// File: apps/web/src/hooks/useEqualizer.ts
 
 "use client";
 

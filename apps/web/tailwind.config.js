@@ -1,4 +1,4 @@
-// File: tailwind.config.js
+// File: apps/web/tailwind.config.js
 
 const config = {
   darkMode: "class",

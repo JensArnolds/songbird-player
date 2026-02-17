@@ -1,4 +1,4 @@
-// File: src/components/TrackCard.tsx
+// File: apps/web/src/components/TrackCard.tsx
 
 "use client";
 

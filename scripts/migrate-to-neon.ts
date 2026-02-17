@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+// File: scripts/migrate-to-neon.ts
 
 import dotenv from "dotenv";
 import { existsSync, readFileSync } from "fs";

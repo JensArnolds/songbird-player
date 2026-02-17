@@ -1,4 +1,4 @@
-// File: src/constants/visualizer.ts
+// File: packages/config/src/visualizer.ts
 
 export const VISUALIZER_TYPES = ["flowfield", "kaleidoscope"] as const;
 

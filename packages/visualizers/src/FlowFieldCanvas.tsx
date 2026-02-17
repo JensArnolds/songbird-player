@@ -1,4 +1,4 @@
-// File: src/components/visualizers/FlowFieldCanvas.tsx
+// File: packages/visualizers/src/FlowFieldCanvas.tsx
 
 "use client";
 

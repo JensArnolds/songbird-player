@@ -1,4 +1,5 @@
-songbird-player
+songbird-frontend
+├───.annot8_backup.json
 ├───.dockerignore
 ├───.env.example
 ├───.env.local
@@ -6,7 +7,9 @@ songbird-player
 ├───.markdownlint-cli2.jsonc
 ├───.pm2ignore
 ├───.vercelignore
+├───AGENTS.md
 ├───CHANGELOG.md
+├───CLAUDE.md
 ├───config1.1
 ├───CONTEXT.md
 ├───docker-compose.yml
@@ -22,69 +25,522 @@ songbird-player
 ├───package-lock.json
 ├───package.json
 ├───pm2-setup.sh
+├───pnpm-workspace.yaml
 ├───postcss.config.js
 ├───prettier.config.js
+├───private.pem
+├───private_key.pem
+├───public.pem
 ├───README.md
-├───REPOSITORY_OVERVIEW.md
+├───REPOSITORY_ANALYSIS.md
 ├───rollup.config.mjs
 ├───setup-database.sh
 ├───start-database.sh
 ├───tailwind.config.js
 ├───tree.txt
 ├───tsconfig.json
+├───tsconfig.tsbuildinfo
+├───turbo.json
 ├───vercel.json
 ├───vitest.config.ts
+├───.claude/
+│   ├───settings.local.json
+│   └───plans/
+├───.cursor/
+│   ├───mcp.json
+│   ├───worktrees.json
+│   └───commands/
+│       ├───api-contract.md
+│       ├───commit-message.md
+│       ├───db-schema.md
+│       ├───docker-audit.md
+│       ├───docs.md
+│       ├───init.md
+│       ├───perf-check.md
+│       ├───refactor.md
+│       ├───review.md
+│       ├───security-scan.md
+│       └───test-setup.md
 ├───.github/
+│   ├───appmod/
+│   │   └───appcat/
 │   ├───assets/
 │   │   ├───emily-the-strange-icon.png
 │   │   ├───emily-the-strange.png
 │   │   └───emily-the-strange_vivid.png
 │   └───workflows/
 │       └───docker-build.yml
-├───drizzle/
-│   ├───0000_eager_gideon.sql
-│   ├───0001_strange_warlock.sql
-│   ├───0002_stiff_the_phantom.sql
-│   ├───0003_chemical_mastermind.sql
-│   ├───0004_bizarre_violations.sql
-│   ├───0005_shocking_korath.sql
-│   ├───0006_good_zaran.sql
-│   ├───0007_thankful_purifiers.sql
-│   ├───0008_luxuriant_smasher.sql
-│   ├───0009_tidy_the_call.sql
-│   ├───0010_nostalgic_human_cannonball.sql
-│   ├───0011_populate_user_hash.sql
-│   ├───0011_useful_the_enforcers.sql
-│   ├───0012_remarkable_ronan.sql
-│   ├───0013_outgoing_sumo.sql
-│   ├───0014_petite_lady_ursula.sql
-│   ├───0015_material_skullbuster.sql
-│   ├───0016_add_deezer_id_columns.sql
-│   ├───0016_daffy_shriek.sql
-│   ├───0017_admin_flag.sql
-│   ├───0018_brief_post.sql
-│   ├───0019_user_banned.sql
-│   └───meta/
-│       ├───0000_snapshot.json
-│       ├───0001_snapshot.json
-│       ├───0002_snapshot.json
-│       ├───0003_snapshot.json
-│       ├───0004_snapshot.json
-│       ├───0005_snapshot.json
-│       ├───0006_snapshot.json
-│       ├───0007_snapshot.json
-│       ├───0008_snapshot.json
-│       ├───0009_snapshot.json
-│       ├───0010_snapshot.json
-│       ├───0011_snapshot.json
-│       ├───0012_snapshot.json
-│       ├───0013_snapshot.json
-│       ├───0014_snapshot.json
-│       ├───0015_snapshot.json
-│       ├───0016_snapshot.json
-│       ├───0017_snapshot.json
-│       ├───0018_snapshot.json
-│       └───_journal.json
+├───.tmp/
+├───apps/
+│   ├───README.md
+│   ├───desktop/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   ├───electron/
+│   │   │   ├───main.cjs
+│   │   │   ├───package.json
+│   │   │   ├───preload.cjs
+│   │   │   ├───prepare-package.js
+│   │   │   ├───README.md
+│   │   │   ├───sign.js
+│   │   │   ├───types.d.ts
+│   │   │   ├───verify-build.js
+│   │   │   └───builder/
+│   │   │       └───afterPack.cjs
+│   │   └───scripts/
+│   │       ├───download-node.js
+│   │       ├───electron-clean-win.js
+│   │       ├───load-env-build.js
+│   │       ├───prepare-electron-env.cjs
+│   │       └───run-electron-builder-win.js
+│   ├───mobile/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   ├───tsconfig.json
+│   │   └───src/
+│   │       └───index.ts
+│   └───web/
+│       ├───drizzle.config.ts
+│       ├───drizzle.env.ts
+│       ├───eslint.config.js
+│       ├───next-env.d.ts
+│       ├───next.config.js
+│       ├───package.json
+│       ├───postcss.config.js
+│       ├───README.md
+│       ├───tailwind.config.js
+│       ├───tsconfig.json
+│       ├───tsconfig.tsbuildinfo
+│       ├───vitest.config.ts
+│       ├───drizzle/
+│       │   ├───0000_eager_gideon.sql
+│       │   ├───0001_strange_warlock.sql
+│       │   ├───0002_stiff_the_phantom.sql
+│       │   ├───0003_chemical_mastermind.sql
+│       │   ├───0004_bizarre_violations.sql
+│       │   ├───0005_shocking_korath.sql
+│       │   ├───0006_good_zaran.sql
+│       │   ├───0007_thankful_purifiers.sql
+│       │   ├───0008_luxuriant_smasher.sql
+│       │   ├───0009_tidy_the_call.sql
+│       │   ├───0010_nostalgic_human_cannonball.sql
+│       │   ├───0011_populate_user_hash.sql
+│       │   ├───0011_useful_the_enforcers.sql
+│       │   ├───0012_remarkable_ronan.sql
+│       │   ├───0013_outgoing_sumo.sql
+│       │   ├───0014_petite_lady_ursula.sql
+│       │   ├───0015_material_skullbuster.sql
+│       │   ├───0016_add_deezer_id_columns.sql
+│       │   ├───0016_daffy_shriek.sql
+│       │   ├───0017_admin_flag.sql
+│       │   ├───0018_brief_post.sql
+│       │   ├───0019_user_banned.sql
+│       │   ├───0020_thin_annihilus.sql
+│       │   ├───0021_unique_first_admin.sql
+│       │   ├───0022_startpage_taste_profile.sql
+│       │   ├───0023_handy_karnak.sql
+│       │   └───meta/
+│       │       ├───0000_snapshot.json
+│       │       ├───0001_snapshot.json
+│       │       ├───0002_snapshot.json
+│       │       ├───0003_snapshot.json
+│       │       ├───0004_snapshot.json
+│       │       ├───0005_snapshot.json
+│       │       ├───0006_snapshot.json
+│       │       ├───0007_snapshot.json
+│       │       ├───0008_snapshot.json
+│       │       ├───0009_snapshot.json
+│       │       ├───0010_snapshot.json
+│       │       ├───0011_snapshot.json
+│       │       ├───0012_snapshot.json
+│       │       ├───0013_snapshot.json
+│       │       ├───0014_snapshot.json
+│       │       ├───0015_snapshot.json
+│       │       ├───0016_snapshot.json
+│       │       ├───0017_snapshot.json
+│       │       ├───0018_snapshot.json
+│       │       ├───0020_snapshot.json
+│       │       ├───0023_snapshot.json
+│       │       └───_journal.json
+│       ├───public/
+│       │   ├───CHANGELOG.md
+│       │   ├───emily-the-strange-raw-pink.png
+│       │   ├───emily-the-strange-raw.png
+│       │   ├───emily-the-strange.png
+│       │   ├───favicon.ico
+│       │   ├───favicon.svg
+│       │   ├───icon-192.png
+│       │   ├───icon-192.png.txt
+│       │   ├───icon-512.png
+│       │   ├───icon.icns
+│       │   ├───icon.ico
+│       │   ├───icon.png
+│       │   ├───manifest.json
+│       │   ├───og-image.png
+│       │   ├───songbird.svg
+│       │   ├───sw.js
+│       │   ├───AppIcons/
+│       │   │   ├───appstore.png
+│       │   │   ├───playstore.png
+│       │   │   ├───android/
+│       │   │   │   ├───mipmap-hdpi/
+│       │   │   │   │   └───ic_launcher.png
+│       │   │   │   ├───mipmap-mdpi/
+│       │   │   │   │   └───ic_launcher.png
+│       │   │   │   ├───mipmap-xhdpi/
+│       │   │   │   │   └───ic_launcher.png
+│       │   │   │   ├───mipmap-xxhdpi/
+│       │   │   │   │   └───ic_launcher.png
+│       │   │   │   └───mipmap-xxxhdpi/
+│       │   │   │       └───ic_launcher.png
+│       │   │   └───Assets.xcassets/
+│       │   │       └───AppIcon.appiconset/
+│       │   │           ├───100.png
+│       │   │           ├───102.png
+│       │   │           ├───1024.png
+│       │   │           ├───108.png
+│       │   │           ├───114.png
+│       │   │           ├───120.png
+│       │   │           ├───128.png
+│       │   │           ├───144.png
+│       │   │           ├───152.png
+│       │   │           ├───16.png
+│       │   │           ├───167.png
+│       │   │           ├───172.png
+│       │   │           ├───180.png
+│       │   │           ├───196.png
+│       │   │           ├───20.png
+│       │   │           ├───216.png
+│       │   │           ├───234.png
+│       │   │           ├───256.png
+│       │   │           ├───258.png
+│       │   │           ├───29.png
+│       │   │           ├───32.png
+│       │   │           ├───40.png
+│       │   │           ├───48.png
+│       │   │           ├───50.png
+│       │   │           ├───512.png
+│       │   │           ├───55.png
+│       │   │           ├───57.png
+│       │   │           ├───58.png
+│       │   │           ├───60.png
+│       │   │           ├───64.png
+│       │   │           ├───66.png
+│       │   │           ├───72.png
+│       │   │           ├───76.png
+│       │   │           ├───80.png
+│       │   │           ├───87.png
+│       │   │           ├───88.png
+│       │   │           ├───92.png
+│       │   │           └───Contents.json
+│       │   ├───images/
+│       │   │   └───placeholder-cover.svg
+│       │   └───legacy/
+│       │       ├───icon.ico
+│       │       └───icon.png
+│       ├───scripts/
+│       │   └───server.js
+│       └───src/
+│           ├───env.js
+│           ├───global.d.ts
+│           ├───proxy.ts
+│           ├───__tests__/
+│           │   ├───api-search-v2.test.ts
+│           │   ├───api-stream-v2.test.ts
+│           │   ├───api-v2-status-routes.test.ts
+│           │   ├───ErrorBoundary.stability.test.tsx
+│           │   ├───health-status.test.ts
+│           │   ├───MobileFooter.test.tsx
+│           │   ├───MobileHeader.test.tsx
+│           │   ├───MobilePlayer.integrated-controls.test.tsx
+│           │   ├───og-image-darkfloor-links.test.ts
+│           │   ├───og-image-generation.test.ts
+│           │   ├───og-image-real-urls.test.ts
+│           │   ├───og-image-trackid-query.test.ts
+│           │   ├───playback-rate.stability.test.ts
+│           │   ├───player.integration.stability.test.ts
+│           │   ├───Toast.test.tsx
+│           │   ├───track-seo.test.ts
+│           │   ├───trpc.music.test.ts
+│           │   ├───useAudioPlayer.stability.test.ts
+│           │   └───useAudioPlayer.test.ts
+│           ├───app/
+│           │   ├───HomePageClient.tsx
+│           │   ├───layout.tsx
+│           │   ├───not-found.tsx
+│           │   ├───page.tsx
+│           │   ├───register-sw.tsx
+│           │   ├───[userhash]/
+│           │   │   └───page.tsx
+│           │   ├───_components/
+│           │   │   └───post.tsx
+│           │   ├───about/
+│           │   │   └───page.tsx
+│           │   ├───admin/
+│           │   │   └───page.tsx
+│           │   ├───album/
+│           │   │   └───[id]/
+│           │   │       └───page.tsx
+│           │   ├───api/
+│           │   │   ├───album/
+│           │   │   │   └───[id]/
+│           │   │   │       ├───route.ts
+│           │   │   │       └───tracks/
+│           │   │   │           └───route.ts
+│           │   │   ├───artist/
+│           │   │   │   └───[id]/
+│           │   │   │       ├───route.ts
+│           │   │   │       └───tracks/
+│           │   │   │           └───route.ts
+│           │   │   ├───auth/
+│           │   │   │   └───[...nextauth]/
+│           │   │   │       └───route.ts
+│           │   │   ├───health/
+│           │   │   │   └───route.ts
+│           │   │   ├───music/
+│           │   │   │   ├───_lib.ts
+│           │   │   │   ├───genres/
+│           │   │   │   │   └───route.ts
+│           │   │   │   ├───playlists/
+│           │   │   │   │   ├───by-genre/
+│           │   │   │   │   │   └───route.ts
+│           │   │   │   │   ├───by-genre-id/
+│           │   │   │   │   │   └───route.ts
+│           │   │   │   │   └───popular/
+│           │   │   │   │       └───route.ts
+│           │   │   │   ├───releases/
+│           │   │   │   │   └───latest/
+│           │   │   │   │       └───route.ts
+│           │   │   │   └───search/
+│           │   │   │       ├───route.ts
+│           │   │   │       └───advanced/
+│           │   │   │           └───route.ts
+│           │   │   ├───og/
+│           │   │   │   └───route.tsx
+│           │   │   ├───playlist/
+│           │   │   │   └───[id]/
+│           │   │   │       └───route.ts
+│           │   │   ├───stream/
+│           │   │   │   └───route.ts
+│           │   │   ├───track/
+│           │   │   │   └───[id]/
+│           │   │   │       └───route.ts
+│           │   │   ├───trpc/
+│           │   │   │   └───[trpc]/
+│           │   │   │       └───route.ts
+│           │   │   └───v2/
+│           │   │       ├───_lib.ts
+│           │   │       ├───auth/
+│           │   │       │   ├───me/
+│           │   │       │   │   └───route.ts
+│           │   │       │   └───refresh/
+│           │   │       │       └───route.ts
+│           │   │       ├───cache/
+│           │   │       │   ├───clear/
+│           │   │       │   │   └───route.ts
+│           │   │       │   └───stats/
+│           │   │       │       └───route.ts
+│           │   │       ├───config/
+│           │   │       │   └───public/
+│           │   │       │       └───route.ts
+│           │   │       ├───docs/
+│           │   │       │   └───openapi/
+│           │   │       │       └───route.ts
+│           │   │       ├───health/
+│           │   │       │   ├───route.ts
+│           │   │       │   └───ready/
+│           │   │       │       └───route.ts
+│           │   │       ├───metrics/
+│           │   │       │   └───route.ts
+│           │   │       ├───music/
+│           │   │       │   ├───stream/
+│           │   │       │   │   └───capabilities/
+│           │   │       │   │       └───route.ts
+│           │   │       │   └───tracks/
+│           │   │       │       └───[id]/
+│           │   │       │           └───metadata/
+│           │   │       │               └───route.ts
+│           │   │       ├───rate-limits/
+│           │   │       │   └───route.ts
+│           │   │       ├───status/
+│           │   │       │   └───route.ts
+│           │   │       └───version/
+│           │   │           └───route.ts
+│           │   ├───artist/
+│           │   │   └───[id]/
+│           │   │       └───page.tsx
+│           │   ├───discover/
+│           │   │   └───playlists/
+│           │   │       └───[id]/
+│           │   │           └───page.tsx
+│           │   ├───fonts/
+│           │   │   ├───DejaVuSans-Bold.ttf
+│           │   │   └───DejaVuSans-Regular.ttf
+│           │   ├───library/
+│           │   │   └───page.tsx
+│           │   ├───license/
+│           │   │   └───page.tsx
+│           │   ├───playlists/
+│           │   │   ├───page.tsx
+│           │   │   └───[id]/
+│           │   │       └───page.tsx
+│           │   ├───settings/
+│           │   │   └───page.tsx
+│           │   ├───signin/
+│           │   │   └───page.tsx
+│           │   └───track/
+│           │       └───[id]/
+│           │           ├───page.tsx
+│           │           └───TrackRedirect.tsx
+│           ├───components/
+│           │   ├───AddToPlaylistModal.tsx
+│           │   ├───AnimatedList.tsx
+│           │   ├───AuthModal.tsx
+│           │   ├───AutoQueueBadge.tsx
+│           │   ├───BottomSheet.tsx
+│           │   ├───ChangelogModal.tsx
+│           │   ├───CookieConsent.tsx
+│           │   ├───CreatePlaylistModal.tsx
+│           │   ├───DesktopRightRail.tsx
+│           │   ├───DesktopShell.tsx
+│           │   ├───DesktopSidebar.tsx
+│           │   ├───DynamicTitle.tsx
+│           │   ├───ElectronChromeSync.tsx
+│           │   ├───ElectronStorageInit.tsx
+│           │   ├───ElectronWindowControls.tsx
+│           │   ├───EmptyState.tsx
+│           │   ├───EnhancedQueue.tsx
+│           │   ├───EnhancedTrackCard.tsx
+│           │   ├───Equalizer.tsx
+│           │   ├───ErrorBoundary.tsx
+│           │   ├───FloatingActionButton.tsx
+│           │   ├───FlowFieldBackground.tsx
+│           │   ├───HamburgerMenu.tsx
+│           │   ├───Header.tsx
+│           │   ├───HomeFeedRow.tsx
+│           │   ├───LightweightParticleBackground.tsx
+│           │   ├───LinuxTitlebar.tsx
+│           │   ├───MicroInteractions.tsx
+│           │   ├───MiniPlayer.tsx
+│           │   ├───MobileContentWrapper.tsx
+│           │   ├───MobileFooter.tsx
+│           │   ├───MobileFooterWrapper.tsx
+│           │   ├───MobileHeader.tsx
+│           │   ├───MobileNavigation.tsx
+│           │   ├───MobilePlayer.tsx
+│           │   ├───MobileSearchBar.tsx
+│           │   ├───OptimizedTrackList.tsx
+│           │   ├───PatternControls.tsx
+│           │   ├───PersistentPlayer.tsx
+│           │   ├───Player.tsx
+│           │   ├───PlaylistContextMenu.tsx
+│           │   ├───ProfileHeader.tsx
+│           │   ├───PullToRefreshWrapper.tsx
+│           │   ├───Queue.tsx
+│           │   ├───QueueSettingsModal.tsx
+│           │   ├───SearchSuggestionsList.tsx
+│           │   ├───SessionProvider.tsx
+│           │   ├───SkeletonGrid.tsx
+│           │   ├───SnappyButton.tsx
+│           │   ├───SuppressExtensionErrors.tsx
+│           │   ├───SwipeableTrackCard.tsx
+│           │   ├───SwipeableTrackItem.tsx
+│           │   ├───TrackCard.tsx
+│           │   ├───TrackContextMenu.tsx
+│           │   ├───UIWrapper.tsx
+│           │   ├───WelcomeHero.tsx
+│           │   └───visualizers/
+│           │       └───visuals/
+│           ├───config/
+│           │   ├───audioDefaults.ts
+│           │   ├───features.ts
+│           │   ├───oauthProviders.ts
+│           │   ├───player.ts
+│           │   └───version.ts
+│           ├───constants/
+│           ├───contexts/
+│           │   ├───AuthModalContext.tsx
+│           │   ├───KeyboardShortcutsProvider.tsx
+│           │   ├───MenuContext.tsx
+│           │   ├───PlaylistContextMenuContext.tsx
+│           │   ├───ThemeContext.tsx
+│           │   ├───ToastContext.tsx
+│           │   └───TrackContextMenuContext.tsx
+│           ├───hooks/
+│           │   ├───useAudioReactiveBackground.ts
+│           │   ├───useAudioVisualizer.ts
+│           │   ├───useEqualizer.ts
+│           │   ├───useHapticCallbacks.ts
+│           │   ├───useIsElectron.ts
+│           │   ├───useKeyboardShortcuts.ts
+│           │   ├───useMediaQuery.ts
+│           │   ├───usePullToRefresh.ts
+│           │   ├───useSearchSuggestions.ts
+│           │   ├───useSwipeGesture.ts
+│           │   └───useWebShare.ts
+│           ├───lib/
+│           │   └───utils.ts
+│           ├───server/
+│           │   ├───api/
+│           │   │   ├───root.ts
+│           │   │   ├───trpc.ts
+│           │   │   └───routers/
+│           │   │       ├───admin.ts
+│           │   │       ├───equalizer.ts
+│           │   │       ├───music.ts
+│           │   │       ├───post.ts
+│           │   │       └───preferences.ts
+│           │   ├───auth/
+│           │   │   ├───config.ts
+│           │   │   └───index.ts
+│           │   ├───db/
+│           │   │   ├───index.ts
+│           │   │   └───schema.ts
+│           │   └───services/
+│           │       └───recommendations.ts
+│           ├───services/
+│           │   ├───smartQueue.ts
+│           │   ├───songbird.ts
+│           │   └───storage.ts
+│           ├───styles/
+│           │   └───globals.css
+│           ├───test/
+│           │   └───setup.ts
+│           ├───trpc/
+│           ├───types/
+│           │   └───api-client-router.d.ts
+│           └───utils/
+│               ├───audioAnalysis.ts
+│               ├───authDebugClient.ts
+│               ├───authProvidersFallback.ts
+│               ├───colorExtractor.ts
+│               ├───electronStorage.ts
+│               ├───errorHandling.ts
+│               ├───genre.ts
+│               ├───getBaseUrl.ts
+│               ├───getOAuthRedirectUri.ts
+│               ├───haptics.ts
+│               ├───healthStatus.ts
+│               ├───images.ts
+│               ├───logger.ts
+│               ├───performance.ts
+│               ├───settingsStorage.ts
+│               ├───spring-animations.ts
+│               ├───time.ts
+│               └───visualizerState.ts
+├───certs/
+│   ├───starchild-env-private.key
+│   └───starchild-env-public.pem
+├───docs/
+│   ├───API_ROUTE_USE.md
+│   ├───API_USE.md
+│   ├───API_V2_SWAGGER.json
+│   ├───API_V2_SWAGGER.yaml
+│   ├───architecture.md
+│   ├───BUILD_LINUX_ON_WINDOWS.md
+│   ├───README.md
+│   └───monorepo/
+│       └───MIGRATION_PLAN.md
 ├───electron/
 │   ├───main.cjs
 │   ├───package.json
@@ -93,91 +549,3078 @@ songbird-player
 │   ├───README.md
 │   ├───sign.js
 │   ├───types.d.ts
-│   └───verify-build.js
+│   ├───verify-build.js
+│   └───builder/
+│       └───afterPack.cjs
 ├───logs/
 │   └───pm2/
-│       └───.gitkeep
-├───public/
-│   ├───CHANGELOG.md
-│   ├───emily-the-strange-icon.png
-│   ├───emily-the-strange-raw-pink.png
-│   ├───emily-the-strange-raw.png
-│   ├───emily-the-strange.png
-│   ├───favicon.ico
-│   ├───icon-192.png
-│   ├───icon-192.png.txt
-│   ├───icon-512.png
-│   ├───icon.icns
-│   ├───icon.ico
-│   ├───icon.png
-│   ├───manifest.json
-│   ├───og-image.png
-│   ├───AppIcons/
-│   │   ├───appstore.png
-│   │   ├───playstore.png
-│   │   ├───android/
-│   │   │   ├───mipmap-hdpi/
-│   │   │   │   └───ic_launcher.png
-│   │   │   ├───mipmap-mdpi/
-│   │   │   │   └───ic_launcher.png
-│   │   │   ├───mipmap-xhdpi/
-│   │   │   │   └───ic_launcher.png
-│   │   │   ├───mipmap-xxhdpi/
-│   │   │   │   └───ic_launcher.png
-│   │   │   └───mipmap-xxxhdpi/
-│   │   │       └───ic_launcher.png
-│   │   └───Assets.xcassets/
-│   │       └───AppIcon.appiconset/
-│   │           ├───100.png
-│   │           ├───102.png
-│   │           ├───1024.png
-│   │           ├───108.png
-│   │           ├───114.png
-│   │           ├───120.png
-│   │           ├───128.png
-│   │           ├───144.png
-│   │           ├───152.png
-│   │           ├───16.png
-│   │           ├───167.png
-│   │           ├───172.png
-│   │           ├───180.png
-│   │           ├───196.png
-│   │           ├───20.png
-│   │           ├───216.png
-│   │           ├───234.png
-│   │           ├───256.png
-│   │           ├───258.png
-│   │           ├───29.png
-│   │           ├───32.png
-│   │           ├───40.png
-│   │           ├───48.png
-│   │           ├───50.png
-│   │           ├───512.png
-│   │           ├───55.png
-│   │           ├───57.png
-│   │           ├───58.png
-│   │           ├───60.png
-│   │           ├───64.png
-│   │           ├───66.png
-│   │           ├───72.png
-│   │           ├───76.png
-│   │           ├───80.png
-│   │           ├───87.png
-│   │           ├───88.png
-│   │           ├───92.png
-│   │           └───Contents.json
-│   ├───images/
-│   │   └───placeholder-cover.svg
-│   └───legacy/
-│       ├───icon.ico
-│       └───icon.png
+│       ├───.gitkeep
+│       ├───combined.log
+│       ├───combined__2026-01-24_00-00-00.log
+│       ├───combined__2026-01-25_00-00-00.log
+│       ├───combined__2026-01-26_00-00-00.log
+│       ├───combined__2026-01-27_00-00-00.log
+│       ├───combined__2026-01-28_00-00-00.log
+│       ├───combined__2026-01-29_00-00-00.log
+│       ├───combined__2026-01-30_00-00-00.log
+│       ├───combined__2026-01-31_00-00-00.log
+│       ├───combined__2026-02-01_00-00-00.log
+│       ├───combined__2026-02-09_00-00-00.log
+│       ├───dev-combined.log
+│       ├───dev-error.log
+│       ├───dev-out.log
+│       ├───error.log
+│       ├───error__2026-01-24_00-00-00.log
+│       ├───error__2026-01-25_00-00-00.log
+│       ├───error__2026-01-26_00-00-00.log
+│       ├───error__2026-01-27_00-00-00.log
+│       ├───error__2026-01-28_00-00-00.log
+│       ├───error__2026-01-29_00-00-00.log
+│       ├───error__2026-01-30_00-00-00.log
+│       ├───error__2026-01-31_00-00-00.log
+│       ├───error__2026-02-01_00-00-00.log
+│       ├───error__2026-02-09_00-00-00.log
+│       ├───out.log
+│       ├───out__2026-01-22_00-00-00.log
+│       ├───out__2026-01-23_00-00-00.log
+│       ├───out__2026-01-24_00-00-00.log
+│       ├───out__2026-01-26_00-00-00.log
+│       ├───out__2026-01-27_00-00-00.log
+│       ├───out__2026-01-28_00-00-00.log
+│       ├───out__2026-01-29_00-00-00.log
+│       ├───out__2026-01-30_00-00-00.log
+│       ├───out__2026-01-31_00-00-00.log
+│       └───out__2026-02-09_00-00-00.log
+├───packages/
+│   ├───README.md
+│   ├───api-client/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   └───src/
+│   │       ├───index.ts
+│   │       ├───rest.ts
+│   │       └───trpc/
+│   │           ├───query-client.ts
+│   │           ├───react.tsx
+│   │           ├───router.ts
+│   │           └───server.ts
+│   ├───audio-adapters/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   └───src/
+│   │       ├───index.ts
+│   │       └───web/
+│   │           └───audioContextManager.ts
+│   ├───auth/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   └───src/
+│   │       ├───index.ts
+│   │       ├───logging.ts
+│   │       └───spotifyProvider.ts
+│   ├───config/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   └───src/
+│   │       ├───constants.ts
+│   │       ├───index.ts
+│   │       ├───storage.ts
+│   │       └───visualizer.ts
+│   ├───eslint-config/
+│   │   ├───package.json
+│   │   └───README.md
+│   ├───player-core/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   └───src/
+│   │       └───index.ts
+│   ├───player-react/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   └───src/
+│   │       ├───AudioPlayerContext.tsx
+│   │       ├───index.ts
+│   │       ├───logger.ts
+│   │       ├───storageService.ts
+│   │       ├───useAudioPlayer.ts
+│   │       ├───useMediaQuery.ts
+│   │       └───useQueuePersistence.ts
+│   ├───tsconfig/
+│   │   ├───package.json
+│   │   └───README.md
+│   ├───types/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   └───src/
+│   │       ├───index.ts
+│   │       ├───player.ts
+│   │       ├───searchSuggestions.ts
+│   │       └───settings.ts
+│   ├───ui/
+│   │   ├───package.json
+│   │   ├───README.md
+│   │   └───src/
+│   │       ├───Button.tsx
+│   │       ├───index.ts
+│   │       ├───LoadingSpinner.tsx
+│   │       ├───Section.tsx
+│   │       ├───SkeletonGrid.tsx
+│   │       ├───SmoothSlider.tsx
+│   │       ├───Toast.tsx
+│   │       └───utils/
+│   │           ├───cn.ts
+│   │           ├───haptics.ts
+│   │           └───spring-animations.ts
+│   └───visualizers/
+│       ├───package.json
+│       ├───README.md
+│       └───src/
+│           ├───FlowFieldCanvas.tsx
+│           ├───FlowFieldRenderer.ts
+│           ├───index.ts
+│           └───flowfieldPatterns/
+│               ├───patternIds.ts
+│               ├───renderHexGrid.ts
+│               ├───renderKaleidoscope.ts
+│               ├───renderRays.ts
+│               └───types.ts
+├───resources/
+│   └───node/
+│       ├───.node-runtime.json
+│       ├───CHANGELOG.md
+│       ├───LICENSE
+│       ├───README.md
+│       ├───bin/
+│       │   ├───corepack
+│       │   ├───node
+│       │   ├───npm
+│       │   └───npx
+│       ├───include/
+│       │   └───node/
+│       │       ├───common.gypi
+│       │       ├───config.gypi
+│       │       ├───js_native_api.h
+│       │       ├───js_native_api_types.h
+│       │       ├───node.h
+│       │       ├───node_api.h
+│       │       ├───node_api_types.h
+│       │       ├───node_buffer.h
+│       │       ├───node_object_wrap.h
+│       │       ├───node_version.h
+│       │       ├───uv.h
+│       │       ├───v8-array-buffer.h
+│       │       ├───v8-callbacks.h
+│       │       ├───v8-container.h
+│       │       ├───v8-context.h
+│       │       ├───v8-cppgc.h
+│       │       ├───v8-data.h
+│       │       ├───v8-date.h
+│       │       ├───v8-debug.h
+│       │       ├───v8-embedder-heap.h
+│       │       ├───v8-embedder-state-scope.h
+│       │       ├───v8-exception.h
+│       │       ├───v8-extension.h
+│       │       ├───v8-external.h
+│       │       ├───v8-forward.h
+│       │       ├───v8-function-callback.h
+│       │       ├───v8-function.h
+│       │       ├───v8-initialization.h
+│       │       ├───v8-internal.h
+│       │       ├───v8-isolate.h
+│       │       ├───v8-json.h
+│       │       ├───v8-local-handle.h
+│       │       ├───v8-locker.h
+│       │       ├───v8-maybe.h
+│       │       ├───v8-memory-span.h
+│       │       ├───v8-message.h
+│       │       ├───v8-microtask-queue.h
+│       │       ├───v8-microtask.h
+│       │       ├───v8-object.h
+│       │       ├───v8-persistent-handle.h
+│       │       ├───v8-platform.h
+│       │       ├───v8-primitive-object.h
+│       │       ├───v8-primitive.h
+│       │       ├───v8-profiler.h
+│       │       ├───v8-promise.h
+│       │       ├───v8-proxy.h
+│       │       ├───v8-regexp.h
+│       │       ├───v8-script.h
+│       │       ├───v8-snapshot.h
+│       │       ├───v8-statistics.h
+│       │       ├───v8-template.h
+│       │       ├───v8-traced-handle.h
+│       │       ├───v8-typed-array.h
+│       │       ├───v8-unwinder.h
+│       │       ├───v8-value-serializer.h
+│       │       ├───v8-value.h
+│       │       ├───v8-version.h
+│       │       ├───v8-wasm.h
+│       │       ├───v8-weak-callback-info.h
+│       │       ├───v8.h
+│       │       ├───v8config.h
+│       │       ├───zconf.h
+│       │       ├───zlib.h
+│       │       ├───cppgc/
+│       │       │   ├───allocation.h
+│       │       │   ├───common.h
+│       │       │   ├───cross-thread-persistent.h
+│       │       │   ├───custom-space.h
+│       │       │   ├───default-platform.h
+│       │       │   ├───ephemeron-pair.h
+│       │       │   ├───explicit-management.h
+│       │       │   ├───garbage-collected.h
+│       │       │   ├───heap-consistency.h
+│       │       │   ├───heap-handle.h
+│       │       │   ├───heap-state.h
+│       │       │   ├───heap-statistics.h
+│       │       │   ├───heap.h
+│       │       │   ├───liveness-broker.h
+│       │       │   ├───macros.h
+│       │       │   ├───member.h
+│       │       │   ├───name-provider.h
+│       │       │   ├───object-size-trait.h
+│       │       │   ├───persistent.h
+│       │       │   ├───platform.h
+│       │       │   ├───prefinalizer.h
+│       │       │   ├───process-heap-statistics.h
+│       │       │   ├───sentinel-pointer.h
+│       │       │   ├───source-location.h
+│       │       │   ├───testing.h
+│       │       │   ├───trace-trait.h
+│       │       │   ├───type-traits.h
+│       │       │   ├───visitor.h
+│       │       │   └───internal/
+│       │       │       ├───api-constants.h
+│       │       │       ├───atomic-entry-flag.h
+│       │       │       ├───base-page-handle.h
+│       │       │       ├───caged-heap-local-data.h
+│       │       │       ├───caged-heap.h
+│       │       │       ├───compiler-specific.h
+│       │       │       ├───finalizer-trait.h
+│       │       │       ├───gc-info.h
+│       │       │       ├───logging.h
+│       │       │       ├───member-storage.h
+│       │       │       ├───name-trait.h
+│       │       │       ├───persistent-node.h
+│       │       │       ├───pointer-policies.h
+│       │       │       └───write-barrier.h
+│       │       ├───libplatform/
+│       │       │   ├───libplatform-export.h
+│       │       │   ├───libplatform.h
+│       │       │   └───v8-tracing.h
+│       │       ├───openssl/
+│       │       │   ├───aes.h
+│       │       │   ├───asn1.h
+│       │       │   ├───asn1_asm.h
+│       │       │   ├───asn1_mac.h
+│       │       │   ├───asn1_no-asm.h
+│       │       │   ├───asn1err.h
+│       │       │   ├───asn1t.h
+│       │       │   ├───asn1t_asm.h
+│       │       │   ├───asn1t_no-asm.h
+│       │       │   ├───async.h
+│       │       │   ├───asyncerr.h
+│       │       │   ├───bio.h
+│       │       │   ├───bio_asm.h
+│       │       │   ├───bio_no-asm.h
+│       │       │   ├───bioerr.h
+│       │       │   ├───blowfish.h
+│       │       │   ├───bn.h
+│       │       │   ├───bn_conf.h
+│       │       │   ├───bn_conf_asm.h
+│       │       │   ├───bn_conf_no-asm.h
+│       │       │   ├───bnerr.h
+│       │       │   ├───buffer.h
+│       │       │   ├───buffererr.h
+│       │       │   ├───camellia.h
+│       │       │   ├───cast.h
+│       │       │   ├───cmac.h
+│       │       │   ├───cmp.h
+│       │       │   ├───cmp_asm.h
+│       │       │   ├───cmp_no-asm.h
+│       │       │   ├───cmp_util.h
+│       │       │   ├───cmperr.h
+│       │       │   ├───cms.h
+│       │       │   ├───cms_asm.h
+│       │       │   ├───cms_no-asm.h
+│       │       │   ├───cmserr.h
+│       │       │   ├───comp.h
+│       │       │   ├───comperr.h
+│       │       │   ├───conf.h
+│       │       │   ├───conf_api.h
+│       │       │   ├───conf_asm.h
+│       │       │   ├───conf_no-asm.h
+│       │       │   ├───conferr.h
+│       │       │   ├───configuration.h
+│       │       │   ├───configuration_asm.h
+│       │       │   ├───configuration_no-asm.h
+│       │       │   ├───conftypes.h
+│       │       │   ├───core.h
+│       │       │   ├───core_dispatch.h
+│       │       │   ├───core_names.h
+│       │       │   ├───core_object.h
+│       │       │   ├───crmf.h
+│       │       │   ├───crmf_asm.h
+│       │       │   ├───crmf_no-asm.h
+│       │       │   ├───crmferr.h
+│       │       │   ├───crypto.h
+│       │       │   ├───crypto_asm.h
+│       │       │   ├───crypto_no-asm.h
+│       │       │   ├───cryptoerr.h
+│       │       │   ├───cryptoerr_legacy.h
+│       │       │   ├───ct.h
+│       │       │   ├───ct_asm.h
+│       │       │   ├───ct_no-asm.h
+│       │       │   ├───cterr.h
+│       │       │   ├───decoder.h
+│       │       │   ├───decodererr.h
+│       │       │   ├───des.h
+│       │       │   ├───dh.h
+│       │       │   ├───dherr.h
+│       │       │   ├───dsa.h
+│       │       │   ├───dsaerr.h
+│       │       │   ├───dso_conf.h
+│       │       │   ├───dso_conf_asm.h
+│       │       │   ├───dso_conf_no-asm.h
+│       │       │   ├───dtls1.h
+│       │       │   ├───e_os2.h
+│       │       │   ├───ebcdic.h
+│       │       │   ├───ec.h
+│       │       │   ├───ecdh.h
+│       │       │   ├───ecdsa.h
+│       │       │   ├───ecerr.h
+│       │       │   ├───encoder.h
+│       │       │   ├───encodererr.h
+│       │       │   ├───engine.h
+│       │       │   ├───engineerr.h
+│       │       │   ├───err.h
+│       │       │   ├───err_asm.h
+│       │       │   ├───err_no-asm.h
+│       │       │   ├───ess.h
+│       │       │   ├───ess_asm.h
+│       │       │   ├───ess_no-asm.h
+│       │       │   ├───esserr.h
+│       │       │   ├───evp.h
+│       │       │   ├───evperr.h
+│       │       │   ├───fips_names.h
+│       │       │   ├───fipskey.h
+│       │       │   ├───fipskey_asm.h
+│       │       │   ├───fipskey_no-asm.h
+│       │       │   ├───hmac.h
+│       │       │   ├───http.h
+│       │       │   ├───httperr.h
+│       │       │   ├───idea.h
+│       │       │   ├───kdf.h
+│       │       │   ├───kdferr.h
+│       │       │   ├───lhash.h
+│       │       │   ├───lhash_asm.h
+│       │       │   ├───lhash_no-asm.h
+│       │       │   ├───macros.h
+│       │       │   ├───md2.h
+│       │       │   ├───md4.h
+│       │       │   ├───md5.h
+│       │       │   ├───mdc2.h
+│       │       │   ├───modes.h
+│       │       │   ├───obj_mac.h
+│       │       │   ├───objects.h
+│       │       │   ├───objectserr.h
+│       │       │   ├───ocsp.h
+│       │       │   ├───ocsp_asm.h
+│       │       │   ├───ocsp_no-asm.h
+│       │       │   ├───ocsperr.h
+│       │       │   ├───opensslconf.h
+│       │       │   ├───opensslconf_asm.h
+│       │       │   ├───opensslv.h
+│       │       │   ├───opensslv_asm.h
+│       │       │   ├───opensslv_no-asm.h
+│       │       │   ├───ossl_typ.h
+│       │       │   ├───param_build.h
+│       │       │   ├───params.h
+│       │       │   ├───pem.h
+│       │       │   ├───pem2.h
+│       │       │   ├───pemerr.h
+│       │       │   ├───pkcs12.h
+│       │       │   ├───pkcs12_asm.h
+│       │       │   ├───pkcs12_no-asm.h
+│       │       │   ├───pkcs12err.h
+│       │       │   ├───pkcs7.h
+│       │       │   ├───pkcs7_asm.h
+│       │       │   ├───pkcs7_no-asm.h
+│       │       │   ├───pkcs7err.h
+│       │       │   ├───prov_ssl.h
+│       │       │   ├───proverr.h
+│       │       │   ├───provider.h
+│       │       │   ├───quic.h
+│       │       │   ├───rand.h
+│       │       │   ├───randerr.h
+│       │       │   ├───rc2.h
+│       │       │   ├───rc4.h
+│       │       │   ├───rc5.h
+│       │       │   ├───ripemd.h
+│       │       │   ├───rsa.h
+│       │       │   ├───rsaerr.h
+│       │       │   ├───safestack.h
+│       │       │   ├───safestack_asm.h
+│       │       │   ├───safestack_no-asm.h
+│       │       │   ├───seed.h
+│       │       │   ├───self_test.h
+│       │       │   ├───sha.h
+│       │       │   ├───srp.h
+│       │       │   ├───srp_asm.h
+│       │       │   ├───srp_no-asm.h
+│       │       │   ├───srtp.h
+│       │       │   ├───ssl.h
+│       │       │   ├───ssl2.h
+│       │       │   ├───ssl3.h
+│       │       │   ├───ssl_asm.h
+│       │       │   ├───ssl_no-asm.h
+│       │       │   ├───sslerr.h
+│       │       │   ├───sslerr_legacy.h
+│       │       │   ├───stack.h
+│       │       │   ├───store.h
+│       │       │   ├───storeerr.h
+│       │       │   ├───symhacks.h
+│       │       │   ├───tls1.h
+│       │       │   ├───trace.h
+│       │       │   ├───ts.h
+│       │       │   ├───tserr.h
+│       │       │   ├───txt_db.h
+│       │       │   ├───types.h
+│       │       │   ├───ui.h
+│       │       │   ├───ui_asm.h
+│       │       │   ├───ui_no-asm.h
+│       │       │   ├───uierr.h
+│       │       │   ├───whrlpool.h
+│       │       │   ├───x509.h
+│       │       │   ├───x509_asm.h
+│       │       │   ├───x509_no-asm.h
+│       │       │   ├───x509_vfy.h
+│       │       │   ├───x509_vfy_asm.h
+│       │       │   ├───x509_vfy_no-asm.h
+│       │       │   ├───x509err.h
+│       │       │   ├───x509v3.h
+│       │       │   ├───x509v3_asm.h
+│       │       │   ├───x509v3_no-asm.h
+│       │       │   ├───x509v3err.h
+│       │       │   └───archs/
+│       │       │       ├───aix64-gcc-as/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───BSD-x86/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───BSD-x86_64/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───darwin-i386-cc/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───darwin64-arm64-cc/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───darwin64-x86_64-cc/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux-aarch64/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux-armv4/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux-elf/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux-ppc64le/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux-x86_64/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux32-s390x/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux64-loongarch64/
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux64-mips64/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux64-riscv64/
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───linux64-s390x/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───solaris-x86-gcc/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───solaris64-x86_64-gcc/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───VC-WIN32/
+│       │       │       │   ├───asm/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   ├───asm_avx2/
+│       │       │       │   │   ├───crypto/
+│       │       │       │   │   │   └───buildinf.h
+│       │       │       │   │   ├───include/
+│       │       │       │   │   │   ├───progs.h
+│       │       │       │   │   │   ├───crypto/
+│       │       │       │   │   │   │   ├───bn_conf.h
+│       │       │       │   │   │   │   └───dso_conf.h
+│       │       │       │   │   │   └───openssl/
+│       │       │       │   │   │       ├───asn1.h
+│       │       │       │   │   │       ├───asn1t.h
+│       │       │       │   │   │       ├───bio.h
+│       │       │       │   │   │       ├───cmp.h
+│       │       │       │   │   │       ├───cms.h
+│       │       │       │   │   │       ├───conf.h
+│       │       │       │   │   │       ├───configuration.h
+│       │       │       │   │   │       ├───crmf.h
+│       │       │       │   │   │       ├───crypto.h
+│       │       │       │   │   │       ├───ct.h
+│       │       │       │   │   │       ├───err.h
+│       │       │       │   │   │       ├───ess.h
+│       │       │       │   │   │       ├───fipskey.h
+│       │       │       │   │   │       ├───lhash.h
+│       │       │       │   │   │       ├───ocsp.h
+│       │       │       │   │   │       ├───opensslv.h
+│       │       │       │   │   │       ├───pkcs12.h
+│       │       │       │   │   │       ├───pkcs7.h
+│       │       │       │   │   │       ├───safestack.h
+│       │       │       │   │   │       ├───srp.h
+│       │       │       │   │   │       ├───ssl.h
+│       │       │       │   │   │       ├───ui.h
+│       │       │       │   │   │       ├───x509.h
+│       │       │       │   │   │       ├───x509_vfy.h
+│       │       │       │   │   │       └───x509v3.h
+│       │       │       │   │   └───providers/
+│       │       │       │   │       └───common/
+│       │       │       │   │           └───include/
+│       │       │       │   │               └───prov/
+│       │       │       │   │                   ├───der_digests.h
+│       │       │       │   │                   ├───der_dsa.h
+│       │       │       │   │                   ├───der_ec.h
+│       │       │       │   │                   ├───der_ecx.h
+│       │       │       │   │                   ├───der_rsa.h
+│       │       │       │   │                   ├───der_sm2.h
+│       │       │       │   │                   └───der_wrap.h
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       ├───VC-WIN64-ARM/
+│       │       │       │   └───no-asm/
+│       │       │       │       ├───crypto/
+│       │       │       │       │   └───buildinf.h
+│       │       │       │       ├───include/
+│       │       │       │       │   ├───progs.h
+│       │       │       │       │   ├───crypto/
+│       │       │       │       │   │   ├───bn_conf.h
+│       │       │       │       │   │   └───dso_conf.h
+│       │       │       │       │   └───openssl/
+│       │       │       │       │       ├───asn1.h
+│       │       │       │       │       ├───asn1t.h
+│       │       │       │       │       ├───bio.h
+│       │       │       │       │       ├───cmp.h
+│       │       │       │       │       ├───cms.h
+│       │       │       │       │       ├───conf.h
+│       │       │       │       │       ├───configuration.h
+│       │       │       │       │       ├───crmf.h
+│       │       │       │       │       ├───crypto.h
+│       │       │       │       │       ├───ct.h
+│       │       │       │       │       ├───err.h
+│       │       │       │       │       ├───ess.h
+│       │       │       │       │       ├───fipskey.h
+│       │       │       │       │       ├───lhash.h
+│       │       │       │       │       ├───ocsp.h
+│       │       │       │       │       ├───opensslv.h
+│       │       │       │       │       ├───pkcs12.h
+│       │       │       │       │       ├───pkcs7.h
+│       │       │       │       │       ├───safestack.h
+│       │       │       │       │       ├───srp.h
+│       │       │       │       │       ├───ssl.h
+│       │       │       │       │       ├───ui.h
+│       │       │       │       │       ├───x509.h
+│       │       │       │       │       ├───x509_vfy.h
+│       │       │       │       │       └───x509v3.h
+│       │       │       │       └───providers/
+│       │       │       │           └───common/
+│       │       │       │               └───include/
+│       │       │       │                   └───prov/
+│       │       │       │                       ├───der_digests.h
+│       │       │       │                       ├───der_dsa.h
+│       │       │       │                       ├───der_ec.h
+│       │       │       │                       ├───der_ecx.h
+│       │       │       │                       ├───der_rsa.h
+│       │       │       │                       ├───der_sm2.h
+│       │       │       │                       └───der_wrap.h
+│       │       │       └───VC-WIN64A/
+│       │       │           ├───asm/
+│       │       │           │   ├───crypto/
+│       │       │           │   │   └───buildinf.h
+│       │       │           │   ├───include/
+│       │       │           │   │   ├───progs.h
+│       │       │           │   │   ├───crypto/
+│       │       │           │   │   │   ├───bn_conf.h
+│       │       │           │   │   │   └───dso_conf.h
+│       │       │           │   │   └───openssl/
+│       │       │           │   │       ├───asn1.h
+│       │       │           │   │       ├───asn1t.h
+│       │       │           │   │       ├───bio.h
+│       │       │           │   │       ├───cmp.h
+│       │       │           │   │       ├───cms.h
+│       │       │           │   │       ├───conf.h
+│       │       │           │   │       ├───configuration.h
+│       │       │           │   │       ├───crmf.h
+│       │       │           │   │       ├───crypto.h
+│       │       │           │   │       ├───ct.h
+│       │       │           │   │       ├───err.h
+│       │       │           │   │       ├───ess.h
+│       │       │           │   │       ├───fipskey.h
+│       │       │           │   │       ├───lhash.h
+│       │       │           │   │       ├───ocsp.h
+│       │       │           │   │       ├───opensslv.h
+│       │       │           │   │       ├───pkcs12.h
+│       │       │           │   │       ├───pkcs7.h
+│       │       │           │   │       ├───safestack.h
+│       │       │           │   │       ├───srp.h
+│       │       │           │   │       ├───ssl.h
+│       │       │           │   │       ├───ui.h
+│       │       │           │   │       ├───x509.h
+│       │       │           │   │       ├───x509_vfy.h
+│       │       │           │   │       └───x509v3.h
+│       │       │           │   └───providers/
+│       │       │           │       └───common/
+│       │       │           │           └───include/
+│       │       │           │               └───prov/
+│       │       │           │                   ├───der_digests.h
+│       │       │           │                   ├───der_dsa.h
+│       │       │           │                   ├───der_ec.h
+│       │       │           │                   ├───der_ecx.h
+│       │       │           │                   ├───der_rsa.h
+│       │       │           │                   ├───der_sm2.h
+│       │       │           │                   └───der_wrap.h
+│       │       │           ├───asm_avx2/
+│       │       │           │   ├───crypto/
+│       │       │           │   │   └───buildinf.h
+│       │       │           │   ├───include/
+│       │       │           │   │   ├───progs.h
+│       │       │           │   │   ├───crypto/
+│       │       │           │   │   │   ├───bn_conf.h
+│       │       │           │   │   │   └───dso_conf.h
+│       │       │           │   │   └───openssl/
+│       │       │           │   │       ├───asn1.h
+│       │       │           │   │       ├───asn1t.h
+│       │       │           │   │       ├───bio.h
+│       │       │           │   │       ├───cmp.h
+│       │       │           │   │       ├───cms.h
+│       │       │           │   │       ├───conf.h
+│       │       │           │   │       ├───configuration.h
+│       │       │           │   │       ├───crmf.h
+│       │       │           │   │       ├───crypto.h
+│       │       │           │   │       ├───ct.h
+│       │       │           │   │       ├───err.h
+│       │       │           │   │       ├───ess.h
+│       │       │           │   │       ├───fipskey.h
+│       │       │           │   │       ├───lhash.h
+│       │       │           │   │       ├───ocsp.h
+│       │       │           │   │       ├───opensslv.h
+│       │       │           │   │       ├───pkcs12.h
+│       │       │           │   │       ├───pkcs7.h
+│       │       │           │   │       ├───safestack.h
+│       │       │           │   │       ├───srp.h
+│       │       │           │   │       ├───ssl.h
+│       │       │           │   │       ├───ui.h
+│       │       │           │   │       ├───x509.h
+│       │       │           │   │       ├───x509_vfy.h
+│       │       │           │   │       └───x509v3.h
+│       │       │           │   └───providers/
+│       │       │           │       └───common/
+│       │       │           │           └───include/
+│       │       │           │               └───prov/
+│       │       │           │                   ├───der_digests.h
+│       │       │           │                   ├───der_dsa.h
+│       │       │           │                   ├───der_ec.h
+│       │       │           │                   ├───der_ecx.h
+│       │       │           │                   ├───der_rsa.h
+│       │       │           │                   ├───der_sm2.h
+│       │       │           │                   └───der_wrap.h
+│       │       │           └───no-asm/
+│       │       │               ├───crypto/
+│       │       │               │   └───buildinf.h
+│       │       │               ├───include/
+│       │       │               │   ├───progs.h
+│       │       │               │   ├───crypto/
+│       │       │               │   │   ├───bn_conf.h
+│       │       │               │   │   └───dso_conf.h
+│       │       │               │   └───openssl/
+│       │       │               │       ├───asn1.h
+│       │       │               │       ├───asn1t.h
+│       │       │               │       ├───bio.h
+│       │       │               │       ├───cmp.h
+│       │       │               │       ├───cms.h
+│       │       │               │       ├───conf.h
+│       │       │               │       ├───configuration.h
+│       │       │               │       ├───crmf.h
+│       │       │               │       ├───crypto.h
+│       │       │               │       ├───ct.h
+│       │       │               │       ├───err.h
+│       │       │               │       ├───ess.h
+│       │       │               │       ├───fipskey.h
+│       │       │               │       ├───lhash.h
+│       │       │               │       ├───ocsp.h
+│       │       │               │       ├───opensslv.h
+│       │       │               │       ├───pkcs12.h
+│       │       │               │       ├───pkcs7.h
+│       │       │               │       ├───safestack.h
+│       │       │               │       ├───srp.h
+│       │       │               │       ├───ssl.h
+│       │       │               │       ├───ui.h
+│       │       │               │       ├───x509.h
+│       │       │               │       ├───x509_vfy.h
+│       │       │               │       └───x509v3.h
+│       │       │               └───providers/
+│       │       │                   └───common/
+│       │       │                       └───include/
+│       │       │                           └───prov/
+│       │       │                               ├───der_digests.h
+│       │       │                               ├───der_dsa.h
+│       │       │                               ├───der_ec.h
+│       │       │                               ├───der_ecx.h
+│       │       │                               ├───der_rsa.h
+│       │       │                               ├───der_sm2.h
+│       │       │                               └───der_wrap.h
+│       │       └───uv/
+│       │           ├───aix.h
+│       │           ├───bsd.h
+│       │           ├───darwin.h
+│       │           ├───errno.h
+│       │           ├───linux.h
+│       │           ├───os390.h
+│       │           ├───posix.h
+│       │           ├───sunos.h
+│       │           ├───threadpool.h
+│       │           ├───tree.h
+│       │           ├───unix.h
+│       │           ├───version.h
+│       │           └───win.h
+│       ├───lib/
+│       └───share/
+│           ├───doc/
+│           │   └───node/
+│           │       ├───gdbinit
+│           │       └───lldb_commands.py
+│           └───man/
+│               └───man1/
+│                   └───node.1
 ├───scripts/
 │   ├───addRelativePath.py
 │   ├───apply-deezer-id-migration-drizzle-studio.sql
 │   ├───apply-deezer-id-migration.sql
 │   ├───check-migration-progress.sh
 │   ├───check-migration-status.sql
+│   ├───check-package-boundaries.mjs
 │   ├───check-users.ts
+│   ├───create-keypair.cjs
 │   ├───create-signing-cert.ps1
 │   ├───create-test-cert.ps1
 │   ├───db-sync.cjs
@@ -185,6 +3628,8 @@ songbird-player
 │   ├───docker-entrypoint.sh
 │   ├───docker-migrate.sh
 │   ├───download-node.js
+│   ├───electron-clean-win.js
+│   ├───encrypt-env-cert.js
 │   ├───ensure-build.js
 │   ├───fetch_og_images.sh
 │   ├───gen-version.js
@@ -198,243 +3643,19 @@ songbird-player
 │   ├───migrate-to-neon.ts
 │   ├───MIGRATION_README.md
 │   ├───populate-userhash.ts
+│   ├───prepare-electron-env.cjs
 │   ├───README.md
 │   ├───reset-queue-state.js
 │   ├───reset-version.js
+│   ├───run-electron-builder-win.js
 │   ├───server.js
 │   ├───set-profile-public.ts
 │   ├───set-version.js
 │   ├───sync-migration-journal.sql
 │   ├───test-og-images.sh
-│   └───copydb/
-│       └───package-lock.json
-└───src/
-    ├───env.js
-    ├───global.d.ts
-    ├───proxy.ts
-    ├───__tests__/
-    │   ├───api-search-v2.test.ts
-    │   ├───api-stream-v2.test.ts
-    │   ├───ErrorBoundary.stability.test.tsx
-    │   ├───health-status.test.ts
-    │   ├───MobileFooter.test.tsx
-    │   ├───MobileHeader.test.tsx
-    │   ├───MobilePlayer.integrated-controls.test.tsx
-    │   ├───og-image-darkfloor-links.test.ts
-    │   ├───og-image-generation.test.ts
-    │   ├───og-image-real-urls.test.ts
-    │   ├───og-image-trackid-query.test.ts
-    │   ├───playback-rate.stability.test.ts
-    │   ├───player.integration.stability.test.ts
-    │   ├───Toast.test.tsx
-    │   ├───track-seo.test.ts
-    │   ├───trpc.music.test.ts
-    │   ├───useAudioPlayer.stability.test.ts
-    │   └───useAudioPlayer.test.ts
-    ├───app/
-    │   ├───HomePageClient.tsx
-    │   ├───layout.tsx
-    │   ├───not-found.tsx
-    │   ├───page.tsx
-    │   ├───register-sw.tsx
-    │   ├───[userhash]/
-    │   │   └───page.tsx
-    │   ├───_components/
-    │   │   └───post.tsx
-    │   ├───about/
-    │   │   └───page.tsx
-    │   ├───admin/
-    │   │   └───page.tsx
-    │   ├───album/
-    │   │   └───[id]/
-    │   │       └───page.tsx
-    │   ├───api/
-    │   │   ├───album/
-    │   │   │   └───[id]/
-    │   │   │       ├───route.ts
-    │   │   │       └───tracks/
-    │   │   │           └───route.ts
-    │   │   ├───artist/
-    │   │   │   └───[id]/
-    │   │   │       ├───route.ts
-    │   │   │       └───tracks/
-    │   │   │           └───route.ts
-    │   │   ├───auth/
-    │   │   │   └───[...nextauth]/
-    │   │   │       └───route.ts
-    │   │   ├───health/
-    │   │   │   └───route.ts
-    │   │   ├───music/
-    │   │   │   └───search/
-    │   │   │       └───route.ts
-    │   │   ├───og/
-    │   │   │   └───route.tsx
-    │   │   ├───stream/
-    │   │   │   └───route.ts
-    │   │   ├───track/
-    │   │   │   └───[id]/
-    │   │   │       └───route.ts
-    │   │   └───trpc/
-    │   │       └───[trpc]/
-    │   │           └───route.ts
-    │   ├───artist/
-    │   │   └───[id]/
-    │   │       └───page.tsx
-    │   ├───library/
-    │   │   └───page.tsx
-    │   ├───license/
-    │   │   └───page.tsx
-    │   ├───playlists/
-    │   │   ├───page.tsx
-    │   │   └───[id]/
-    │   │       └───page.tsx
-    │   ├───settings/
-    │   │   └───page.tsx
-    │   ├───signin/
-    │   │   └───page.tsx
-    │   └───track/
-    │       └───[id]/
-    │           ├───page.tsx
-    │           └───TrackRedirect.tsx
-    ├───components/
-    │   ├───AddToPlaylistModal.tsx
-    │   ├───AnimatedList.tsx
-    │   ├───AutoQueueBadge.tsx
-    │   ├───BottomSheet.tsx
-    │   ├───Button.tsx
-    │   ├───ChangelogModal.tsx
-    │   ├───CreatePlaylistModal.tsx
-    │   ├───DynamicTitle.tsx
-    │   ├───ElectronStorageInit.tsx
-    │   ├───EmptyState.tsx
-    │   ├───EnhancedQueue.tsx
-    │   ├───EnhancedTrackCard.tsx
-    │   ├───Equalizer.tsx
-    │   ├───ErrorBoundary.tsx
-    │   ├───FloatingActionButton.tsx
-    │   ├───FlowFieldBackground.tsx
-    │   ├───HamburgerMenu.tsx
-    │   ├───Header.tsx
-    │   ├───LightweightParticleBackground.tsx
-    │   ├───LoadingSpinner.tsx
-    │   ├───MicroInteractions.tsx
-    │   ├───MiniPlayer.tsx
-    │   ├───MobileContentWrapper.tsx
-    │   ├───MobileFooter.tsx
-    │   ├───MobileFooterWrapper.tsx
-    │   ├───MobileHeader.tsx
-    │   ├───MobileNavigation.tsx
-    │   ├───MobilePlayer.tsx
-    │   ├───MobileSearchBar.tsx
-    │   ├───OptimizedTrackList.tsx
-    │   ├───PatternControls.tsx
-    │   ├───PersistentPlayer.tsx
-    │   ├───Player.tsx
-    │   ├───PlaylistContextMenu.tsx
-    │   ├───ProfileHeader.tsx
-    │   ├───PullToRefreshWrapper.tsx
-    │   ├───Queue.tsx
-    │   ├───QueueSettingsModal.tsx
-    │   ├───Section.tsx
-    │   ├───SessionProvider.tsx
-    │   ├───SkeletonGrid.tsx
-    │   ├───SmoothSlider.tsx
-    │   ├───SnappyButton.tsx
-    │   ├───SuppressExtensionErrors.tsx
-    │   ├───SwipeableTrackCard.tsx
-    │   ├───SwipeableTrackItem.tsx
-    │   ├───Toast.tsx
-    │   ├───TrackCard.tsx
-    │   ├───TrackContextMenu.tsx
-    │   ├───UIWrapper.tsx
-    │   ├───WelcomeHero.tsx
-    │   └───visualizers/
-    │       ├───FlowFieldCanvas.tsx
-    │       ├───FlowFieldRenderer.ts
-    │       └───flowfieldPatterns/
-    │           ├───patternIds.ts
-    │           ├───renderHexGrid.ts
-    │           ├───renderKaleidoscope.ts
-    │           ├───renderRays.ts
-    │           └───types.ts
-    ├───config/
-    │   ├───audioDefaults.ts
-    │   ├───constants.ts
-    │   ├───features.ts
-    │   ├───player.ts
-    │   ├───storage.ts
-    │   └───version.ts
-    ├───constants/
-    │   └───visualizer.ts
-    ├───contexts/
-    │   ├───AudioPlayerContext.tsx
-    │   ├───MenuContext.tsx
-    │   ├───PlaylistContextMenuContext.tsx
-    │   ├───ThemeContext.tsx
-    │   ├───ToastContext.tsx
-    │   └───TrackContextMenuContext.tsx
-    ├───hooks/
-    │   ├───useAudioPlayer.ts
-    │   ├───useAudioReactiveBackground.ts
-    │   ├───useAudioVisualizer.ts
-    │   ├───useEqualizer.ts
-    │   ├───useHapticCallbacks.ts
-    │   ├───useKeyboardShortcuts.ts
-    │   ├───useMediaQuery.ts
-    │   ├───usePullToRefresh.ts
-    │   ├───useQueuePersistence.ts
-    │   ├───useSwipeGesture.ts
-    │   └───useWebShare.ts
-    ├───lib/
-    │   └───utils.ts
-    ├───server/
-    │   ├───api/
-    │   │   ├───root.ts
-    │   │   ├───trpc.ts
-    │   │   └───routers/
-    │   │       ├───admin.ts
-    │   │       ├───equalizer.ts
-    │   │       ├───music.ts
-    │   │       ├───post.ts
-    │   │       └───preferences.ts
-    │   ├───auth/
-    │   │   ├───config.ts
-    │   │   └───index.ts
-    │   ├───db/
-    │   │   ├───index.ts
-    │   │   └───schema.ts
-    │   └───services/
-    │       └───recommendations.ts
-    ├───services/
-    │   ├───smartQueue.ts
-    │   ├───songbird.ts
-    │   └───storage.ts
-    ├───styles/
-    │   └───globals.css
-    ├───test/
-    │   └───setup.ts
-    ├───trpc/
-    │   ├───query-client.ts
-    │   ├───react.tsx
-    │   └───server.ts
-    ├───types/
-    │   ├───index.ts
-    │   ├───player.ts
-    │   └───settings.ts
-    └───utils/
-        ├───api.ts
-        ├───audioAnalysis.ts
-        ├───audioContextManager.ts
-        ├───colorExtractor.ts
-        ├───electronStorage.ts
-        ├───errorHandling.ts
-        ├───getBaseUrl.ts
-        ├───haptics.ts
-        ├───healthStatus.ts
-        ├───images.ts
-        ├───logger.ts
-        ├───performance.ts
-        ├───settingsStorage.ts
-        ├───spring-animations.ts
-        ├───time.ts
-        └───visualizerState.ts
+│   ├───copydb/
+│   │   └───package-lock.json
+│   └───windows/
+│       └───setup-codesign.ps1
+└───test-output/
+    └───real-urls/

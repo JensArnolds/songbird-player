@@ -1,4 +1,4 @@
-// File: src/components/ErrorBoundary.tsx
+// File: apps/web/src/components/ErrorBoundary.tsx
 
 "use client";
 

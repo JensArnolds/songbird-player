@@ -1,4 +1,4 @@
-// File: src/components/SwipeableTrackCard.tsx
+// File: apps/web/src/components/SwipeableTrackCard.tsx
 
 "use client";
 

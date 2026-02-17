@@ -1,4 +1,4 @@
-// File: src/hooks/useSwipeGesture.ts
+// File: apps/web/src/hooks/useSwipeGesture.ts
 
 "use client";
 

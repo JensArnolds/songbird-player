@@ -1,4 +1,4 @@
-// File: src/config/features.ts
+// File: apps/web/src/config/features.ts
 
 export const ENABLE_AUDIO_FEATURES = false;
 

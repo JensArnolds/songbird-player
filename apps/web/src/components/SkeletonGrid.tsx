@@ -1,4 +1,4 @@
-// File: src/components/SkeletonGrid.tsx
+// File: apps/web/src/components/SkeletonGrid.tsx
 
 interface SkeletonGridProps {
   rows: number;

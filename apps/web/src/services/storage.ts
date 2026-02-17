@@ -1,4 +1,4 @@
-// File: src/services/storage.ts
+// File: apps/web/src/services/storage.ts
 
 import type { StorageKey } from "@starchild/config/storage";
 

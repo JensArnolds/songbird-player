@@ -1,3 +1,5 @@
+// File: apps/mobile/src/index.ts
+
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import { VISUALIZER_TYPES } from "@starchild/config/visualizer";
 import type { RepeatMode } from "@starchild/player-core";

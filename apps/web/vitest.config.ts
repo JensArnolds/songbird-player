@@ -1,4 +1,4 @@
-// File: vitest.config.ts
+// File: apps/web/vitest.config.ts
 
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";

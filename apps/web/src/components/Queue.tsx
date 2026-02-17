@@ -1,4 +1,4 @@
-// File: src/components/Queue.tsx
+// File: apps/web/src/components/Queue.tsx
 
 import type { QueueItem } from "@starchild/types";
 import { Trash2, X } from "lucide-react";

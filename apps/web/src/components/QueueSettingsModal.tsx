@@ -1,4 +1,4 @@
-// File: src/components/QueueSettingsModal.tsx
+// File: apps/web/src/components/QueueSettingsModal.tsx
 
 "use client";
 

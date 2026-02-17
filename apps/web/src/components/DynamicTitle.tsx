@@ -1,4 +1,4 @@
-// File: src/components/DynamicTitle.tsx
+// File: apps/web/src/components/DynamicTitle.tsx
 
 "use client";
 

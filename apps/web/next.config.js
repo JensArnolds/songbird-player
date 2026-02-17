@@ -1,4 +1,4 @@
-// File: next.config.js
+// File: apps/web/next.config.js
 
 import { config as dotenvConfig } from "dotenv";
 import { readFileSync } from "fs";

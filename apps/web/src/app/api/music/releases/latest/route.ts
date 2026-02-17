@@ -1,3 +1,5 @@
+// File: apps/web/src/app/api/music/releases/latest/route.ts
+
 import { type NextRequest } from "next/server";
 
 import { parseInteger, proxyApiV2Json } from "../../_lib";

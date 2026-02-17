@@ -1,4 +1,4 @@
-// File: src/utils/colorExtractor.ts
+// File: apps/web/src/utils/colorExtractor.ts
 
 export interface ColorPalette {
   primary: string;

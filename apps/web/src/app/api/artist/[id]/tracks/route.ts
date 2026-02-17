@@ -1,4 +1,4 @@
-// File: src/app/api/artist/[id]/tracks/route.ts
+// File: apps/web/src/app/api/artist/[id]/tracks/route.ts
 
 import { NextResponse, type NextRequest } from "next/server";
 

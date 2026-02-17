@@ -1,4 +1,4 @@
-// File: src/components/visualizers/flowfieldPatterns/types.ts
+// File: packages/visualizers/src/flowfieldPatterns/types.ts
 
 export interface FlowFieldPatternContext {
   ctx: CanvasRenderingContext2D;

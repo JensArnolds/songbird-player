@@ -1,4 +1,4 @@
-// File: src/utils/electronStorage.ts
+// File: apps/web/src/utils/electronStorage.ts
 
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import { localStorage as storage } from "@/services/storage";

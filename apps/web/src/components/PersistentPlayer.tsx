@@ -1,4 +1,4 @@
-// File: src/components/PersistentPlayer.tsx
+// File: apps/web/src/components/PersistentPlayer.tsx
 
 "use client";
 

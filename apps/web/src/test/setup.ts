@@ -1,4 +1,4 @@
-// File: src/test/setup.ts
+// File: apps/web/src/test/setup.ts
 
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";

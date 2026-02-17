@@ -1,4 +1,4 @@
-// File: src/components/MobileFooterWrapper.tsx
+// File: apps/web/src/components/MobileFooterWrapper.tsx
 
 "use client";
 

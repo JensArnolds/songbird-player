@@ -1,4 +1,4 @@
-// File: src/components/OptimizedTrackList.tsx
+// File: apps/web/src/components/OptimizedTrackList.tsx
 
 "use client";
 

@@ -1,3 +1,5 @@
+// File: packages/auth/src/spotifyProvider.ts
+
 import SpotifyProvider from "next-auth/providers/spotify";
 
 import { logAuthInfo, logAuthWarn } from "./logging";

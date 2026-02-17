@@ -1,4 +1,4 @@
-// File: src/__tests__/MobileFooter.test.tsx
+// File: apps/web/src/__tests__/MobileFooter.test.tsx
 
 import MobileFooter from "@/components/MobileFooter";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";

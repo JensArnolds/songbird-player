@@ -1,4 +1,4 @@
-// File: public/sw.js
+// File: apps/web/public/sw.js
 
 const CACHE_VERSION = "v2";
 const CACHE_NAME = `starchildmusic-${CACHE_VERSION}`;

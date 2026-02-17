@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File: scripts/server.js
+// File: apps/web/scripts/server.js
 
 /**
  * Custom Next.js server wrapper

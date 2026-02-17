@@ -1,4 +1,4 @@
-// File: src/utils/errorHandling.ts
+// File: apps/web/src/utils/errorHandling.ts
 
 import type { ApiError } from "@starchild/types";
 

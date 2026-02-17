@@ -1,4 +1,4 @@
-// File: src/components/SnappyButton.tsx
+// File: apps/web/src/components/SnappyButton.tsx
 
 "use client";
 

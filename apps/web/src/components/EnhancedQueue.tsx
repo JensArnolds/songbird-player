@@ -1,4 +1,4 @@
-// File: src/components/EnhancedQueue.tsx
+// File: apps/web/src/components/EnhancedQueue.tsx
 
 "use client";
 

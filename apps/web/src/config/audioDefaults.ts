@@ -1,4 +1,4 @@
-// File: src/config/audioDefaults.ts
+// File: apps/web/src/config/audioDefaults.ts
 
 export const DEFAULT_EQUALIZER = {
   preset: "Flat",

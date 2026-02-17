@@ -1,4 +1,4 @@
-// File: src/app/register-sw.tsx
+// File: apps/web/src/app/register-sw.tsx
 
 "use client";
 

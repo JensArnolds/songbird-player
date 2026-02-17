@@ -1,4 +1,4 @@
-// File: src/proxy.ts
+// File: apps/web/src/proxy.ts
 
 import { env } from "@/env";
 import type { NextRequest } from "next/server";

@@ -1,4 +1,4 @@
-// File: src/components/Button.tsx
+// File: packages/ui/src/Button.tsx
 
 import Link from "next/link";
 import type { ReactNode } from "react";

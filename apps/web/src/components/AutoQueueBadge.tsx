@@ -1,4 +1,4 @@
-// File: src/components/AutoQueueBadge.tsx
+// File: apps/web/src/components/AutoQueueBadge.tsx
 
 "use client";
 

@@ -1,4 +1,4 @@
-// File: src/lib/utils.ts
+// File: apps/web/src/lib/utils.ts
 
 type ClassValue = string | number | boolean | undefined | null;
 

@@ -1,3 +1,5 @@
+// File: packages/auth/src/logging.ts
+
 import { createHash } from "crypto";
 
 const SENSITIVE_KEY_PATTERN =

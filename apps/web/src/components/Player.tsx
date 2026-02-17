@@ -1,4 +1,4 @@
-// File: src/components/Player.tsx
+// File: apps/web/src/components/Player.tsx
 
 "use client";
 

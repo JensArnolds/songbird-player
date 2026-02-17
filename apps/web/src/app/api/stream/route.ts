@@ -1,4 +1,4 @@
-// File: src/app/api/stream/route.ts
+// File: apps/web/src/app/api/stream/route.ts
 
 import { env } from "@/env";
 import { NextResponse, type NextRequest } from "next/server";

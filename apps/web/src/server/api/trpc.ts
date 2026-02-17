@@ -1,4 +1,4 @@
-// File: src/server/api/trpc.ts
+// File: apps/web/src/server/api/trpc.ts
 
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";

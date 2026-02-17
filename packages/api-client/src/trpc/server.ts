@@ -1,4 +1,4 @@
-// File: src/trpc/server.ts
+// File: packages/api-client/src/trpc/server.ts
 
 import "server-only";
 

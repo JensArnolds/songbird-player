@@ -1,4 +1,4 @@
-// File: src/trpc/query-client.ts
+// File: packages/api-client/src/trpc/query-client.ts
 
 import {
   defaultShouldDehydrateQuery,

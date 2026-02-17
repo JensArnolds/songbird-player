@@ -1,4 +1,4 @@
-// File: src/server/api/root.ts
+// File: apps/web/src/server/api/root.ts
 
 import { equalizerRouter } from "@/server/api/routers/equalizer";
 import { adminRouter } from "@/server/api/routers/admin";

@@ -1,3 +1,5 @@
+// File: packages/player-react/src/useMediaQuery.ts
+
 "use client";
 
 import { useEffect, useState } from "react";

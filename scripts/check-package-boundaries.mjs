@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// File: scripts/check-package-boundaries.mjs
 
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -114,7 +115,10 @@ async function checkFile(filePath) {
    * @param {ts.Node} node
    */
   const visit = (node) => {
-    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+    if (
+      ts.isImportDeclaration(node) &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
       maybeRecordViolation(node.moduleSpecifier.text, node.moduleSpecifier);
     }
 
@@ -133,7 +137,8 @@ async function checkFile(filePath) {
         return;
       }
 
-      const isDynamicImport = node.expression.kind === ts.SyntaxKind.ImportKeyword;
+      const isDynamicImport =
+        node.expression.kind === ts.SyntaxKind.ImportKeyword;
       const isRequireCall =
         ts.isIdentifier(node.expression) && node.expression.text === "require";
 
@@ -159,7 +164,9 @@ async function main() {
   }
 
   if (violations.length === 0) {
-    console.log("Boundary check passed: no package imports reference app internals.");
+    console.log(
+      "Boundary check passed: no package imports reference app internals.",
+    );
     return;
   }
 

@@ -1,4 +1,4 @@
-// File: src/hooks/useIsElectron.ts
+// File: apps/web/src/hooks/useIsElectron.ts
 
 "use client";
 

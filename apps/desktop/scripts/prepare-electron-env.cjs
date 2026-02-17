@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File: scripts/prepare-electron-env.cjs
+// File: apps/desktop/scripts/prepare-electron-env.cjs
 
 const fs = require("fs");
 const path = require("path");
@@ -15,18 +15,16 @@ const VERSION = 1;
 const ALGORITHM = "aes-256-gcm+rsa-oaep-sha256";
 
 const repoRoot = path.resolve(__dirname, "../../..");
-const { ensureKeypair } = require(path.resolve(
-  repoRoot,
-  "scripts/create-keypair.cjs",
-));
+const { ensureKeypair } = require(
+  path.resolve(repoRoot, "scripts/create-keypair.cjs"),
+);
 const sourceEnvPath = path.resolve(
   repoRoot,
   process.env.ELECTRON_ENV_SOURCE_FILE || ".env.local",
 );
 const encryptedEnvPath = path.resolve(
   repoRoot,
-  process.env.ELECTRON_ENV_ENCRYPTED_FILE ||
-    ".next/standalone/.env.local.enc",
+  process.env.ELECTRON_ENV_ENCRYPTED_FILE || ".next/standalone/.env.local.enc",
 );
 const privateKeyPath = path.resolve(
   repoRoot,
@@ -50,7 +48,10 @@ function encryptEnv(envText, publicKeyPem) {
   const symmetricKey = randomBytes(32);
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", symmetricKey, iv);
-  const ciphertext = Buffer.concat([cipher.update(envText, "utf8"), cipher.final()]);
+  const ciphertext = Buffer.concat([
+    cipher.update(envText, "utf8"),
+    cipher.final(),
+  ]);
   const tag = cipher.getAuthTag();
   const encryptedKey = publicEncrypt(
     {

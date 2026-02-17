@@ -1,4 +1,4 @@
-// File: src/components/DesktopSidebar.tsx
+// File: apps/web/src/components/DesktopSidebar.tsx
 
 "use client";
 

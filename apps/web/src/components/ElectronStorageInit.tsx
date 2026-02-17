@@ -1,4 +1,4 @@
-// File: src/components/ElectronStorageInit.tsx
+// File: apps/web/src/components/ElectronStorageInit.tsx
 
 "use client";
 

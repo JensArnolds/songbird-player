@@ -1,4 +1,4 @@
-// File: src/components/MobilePlayer.tsx
+// File: apps/web/src/components/MobilePlayer.tsx
 
 "use client";
 

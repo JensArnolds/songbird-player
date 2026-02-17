@@ -1,4 +1,4 @@
-// File: src/hooks/useKeyboardShortcuts.ts
+// File: apps/web/src/hooks/useKeyboardShortcuts.ts
 
 "use client";
 

@@ -1,4 +1,4 @@
-// File: src/server/db/index.ts
+// File: apps/web/src/server/db/index.ts
 
 import { env } from "@/env";
 import { drizzle } from "drizzle-orm/node-postgres";

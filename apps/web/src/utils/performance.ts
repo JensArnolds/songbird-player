@@ -1,4 +1,4 @@
-// File: src/utils/performance.ts
+// File: apps/web/src/utils/performance.ts
 
 const getPerformance = (): Performance | undefined => {
   if (typeof globalThis === "undefined") return undefined;

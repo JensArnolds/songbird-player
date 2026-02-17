@@ -1,3 +1,5 @@
+// File: packages/types/src/searchSuggestions.ts
+
 export type SearchSuggestionType = "query" | "track" | "artist" | "album";
 
 export interface SearchSuggestionItem {

@@ -1,4 +1,4 @@
-// File: src/server/db/schema.ts
+// File: apps/web/src/server/db/schema.ts
 
 import { relations, sql } from "drizzle-orm";
 import {

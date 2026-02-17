@@ -1,4 +1,4 @@
-// File: src/app/api/v2/auth/refresh/route.ts
+// File: apps/web/src/app/api/v2/auth/refresh/route.ts
 
 import { proxyApiV2 } from "../../_lib";
 import { type NextRequest } from "next/server";

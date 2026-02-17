@@ -1,4 +1,4 @@
-// File: src/utils/getOAuthRedirectUri.ts
+// File: apps/web/src/utils/getOAuthRedirectUri.ts
 
 import { logAuthClientDebug } from "@/utils/authDebugClient";
 

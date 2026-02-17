@@ -1,4 +1,4 @@
-// File: src/hooks/useQueuePersistence.ts
+// File: packages/player-react/src/useQueuePersistence.ts
 
 "use client";
 

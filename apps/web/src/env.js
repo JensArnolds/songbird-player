@@ -1,4 +1,4 @@
-// File: src/env.js
+// File: apps/web/src/env.js
 
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";

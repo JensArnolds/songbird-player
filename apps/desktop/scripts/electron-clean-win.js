@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// File: apps/desktop/scripts/electron-clean-win.js
 
 import fs from "fs";
 import path from "path";

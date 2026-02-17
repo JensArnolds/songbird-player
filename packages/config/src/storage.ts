@@ -1,4 +1,4 @@
-// File: src/config/storage.ts
+// File: packages/config/src/storage.ts
 
 const STORAGE_PREFIX = "hexmusic_" as const;
 

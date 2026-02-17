@@ -1,4 +1,4 @@
-// File: src/utils/api.ts
+// File: packages/api-client/src/rest.ts
 
 import type { SearchResponse, Track } from "@starchild/types";
 import type { StreamQuality } from "@starchild/types/settings";

@@ -1,4 +1,4 @@
-// File: src/app/api/health/route.ts
+// File: apps/web/src/app/api/health/route.ts
 
 import { type NextRequest, NextResponse } from "next/server";
 

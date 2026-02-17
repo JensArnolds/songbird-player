@@ -1,4 +1,4 @@
-// File: src/server/api/routers/post.ts
+// File: apps/web/src/server/api/routers/post.ts
 
 import { desc } from "drizzle-orm";
 import { z } from "zod";

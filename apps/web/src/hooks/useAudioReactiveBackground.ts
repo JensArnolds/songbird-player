@@ -1,4 +1,4 @@
-// File: src/hooks/useAudioReactiveBackground.ts
+// File: apps/web/src/hooks/useAudioReactiveBackground.ts
 
 "use client";
 

@@ -1,3 +1,5 @@
+// File: apps/web/src/components/SearchSuggestionsList.tsx
+
 "use client";
 
 import type { SearchSuggestionItem } from "@starchild/types/searchSuggestions";

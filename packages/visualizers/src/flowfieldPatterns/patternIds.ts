@@ -1,4 +1,4 @@
-// File: src/components/visualizers/flowfieldPatterns/patternIds.ts
+// File: packages/visualizers/src/flowfieldPatterns/patternIds.ts
 
 export type Pattern =
   | "fractal"

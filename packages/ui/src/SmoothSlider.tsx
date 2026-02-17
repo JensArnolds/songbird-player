@@ -1,4 +1,4 @@
-// File: src/components/SmoothSlider.tsx
+// File: packages/ui/src/SmoothSlider.tsx
 
 "use client";
 

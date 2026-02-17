@@ -1,4 +1,4 @@
-// File: src/components/HamburgerMenu.tsx
+// File: apps/web/src/components/HamburgerMenu.tsx
 
 "use client";
 

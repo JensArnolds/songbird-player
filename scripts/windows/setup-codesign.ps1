@@ -1,3 +1,5 @@
+# File: scripts/windows/setup-codesign.ps1
+
 <#
 .SYNOPSIS
   Create a self-signed code signing certificate for local Windows builds.

@@ -1,4 +1,4 @@
-// File: src/app/api/v2/music/tracks/[id]/metadata/route.ts
+// File: apps/web/src/app/api/v2/music/tracks/[id]/metadata/route.ts
 
 import { proxyApiV2 } from "../../../../_lib";
 import { type NextRequest, NextResponse } from "next/server";

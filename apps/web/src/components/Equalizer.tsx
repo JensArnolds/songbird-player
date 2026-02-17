@@ -1,4 +1,4 @@
-// File: src/components/Equalizer.tsx
+// File: apps/web/src/components/Equalizer.tsx
 
 "use client";
 

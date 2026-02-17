@@ -1,3 +1,5 @@
+// File: apps/web/src/utils/authDebugClient.ts
+
 const SENSITIVE_KEY_PATTERN =
   /(token|secret|password|authorization|cookie|code|state|session|csrf|nonce|key)/i;
 const MAX_DEPTH = 3;

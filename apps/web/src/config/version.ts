@@ -1,4 +1,4 @@
-// File: src/config/version.ts
+// File: apps/web/src/config/version.ts
 
 import { env } from "@/env";
 

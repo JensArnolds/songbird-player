@@ -1,3 +1,5 @@
+// File: apps/web/src/utils/authProvidersFallback.ts
+
 import {
   ENABLED_OAUTH_PROVIDER_IDS,
   getOAuthProviderDisplayName,

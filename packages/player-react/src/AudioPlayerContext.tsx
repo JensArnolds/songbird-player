@@ -1,4 +1,4 @@
-// File: src/contexts/AudioPlayerContext.tsx
+// File: packages/player-react/src/AudioPlayerContext.tsx
 
 "use client";
 

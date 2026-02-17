@@ -1,4 +1,4 @@
-// File: electron/sign.js
+// File: apps/desktop/electron/sign.js
 
 const { sign } = require('@electron/windows-sign');
 const path = require('path');

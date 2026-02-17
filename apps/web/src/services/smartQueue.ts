@@ -1,4 +1,4 @@
-// File: src/services/smartQueue.ts
+// File: apps/web/src/services/smartQueue.ts
 
 import { env } from "@/env";
 import { type Track } from "@starchild/types";

@@ -1,4 +1,4 @@
-// File: src/app/_components/post.tsx
+// File: apps/web/src/app/_components/post.tsx
 
 "use client";
 

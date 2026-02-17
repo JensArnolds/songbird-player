@@ -1,4 +1,4 @@
-// File: src/app/api/music/search/advanced/route.ts
+// File: apps/web/src/app/api/music/search/advanced/route.ts
 
 import { env } from "@/env";
 import { type SearchResponse } from "@starchild/types";

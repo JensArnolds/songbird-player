@@ -1,4 +1,4 @@
-// File: src/components/ElectronWindowControls.tsx
+// File: apps/web/src/components/ElectronWindowControls.tsx
 
 "use client";
 

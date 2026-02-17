@@ -1,4 +1,4 @@
-// File: src/utils/settingsStorage.ts
+// File: apps/web/src/utils/settingsStorage.ts
 
 import {
   DEFAULT_SETTINGS,

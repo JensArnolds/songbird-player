@@ -1,4 +1,4 @@
-// File: src/hooks/useHapticCallbacks.ts
+// File: apps/web/src/hooks/useHapticCallbacks.ts
 
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { useCallback } from "react";

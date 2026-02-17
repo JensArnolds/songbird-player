@@ -1,4 +1,4 @@
-// File: postcss.config.js
+// File: apps/web/postcss.config.js
 
 const config = {
   plugins: {

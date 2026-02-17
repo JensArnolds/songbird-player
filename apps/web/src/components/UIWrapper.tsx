@@ -1,4 +1,4 @@
-// File: src/components/UIWrapper.tsx
+// File: apps/web/src/components/UIWrapper.tsx
 
 "use client";
 

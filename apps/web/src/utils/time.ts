@@ -1,4 +1,4 @@
-// File: src/utils/time.ts
+// File: apps/web/src/utils/time.ts
 
 export function formatTime(seconds: number): string {
   if (!isFinite(seconds)) return "0:00";

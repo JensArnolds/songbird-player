@@ -1,4 +1,4 @@
-// File: src/app/api/v2/health/ready/route.ts
+// File: apps/web/src/app/api/v2/health/ready/route.ts
 
 import { proxyApiV2StatusLike } from "../../_lib";
 import { type NextRequest } from "next/server";

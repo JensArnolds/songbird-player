@@ -1,4 +1,4 @@
-// File: eslint.config.js
+// File: apps/web/eslint.config.js
 
 import tseslint from "typescript-eslint";
 // @ts-ignore -- no types for this plugin

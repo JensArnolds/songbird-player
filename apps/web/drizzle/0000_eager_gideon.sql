@@ -1,4 +1,4 @@
--- File: drizzle/0000_eager_gideon.sql
+-- File: apps/web/drizzle/0000_eager_gideon.sql
 
 CREATE TABLE "hexmusic-stream_account" (
 	"userId" varchar(255) NOT NULL,

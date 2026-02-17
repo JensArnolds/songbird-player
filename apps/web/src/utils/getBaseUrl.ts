@@ -1,4 +1,4 @@
-// File: src/utils/getBaseUrl.ts
+// File: apps/web/src/utils/getBaseUrl.ts
 
 import { env } from "@/env";
 

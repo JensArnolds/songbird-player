@@ -1,4 +1,4 @@
-// File: src/components/FloatingActionButton.tsx
+// File: apps/web/src/components/FloatingActionButton.tsx
 
 "use client";
 

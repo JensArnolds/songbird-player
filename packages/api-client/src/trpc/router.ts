@@ -1,3 +1,5 @@
+// File: packages/api-client/src/trpc/router.ts
+
 import type { AnyRouter } from "@trpc/server";
 
 /**

@@ -1,4 +1,4 @@
-// File: src/contexts/KeyboardShortcutsProvider.tsx
+// File: apps/web/src/contexts/KeyboardShortcutsProvider.tsx
 
 "use client";
 

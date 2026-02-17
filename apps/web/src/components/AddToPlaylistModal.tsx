@@ -1,4 +1,4 @@
-// File: src/components/AddToPlaylistModal.tsx
+// File: apps/web/src/components/AddToPlaylistModal.tsx
 
 "use client";
 

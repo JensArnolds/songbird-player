@@ -1,4 +1,4 @@
-// File: src/app/track/[id]/page.tsx
+// File: apps/web/src/app/track/[id]/page.tsx
 
 import { env } from "@/env";
 import { getBaseUrl } from "@/utils/getBaseUrl";

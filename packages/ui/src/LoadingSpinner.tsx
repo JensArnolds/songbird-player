@@ -1,4 +1,4 @@
-// File: src/components/LoadingSpinner.tsx
+// File: packages/ui/src/LoadingSpinner.tsx
 
 import { cn } from "./utils/cn";
 

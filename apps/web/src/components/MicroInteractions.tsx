@@ -1,4 +1,4 @@
-// File: src/components/MicroInteractions.tsx
+// File: apps/web/src/components/MicroInteractions.tsx
 
 "use client";
 

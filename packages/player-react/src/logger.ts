@@ -1,3 +1,5 @@
+// File: packages/player-react/src/logger.ts
+
 type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
 const getLogLevel = (): LogLevel => {

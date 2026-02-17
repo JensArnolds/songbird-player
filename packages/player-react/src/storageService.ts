@@ -1,3 +1,5 @@
+// File: packages/player-react/src/storageService.ts
+
 import type { StorageKey } from "@starchild/config/storage";
 
 type StorageResult<T> =

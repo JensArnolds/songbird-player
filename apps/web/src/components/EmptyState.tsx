@@ -1,4 +1,4 @@
-// File: src/components/EmptyState.tsx
+// File: apps/web/src/components/EmptyState.tsx
 
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";

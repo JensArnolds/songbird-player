@@ -1,3 +1,5 @@
+// File: apps/web/src/components/DesktopRightRail.tsx
+
 "use client";
 
 import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";

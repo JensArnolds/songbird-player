@@ -1,4 +1,4 @@
-// File: src/config/constants.ts
+// File: packages/config/src/constants.ts
 
 export const AUDIO_CONSTANTS = {
 

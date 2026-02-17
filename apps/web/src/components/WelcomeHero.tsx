@@ -1,4 +1,4 @@
-// File: src/components/WelcomeHero.tsx
+// File: apps/web/src/components/WelcomeHero.tsx
 
 "use client";
 

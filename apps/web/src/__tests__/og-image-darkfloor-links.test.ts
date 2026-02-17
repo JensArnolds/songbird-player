@@ -1,4 +1,4 @@
-// File: src/__tests__/og-image-darkfloor-links.test.ts
+// File: apps/web/src/__tests__/og-image-darkfloor-links.test.ts
 
 import { GET } from "@/app/api/og/route";
 import type { SearchResponse, Track } from "@starchild/types";

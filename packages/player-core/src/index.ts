@@ -1,3 +1,5 @@
+// File: packages/player-core/src/index.ts
+
 export type {
   QueuedTrack,
   QueueState,

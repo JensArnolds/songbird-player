@@ -1,4 +1,4 @@
-// File: src/hooks/useAudioPlayer.ts
+// File: packages/player-react/src/useAudioPlayer.ts
 
 "use client";
 

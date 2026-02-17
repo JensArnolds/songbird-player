@@ -1,4 +1,4 @@
-// File: src/components/ElectronChromeSync.tsx
+// File: apps/web/src/components/ElectronChromeSync.tsx
 
 "use client";
 

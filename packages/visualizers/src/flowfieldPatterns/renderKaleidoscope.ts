@@ -1,4 +1,4 @@
-// File: src/components/visualizers/flowfieldPatterns/renderKaleidoscope.ts
+// File: packages/visualizers/src/flowfieldPatterns/renderKaleidoscope.ts
 
 import type { FlowFieldPatternContext } from "./types";
 

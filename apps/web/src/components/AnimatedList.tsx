@@ -1,4 +1,4 @@
-// File: src/components/AnimatedList.tsx
+// File: apps/web/src/components/AnimatedList.tsx
 
 "use client";
 

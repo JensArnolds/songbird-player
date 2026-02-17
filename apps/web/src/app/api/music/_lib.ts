@@ -1,3 +1,5 @@
+// File: apps/web/src/app/api/music/_lib.ts
+
 import { env } from "@/env";
 import { NextResponse } from "next/server";
 

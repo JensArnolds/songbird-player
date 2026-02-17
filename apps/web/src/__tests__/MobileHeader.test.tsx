@@ -1,4 +1,4 @@
-// File: src/__tests__/MobileHeader.test.tsx
+// File: apps/web/src/__tests__/MobileHeader.test.tsx
 
 import React from "react";
 import { act, render } from "@testing-library/react";

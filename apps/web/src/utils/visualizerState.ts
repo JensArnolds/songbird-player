@@ -1,4 +1,4 @@
-// File: src/utils/visualizerState.ts
+// File: apps/web/src/utils/visualizerState.ts
 
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import {

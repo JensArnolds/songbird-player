@@ -1,4 +1,4 @@
-// File: src/__tests__/playback-rate.stability.test.ts
+// File: apps/web/src/__tests__/playback-rate.stability.test.ts
 
 import { useAudioPlayer } from "@starchild/player-react/useAudioPlayer";
 import type { Track } from "@starchild/types";

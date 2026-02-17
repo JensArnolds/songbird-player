@@ -1,4 +1,4 @@
-// File: src/trpc/react.tsx
+// File: packages/api-client/src/trpc/react.tsx
 
 "use client";
 

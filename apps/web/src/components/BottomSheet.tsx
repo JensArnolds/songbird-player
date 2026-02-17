@@ -1,4 +1,4 @@
-// File: src/components/BottomSheet.tsx
+// File: apps/web/src/components/BottomSheet.tsx
 
 "use client";
 

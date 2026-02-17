@@ -1,4 +1,4 @@
-// File: src/utils/audioContextManager.ts
+// File: packages/audio-adapters/src/web/audioContextManager.ts
 
 interface AudioConnection {
   sourceNode: MediaElementAudioSourceNode;

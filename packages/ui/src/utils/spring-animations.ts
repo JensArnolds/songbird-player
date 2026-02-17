@@ -1,4 +1,4 @@
-// File: src/utils/spring-animations.ts
+// File: packages/ui/src/utils/spring-animations.ts
 
 export const springPresets = {
 

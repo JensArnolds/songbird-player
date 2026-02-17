@@ -1,4 +1,4 @@
-// File: electron/types.d.ts
+// File: apps/desktop/electron/types.d.ts
 
 export interface ElectronAPI {
   isElectron: boolean;

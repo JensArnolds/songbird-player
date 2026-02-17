@@ -1,4 +1,4 @@
-// File: src/__tests__/api-search-v2.test.ts
+// File: apps/web/src/__tests__/api-search-v2.test.ts
 
 import type { NextRequest } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";

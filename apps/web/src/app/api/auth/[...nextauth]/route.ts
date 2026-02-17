@@ -1,4 +1,4 @@
-// File: src/app/api/auth/[...nextauth]/route.ts
+// File: apps/web/src/app/api/auth/[...nextauth]/route.ts
 
 import { type NextRequest } from "next/server";
 

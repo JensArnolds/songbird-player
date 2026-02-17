@@ -1,4 +1,4 @@
-// File: src/__tests__/trpc.music.test.ts
+// File: apps/web/src/__tests__/trpc.music.test.ts
 
 import { describe, expect, it, vi } from "vitest";
 import type { MaybePromise } from "@trpc/server";

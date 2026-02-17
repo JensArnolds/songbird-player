@@ -1,4 +1,4 @@
-// File: src/__tests__/og-image-real-urls.test.ts
+// File: apps/web/src/__tests__/og-image-real-urls.test.ts
 
 import { describe, expect, it, beforeAll } from "vitest";
 import { GET } from "@/app/api/og/route";

@@ -1,4 +1,4 @@
-// File: src/types/settings.ts
+// File: packages/types/src/settings.ts
 
 export interface UserSettings {
   volume: number;

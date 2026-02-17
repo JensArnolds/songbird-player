@@ -1,4 +1,4 @@
--- File: drizzle/0016_daffy_shriek.sql
+-- File: apps/web/drizzle/0016_daffy_shriek.sql
 
 ALTER TABLE "hexmusic-stream_audio_features" ADD COLUMN "deezerId" bigint;--> statement-breakpoint
 ALTER TABLE "hexmusic-stream_favorite" ADD COLUMN "deezerId" bigint;--> statement-breakpoint

@@ -1,4 +1,4 @@
-// File: src/components/LinuxTitlebar.tsx
+// File: apps/web/src/components/LinuxTitlebar.tsx
 
 "use client";
 

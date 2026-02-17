@@ -1,4 +1,4 @@
-// File: src/components/LightweightParticleBackground.tsx
+// File: apps/web/src/components/LightweightParticleBackground.tsx
 
 "use client";
 

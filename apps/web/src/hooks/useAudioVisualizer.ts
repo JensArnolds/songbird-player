@@ -1,4 +1,4 @@
-// File: src/hooks/useAudioVisualizer.ts
+// File: apps/web/src/hooks/useAudioVisualizer.ts
 
 "use client";
 

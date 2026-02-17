@@ -1,4 +1,4 @@
-// File: src/components/EnhancedTrackCard.tsx
+// File: apps/web/src/components/EnhancedTrackCard.tsx
 
 import { useToast } from "@/contexts/ToastContext";
 import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";

@@ -1,4 +1,4 @@
-// File: src/utils/images.ts
+// File: apps/web/src/utils/images.ts
 
 import type { Album, Artist, Track } from "@starchild/types";
 

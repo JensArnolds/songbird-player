@@ -1,4 +1,4 @@
-// File: src/components/visualizers/flowfieldPatterns/renderRays.ts
+// File: packages/visualizers/src/flowfieldPatterns/renderRays.ts
 
 import type { FlowFieldPatternContext } from "./types";
 

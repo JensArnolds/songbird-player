@@ -1,4 +1,4 @@
-// File: src/components/SuppressExtensionErrors.tsx
+// File: apps/web/src/components/SuppressExtensionErrors.tsx
 
 "use client";
 
