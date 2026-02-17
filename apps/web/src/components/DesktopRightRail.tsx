@@ -4,6 +4,8 @@
 
 import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import type { Track } from "@starchild/types";
+import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
+import { hapticLight } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import {
@@ -20,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type MouseEvent } from "react";
 
 type RemovedQueueItem = {
   track: Track;
@@ -30,6 +32,7 @@ type RemovedQueueItem = {
 
 export function DesktopRightRail() {
   const player = useGlobalPlayer();
+  const { openMenu } = useTrackContextMenu();
   const currentTrack = player.currentTrack;
   const upNext = player.queue.slice(1);
   const upcomingDuration = upNext.reduce(
@@ -112,6 +115,35 @@ export function DesktopRightRail() {
     setDraggingIndex(null);
     setDragOverIndex(null);
   }, [dragOverIndex, draggingIndex, player]);
+
+  const handleQueueTrackContextMenu = useCallback(
+    (track: Track, queueIndex: number, event: MouseEvent) => {
+      event.preventDefault();
+      hapticLight();
+
+      const maxQueueIndex = player.queue.length - 1;
+      const canMoveToNext = queueIndex > 1;
+      const canMoveToEnd = queueIndex < maxQueueIndex;
+
+      openMenu(track, event.clientX, event.clientY, {
+        queueActions: {
+          isQueued: true,
+          onPlayFromQueue: () => player.playFromQueue(queueIndex),
+          onMoveToNext: canMoveToNext
+            ? () => player.reorderQueue(queueIndex, 1)
+            : undefined,
+          onMoveToEnd: canMoveToEnd
+            ? () => player.reorderQueue(queueIndex, maxQueueIndex)
+            : undefined,
+        },
+        removeFromList: {
+          label: "Remove from queue",
+          onRemove: () => handleRemoveWithUndo(queueIndex),
+        },
+      });
+    },
+    [handleRemoveWithUndo, openMenu, player],
+  );
 
   return (
     <aside className="desktop-right-rail block h-full w-[320px] shrink-0 p-2 pr-3 max-xl:hidden">
@@ -238,6 +270,9 @@ export function DesktopRightRail() {
                     <div
                       key={`${track.id}-${queueIndex}-${track.title}`}
                       draggable
+                      onContextMenu={(event) =>
+                        handleQueueTrackContextMenu(track, queueIndex, event)
+                      }
                       onDragStart={(event) => {
                         event.dataTransfer.effectAllowed = "move";
                         setDraggingIndex(queueIndex);

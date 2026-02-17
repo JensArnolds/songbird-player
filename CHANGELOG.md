@@ -5,6 +5,21 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-02-17
+
+### Added
+
+- **Queue item context menu in desktop right rail**: Added right-click context menu support for `Up Next` items with queue-aware actions (play now, move to next/end, remove from queue). Location: `apps/web/src/components/DesktopRightRail.tsx`.
+- **Foreign playlist context menus**: Added context menu entry points for non-owned playlists in:
+  - Home feed "Playlists for Your Taste" cards.
+  - Public profile playlist cards.
+  Locations: `apps/web/src/app/HomePageClient.tsx`, `apps/web/src/app/[userhash]/page.tsx`.
+
+### Changed
+
+- **Playlist context menu context model**: Extended playlist menu context to support owner/foreign modes plus menu options for `openPath`, `shareUrl`, and async track resolution hooks. Location: `apps/web/src/contexts/PlaylistContextMenuContext.tsx`.
+- **Playlist menu behavior split by ownership**: `PlaylistContextMenu` now renders owner-only actions only for owned playlists, while foreign playlists expose safe actions (`Play`, `Queue`, `Share`, `Open`) and resolve tracks via provided resolver/public fallback. Location: `apps/web/src/components/PlaylistContextMenu.tsx`.
+
 ## [1.0.1] - 2026-02-17
 
 ### Added

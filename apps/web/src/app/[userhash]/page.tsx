@@ -5,6 +5,7 @@
 import Button from "@starchild/ui/Button";
 import EnhancedTrackCard from "@/components/EnhancedTrackCard";
 import ProfileHeader from "@/components/ProfileHeader";
+import { usePlaylistContextMenu } from "@/contexts/PlaylistContextMenuContext";
 import Section from "@starchild/ui/Section";
 import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useWebShare } from "@/hooks/useWebShare";
@@ -22,6 +23,7 @@ export default function PublicProfilePage({
 }) {
   const { userhash } = use(params);
   const { share, isSupported: isShareSupported } = useWebShare();
+  const { openMenu: openPlaylistMenu } = usePlaylistContextMenu();
   const { playTrack, addToQueue } = useGlobalPlayer();
   const utils = api.useUtils();
 
@@ -300,6 +302,36 @@ export default function PublicProfilePage({
               <Link
                 key={playlist.id}
                 href={`/playlists/${playlist.id}`}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  haptic("light");
+                  const path = `/playlists/${playlist.id}`;
+                  openPlaylistMenu(
+                    {
+                      id: playlist.id,
+                      name: playlist.name,
+                      description: playlist.description ?? null,
+                      isPublic: true,
+                      coverImage: playlist.coverImage ?? null,
+                      trackCount: playlist.trackCount ?? 0,
+                    },
+                    event.clientX,
+                    event.clientY,
+                    {
+                      mode: "foreign",
+                      openPath: path,
+                      shareUrl: `${window.location.origin}${path}`,
+                      resolveTracks: async () => {
+                        const fullPlaylist = await utils.music.getPublicPlaylist.fetch({
+                          id: playlist.id,
+                        });
+                        return [...(fullPlaylist.tracks ?? [])]
+                          .sort((a, b) => a.position - b.position)
+                          .map((entry) => entry.track);
+                      },
+                    },
+                  );
+                }}
                 className="surface-panel group p-4 transition-transform hover:-translate-y-1"
               >
                 <div className="mb-3 aspect-square overflow-hidden rounded-lg bg-[linear-gradient(135deg,rgba(244,178,102,0.3),rgba(88,198,177,0.3))]">

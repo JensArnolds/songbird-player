@@ -5,16 +5,33 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-02-17
+
+### Added
+
+- **Queue item context menu in desktop right rail**: Added right-click context menu support for `Up Next` items with queue-aware actions (play now, move to next/end, remove from queue). Location: `apps/web/src/components/DesktopRightRail.tsx`.
+- **Foreign playlist context menus**: Added context menu entry points for non-owned playlists in:
+  - Home feed "Playlists for Your Taste" cards.
+  - Public profile playlist cards.
+  Locations: `apps/web/src/app/HomePageClient.tsx`, `apps/web/src/app/[userhash]/page.tsx`.
+
+### Changed
+
+- **Playlist context menu context model**: Extended playlist menu context to support owner/foreign modes plus menu options for `openPath`, `shareUrl`, and async track resolution hooks. Location: `apps/web/src/contexts/PlaylistContextMenuContext.tsx`.
+- **Playlist menu behavior split by ownership**: `PlaylistContextMenu` now renders owner-only actions only for owned playlists, while foreign playlists expose safe actions (`Play`, `Queue`, `Share`, `Open`) and resolve tracks via provided resolver/public fallback. Location: `apps/web/src/components/PlaylistContextMenu.tsx`.
+
 ## [1.0.1] - 2026-02-17
 
 ### Added
 
 - **Resizable desktop sidebar**: Added horizontal drag resizing with persisted expanded width to improve desktop layout control and cross-session consistency. Locations: `apps/web/src/components/DesktopSidebar.tsx`, `packages/config/src/storage.ts`.
+- **Five new Firefox-friendly FlowField visuals**: Added `scanGrid`, `pulseColumns`, `radarSweep`, `cometTrails`, and `phaseBands` as new selectable patterns designed for low-overhead rendering and stable frame pacing. Locations: `packages/visualizers/src/FlowFieldRenderer.ts`, `packages/visualizers/src/flowfieldPatterns/patternIds.ts`, `packages/visualizers/src/FlowFieldCanvas.tsx`.
 
 ### Changed
 
 - **Sidebar naming for cross-platform use**: Renamed the sidebar component from `ElectronSidebar` to `DesktopSidebar` to better reflect usage across desktop web, PWA, and Electron shells. Locations: `apps/web/src/components/DesktopShell.tsx`, `apps/web/src/components/DesktopSidebar.tsx`.
 - **OAuth provider selection/styling consolidation**: Sign-in surfaces now use shared OAuth provider guards and style helpers, reducing duplicated provider filtering logic and improving type safety. Locations: `apps/web/src/config/oauthProviders.ts`, `apps/web/src/app/signin/page.tsx`, `apps/web/src/components/AuthModal.tsx`.
+- **FlowField renderer pattern registry update**: Extended typed pattern unions, renderer switch routing, and runtime pattern validation to include the new visuals while preserving DRY/KISS structure and strict pattern typing. Locations: `packages/visualizers/src/flowfieldPatterns/patternIds.ts`, `packages/visualizers/src/FlowFieldRenderer.ts`, `packages/visualizers/src/FlowFieldCanvas.tsx`.
 
 ### Removed
 

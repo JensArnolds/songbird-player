@@ -8,11 +8,12 @@ import SwipeableTrackCard from "@/components/SwipeableTrackCard";
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
+import { usePlaylistContextMenu } from "@/contexts/PlaylistContextMenuContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { localStorage as appStorage } from "@/services/storage";
 import { useWebShare } from "@/hooks/useWebShare";
 import { api } from "@starchild/api-client/trpc/react";
-import type { Track } from "@starchild/types";
+import { isTrack, type Track } from "@starchild/types";
 import {
   getAlbumTracks,
   getLatestReleases,
@@ -55,9 +56,36 @@ type HomePageClientProps = {
   apiHostname?: string;
 };
 
+function normalizeFeedTrack(track: Track): Track {
+  return {
+    ...track,
+    deezer_id: track.deezer_id ?? track.id,
+  };
+}
+
+function parseFeedPlaylistTracks(payload: unknown): Track[] {
+  if (Array.isArray(payload)) {
+    return payload.filter(isTrack).map(normalizeFeedTrack);
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const record = payload as Record<string, unknown>;
+  const rows = Array.isArray(record.data)
+    ? record.data
+    : Array.isArray(record.tracks)
+      ? record.tracks
+      : [];
+
+  return rows.filter(isTrack).map(normalizeFeedTrack);
+}
+
 export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const { data: session } = useSession();
   const { showToast } = useToast();
+  const { openMenu: openPlaylistMenu } = usePlaylistContextMenu();
   const { share, isSupported: isShareSupported } = useWebShare();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1116,17 +1144,53 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                               playlist.picture ??
                               playlist.picture_big ??
                               "";
+                            const title = playlist.title.trim();
+                            const path = title
+                              ? `/discover/playlists/${playlist.id}?title=${encodeURIComponent(title)}`
+                              : `/discover/playlists/${playlist.id}`;
 
                             return (
                               <button
                                 key={playlist.id}
                                 onClick={() => {
                                   hapticLight();
-                                  const title = playlist.title.trim();
-                                  const path = title
-                                    ? `/discover/playlists/${playlist.id}?title=${encodeURIComponent(title)}`
-                                    : `/discover/playlists/${playlist.id}`;
                                   router.push(path);
+                                }}
+                                onContextMenu={(event) => {
+                                  event.preventDefault();
+                                  hapticLight();
+                                  openPlaylistMenu(
+                                    {
+                                      id: playlist.id,
+                                      name: playlist.title,
+                                      description: playlist.user?.name
+                                        ? `by ${playlist.user.name}`
+                                        : null,
+                                      isPublic: true,
+                                      coverImage: artwork || null,
+                                      trackCount: playlist.nb_tracks ?? 0,
+                                    },
+                                    event.clientX,
+                                    event.clientY,
+                                    {
+                                      mode: "foreign",
+                                      openPath: path,
+                                      shareUrl: `${window.location.origin}${path}`,
+                                      resolveTracks: async () => {
+                                        const response = await fetch(
+                                          `/api/playlist/${playlist.id}`,
+                                          { cache: "no-store" },
+                                        );
+                                        if (!response.ok) {
+                                          throw new Error(
+                                            `Failed to fetch playlist tracks (${response.status})`,
+                                          );
+                                        }
+                                        const payload = (await response.json()) as unknown;
+                                        return parseFeedPlaylistTracks(payload);
+                                      },
+                                    },
+                                  );
                                 }}
                                 className="group rounded-xl border border-white/10 bg-[var(--color-surface)]/70 p-2 text-left transition-all hover:scale-[1.01] hover:border-white/20"
                               >

@@ -7,20 +7,27 @@ import { createContext, useCallback, useContext, useState, type ReactNode } from
 
 export interface PlaylistContextMenuItem {
   id: number;
-  userId: string;
   name: string;
-  description: string | null;
-  isPublic: boolean;
-  coverImage: string | null;
-  createdAt: Date;
-  updatedAt: Date | null;
-  trackCount: number;
-  tracks: Array<{
+  userId?: string;
+  description?: string | null;
+  isPublic?: boolean;
+  coverImage?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date | null;
+  trackCount?: number;
+  tracks?: Array<{
     id: number;
     track: Track;
     position: number;
     addedAt: Date;
   }>;
+}
+
+export interface PlaylistContextMenuOptions {
+  mode?: "owner" | "foreign";
+  openPath?: string;
+  shareUrl?: string;
+  resolveTracks?: () => Promise<Track[]>;
 }
 
 interface MenuPosition {
@@ -31,7 +38,13 @@ interface MenuPosition {
 interface PlaylistContextMenuContextType {
   playlist: PlaylistContextMenuItem | null;
   position: MenuPosition | null;
-  openMenu: (playlist: PlaylistContextMenuItem, x: number, y: number) => void;
+  options: PlaylistContextMenuOptions;
+  openMenu: (
+    playlist: PlaylistContextMenuItem,
+    x: number,
+    y: number,
+    options?: PlaylistContextMenuOptions,
+  ) => void;
   closeMenu: () => void;
 }
 
@@ -42,20 +55,33 @@ const PlaylistContextMenuContext = createContext<PlaylistContextMenuContextType 
 export function PlaylistContextMenuProvider({ children }: { children: ReactNode }) {
   const [playlist, setPlaylist] = useState<PlaylistContextMenuItem | null>(null);
   const [position, setPosition] = useState<MenuPosition | null>(null);
+  const [options, setOptions] = useState<PlaylistContextMenuOptions>({
+    mode: "owner",
+  });
 
-  const openMenu = useCallback((playlist: PlaylistContextMenuItem, x: number, y: number) => {
-    setPlaylist(playlist);
-    setPosition({ x, y });
-  }, []);
+  const openMenu = useCallback(
+    (
+      playlist: PlaylistContextMenuItem,
+      x: number,
+      y: number,
+      options?: PlaylistContextMenuOptions,
+    ) => {
+      setPlaylist(playlist);
+      setPosition({ x, y });
+      setOptions({ mode: "owner", ...options });
+    },
+    [],
+  );
 
   const closeMenu = useCallback(() => {
     setPlaylist(null);
     setPosition(null);
+    setOptions({ mode: "owner" });
   }, []);
 
   return (
     <PlaylistContextMenuContext.Provider
-      value={{ playlist, position, openMenu, closeMenu }}
+      value={{ playlist, position, options, openMenu, closeMenu }}
     >
       {children}
     </PlaylistContextMenuContext.Provider>
