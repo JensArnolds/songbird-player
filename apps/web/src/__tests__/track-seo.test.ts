@@ -52,8 +52,17 @@ describe("track SEO metadata", () => {
       params: Promise.resolve({ id: String(mockTrack.id) }),
     });
 
-    const ogImage = metadata.openGraph?.images?.[0] as { url: string } | undefined;
-    const ogImageUrl = ogImage?.url;
+    const openGraphImages = metadata.openGraph?.images;
+    const firstImage = Array.isArray(openGraphImages)
+      ? openGraphImages[0]
+      : openGraphImages;
+    const ogImageUrl = (() => {
+      if (!firstImage) return undefined;
+      if (typeof firstImage === "string") return firstImage;
+      if (firstImage instanceof URL) return firstImage.toString();
+      const imageUrl = firstImage.url;
+      return imageUrl instanceof URL ? imageUrl.toString() : imageUrl;
+    })();
     expect(ogImageUrl).toBeTruthy();
 
     const ogUrl = new URL(ogImageUrl!);

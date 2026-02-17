@@ -3,8 +3,8 @@
 "use client";
 
 import {
-  OAUTH_PROVIDER_BUTTON_STYLES,
-  isEnabledOAuthProviderId,
+  getOAuthProviderButtonStyle,
+  isEnabledOAuthProvider,
 } from "@/config/oauthProviders";
 import { logAuthClientDebug } from "@/utils/authDebugClient";
 import { springPresets } from "@/utils/spring-animations";
@@ -102,11 +102,7 @@ export function AuthModal({
 
   const oauthProviders = useMemo(() => {
     if (!providers) return [];
-
-    return Object.values(providers).filter(
-      (provider) =>
-        provider.type === "oauth" && isEnabledOAuthProviderId(provider.id),
-    );
+    return Object.values(providers).filter(isEnabledOAuthProvider);
   }, [providers]);
 
   useEffect(() => {
@@ -174,9 +170,9 @@ export function AuthModal({
                   </div>
                 ) : oauthProviders.length > 0 ? (
                   oauthProviders.map((provider) => {
-                    const providerClasses =
-                      OAUTH_PROVIDER_BUTTON_STYLES[provider.id] ??
-                      "border border-[var(--color-border)] bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:border-[var(--color-accent)]";
+                    const providerClasses = getOAuthProviderButtonStyle(
+                      provider.id,
+                    );
                     const isSubmitting = submittingProviderId === provider.id;
 
                     return (

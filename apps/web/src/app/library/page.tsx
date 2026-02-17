@@ -7,7 +7,6 @@ import EnhancedTrackCard from "@/components/EnhancedTrackCard";
 import { LoadingState } from "@starchild/ui/LoadingSpinner";
 import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { api } from "@starchild/api-client/trpc/react";
-import type { FavoriteItem, ListeningHistoryItem } from "@starchild/types";
 import { Clock, Heart } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -90,7 +89,7 @@ export default function LibraryPage() {
             <LoadingState message="Loading your favorites..." />
           ) : favorites && favorites.length > 0 ? (
             <div className="grid gap-2 md:gap-3">
-              {favorites.map((fav: FavoriteItem) => (
+              {favorites.map((fav) => (
                 <EnhancedTrackCard
                   key={fav.id}
                   track={fav.track}
@@ -124,7 +123,7 @@ export default function LibraryPage() {
             <LoadingState message="Loading your history..." />
           ) : history && history.length > 0 ? (
             <div className="grid gap-2 md:gap-3">
-              {history.map((item: ListeningHistoryItem) => (
+              {history.map((item) => (
                 <EnhancedTrackCard
                   key={item.id}
                   track={item.track}

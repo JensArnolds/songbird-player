@@ -5,6 +5,21 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-02-17
+
+### Added
+
+- **Resizable desktop sidebar**: Added horizontal drag resizing with persisted expanded width to improve desktop layout control and cross-session consistency. Locations: `apps/web/src/components/DesktopSidebar.tsx`, `packages/config/src/storage.ts`.
+
+### Changed
+
+- **Sidebar naming for cross-platform use**: Renamed the sidebar component from `ElectronSidebar` to `DesktopSidebar` to better reflect usage across desktop web, PWA, and Electron shells. Locations: `apps/web/src/components/DesktopShell.tsx`, `apps/web/src/components/DesktopSidebar.tsx`.
+- **OAuth provider selection/styling consolidation**: Sign-in surfaces now use shared OAuth provider guards and style helpers, reducing duplicated provider filtering logic and improving type safety. Locations: `apps/web/src/config/oauthProviders.ts`, `apps/web/src/app/signin/page.tsx`, `apps/web/src/components/AuthModal.tsx`.
+
+### Fixed
+
+- **Vercel function pattern deployment failure**: Removed unmatched `functions` path globs from `vercel.json` and moved execution time limits to route-level `maxDuration` exports for Next.js App Router handlers. Locations: `vercel.json`, `apps/web/src/app/api/stream/route.ts`, `apps/web/src/app/api/trpc/[trpc]/route.ts`.
+
 ## [1.0.0] - 2026-02-16
 
 ### Added

@@ -1,7 +1,13 @@
 // File: apps/web/src/config/audioDefaults.ts
 
-export const DEFAULT_EQUALIZER = {
+type DefaultEqualizerConfig = {
+  preset: string;
+  bands: number[];
+  enabled: boolean;
+};
+
+export const DEFAULT_EQUALIZER: DefaultEqualizerConfig = {
   preset: "Flat",
-  bands: Array(10).fill(0),
+  bands: Array.from({ length: 10 }, () => 0),
   enabled: false,
 };

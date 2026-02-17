@@ -70,7 +70,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [currentQuery, setCurrentQuery] = useState("");
   const [total, setTotal] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [, setIsInitialized] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isArtistSearch, setIsArtistSearch] = useState(false);
   const [apiOffset, setApiOffset] = useState(0);
@@ -331,10 +331,32 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
     [player],
   );
 
+  const performSearchRef = useRef(performSearch);
+  const handleAlbumClickRef = useRef(handleAlbumClick);
+  const handleSharedTrackRef = useRef(handleSharedTrack);
+  const loadingRef = useRef(loading);
+
   useEffect(() => {
-    const urlQuery = searchParams.get("q");
-    const albumId = searchParams.get("album");
-    const trackId = searchParams.get("track");
+    performSearchRef.current = performSearch;
+  }, [performSearch]);
+
+  useEffect(() => {
+    handleAlbumClickRef.current = handleAlbumClick;
+  }, [handleAlbumClick]);
+
+  useEffect(() => {
+    handleSharedTrackRef.current = handleSharedTrack;
+  }, [handleSharedTrack]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParamsKey);
+    const urlQuery = params.get("q");
+    const albumId = params.get("album");
+    const trackId = params.get("track");
 
     if (trackId) {
       const trackIdNum = parseInt(trackId, 10);
@@ -342,7 +364,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
         lastTrackIdRef.current = trackId;
         setIsInitialized(true);
         lastUrlQueryRef.current = null;
-        void handleSharedTrack(trackIdNum);
+        void handleSharedTrackRef.current(trackIdNum);
       }
     } else if (albumId) {
       const albumIdNum = parseInt(albumId, 10);
@@ -350,7 +372,7 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
         setIsInitialized(true);
         lastUrlQueryRef.current = null;
         lastTrackIdRef.current = null;
-        void handleAlbumClick(albumIdNum);
+        void handleAlbumClickRef.current(albumIdNum);
       }
     } else if (urlQuery) {
       if (urlQuery !== lastUrlQueryRef.current) {
@@ -359,19 +381,17 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
         setQuery(urlQuery);
         setIsInitialized(true);
         shouldAutoPlayRef.current = true;
-        void performSearch(urlQuery, true);
+        void performSearchRef.current(urlQuery, true);
       }
     } else {
-      if (!isInitialized) {
-        setIsInitialized(true);
-      }
+      setIsInitialized((prev) => (prev ? prev : true));
       if (lastUrlQueryRef.current !== null || lastTrackIdRef.current !== null) {
         lastUrlQueryRef.current = null;
         lastTrackIdRef.current = null;
         setResults([]);
         setTotal(0);
         setCurrentQuery("");
-        if (!loading) {
+        if (!loadingRef.current) {
           setQuery("");
         }
       }

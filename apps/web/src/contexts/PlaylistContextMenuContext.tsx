@@ -2,8 +2,26 @@
 
 "use client";
 
-import type { PlaylistWithTracks } from "@starchild/types";
+import type { Track } from "@starchild/types";
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+
+export interface PlaylistContextMenuItem {
+  id: number;
+  userId: string;
+  name: string;
+  description: string | null;
+  isPublic: boolean;
+  coverImage: string | null;
+  createdAt: Date;
+  updatedAt: Date | null;
+  trackCount: number;
+  tracks: Array<{
+    id: number;
+    track: Track;
+    position: number;
+    addedAt: Date;
+  }>;
+}
 
 interface MenuPosition {
   x: number;
@@ -11,9 +29,9 @@ interface MenuPosition {
 }
 
 interface PlaylistContextMenuContextType {
-  playlist: PlaylistWithTracks | null;
+  playlist: PlaylistContextMenuItem | null;
   position: MenuPosition | null;
-  openMenu: (playlist: PlaylistWithTracks, x: number, y: number) => void;
+  openMenu: (playlist: PlaylistContextMenuItem, x: number, y: number) => void;
   closeMenu: () => void;
 }
 
@@ -22,10 +40,10 @@ const PlaylistContextMenuContext = createContext<PlaylistContextMenuContextType 
 );
 
 export function PlaylistContextMenuProvider({ children }: { children: ReactNode }) {
-  const [playlist, setPlaylist] = useState<PlaylistWithTracks | null>(null);
+  const [playlist, setPlaylist] = useState<PlaylistContextMenuItem | null>(null);
   const [position, setPosition] = useState<MenuPosition | null>(null);
 
-  const openMenu = useCallback((playlist: PlaylistWithTracks, x: number, y: number) => {
+  const openMenu = useCallback((playlist: PlaylistContextMenuItem, x: number, y: number) => {
     setPlaylist(playlist);
     setPosition({ x, y });
   }, []);

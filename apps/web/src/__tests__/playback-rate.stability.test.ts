@@ -7,11 +7,39 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockTrack: Track = {
   id: 1,
+  readable: true,
   title: "Test Track",
-  artist: { id: 1, name: "Test Artist" },
-  album: { id: 1, title: "Test Album", cover_medium: "" },
+  title_short: "Test Track",
+  link: "https://example.com/track/1",
   duration: 180,
+  rank: 1,
+  explicit_lyrics: false,
+  explicit_content_lyrics: 0,
+  explicit_content_cover: 0,
   preview: "https://example.com/preview.mp3",
+  md5_image: "",
+  artist: { id: 1, name: "Test Artist", type: "artist" },
+  album: {
+    id: 1,
+    title: "Test Album",
+    cover: "",
+    cover_small: "",
+    cover_medium: "",
+    cover_big: "",
+    cover_xl: "",
+    md5_image: "",
+    tracklist: "",
+    type: "album",
+  },
+  type: "track",
+};
+
+const setNavigatorServiceWorker = (serviceWorker: ServiceWorkerContainer) => {
+  Object.defineProperty(global.navigator, "serviceWorker", {
+    configurable: true,
+    writable: true,
+    value: serviceWorker,
+  });
 };
 
 vi.mock("@starchild/api-client/rest", () => ({
@@ -32,6 +60,13 @@ describe("Playback Rate Stability Tests", () => {
   let eventListeners: Record<string, ((event: Event) => void)[]>;
   let playPromise: Promise<void>;
   let playResolve: () => void;
+
+  const getAudioElement = () => {
+    if (!mockAudioElement) {
+      throw new Error("Mock audio element is not initialized");
+    }
+    return mockAudioElement;
+  };
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -118,14 +153,14 @@ describe("Playback Rate Stability Tests", () => {
 
     global.Audio = vi
       .fn()
-      .mockImplementation(() => mockAudioElement as HTMLAudioElement);
-    global.navigator.serviceWorker = {
+      .mockImplementation(() => getAudioElement() as HTMLAudioElement);
+    setNavigatorServiceWorker({
       ready: Promise.resolve({
         active: {
           postMessage: vi.fn(),
         },
       } as unknown as ServiceWorkerRegistration),
-    } as unknown as ServiceWorkerContainer;
+    } as unknown as ServiceWorkerContainer);
   });
 
   afterEach(() => {
@@ -141,8 +176,8 @@ describe("Playback Rate Stability Tests", () => {
         expect(result.current.audioRef.current).not.toBeNull();
       });
 
-      expect(mockAudioElement.playbackRate).toBe(1);
-      expect(mockAudioElement.defaultPlaybackRate).toBe(1);
+      expect(getAudioElement().playbackRate).toBe(1);
+      expect(getAudioElement().defaultPlaybackRate).toBe(1);
     });
 
     it("should detect and fix playback rate drift every 1 second", async () => {
@@ -178,8 +213,8 @@ describe("Playback Rate Stability Tests", () => {
         );
       });
 
-      expect(mockAudioElement.playbackRate).toBe(1);
-      expect(mockAudioElement.defaultPlaybackRate).toBe(1);
+      expect(getAudioElement().playbackRate).toBe(1);
+      expect(getAudioElement().defaultPlaybackRate).toBe(1);
 
       warnSpy.mockRestore();
     });
@@ -216,7 +251,7 @@ describe("Playback Rate Stability Tests", () => {
         );
       });
 
-      expect(mockAudioElement.playbackRate).toBe(1);
+      expect(getAudioElement().playbackRate).toBe(1);
 
       warnSpy.mockRestore();
     });
@@ -242,8 +277,8 @@ describe("Playback Rate Stability Tests", () => {
         await playPromise;
       });
 
-      expect(mockAudioElement.playbackRate).toBe(1);
-      expect(mockAudioElement.defaultPlaybackRate).toBe(1);
+      expect(getAudioElement().playbackRate).toBe(1);
+      expect(getAudioElement().defaultPlaybackRate).toBe(1);
     });
   });
 
@@ -288,7 +323,7 @@ describe("Playback Rate Stability Tests", () => {
       });
 
       await waitFor(() => {
-        expect(mockAudioElement.playbackRate).toBe(1);
+        expect(getAudioElement().playbackRate).toBe(1);
       });
     });
 
@@ -306,7 +341,11 @@ describe("Playback Rate Stability Tests", () => {
       });
 
       if (mockAudioElement) {
-        mockAudioElement.paused = true;
+        Object.defineProperty(mockAudioElement, "paused", {
+          value: true,
+          writable: true,
+          configurable: true,
+        });
         mockAudioElement.playbackRate = 1.75;
       }
 
@@ -315,7 +354,7 @@ describe("Playback Rate Stability Tests", () => {
       });
 
       await waitFor(() => {
-        expect(mockAudioElement.playbackRate).toBe(1);
+        expect(getAudioElement().playbackRate).toBe(1);
       });
     });
 
@@ -333,7 +372,11 @@ describe("Playback Rate Stability Tests", () => {
       });
 
       if (mockAudioElement) {
-        mockAudioElement.paused = true;
+        Object.defineProperty(mockAudioElement, "paused", {
+          value: true,
+          writable: true,
+          configurable: true,
+        });
         mockAudioElement.playbackRate = 1.3;
       }
 
@@ -342,7 +385,7 @@ describe("Playback Rate Stability Tests", () => {
       });
 
       await waitFor(() => {
-        expect(mockAudioElement.playbackRate).toBe(1);
+        expect(getAudioElement().playbackRate).toBe(1);
       });
     });
   });
@@ -374,7 +417,7 @@ describe("Playback Rate Stability Tests", () => {
       }
 
       await waitFor(() => {
-        expect(mockAudioElement.playbackRate).toBe(1);
+        expect(getAudioElement().playbackRate).toBe(1);
       });
     });
 
@@ -397,14 +440,14 @@ describe("Playback Rate Stability Tests", () => {
         vi.advanceTimersByTime(500);
       });
 
-      expect(mockAudioElement.playbackRate).toBe(2.0);
+      expect(getAudioElement().playbackRate).toBe(2.0);
 
       act(() => {
         vi.advanceTimersByTime(500);
       });
 
       await waitFor(() => {
-        expect(mockAudioElement.playbackRate).toBe(1);
+        expect(getAudioElement().playbackRate).toBe(1);
       });
     });
   });
@@ -496,7 +539,7 @@ describe("Playback Rate Stability Tests", () => {
       });
 
       await waitFor(() => {
-        expect(mockAudioElement.playbackRate).toBe(1);
+        expect(getAudioElement().playbackRate).toBe(1);
       });
     });
 
@@ -521,7 +564,7 @@ describe("Playback Rate Stability Tests", () => {
       });
 
       await waitFor(() => {
-        expect(mockAudioElement.playbackRate).toBe(1);
+        expect(getAudioElement().playbackRate).toBe(1);
       });
     });
   });

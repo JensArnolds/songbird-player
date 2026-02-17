@@ -13,13 +13,17 @@ import { motion } from "framer-motion";
 import { Library, Menu } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function MobileHeader() {
   const isMobile = useIsMobile();
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchParamsKey = searchParams.toString();
+  const urlQuery = useMemo(
+    () => new URLSearchParams(searchParamsKey).get("q") ?? "",
+    [searchParamsKey],
+  );
   const { data: session } = useSession();
   const { openAuthModal } = useAuthModal();
   const { openMenu } = useMenu();
@@ -38,7 +42,6 @@ export default function MobileHeader() {
   );
 
   useEffect(() => {
-    const urlQuery = searchParams.get("q");
     if (urlQuery) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery(urlQuery);
@@ -54,7 +57,7 @@ export default function MobileHeader() {
 
     setIsSearching(false);
     setCountdown(0);
-  }, [searchParamsKey]);
+  }, [urlQuery]);
 
   useEffect(() => {
     if (searchTimeoutRef.current) {
@@ -68,17 +71,15 @@ export default function MobileHeader() {
     if (!searchQuery.trim()) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setCountdown(0);
-      const currentUrlQuery = searchParams.get("q");
-      if (currentUrlQuery && previousQuery.trim()) {
+      if (urlQuery && previousQuery.trim()) {
         router.push("/");
       }
       previousSearchQueryRef.current = searchQuery;
       return;
     }
 
-    const currentUrlQuery = searchParams.get("q");
     const trimmedQuery = searchQuery.trim();
-    if (currentUrlQuery === trimmedQuery) {
+    if (urlQuery === trimmedQuery) {
       setCountdown(0);
       hasSeenNonEmptyQueryRef.current = true;
       previousSearchQueryRef.current = searchQuery;
@@ -125,11 +126,10 @@ export default function MobileHeader() {
         clearTimeout(searchingTimeoutRef.current);
       }
     };
-  }, [searchQuery, router, searchParamsKey]);
+  }, [searchQuery, router, urlQuery]);
 
   if (!isMobile) return null;
 
-  const urlQuery = searchParams.get("q") ?? "";
   const isSearchComplete =
     urlQuery === searchQuery.trim() && searchQuery.trim().length > 0;
 

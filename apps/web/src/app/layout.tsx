@@ -32,7 +32,6 @@ import { PlaylistContextMenuProvider } from "@/contexts/PlaylistContextMenuConte
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TrackContextMenuProvider } from "@/contexts/TrackContextMenuContext";
-import { env } from "@/env";
 import { TRPCReactProvider } from "@starchild/api-client/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { RegisterServiceWorker } from "./register-sw";

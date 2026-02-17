@@ -769,7 +769,7 @@ export function AudioPlayerProvider({
       isShuffled: player.isShuffled,
       repeatMode: player.repeatMode,
       isLoading: player.isLoading,
-      lastAutoQueueCount: player.lastAutoQueueCount,
+      lastAutoQueueCount: player.smartQueueState.trackCount,
       showMobilePlayer,
       setShowMobilePlayer,
       hideUI,
@@ -823,7 +823,6 @@ export function AudioPlayerProvider({
       player.isShuffled,
       player.repeatMode,
       player.isLoading,
-      player.lastAutoQueueCount,
       // showMobilePlayer and hideUI are excluded from dependencies because they're UI-only state
       // audioElement is excluded from dependencies because it's maintained via a stable ref
       // We don't want context value recreation when hideUI or showMobilePlayer changes to trigger audio effects

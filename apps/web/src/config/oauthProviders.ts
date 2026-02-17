@@ -54,6 +54,15 @@ export function isEnabledOAuthProviderId(
 }
 
 /**
+ * Type guard for runtime provider objects returned by NextAuth
+ */
+export function isEnabledOAuthProvider<T extends { id: string; type: string }>(
+  provider: T,
+): provider is T & { id: SupportedOAuthProviderId; type: "oauth" } {
+  return provider.type === "oauth" && isEnabledOAuthProviderId(provider.id);
+}
+
+/**
  * Get the display name for an OAuth provider
  */
 export function getOAuthProviderDisplayName(

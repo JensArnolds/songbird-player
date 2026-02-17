@@ -205,7 +205,7 @@ export function useEqualizer(audioElement: HTMLAudioElement | null) {
     } catch (error) {
       console.error("Failed to initialize equalizer:", error);
     }
-  }, [audioElement, isInitialized, bands]);
+  }, [audioElement, isInitialized, bands, isSupported]);
 
   const updateBand = useCallback(
     (index: number, gain: number) => {

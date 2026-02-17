@@ -135,8 +135,7 @@ export default function PersistentPlayer() {
     ) {
       updatePreferences.mutate({ queuePanelOpen: showQueue });
     }
-
-  }, [showQueue]);
+  }, [showQueue, isAuthenticated, preferences, updatePreferences]);
 
   useEffect(() => {
     if (
@@ -146,8 +145,7 @@ export default function PersistentPlayer() {
     ) {
       updatePreferences.mutate({ equalizerPanelOpen: showEqualizer });
     }
-
-  }, [showEqualizer]);
+  }, [showEqualizer, isAuthenticated, preferences, updatePreferences]);
 
   const persistVisualizerPreference = useCallback(
     (next: boolean) => {
@@ -286,7 +284,6 @@ export default function PersistentPlayer() {
               isPlaying={player.isPlaying}
               currentTime={player.currentTime}
               duration={player.duration}
-              volume={player.volume}
               isMuted={player.isMuted}
               isShuffled={player.isShuffled}
               repeatMode={player.repeatMode}
@@ -295,14 +292,12 @@ export default function PersistentPlayer() {
               onNext={player.playNext}
               onPrevious={player.playPrevious}
               onSeek={player.seek}
-              onVolumeChange={player.setVolume}
               onToggleMute={() => player.setIsMuted(!player.isMuted)}
               onToggleShuffle={player.toggleShuffle}
               onCycleRepeat={player.cycleRepeatMode}
               onSkipForward={player.skipForward}
               onSkipBackward={player.skipBackward}
               onToggleQueue={() => setShowQueue(!showQueue)}
-              onToggleEqualizer={() => setShowEqualizer(!showEqualizer)}
               onClose={() => player.setShowMobilePlayer(false)}
               forceExpanded={true}
             />

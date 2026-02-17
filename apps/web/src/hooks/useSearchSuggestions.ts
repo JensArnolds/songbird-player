@@ -76,6 +76,10 @@ export function useSearchSuggestions(
   const recentSearchesDigest = useMemo(() => JSON.stringify(recentSearches), [
     recentSearches,
   ]);
+  const stableRecentSearches = useMemo(
+    () => JSON.parse(recentSearchesDigest) as string[],
+    [recentSearchesDigest],
+  );
 
   useEffect(() => {
     const updateSuggestions = (next: SearchSuggestionItem[]) => {
@@ -94,7 +98,7 @@ export function useSearchSuggestions(
       if (!normalizedQuery) return [];
       const lowered = normalizedQuery.toLowerCase();
 
-      return recentSearches
+      return stableRecentSearches
         .filter((entry) => entry.toLowerCase().includes(lowered))
         .slice(0, 4)
         .map((entry, index) => ({
@@ -206,7 +210,7 @@ export function useSearchSuggestions(
     enabled,
     limit,
     normalizedQuery,
-    recentSearchesDigest,
+    stableRecentSearches,
   ]);
 
   return {

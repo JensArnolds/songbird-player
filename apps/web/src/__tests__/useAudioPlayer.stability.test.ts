@@ -7,20 +7,68 @@ import type { Track } from "@starchild/types";
 
 const mockTrack: Track = {
   id: 1,
+  readable: true,
   title: "Test Track",
-  artist: { id: 1, name: "Test Artist" },
-  album: { id: 1, title: "Test Album", cover_medium: "" },
+  title_short: "Test Track",
+  link: "https://example.com/track/1",
   duration: 180,
+  rank: 1,
+  explicit_lyrics: false,
+  explicit_content_lyrics: 0,
+  explicit_content_cover: 0,
   preview: "https://example.com/preview.mp3",
+  md5_image: "",
+  artist: { id: 1, name: "Test Artist", type: "artist" },
+  album: {
+    id: 1,
+    title: "Test Album",
+    cover: "",
+    cover_small: "",
+    cover_medium: "",
+    cover_big: "",
+    cover_xl: "",
+    md5_image: "",
+    tracklist: "",
+    type: "album",
+  },
+  type: "track",
 };
 
 const mockTrack2: Track = {
   id: 2,
+  readable: true,
   title: "Test Track 2",
-  artist: { id: 2, name: "Test Artist 2" },
-  album: { id: 2, title: "Test Album 2", cover_medium: "" },
+  title_short: "Test Track 2",
+  link: "https://example.com/track/2",
   duration: 200,
+  rank: 2,
+  explicit_lyrics: false,
+  explicit_content_lyrics: 0,
+  explicit_content_cover: 0,
   preview: "https://example.com/preview2.mp3",
+  md5_image: "",
+  artist: { id: 2, name: "Test Artist 2", type: "artist" },
+  album: {
+    id: 2,
+    title: "Test Album 2",
+    cover: "",
+    cover_small: "",
+    cover_medium: "",
+    cover_big: "",
+    cover_xl: "",
+    md5_image: "",
+    tracklist: "",
+    type: "album",
+  },
+  type: "track",
+};
+
+const setNavigatorServiceWorker = (serviceWorker: ServiceWorkerContainer) => {
+  Object.defineProperty(global.navigator, "serviceWorker", {
+    configurable: true,
+    writable: true,
+    value: serviceWorker,
+  });
 };
 
 const renderPlayerHook = (options?: Parameters<typeof useAudioPlayer>[0]) =>
@@ -43,13 +91,13 @@ vi.mock("@/utils/logger", () => ({
 
 describe("useAudioPlayer Stability Tests", () => {
   beforeEach(() => {
-    global.navigator.serviceWorker = {
+    setNavigatorServiceWorker({
       ready: Promise.resolve({
         active: {
           postMessage: vi.fn(),
         },
       } as unknown as ServiceWorkerRegistration),
-    } as unknown as ServiceWorkerContainer;
+    } as unknown as ServiceWorkerContainer);
   });
 
   afterEach(() => {
@@ -193,13 +241,13 @@ describe("useAudioPlayer Stability Tests", () => {
       vi.useFakeTimers();
       const postMessageSpy = vi.fn();
 
-      global.navigator.serviceWorker = {
+      setNavigatorServiceWorker({
         ready: Promise.resolve({
           active: {
             postMessage: postMessageSpy,
           },
         } as unknown as ServiceWorkerRegistration),
-      } as unknown as ServiceWorkerContainer;
+      } as unknown as ServiceWorkerContainer);
 
       const { result } = renderHook(() =>
         useAudioPlayer({ keepPlaybackAlive: true }),
@@ -343,9 +391,9 @@ describe("useAudioPlayer Stability Tests", () => {
       );
       rejectedPromise.catch(() => undefined);
 
-      global.navigator.serviceWorker = {
+      setNavigatorServiceWorker({
         ready: rejectedPromise,
-      } as unknown as ServiceWorkerContainer;
+      } as unknown as ServiceWorkerContainer);
 
       const { result } = renderHook(() =>
         useAudioPlayer({ keepPlaybackAlive: true }),

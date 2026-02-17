@@ -4,8 +4,8 @@
 
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import {
-  OAUTH_PROVIDER_BUTTON_STYLES,
-  isEnabledOAuthProviderId,
+  getOAuthProviderButtonStyle,
+  isEnabledOAuthProvider,
 } from "@/config/oauthProviders";
 import { localStorage as appStorage } from "@/services/storage";
 import { logAuthClientDebug } from "@/utils/authDebugClient";
@@ -126,10 +126,7 @@ function SignInContent() {
 
   const oauthProviders = useMemo(() => {
     if (!providers) return [];
-    return Object.values(providers).filter(
-      (provider) =>
-        provider.type === "oauth" && isEnabledOAuthProviderId(provider.id),
-    );
+    return Object.values(providers).filter(isEnabledOAuthProvider);
   }, [providers]);
 
   useEffect(() => {
@@ -264,9 +261,9 @@ function SignInContent() {
           ) : oauthProviders.length > 0 ? (
             <div className="space-y-3">
               {oauthProviders.map((provider) => {
-                const providerClasses =
-                  OAUTH_PROVIDER_BUTTON_STYLES[provider.id] ??
-                  "border border-[var(--color-border)] bg-[var(--color-surface-hover)] text-[var(--color-text)] hover:border-[var(--color-accent)]";
+                const providerClasses = getOAuthProviderButtonStyle(
+                  provider.id,
+                );
                 return (
                   <button
                     key={provider.id}

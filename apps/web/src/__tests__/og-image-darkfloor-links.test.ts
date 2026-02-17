@@ -87,6 +87,7 @@ async function fetchTrackBySearch(query: string): Promise<Track> {
 function getTrackIdFromUrl(url: URL): number | null {
   if (url.pathname.startsWith("/track/")) {
     const rawId = url.pathname.split("/track/")[1];
+    if (!rawId) return null;
     const trackId = Number.parseInt(rawId, 10);
     return Number.isFinite(trackId) ? trackId : null;
   }

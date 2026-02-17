@@ -28,13 +28,13 @@ export function ElectronWindowControls() {
   useEffect(() => {
     if (!isLinuxElectron) return;
 
-    window.electron.receive?.("fromMain", (...args) => {
+    window.electron?.receive?.("fromMain", (...args) => {
       const message = args[0];
       if (!isWindowStateMessage(message)) return;
       setIsMaximized(message.isMaximized);
     });
 
-    window.electron.send?.("toMain", { type: "window:getState" });
+    window.electron?.send?.("toMain", { type: "window:getState" });
   }, [isLinuxElectron]);
 
   if (!isLinuxElectron) return null;

@@ -1034,7 +1034,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
       cancelled = true;
       cleanup?.();
     };
-  }, [currentTrack?.id]);
+  }, [currentTrack]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Sync audio element from context - intentional initialization
@@ -1282,8 +1282,6 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
   const palette = albumColorPalette ?? FALLBACK_PALETTE;
 
-  const accentGlow = palette.accent.replace("0.8)", "0.35)");
-  
   // Create a full-width gradient using all three key colors from the album cover
   // Extract RGB values and apply appropriate opacity for background
   const primaryRgb = extractRgbFromRgba(palette.primary);
@@ -2158,7 +2156,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                                 try {
                                   await saveQueueAsPlaylist();
                                   showToast("Queue saved as playlist", "success");
-                                } catch (error) {
+                                } catch {
                                   showToast("Failed to save playlist", "error");
                                 }
                               }}

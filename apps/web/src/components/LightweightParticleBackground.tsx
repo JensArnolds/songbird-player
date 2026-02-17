@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export function LightweightParticleBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,7 +19,7 @@ export function LightweightParticleBackground() {
     return 8;
   };
 
-  const createParticles = () => {
+  const createParticles = useCallback(() => {
     if (!containerRef.current) return;
 
     particlesRef.current.forEach((particle) => {
@@ -64,7 +64,7 @@ export function LightweightParticleBackground() {
     }
 
     containerRef.current.appendChild(fragment);
-  };
+  }, []);
 
   useEffect(() => {
     createParticles();
@@ -86,7 +86,7 @@ export function LightweightParticleBackground() {
       }
     };
 
-  }, []);
+  }, [createParticles]);
 
   return (
     <div

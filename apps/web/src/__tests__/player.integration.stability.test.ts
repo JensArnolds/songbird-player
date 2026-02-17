@@ -29,6 +29,7 @@ const createMockTrack = (id: number): Track => ({
   explicit_content_lyrics: 0,
   explicit_content_cover: 0,
   type: "track",
+  md5_image: "",
   artist: { id, name: `Artist ${id}`, type: "artist" },
   album: {
     id,

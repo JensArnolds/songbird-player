@@ -162,7 +162,7 @@ export function useAudioReactiveBackground(
       }
     };
   }, [
-    enabled,
+    effectivelyEnabled,
     isPlaying,
     isInitialized,
     audioElement,

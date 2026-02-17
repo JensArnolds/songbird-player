@@ -836,7 +836,7 @@ function SelectButton({
 
   const dropdownStyle = dropdownRect
     ? {
-        position: "fixed",
+        position: "fixed" as const,
         top: dropdownRect.bottom + 8,
         left: dropdownRect.left,
         width: dropdownRect.width,

@@ -1,7 +1,6 @@
 // File: apps/web/src/__tests__/trpc.music.test.ts
 
 import { describe, expect, it, vi } from "vitest";
-import type { MaybePromise } from "@trpc/server";
 
 vi.mock("@/server/auth", () => ({
   auth: vi.fn().mockResolvedValue(null),
@@ -20,13 +19,18 @@ vi.mock("@/services/songbird", () => ({
 import { musicRouter } from "@/server/api/routers/music";
 
 type CallerContext = Parameters<typeof musicRouter.createCaller>[0];
-type CallerContextDb = CallerContext extends { db: infer D }
-  ? D
-  : CallerContext extends () => MaybePromise<infer C>
-    ? C["db"]
-    : never;
 
-const createMockDb = (findFirstResult: unknown = null): CallerContextDb => {
+type MockDb = {
+  query: {
+    userPreferences: {
+      findFirst: ReturnType<typeof vi.fn>;
+    };
+  };
+  insert: ReturnType<typeof vi.fn>;
+  update: ReturnType<typeof vi.fn>;
+};
+
+const createMockDb = (findFirstResult: unknown = null): MockDb => {
   const insert = vi.fn().mockReturnValue({
     values: vi.fn().mockResolvedValue(undefined),
   });
@@ -43,18 +47,24 @@ const createMockDb = (findFirstResult: unknown = null): CallerContextDb => {
     },
     insert,
     update,
-  } satisfies CallerContextDb;
+  };
 };
+
+const createCallerContext = (db: MockDb): CallerContext =>
+  ({
+    db: db as unknown as CallerContext extends { db: infer D } ? D : never,
+    session: {
+      user: { id: "user-1", admin: false },
+      expires: new Date().toISOString(),
+    } as unknown as CallerContext extends { session: infer S } ? S : never,
+    headers: new Headers(),
+  }) as CallerContext;
 
 describe("musicRouter tRPC operations", () => {
   it("returns default smart queue settings when no preferences exist", async () => {
     const db = createMockDb(null);
 
-    const context = {
-      db,
-      session: { user: { id: "user-1" }, expires: new Date().toISOString() },
-      headers: new Headers(),
-    } satisfies CallerContext;
+    const context = createCallerContext(db);
 
     const caller = musicRouter.createCaller(context);
 
@@ -72,11 +82,7 @@ describe("musicRouter tRPC operations", () => {
   it("persists preferences with supported visualizer type", async () => {
     const db = createMockDb(null);
 
-    const context = {
-      db,
-      session: { user: { id: "user-1" }, expires: new Date().toISOString() },
-      headers: new Headers(),
-    } satisfies CallerContext;
+    const context = createCallerContext(db);
 
     const caller = musicRouter.createCaller(context);
 

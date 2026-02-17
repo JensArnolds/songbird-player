@@ -15,6 +15,7 @@ const buildOAuthProvider = (id: (typeof ENABLED_OAUTH_PROVIDER_IDS)[number]): Pr
   type: "oauth",
   signinUrl: `/api/auth/signin/${id}`,
   callbackUrl: `/api/auth/callback/${id}`,
+  redirectTo: "/",
 });
 
 export const OAUTH_PROVIDERS_FALLBACK: ProvidersResponse = Object.fromEntries(
