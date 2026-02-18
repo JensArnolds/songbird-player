@@ -2,6 +2,7 @@
 
 import { render, screen } from "@testing-library/react";
 import Toast from "@starchild/ui/Toast";
+import { describe, expect, it } from "vitest";
 
 describe("Toast", () => {
   it("renders a warning toast with the warning style", () => {
