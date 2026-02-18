@@ -95,6 +95,7 @@ export default function LibraryPage() {
                   track={fav.track}
                   onPlay={player.play}
                   onAddToQueue={player.addToQueue}
+                  isFavorite={true}
                   removeFromListLabel="Remove from Favorites"
                   onRemoveFromList={() =>
                     removeFavorite.mutate({ trackId: fav.track.id })

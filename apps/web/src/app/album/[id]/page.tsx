@@ -1,122 +1,80 @@
 // File: apps/web/src/app/album/[id]/page.tsx
 
-"use client";
-
-import EnhancedTrackCard from "@/components/EnhancedTrackCard";
-import { LoadingState } from "@starchild/ui/LoadingSpinner";
-import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
-import { getAlbumTracks } from "@starchild/api-client/rest";
+import { TrackListSection } from "@/components/TrackListSection";
+import { TrackPlayButtons } from "@/components/TrackPlayButtons";
+import { getRequestBaseUrl } from "@/utils/getBaseUrl";
 import type { Track } from "@starchild/types";
 import Image from "next/image";
 import Link from "next/link";
-import { use } from "react";
-import { useState, useEffect } from "react";
-import { Play, Shuffle } from "lucide-react";
-import { hapticLight } from "@/utils/haptics";
+import { notFound } from "next/navigation";
 
-export default function AlbumPage({
+type AlbumData = {
+  id: number;
+  title: string;
+  cover_medium?: string;
+  cover_big?: string;
+  cover_xl?: string;
+  artist?: { id: number; name: string };
+  nb_tracks?: number;
+  release_date?: string;
+};
+
+export default async function AlbumPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const { id } = await params;
   const albumId = parseInt(id, 10);
-  const player = useGlobalPlayer();
-  const [album, setAlbum] = useState<{
-    id: number;
-    title: string;
-    cover_medium?: string;
-    cover_big?: string;
-    cover_xl?: string;
-    artist?: { id: number; name: string };
-    nb_tracks?: number;
-    release_date?: string;
-  } | null>(null);
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isNaN(albumId)) {
-      setError("Invalid album ID");
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchAlbumData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const [albumResponse, tracksResponse] = await Promise.all([
-          fetch(`/api/album/${albumId}`),
-          getAlbumTracks(albumId),
-        ]);
-
-        if (!albumResponse.ok) {
-          throw new Error(`Failed to fetch album: ${albumResponse.status}`);
-        }
-
-        const albumData = (await albumResponse.json()) as {
-          id: number;
-          title: string;
-          cover_medium?: string;
-          cover_big?: string;
-          cover_xl?: string;
-          artist?: { id: number; name: string };
-          nb_tracks?: number;
-          release_date?: string;
-        };
-
-        setAlbum(albumData);
-        setTracks(tracksResponse.data);
-      } catch (err) {
-        console.error("Failed to fetch album:", err);
-        setError(err instanceof Error ? err.message : "Failed to load album");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void fetchAlbumData();
-  }, [albumId]);
-
-  const handlePlayAll = () => {
-    if (tracks.length === 0) return;
-    hapticLight();
-    const [first, ...rest] = tracks;
-    if (first) {
-      player.clearQueue();
-      player.playTrack(first);
-      if (rest.length > 0) {
-        player.addToQueue(rest);
-      }
-    }
-  };
-
-  const handleShufflePlay = () => {
-    if (tracks.length === 0) return;
-    hapticLight();
-    const shuffled = [...tracks].sort(() => Math.random() - 0.5);
-    const [first, ...rest] = shuffled;
-    if (first) {
-      player.clearQueue();
-      player.playTrack(first);
-      if (rest.length > 0) {
-        player.addToQueue(rest);
-      }
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-3 py-4 md:px-6 md:py-8">
-        <LoadingState message="Loading album..." />
-      </div>
-    );
+  if (isNaN(albumId)) {
+    notFound();
   }
 
-  if (error || !album) {
+  const baseUrl = await getRequestBaseUrl();
+  let album: AlbumData | null = null;
+  let tracks: Track[] = [];
+
+  try {
+    const [albumRes, tracksRes] = await Promise.all([
+      fetch(new URL(`/api/album/${albumId}`, baseUrl).toString(), {
+        next: { revalidate: 300 },
+      }),
+      fetch(new URL(`/api/album/${albumId}/tracks`, baseUrl).toString(), {
+        next: { revalidate: 300 },
+      }),
+    ]);
+
+    if (albumRes.ok) {
+      album = (await albumRes.json()) as AlbumData;
+    }
+
+    if (tracksRes.ok) {
+      const tracksData = (await tracksRes.json()) as {
+        data: unknown[];
+        total?: number;
+      };
+      tracks = (tracksData.data ?? [])
+        .map((track): Track | null => {
+          if (typeof track !== "object" || track === null) return null;
+          const trackObj = track as Partial<Track> & Record<string, unknown>;
+          if (
+            typeof trackObj.id !== "number" ||
+            typeof trackObj.title !== "string" ||
+            !trackObj.artist ||
+            !trackObj.album
+          ) {
+            return null;
+          }
+          return trackObj as Track;
+        })
+        .filter((track): track is Track => track !== null);
+    }
+  } catch (err) {
+    console.error("Failed to fetch album:", err);
+  }
+
+  if (!album) {
     return (
       <div className="container mx-auto px-3 py-4 md:px-6 md:py-8">
         <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
@@ -124,7 +82,7 @@ export default function AlbumPage({
             Album Not Found
           </h1>
           <p className="mb-6 text-[var(--color-subtext)]">
-            {error ?? "The album you're looking for doesn't exist."}
+            The album you&apos;re looking for doesn&apos;t exist.
           </p>
           <Link href="/" className="btn-primary">
             Go Home
@@ -135,14 +93,10 @@ export default function AlbumPage({
   }
 
   const coverUrl =
-    album.cover_xl ??
-    album.cover_big ??
-    album.cover_medium ??
-    "/placeholder.png";
+    album.cover_xl ?? album.cover_big ?? album.cover_medium ?? "/placeholder.png";
 
   return (
     <div className="container mx-auto px-3 py-4 md:px-6 md:py-8">
-      {}
       <div className="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:gap-6">
         <div className="flex-shrink-0">
           <div className="relative aspect-square w-full max-w-[200px] overflow-hidden rounded-xl md:max-w-[300px]">
@@ -183,45 +137,14 @@ export default function AlbumPage({
               </>
             )}
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handlePlayAll}
-              disabled={tracks.length === 0}
-              className="btn-primary touch-target-lg flex items-center gap-2"
-            >
-              <Play className="h-5 w-5" />
-              <span>Play</span>
-            </button>
-            <button
-              onClick={handleShufflePlay}
-              disabled={tracks.length === 0}
-              className="btn-secondary touch-target-lg flex items-center gap-2"
-            >
-              <Shuffle className="h-5 w-5" />
-              <span>Shuffle</span>
-            </button>
-          </div>
+          <TrackPlayButtons tracks={tracks} />
         </div>
       </div>
 
-      {}
-      {tracks.length > 0 ? (
-        <div className="space-y-2">
-          {tracks.map((track) => (
-            <EnhancedTrackCard
-              key={track.id}
-              track={track}
-              onPlay={player.play}
-              onAddToQueue={player.addToQueue}
-              showActions={true}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="py-12 text-center text-[var(--color-subtext)]">
-          No tracks available for this album.
-        </div>
-      )}
+      <TrackListSection
+        tracks={tracks}
+        emptyMessage="No tracks available for this album."
+      />
     </div>
   );
 }

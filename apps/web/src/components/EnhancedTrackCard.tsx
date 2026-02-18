@@ -10,7 +10,7 @@ import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
 
 export interface EnhancedTrackCardProps {
@@ -21,9 +21,11 @@ export interface EnhancedTrackCardProps {
   excludePlaylistId?: number;
   removeFromListLabel?: string;
   onRemoveFromList?: () => void;
+  /** Pre-resolved favorite state. When provided the per-card tRPC query is skipped. */
+  isFavorite?: boolean;
 }
 
-export default function EnhancedTrackCard({
+function EnhancedTrackCard({
   track,
   onPlay,
   onAddToQueue,
@@ -31,9 +33,11 @@ export default function EnhancedTrackCard({
   excludePlaylistId,
   removeFromListLabel,
   onRemoveFromList,
+  isFavorite: isFavoriteProp,
 }: EnhancedTrackCardProps) {
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
+  const [optimisticIsFavorite, setOptimisticIsFavorite] = useState<boolean | null>(null);
   const utils = api.useUtils();
   const { showToast } = useToast();
   const { share } = useWebShare();
@@ -43,27 +47,39 @@ export default function EnhancedTrackCard({
 
   const { data: favoriteData } = api.music.isFavorite.useQuery(
     { trackId: track.id },
-    { enabled: showActions && isAuthenticated },
+    { enabled: showActions && isAuthenticated && isFavoriteProp === undefined },
   );
 
+  const resolvedIsFavorite = optimisticIsFavorite ?? isFavoriteProp ?? favoriteData?.isFavorite;
+
   const addFavorite = api.music.addFavorite.useMutation({
+    onMutate: () => {
+      setOptimisticIsFavorite(true);
+    },
     onSuccess: async () => {
+      setOptimisticIsFavorite(null);
       await utils.music.isFavorite.invalidate({ trackId: track.id });
       await utils.music.getFavorites.invalidate();
       showToast(`Added "${track.title}" to favorites`, "success");
     },
     onError: (error) => {
+      setOptimisticIsFavorite(null);
       showToast(`Failed to add to favorites: ${error.message}`, "error");
     },
   });
 
   const removeFavorite = api.music.removeFavorite.useMutation({
+    onMutate: () => {
+      setOptimisticIsFavorite(false);
+    },
     onSuccess: async () => {
+      setOptimisticIsFavorite(null);
       await utils.music.isFavorite.invalidate({ trackId: track.id });
       await utils.music.getFavorites.invalidate();
       showToast(`Removed "${track.title}" from favorites`, "info");
     },
     onError: (error) => {
+      setOptimisticIsFavorite(null);
       showToast(`Failed to remove from favorites: ${error.message}`, "error");
     },
   });
@@ -71,7 +87,7 @@ export default function EnhancedTrackCard({
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (favoriteData?.isFavorite) {
+    if (resolvedIsFavorite) {
       hapticLight();
     } else {
       hapticSuccess();
@@ -80,7 +96,7 @@ export default function EnhancedTrackCard({
     setIsHeartAnimating(true);
     setTimeout(() => setIsHeartAnimating(false), 600);
 
-    if (favoriteData?.isFavorite) {
+    if (resolvedIsFavorite) {
       removeFavorite.mutate({ trackId: track.id });
     } else {
       addFavorite.mutate({ track });
@@ -186,13 +202,13 @@ export default function EnhancedTrackCard({
           <button
             onClick={toggleFavorite}
             className={`touch-target touch-active rounded-full transition-all ${
-              favoriteData?.isFavorite
+              resolvedIsFavorite
                 ? "text-[var(--color-danger)] hover:text-red-400"
                 : "text-[var(--color-subtext)] hover:scale-110 hover:text-[var(--color-text)]"
             }`}
             disabled={addFavorite.isPending || removeFavorite.isPending}
           >
-            {favoriteData?.isFavorite ? (
+            {resolvedIsFavorite ? (
               <svg
                 className={`h-6 w-6 drop-shadow-lg md:h-5 md:w-5 ${
                   isHeartAnimating ? "animate-heart-pulse" : ""
@@ -293,3 +309,5 @@ export default function EnhancedTrackCard({
     </div>
   );
 }
+
+export default memo(EnhancedTrackCard);

@@ -19,7 +19,7 @@ import {
 } from "framer-motion";
 import { Heart, ListPlus, MoreHorizontal, Play, Share2 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { AddToPlaylistModal } from "./AddToPlaylistModal";
 
 export interface SwipeableTrackCardProps {
@@ -36,7 +36,7 @@ export interface SwipeableTrackCardProps {
 const SWIPE_THRESHOLD = 80;
 const SWIPE_CONFIRM_THRESHOLD = 120;
 
-export default function SwipeableTrackCard({
+function SwipeableTrackCard({
   track,
   onPlay,
   onAddToQueue,
@@ -49,6 +49,7 @@ export default function SwipeableTrackCard({
   const [showMenu, setShowMenu] = useState(false);
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [isHeartAnimating, setIsHeartAnimating] = useState(false);
+  const [optimisticIsFavorite, setOptimisticIsFavorite] = useState<boolean | null>(null);
   const constraintsRef = useRef<HTMLDivElement>(null);
 
   const utils = api.useUtils();
@@ -89,30 +90,42 @@ export default function SwipeableTrackCard({
     { enabled: showActions },
   );
 
+  const resolvedIsFavorite = optimisticIsFavorite ?? favoriteData?.isFavorite;
+
   const addFavorite = api.music.addFavorite.useMutation({
+    onMutate: () => {
+      setOptimisticIsFavorite(true);
+    },
     onSuccess: async () => {
+      setOptimisticIsFavorite(null);
       await utils.music.isFavorite.invalidate({ trackId: track.id });
       await utils.music.getFavorites.invalidate();
       showToast(`Added "${track.title}" to favorites`, "success");
     },
     onError: (error) => {
+      setOptimisticIsFavorite(null);
       showToast(`Failed to add to favorites: ${error.message}`, "error");
     },
   });
 
   const removeFavorite = api.music.removeFavorite.useMutation({
+    onMutate: () => {
+      setOptimisticIsFavorite(false);
+    },
     onSuccess: async () => {
+      setOptimisticIsFavorite(null);
       await utils.music.isFavorite.invalidate({ trackId: track.id });
       await utils.music.getFavorites.invalidate();
       showToast(`Removed "${track.title}" from favorites`, "info");
     },
     onError: (error) => {
+      setOptimisticIsFavorite(null);
       showToast(`Failed to remove from favorites: ${error.message}`, "error");
     },
   });
 
   const toggleFavorite = () => {
-    if (favoriteData?.isFavorite) {
+    if (resolvedIsFavorite) {
       hapticLight();
       removeFavorite.mutate({ trackId: track.id });
     } else {
@@ -191,7 +204,7 @@ export default function SwipeableTrackCard({
         <motion.div
           style={{ opacity: rightActionOpacity }}
           className={`flex flex-1 items-center justify-start bg-gradient-to-r px-6 ${
-            favoriteData?.isFavorite
+            resolvedIsFavorite
               ? "from-[rgba(242,139,130,0.25)] to-transparent"
               : "from-[rgba(244,178,102,0.28)] to-transparent"
           }`}
@@ -202,13 +215,13 @@ export default function SwipeableTrackCard({
           >
             <Heart
               className={`h-7 w-7 ${
-                favoriteData?.isFavorite
+                resolvedIsFavorite
                   ? "fill-[var(--color-danger)] text-[var(--color-danger)]"
                   : "text-[var(--color-accent)]"
               }`}
             />
             <span className="text-sm font-medium text-[var(--color-text)]">
-              {favoriteData?.isFavorite ? "Unfavorite" : "Favorite"}
+              {resolvedIsFavorite ? "Unfavorite" : "Favorite"}
             </span>
           </motion.div>
         </motion.div>
@@ -331,7 +344,7 @@ export default function SwipeableTrackCard({
               whileTap={{ scale: 0.85 }}
               transition={springPresets.immediate}
               className={`touch-target rounded-full p-2 transition-colors ${
-                favoriteData?.isFavorite
+                resolvedIsFavorite
                   ? "text-[var(--color-danger)]"
                   : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
               }`}
@@ -339,7 +352,7 @@ export default function SwipeableTrackCard({
             >
               <Heart
                 className={`h-5 w-5 md:h-[18px] md:w-[18px] ${
-                  favoriteData?.isFavorite ? "fill-current" : ""
+                  resolvedIsFavorite ? "fill-current" : ""
                 } ${isHeartAnimating ? "animate-heart-pulse" : ""}`}
               />
             </motion.button>
@@ -464,3 +477,5 @@ export default function SwipeableTrackCard({
     </motion.div>
   );
 }
+
+export default memo(SwipeableTrackCard);

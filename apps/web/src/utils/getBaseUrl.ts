@@ -1,6 +1,7 @@
 // File: apps/web/src/utils/getBaseUrl.ts
 
 import { env } from "@/env";
+import { headers } from "next/headers";
 
 export function getBaseUrl(): string {
 
@@ -20,4 +21,13 @@ export function getBaseUrl(): string {
   }
 
   return "https://starchildmusic.com";
+}
+
+export async function getRequestBaseUrl(): Promise<string> {
+  const headerList = await headers();
+  const forwardedHost = headerList.get("x-forwarded-host");
+  const host = forwardedHost ?? headerList.get("host");
+  const protocol = headerList.get("x-forwarded-proto") ?? "https";
+  if (host) return `${protocol}://${host}`;
+  return getBaseUrl();
 }

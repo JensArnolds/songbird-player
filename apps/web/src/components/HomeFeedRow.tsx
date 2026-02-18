@@ -7,6 +7,7 @@ import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
 import { Play } from "lucide-react";
 import Image from "next/image";
+import { memo } from "react";
 
 interface HomeFeedRowProps {
   title: string;
@@ -17,7 +18,7 @@ interface HomeFeedRowProps {
   emptyLabel?: string;
 }
 
-export function HomeFeedRow({
+function HomeFeedRowInner({
   title,
   subtitle,
   tracks,
@@ -96,3 +97,5 @@ export function HomeFeedRow({
     </section>
   );
 }
+
+export const HomeFeedRow = memo(HomeFeedRowInner);

@@ -1,149 +1,79 @@
 // File: apps/web/src/app/artist/[id]/page.tsx
 
-"use client";
-
-import EnhancedTrackCard from "@/components/EnhancedTrackCard";
-import { LoadingState } from "@starchild/ui/LoadingSpinner";
-import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
+import { TrackListSection } from "@/components/TrackListSection";
+import { TrackPlayButtons } from "@/components/TrackPlayButtons";
+import { getRequestBaseUrl } from "@/utils/getBaseUrl";
 import type { Track } from "@starchild/types";
 import Image from "next/image";
 import Link from "next/link";
-import { use } from "react";
-import { useState, useEffect } from "react";
-import { Play, Shuffle } from "lucide-react";
-import { hapticLight } from "@/utils/haptics";
+import { notFound } from "next/navigation";
 
-export default function ArtistPage({
+type ArtistData = {
+  id: number;
+  name: string;
+  picture_medium?: string;
+  picture_big?: string;
+  picture_xl?: string;
+  nb_album?: number;
+  nb_fan?: number;
+};
+
+export default async function ArtistPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const { id } = await params;
   const artistId = parseInt(id, 10);
-  const player = useGlobalPlayer();
-  const [artist, setArtist] = useState<{
-    id: number;
-    name: string;
-    picture_medium?: string;
-    picture_big?: string;
-    picture_xl?: string;
-    nb_album?: number;
-    nb_fan?: number;
-  } | null>(null);
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isNaN(artistId)) {
-      setError("Invalid artist ID");
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchArtistData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const [artistResponse, tracksResponse] = await Promise.all([
-          fetch(`/api/artist/${artistId}`),
-          fetch(`/api/artist/${artistId}/tracks`),
-        ]);
-
-        if (!artistResponse.ok) {
-          throw new Error(`Failed to fetch artist: ${artistResponse.status}`);
-        }
-
-        if (!tracksResponse.ok) {
-          throw new Error(`Failed to fetch tracks: ${tracksResponse.status}`);
-        }
-
-        const artistData = (await artistResponse.json()) as {
-          id: number;
-          name: string;
-          picture_medium?: string;
-          picture_big?: string;
-          picture_xl?: string;
-          nb_album?: number;
-          nb_fan?: number;
-        };
-
-        const tracksData = (await tracksResponse.json()) as {
-          data: unknown[];
-          total?: number;
-        };
-
-        const validTracks = (tracksData.data || [])
-          .map((track): Track | null => {
-            if (typeof track !== "object" || track === null) {
-              return null;
-            }
-
-            const trackObj = track as Partial<Track> & Record<string, unknown>;
-
-            if (
-              typeof trackObj.id !== "number" ||
-              typeof trackObj.title !== "string" ||
-              !trackObj.artist ||
-              !trackObj.album
-            ) {
-              return null;
-            }
-
-            return trackObj as Track;
-          })
-          .filter((track): track is Track => track !== null);
-
-        setArtist(artistData);
-        setTracks(validTracks);
-      } catch (err) {
-        console.error("Failed to fetch artist:", err);
-        setError(err instanceof Error ? err.message : "Failed to load artist");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void fetchArtistData();
-  }, [artistId]);
-
-  const handlePlayAll = () => {
-    if (tracks.length === 0) return;
-    hapticLight();
-    const [first, ...rest] = tracks;
-    if (first) {
-      player.clearQueue();
-      player.playTrack(first);
-      if (rest.length > 0) {
-        player.addToQueue(rest);
-      }
-    }
-  };
-
-  const handleShufflePlay = () => {
-    if (tracks.length === 0) return;
-    hapticLight();
-    const shuffled = [...tracks].sort(() => Math.random() - 0.5);
-    const [first, ...rest] = shuffled;
-    if (first) {
-      player.clearQueue();
-      player.playTrack(first);
-      if (rest.length > 0) {
-        player.addToQueue(rest);
-      }
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-3 py-4 md:px-6 md:py-8">
-        <LoadingState message="Loading artist..." />
-      </div>
-    );
+  if (isNaN(artistId)) {
+    notFound();
   }
 
-  if (error || !artist) {
+  const baseUrl = await getRequestBaseUrl();
+  let artist: ArtistData | null = null;
+  let tracks: Track[] = [];
+
+  try {
+    const [artistRes, tracksRes] = await Promise.all([
+      fetch(new URL(`/api/artist/${artistId}`, baseUrl).toString(), {
+        next: { revalidate: 300 },
+      }),
+      fetch(new URL(`/api/artist/${artistId}/tracks`, baseUrl).toString(), {
+        next: { revalidate: 300 },
+      }),
+    ]);
+
+    if (artistRes.ok) {
+      artist = (await artistRes.json()) as ArtistData;
+    }
+
+    if (tracksRes.ok) {
+      const tracksData = (await tracksRes.json()) as {
+        data: unknown[];
+        total?: number;
+      };
+      tracks = (tracksData.data ?? [])
+        .map((track): Track | null => {
+          if (typeof track !== "object" || track === null) return null;
+          const trackObj = track as Partial<Track> & Record<string, unknown>;
+          if (
+            typeof trackObj.id !== "number" ||
+            typeof trackObj.title !== "string" ||
+            !trackObj.artist ||
+            !trackObj.album
+          ) {
+            return null;
+          }
+          return trackObj as Track;
+        })
+        .filter((track): track is Track => track !== null);
+    }
+  } catch (err) {
+    console.error("Failed to fetch artist:", err);
+  }
+
+  if (!artist) {
     return (
       <div className="container mx-auto px-3 py-4 md:py-8">
         <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
@@ -151,7 +81,7 @@ export default function ArtistPage({
             Artist Not Found
           </h1>
           <p className="mb-6 text-[var(--color-subtext)]">
-            {error ?? "The artist you're looking for doesn't exist."}
+            The artist you&apos;re looking for doesn&apos;t exist.
           </p>
           <Link href="/" className="btn-primary">
             Go Home
@@ -162,14 +92,10 @@ export default function ArtistPage({
   }
 
   const pictureUrl =
-    artist.picture_xl ??
-    artist.picture_big ??
-    artist.picture_medium ??
-    "/placeholder.png";
+    artist.picture_xl ?? artist.picture_big ?? artist.picture_medium ?? "/placeholder.png";
 
   return (
     <div className="container mx-auto px-3 py-4 md:px-6 md:py-8">
-      {}
       <div className="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:gap-6">
         <div className="flex-shrink-0">
           <div className="relative aspect-square w-full max-w-[200px] overflow-hidden rounded-full md:max-w-[300px]">
@@ -202,50 +128,15 @@ export default function ArtistPage({
               </>
             )}
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handlePlayAll}
-              disabled={tracks.length === 0}
-              className="btn-primary touch-target-lg flex items-center gap-2"
-            >
-              <Play className="h-5 w-5" />
-              <span>Play</span>
-            </button>
-            <button
-              onClick={handleShufflePlay}
-              disabled={tracks.length === 0}
-              className="btn-secondary touch-target-lg flex items-center gap-2"
-            >
-              <Shuffle className="h-5 w-5" />
-              <span>Shuffle</span>
-            </button>
-          </div>
+          <TrackPlayButtons tracks={tracks} />
         </div>
       </div>
 
-      {}
-      {tracks.length > 0 ? (
-        <div>
-          <h2 className="mb-4 text-xl font-semibold text-[var(--color-text)]">
-            Popular Tracks
-          </h2>
-          <div className="space-y-2">
-            {tracks.map((track) => (
-              <EnhancedTrackCard
-                key={track.id}
-                track={track}
-                onPlay={player.play}
-                onAddToQueue={player.addToQueue}
-                showActions={true}
-              />
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="py-12 text-center text-[var(--color-subtext)]">
-          No tracks available for this artist.
-        </div>
-      )}
+      <TrackListSection
+        tracks={tracks}
+        heading="Popular Tracks"
+        emptyMessage="No tracks available for this artist."
+      />
     </div>
   );
 }
