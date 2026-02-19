@@ -129,4 +129,82 @@ describe("Spotify auth proxy routes", () => {
     expect(body.error).toMatch(/API_V2_URL/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("redirects legacy /api/auth/signin/spotify to canonical auth start", async () => {
+    const legacySignInRoute = await loadGetRoute(
+      "@/app/api/auth/signin/spotify/route",
+    );
+
+    const response = await legacySignInRoute.GET(
+      makeRequest("/api/auth/signin/spotify?callbackUrl=%2Flibrary"),
+    );
+
+    expect(response.status).toBe(302);
+
+    const location = response.headers.get("location");
+    expect(location).toBeTruthy();
+    const redirectUrl = new URL(location ?? "http://localhost:3222/");
+    expect(redirectUrl.pathname).toBe("/api/auth/spotify");
+
+    const frontendRedirectUri = redirectUrl.searchParams.get(
+      "frontend_redirect_uri",
+    );
+    expect(frontendRedirectUri).toBeTruthy();
+
+    const callbackUrl = new URL(
+      frontendRedirectUri ?? "http://localhost:3222/auth/spotify/callback",
+    );
+    expect(callbackUrl.pathname).toBe("/auth/spotify/callback");
+    expect(callbackUrl.searchParams.get("next")).toBe("/library");
+  });
+
+  it("sanitizes cross-origin callback URLs in legacy /api/auth/signin/spotify", async () => {
+    const legacySignInRoute = await loadGetRoute(
+      "@/app/api/auth/signin/spotify/route",
+    );
+
+    const response = await legacySignInRoute.GET(
+      makeRequest(
+        "/api/auth/signin/spotify?callbackUrl=https%3A%2F%2Fattacker.example%2Fsteal",
+      ),
+    );
+
+    const location = response.headers.get("location");
+    expect(location).toBeTruthy();
+    const redirectUrl = new URL(location ?? "http://localhost:3222/");
+    const frontendRedirectUri = redirectUrl.searchParams.get(
+      "frontend_redirect_uri",
+    );
+    const callbackUrl = new URL(
+      frontendRedirectUri ?? "http://localhost:3222/auth/spotify/callback",
+    );
+
+    expect(callbackUrl.searchParams.get("next")).toBe("/");
+  });
+
+  it("supports POST on legacy /api/auth/signin/spotify shim", async () => {
+    const legacySignInRoute = await loadPostRoute(
+      "@/app/api/auth/signin/spotify/route",
+    );
+
+    const response = await legacySignInRoute.POST(
+      makeRequest("/api/auth/signin/spotify?callbackUrl=%2Fplaylists", {
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    const location = response.headers.get("location");
+    expect(location).toBeTruthy();
+
+    const redirectUrl = new URL(location ?? "http://localhost:3222/");
+    const frontendRedirectUri = redirectUrl.searchParams.get(
+      "frontend_redirect_uri",
+    );
+    const callbackUrl = new URL(
+      frontendRedirectUri ?? "http://localhost:3222/auth/spotify/callback",
+    );
+
+    expect(callbackUrl.searchParams.get("next")).toBe("/playlists");
+  });
 });

@@ -37,6 +37,7 @@ Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.js
 | `/api/auth/spotify/callback` | GET | `src/app/api/auth/spotify/callback/route.ts` | Proxies Spotify OAuth callback endpoint `/api/auth/spotify/callback` and forwards redirect/cookies. | `API_V2_URL` |
 | `/api/auth/spotify/refresh` | POST | `src/app/api/auth/spotify/refresh/route.ts` | Proxies app-token refresh endpoint `/api/auth/spotify/refresh`; forwards `X-CSRF-Token` and cookies. | `API_V2_URL` |
 | `/api/auth/me` | GET | `src/app/api/auth/me/route.ts` | Proxies bearer-authenticated profile endpoint `/api/auth/me`. | `API_V2_URL` |
+| `/api/auth/signin/spotify` | GET, POST | `src/app/api/auth/signin/spotify/route.ts` | Compatibility shim for legacy NextAuth Spotify sign-in URLs; redirects to canonical `/api/auth/spotify?frontend_redirect_uri=...`. | none (redirect only) |
 | `/api/v2/config/public` | GET | `src/app/api/v2/config/public/route.ts` | Proxies upstream non-secret runtime flags endpoint `/config/public`. | `API_V2_URL` |
 | `/api/v2/rate-limits` | GET | `src/app/api/v2/rate-limits/route.ts` | Proxies upstream rate-limit policy/status endpoint `/rate-limits`. | `API_V2_URL` |
 | `/api/v2/docs/openapi` | GET | `src/app/api/v2/docs/openapi/route.ts` | Proxies upstream OpenAPI alias endpoint `/docs/openapi`. | `API_V2_URL` |
