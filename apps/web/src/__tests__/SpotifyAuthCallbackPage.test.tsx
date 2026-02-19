@@ -46,8 +46,8 @@ vi.mock("@/services/spotifyAuthClient", () => {
 });
 
 async function renderPage() {
-  const module = await import("@/app/auth/spotify/callback/page");
-  render(<module.default />);
+  const pageModule = await import("@/app/auth/spotify/callback/page");
+  render(<pageModule.default />);
 }
 
 describe("SpotifyAuthCallbackPage", () => {

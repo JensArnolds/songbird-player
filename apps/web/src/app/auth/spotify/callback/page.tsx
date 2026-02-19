@@ -118,6 +118,18 @@ function SpotifyAuthDebugPanel({
           <span className="font-semibold text-[var(--color-text)]">Body snippet:</span>{" "}
           {debugInfo.authMeBodySnippet ?? "n/a"}
         </p>
+        {debugInfo.traceId ? (
+          <div>
+            <p className="font-semibold text-[var(--color-text)]">
+              Backend debug curl:
+            </p>
+            <code className="mt-1 block whitespace-pre-wrap break-all rounded bg-black/25 px-2 py-1 text-[11px] text-white/85">
+              {`curl -H \"X-Auth-Debug-Token: <AUTH_DEBUG_TOKEN>\" \"https://www.darkfloor.one/api/auth/spotify/debug?trace_id=${encodeURIComponent(
+                debugInfo.traceId,
+              )}&limit=200\"`}
+            </code>
+          </div>
+        ) : null}
       </div>
     </div>
   );
