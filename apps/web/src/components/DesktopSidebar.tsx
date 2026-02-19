@@ -296,7 +296,7 @@ export function DesktopSidebar() {
                 height={36}
                 className="h-9 w-9 rounded-xl shadow-lg ring-2 ring-[rgba(244,178,102,0.35)]"
                 priority
-                unoptimized={isLinuxElectron}
+                unoptimized
               />
               {!collapsed && (
                 <div className="ml-4 min-w-0">
