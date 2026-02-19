@@ -33,9 +33,25 @@ describe("spotifyAuthClient", () => {
     expect(frontendRedirect).toContain("trace=");
   });
 
+  it("normalizes root post-auth destinations to /library", () => {
+    window.history.replaceState({}, "", "/signin");
+    const loginUrl = buildSpotifyLoginUrl("/");
+    const parsed = new URL(loginUrl, window.location.origin);
+    const frontendRedirect = parsed.searchParams.get("frontend_redirect_uri");
+
+    expect(frontendRedirect).toBeTruthy();
+    const callbackUrl = new URL(
+      frontendRedirect ?? "https://www.darkfloor.org/auth/spotify/callback",
+    );
+    expect(callbackUrl.searchParams.get("next")).toBe("/library");
+  });
+
   it("sanitizes redirect destinations to same-origin paths", () => {
     expect(resolveFrontendRedirectPath("/library")).toBe("/library");
-    expect(resolveFrontendRedirectPath("https://evil.example/phish")).toBe("/");
+    expect(resolveFrontendRedirectPath("/")).toBe("/library");
+    expect(resolveFrontendRedirectPath("https://evil.example/phish")).toBe(
+      "/library",
+    );
   });
 
   it("extracts csrf token from cookies", () => {

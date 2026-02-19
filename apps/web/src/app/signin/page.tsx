@@ -23,7 +23,7 @@ const SIGN_IN_PENDING_TIMEOUT_MS = 15_000;
 function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/library";
   const isBanned = error === "Banned";
   const [providers, setProviders] =
     useState<Awaited<ReturnType<typeof getProviders>>>(null);

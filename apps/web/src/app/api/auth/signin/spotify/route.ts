@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 const CANONICAL_SPOTIFY_AUTH_PATH = "/api/auth/spotify";
 const FRONTEND_SPOTIFY_CALLBACK_PATH = "/auth/spotify/callback";
 const LEGACY_AUTH_CALLBACK_PATH = "/auth/callback";
+const DEFAULT_POST_AUTH_PATH = "/library";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,33 +12,33 @@ function resolveNextPath(
   callbackUrl: string | null | undefined,
   requestOrigin: string,
 ): string {
-  if (!callbackUrl) return "/";
+  if (!callbackUrl) return DEFAULT_POST_AUTH_PATH;
 
   if (callbackUrl.startsWith("/")) {
     if (
       callbackUrl.startsWith(FRONTEND_SPOTIFY_CALLBACK_PATH) ||
       callbackUrl.startsWith(LEGACY_AUTH_CALLBACK_PATH)
     ) {
-      return "/";
+      return DEFAULT_POST_AUTH_PATH;
     }
-    return callbackUrl;
+    return callbackUrl === "/" ? DEFAULT_POST_AUTH_PATH : callbackUrl;
   }
 
   try {
     const parsed = new URL(callbackUrl);
-    if (parsed.origin !== requestOrigin) return "/";
+    if (parsed.origin !== requestOrigin) return DEFAULT_POST_AUTH_PATH;
 
     const sameOriginPath = `${parsed.pathname}${parsed.search}${parsed.hash}` || "/";
     if (
       sameOriginPath.startsWith(FRONTEND_SPOTIFY_CALLBACK_PATH) ||
       sameOriginPath.startsWith(LEGACY_AUTH_CALLBACK_PATH)
     ) {
-      return "/";
+      return DEFAULT_POST_AUTH_PATH;
     }
 
-    return sameOriginPath;
+    return sameOriginPath === "/" ? DEFAULT_POST_AUTH_PATH : sameOriginPath;
   } catch {
-    return "/";
+    return DEFAULT_POST_AUTH_PATH;
   }
 }
 

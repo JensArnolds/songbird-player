@@ -9,6 +9,7 @@ const SPOTIFY_LOGIN_ENDPOINT = `${configuredAuthApiOrigin}/api/auth/spotify`;
 const SPOTIFY_REFRESH_ENDPOINT =
   `${configuredAuthApiOrigin}/api/auth/spotify/refresh`;
 const FRONTEND_SPOTIFY_CALLBACK_PATH = "/auth/spotify/callback";
+const DEFAULT_POST_AUTH_PATH = "/library";
 const FRONTEND_CALLBACK_TRACE_PARAM = "trace";
 const CSRF_COOKIE_NAME = "sb_csrf_token";
 const EXPIRY_SKEW_MS = 15_000;
@@ -364,6 +365,10 @@ function toSameOriginPath(pathOrUrl: string, origin: string): string {
   }
 }
 
+function resolvePostAuthPath(path: string): string {
+  return path === "/" ? DEFAULT_POST_AUTH_PATH : path;
+}
+
 function parseHashTokens(hash: string): HashTokenParseResult {
   const fragment = hash.startsWith("#") ? hash.slice(1) : hash;
   if (!fragment) {
@@ -515,7 +520,8 @@ function getAccessTokenFromBody(body: unknown): {
 
 export function resolveFrontendRedirectPath(next: string | null | undefined): string {
   if (typeof window === "undefined") return "/";
-  return toSameOriginPath(next ?? "/", window.location.origin);
+  const sameOriginPath = toSameOriginPath(next ?? "/", window.location.origin);
+  return resolvePostAuthPath(sameOriginPath);
 }
 
 export function buildSpotifyFrontendCallbackUrl(
@@ -526,7 +532,9 @@ export function buildSpotifyFrontendCallbackUrl(
     throw new Error("buildSpotifyFrontendCallbackUrl must run in the browser");
   }
 
-  const safeNext = toSameOriginPath(nextPath, window.location.origin);
+  const safeNext = resolvePostAuthPath(
+    toSameOriginPath(nextPath, window.location.origin),
+  );
   const callbackUrl = new URL(FRONTEND_SPOTIFY_CALLBACK_PATH, window.location.origin);
   callbackUrl.searchParams.set("next", safeNext);
   if (traceId) {

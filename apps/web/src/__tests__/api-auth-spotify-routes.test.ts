@@ -214,7 +214,7 @@ describe("Spotify auth proxy routes", () => {
       frontendRedirectUri ?? "http://localhost:3222/auth/spotify/callback",
     );
 
-    expect(callbackUrl.searchParams.get("next")).toBe("/");
+    expect(callbackUrl.searchParams.get("next")).toBe("/library");
   });
 
   it("supports POST on legacy /api/auth/signin/spotify shim", async () => {
