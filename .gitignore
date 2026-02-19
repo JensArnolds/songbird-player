@@ -63,7 +63,7 @@ certs/starchild-env-private.key
 certs/starchild-env-public.pem
 .env.private.key
 *.env.enc
-*.env.local.enc
+*.env.local.*
 
 # db credentials
 drizzle.env.js
