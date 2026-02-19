@@ -38,7 +38,12 @@ export type AuthRequiredEventDetail = {
   reason: AuthRequiredReason;
 };
 
+export type SpotifyAuthStateEventDetail = {
+  authenticated: boolean;
+};
+
 export const AUTH_REQUIRED_EVENT = "starchild:auth-required";
+export const SPOTIFY_AUTH_STATE_EVENT = "starchild:spotify-auth-state";
 
 const tokenState: TokenState = {
   accessToken: null,
@@ -126,6 +131,14 @@ function setTokenState(payload: HashTokenPayload): void {
   tokenState.spotifyAccessToken = payload.spotifyAccessToken;
   tokenState.spotifyTokenType = payload.spotifyTokenType || "Bearer";
   tokenState.spotifyExpiresAtMs = resolveExpiresAt(payload.spotifyExpiresIn);
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent<SpotifyAuthStateEventDetail>(SPOTIFY_AUTH_STATE_EVENT, {
+        detail: { authenticated: true },
+      }),
+    );
+  }
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {
@@ -239,6 +252,14 @@ export function clearInMemoryAccessToken(): void {
   tokenState.spotifyAccessToken = null;
   tokenState.spotifyTokenType = "Bearer";
   tokenState.spotifyExpiresAtMs = null;
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent<SpotifyAuthStateEventDetail>(SPOTIFY_AUTH_STATE_EVENT, {
+        detail: { authenticated: false },
+      }),
+    );
+  }
 }
 
 function notifyAuthRequired(reason: AuthRequiredReason): void {
@@ -292,10 +313,21 @@ export async function getCurrentUser(accessToken: string): Promise<unknown> {
   return parseResponseBody(response);
 }
 
-export async function refreshAccessToken(): Promise<string> {
+type RefreshAccessTokenOptions = {
+  notifyOnUnauthorized?: boolean;
+};
+
+export async function refreshAccessToken(
+  options: RefreshAccessTokenOptions = {},
+): Promise<string> {
+  const notifyOnUnauthorized = options.notifyOnUnauthorized ?? true;
   const csrfToken = getCsrfTokenFromCookies();
   if (!csrfToken) {
-    handleUnauthorized("missing_csrf_token");
+    if (notifyOnUnauthorized) {
+      handleUnauthorized("missing_csrf_token");
+    } else {
+      clearInMemoryAccessToken();
+    }
     throw new SpotifyAuthClientError(
       `${CSRF_COOKIE_NAME} cookie is missing`,
       401,
@@ -315,7 +347,11 @@ export async function refreshAccessToken(): Promise<string> {
   const body = await parseResponseBody(response);
   if (!response.ok) {
     if (response.status === 401) {
-      handleUnauthorized("unauthorized");
+      if (notifyOnUnauthorized) {
+        handleUnauthorized("unauthorized");
+      } else {
+        clearInMemoryAccessToken();
+      }
     }
     const message =
       getMessageFromBody(body) ??
@@ -380,11 +416,37 @@ export async function handleSpotifyCallbackHash(): Promise<CallbackResult> {
   const cleanUrl = `${window.location.pathname}${window.location.search}`;
   window.history.replaceState(window.history.state, document.title, cleanUrl);
 
-  const profile = await getCurrentUser(parsed.accessToken);
+  let profile: unknown;
+  try {
+    profile = await getCurrentUser(parsed.accessToken);
+  } catch (error) {
+    clearInMemoryAccessToken();
+    throw error;
+  }
   return {
     accessToken: parsed.accessToken,
     profile,
   };
+}
+
+export async function restoreSpotifySession(): Promise<boolean> {
+  if (tokenState.accessToken) {
+    return true;
+  }
+
+  const csrfToken = getCsrfTokenFromCookies();
+  if (!csrfToken) {
+    clearInMemoryAccessToken();
+    return false;
+  }
+
+  try {
+    await refreshAccessToken({ notifyOnUnauthorized: false });
+    return Boolean(tokenState.accessToken);
+  } catch {
+    clearInMemoryAccessToken();
+    return false;
+  }
 }
 
 export async function authFetch(

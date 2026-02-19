@@ -7,6 +7,7 @@ import localFont from "next/font/local";
 import { Suspense, type ReactNode } from "react";
 
 import { DynamicTitle } from "@/components/DynamicTitle";
+import { AuthGate } from "@/components/AuthGate";
 import { DesktopShell } from "@/components/DesktopShell";
 import { ElectronChromeSync } from "@/components/ElectronChromeSync";
 import { ElectronStorageInit } from "@/components/ElectronStorageInit";
@@ -139,40 +140,42 @@ export default function RootLayout({
                         <MenuProvider>
                           <TrackContextMenuProvider>
                             <PlaylistContextMenuProvider>
-                              {}
-                              <UIWrapper>
+                              <AuthGate>
                                 {}
-                                <DesktopShell>
-                                  <div suppressHydrationWarning>
-                                    <Suspense fallback={null}>
-                                      <Header />
-                                    </Suspense>
-                                  </div>
+                                <UIWrapper>
                                   {}
-                                  <Suspense fallback={null}>
-                                    <MobileHeader />
-                                  </Suspense>
-                                  {}
-                                  <HamburgerMenu />
-                                  {}
-                                  <MobileContentWrapper>
-                                    {}
-                                    <div className="pt-16 pb-36 md:pt-0 md:pb-24">
-                                      {children}
+                                  <DesktopShell>
+                                    <div suppressHydrationWarning>
+                                      <Suspense fallback={null}>
+                                        <Header />
+                                      </Suspense>
                                     </div>
-                                  </MobileContentWrapper>
-                                </DesktopShell>
-                              </UIWrapper>
-                              {}
-                              <PersistentPlayer />
-                              {}
-                              <Suspense fallback={null}>
-                                <MobileFooterWrapper />
-                              </Suspense>
-                              {}
-                              <TrackContextMenu />
-                              {}
-                              <PlaylistContextMenu />
+                                    {}
+                                    <Suspense fallback={null}>
+                                      <MobileHeader />
+                                    </Suspense>
+                                    {}
+                                    <HamburgerMenu />
+                                    {}
+                                    <MobileContentWrapper>
+                                      {}
+                                      <div className="pt-16 pb-36 md:pt-0 md:pb-24">
+                                        {children}
+                                      </div>
+                                    </MobileContentWrapper>
+                                  </DesktopShell>
+                                </UIWrapper>
+                                {}
+                                <PersistentPlayer />
+                                {}
+                                <Suspense fallback={null}>
+                                  <MobileFooterWrapper />
+                                </Suspense>
+                                {}
+                                <TrackContextMenu />
+                                {}
+                                <PlaylistContextMenu />
+                              </AuthGate>
                             </PlaylistContextMenuProvider>
                           </TrackContextMenuProvider>
                         </MenuProvider>

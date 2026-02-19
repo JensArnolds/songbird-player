@@ -182,7 +182,7 @@ function SignInContent() {
     <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 px-4">
       <div className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90 p-6 shadow-[var(--shadow-lg)]">
         <h1 className="text-center text-xl font-bold text-[var(--color-text)]">
-          Sign in to Starchild Music
+          Tune the start page and optionally sign in
         </h1>
         <p className="mt-2 text-center text-sm text-[var(--color-subtext)]">
           Pick a style once and your start page opens with a better first mix.
