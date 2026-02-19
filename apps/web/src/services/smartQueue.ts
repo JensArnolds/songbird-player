@@ -1,6 +1,7 @@
 // File: apps/web/src/services/smartQueue.ts
 
 import { env } from "@/env";
+import { authFetch, getInMemoryAccessToken } from "@/services/spotifyAuthClient";
 import { type Track } from "@starchild/types";
 
 const API_BASE_URL =
@@ -17,6 +18,9 @@ if (typeof window !== "undefined") {
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
+
+  const inMemoryToken = getInMemoryAccessToken();
+  if (inMemoryToken) return inMemoryToken;
 
   const sessionData = localStorage.getItem("next-auth.session-token");
   if (sessionData) return sessionData;
@@ -55,7 +59,7 @@ async function apiRequest<T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     ...options,
     headers,
   });

@@ -5,6 +5,20 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-02-19
+
+### Added
+
+- **Canonical Bluesix auth proxy routes under `/api/auth/*`**: Added Next.js proxy handlers for `GET /api/auth/spotify`, `GET /api/auth/spotify/callback`, `POST /api/auth/spotify/refresh`, and `GET /api/auth/me`, backed by shared header/cookie forwarding logic bound to `API_V2_URL`. Locations: `apps/web/src/app/api/auth/_lib.ts`, `apps/web/src/app/api/auth/spotify/route.ts`, `apps/web/src/app/api/auth/spotify/callback/route.ts`, `apps/web/src/app/api/auth/spotify/refresh/route.ts`, `apps/web/src/app/api/auth/me/route.ts`.
+- **Spotify OAuth client for hash-token callback flow**: Added browser auth client utilities for login URL construction, in-memory access token state, callback hash parsing/cleanup, CSRF-based refresh, and authenticated fetch with automatic token handling. Location: `apps/web/src/services/spotifyAuthClient.ts`.
+- **Dedicated frontend callback routes for OAuth completion**: Added `/auth/callback` and `/auth/spotify/callback` pages with loading UI, redirect resolution, timeout/error fallback actions, and provider-aware messaging. Locations: `apps/web/src/app/auth/callback/page.tsx`, `apps/web/src/app/auth/spotify/callback/page.tsx`, `apps/web/src/utils/authRedirect.ts`.
+- **Regression coverage for auth flow + loading UX**: Added tests covering canonical proxy routing, callback redirect logic, hash parsing/token refresh behavior, and callback loading/error states. Locations: `apps/web/src/__tests__/api-auth-spotify-routes.test.ts`, `apps/web/src/__tests__/spotifyAuthClient.test.ts`, `apps/web/src/__tests__/AuthCallbackPage.test.tsx`, `apps/web/src/__tests__/SpotifyAuthCallbackPage.test.tsx`, `apps/web/src/__tests__/authRedirect.test.ts`.
+
+### Changed
+
+- **Sign-in surfaces now use canonical Spotify login redirect**: Sign-in page and auth modal route Spotify through `/api/auth/spotify?frontend_redirect_uri=...`, disable duplicate submits during initiation, and show explicit spinner-based pending states with timeout cleanup. Locations: `apps/web/src/app/signin/page.tsx`, `apps/web/src/components/AuthModal.tsx`.
+- **Smart Queue requests now use auth-aware fetch path**: Queue service now reads in-memory app access token first and sends requests via `authFetch`, improving compatibility with the new token lifecycle. Location: `apps/web/src/services/smartQueue.ts`.
+
 ## [1.0.4] - 2026-02-17
 
 ### Changed

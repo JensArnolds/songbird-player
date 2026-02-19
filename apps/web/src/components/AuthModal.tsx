@@ -7,6 +7,8 @@ import {
   isEnabledOAuthProvider,
 } from "@/config/oauthProviders";
 import { logAuthClientDebug } from "@/utils/authDebugClient";
+import { buildAuthCallbackUrl } from "@/utils/authRedirect";
+import { startSpotifyLogin } from "@/services/spotifyAuthClient";
 import { springPresets } from "@/utils/spring-animations";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { AnimatePresence, motion } from "framer-motion";
@@ -23,6 +25,8 @@ interface AuthModalProps {
   message?: string;
   onClose: () => void;
 }
+
+const SIGN_IN_PENDING_TIMEOUT_MS = 15_000;
 
 export function AuthModal({
   isOpen,
@@ -104,6 +108,12 @@ export function AuthModal({
     if (!providers) return [];
     return Object.values(providers).filter(isEnabledOAuthProvider);
   }, [providers]);
+  const submittingProvider = useMemo(
+    () =>
+      oauthProviders.find((provider) => provider.id === submittingProviderId) ??
+      null,
+    [oauthProviders, submittingProviderId],
+  );
 
   useEffect(() => {
     if (!isOpen || !providers) return;
@@ -113,6 +123,17 @@ export function AuthModal({
     });
   }, [callbackUrl, isOpen, oauthProviders, providers]);
 
+  useEffect(() => {
+    if (!submittingProviderId) return;
+    const timeoutId = window.setTimeout(() => {
+      setSubmittingProviderId(null);
+    }, SIGN_IN_PENDING_TIMEOUT_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [submittingProviderId]);
+
   const handleProviderSignIn = async (providerId: string) => {
     setSubmittingProviderId(providerId);
 
@@ -121,8 +142,15 @@ export function AuthModal({
       callbackUrl,
     });
 
+    if (providerId === "spotify") {
+      startSpotifyLogin(callbackUrl);
+      return;
+    }
+
     try {
-      await signIn(providerId, { callbackUrl });
+      await signIn(providerId, {
+        callbackUrl: buildAuthCallbackUrl(callbackUrl, providerId),
+      });
       logAuthClientDebug("AuthModal signIn call resolved", { providerId });
     } catch (error: unknown) {
       logAuthClientDebug("AuthModal signIn call failed", { providerId, error });
@@ -166,7 +194,13 @@ export function AuthModal({
               <div className="mt-6 space-y-3">
                 {providers === null ? (
                   <div className="flex items-center justify-center py-4">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent" />
+                    <div
+                      role="status"
+                      aria-label="Loading sign-in providers"
+                      className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent"
+                    >
+                      <span className="sr-only">Loading sign-in providers</span>
+                    </div>
                   </div>
                 ) : oauthProviders.length > 0 ? (
                   oauthProviders.map((provider) => {
@@ -183,9 +217,20 @@ export function AuthModal({
                         disabled={submittingProviderId !== null}
                         className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-60 ${providerClasses}`}
                       >
-                        {isSubmitting
-                          ? `Connecting ${provider.name}...`
-                          : `Continue with ${provider.name}`}
+                        <span className="inline-flex items-center justify-center gap-2">
+                          {isSubmitting && (
+                            <div
+                              role="status"
+                              aria-label={`Authenticating with ${provider.name}`}
+                              className="h-4 w-4 animate-spin rounded-full border-2 border-[rgba(255,255,255,0.82)] border-r-transparent border-b-transparent"
+                            >
+                              <span className="sr-only">
+                                Authenticating with {provider.name}
+                              </span>
+                            </div>
+                          )}
+                          <span>Continue with {provider.name}</span>
+                        </span>
                       </button>
                     );
                   })
@@ -195,10 +240,16 @@ export function AuthModal({
                   </p>
                 )}
               </div>
+              {submittingProvider ? (
+                <p className="mt-3 text-center text-xs text-[var(--color-subtext)]">
+                  Authenticating with {submittingProvider.name}...
+                </p>
+              ) : null}
 
               <button
                 type="button"
                 onClick={onClose}
+                disabled={submittingProviderId !== null}
                 className="mt-4 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-hover)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-accent)]"
               >
                 Cancel

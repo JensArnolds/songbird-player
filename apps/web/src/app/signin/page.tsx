@@ -8,13 +8,17 @@ import {
   isEnabledOAuthProvider,
 } from "@/config/oauthProviders";
 import { localStorage as appStorage } from "@/services/storage";
+import { startSpotifyLogin } from "@/services/spotifyAuthClient";
 import { logAuthClientDebug } from "@/utils/authDebugClient";
+import { buildAuthCallbackUrl } from "@/utils/authRedirect";
 import { getGenres, type GenreListItem } from "@starchild/api-client/rest";
 import { OAUTH_PROVIDERS_FALLBACK } from "@/utils/authProvidersFallback";
 import { parsePreferredGenreId } from "@/utils/genre";
 import { getProviders, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+
+const SIGN_IN_PENDING_TIMEOUT_MS = 15_000;
 
 function SignInContent() {
   const searchParams = useSearchParams();
@@ -25,6 +29,9 @@ function SignInContent() {
     useState<Awaited<ReturnType<typeof getProviders>>>(null);
   const [genres, setGenres] = useState<GenreListItem[]>([]);
   const [genresLoading, setGenresLoading] = useState(true);
+  const [submittingProviderId, setSubmittingProviderId] = useState<
+    string | null
+  >(null);
   const [preferredGenreId, setPreferredGenreId] = useState<number | null>(() =>
     parsePreferredGenreId(
       appStorage.getOrDefault<number | string | null>(
@@ -128,6 +135,12 @@ function SignInContent() {
     if (!providers) return [];
     return Object.values(providers).filter(isEnabledOAuthProvider);
   }, [providers]);
+  const submittingProvider = useMemo(
+    () =>
+      oauthProviders.find((provider) => provider.id === submittingProviderId) ??
+      null,
+    [oauthProviders, submittingProviderId],
+  );
 
   useEffect(() => {
     if (!providers) return;
@@ -136,6 +149,17 @@ function SignInContent() {
       callbackUrl,
     });
   }, [callbackUrl, oauthProviders, providers]);
+
+  useEffect(() => {
+    if (!submittingProviderId) return;
+    const timeoutId = window.setTimeout(() => {
+      setSubmittingProviderId(null);
+    }, SIGN_IN_PENDING_TIMEOUT_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [submittingProviderId]);
 
   const featuredGenres = useMemo(() => genres.slice(0, 12), [genres]);
 
@@ -180,7 +204,13 @@ function SignInContent() {
           </p>
           {genresLoading ? (
             <div className="mt-3 flex items-center justify-center py-2">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent" />
+              <div
+                role="status"
+                aria-label="Loading genres"
+                className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent"
+              >
+                <span className="sr-only">Loading genres</span>
+              </div>
             </div>
           ) : genres.length > 0 ? (
             <>
@@ -256,7 +286,13 @@ function SignInContent() {
         <div className="mt-6">
           {providers === null ? (
             <div className="flex items-center justify-center py-3">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent" />
+              <div
+                role="status"
+                aria-label="Loading sign-in providers"
+                className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent"
+              >
+                <span className="sr-only">Loading sign-in providers</span>
+              </div>
             </div>
           ) : oauthProviders.length > 0 ? (
             <div className="space-y-3">
@@ -268,16 +304,44 @@ function SignInContent() {
                   <button
                     key={provider.id}
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
+                      setSubmittingProviderId(provider.id);
                       logAuthClientDebug("Starting OAuth sign-in from page", {
                         providerId: provider.id,
                         callbackUrl,
                       });
-                      void signIn(provider.id, { callbackUrl });
+                      if (provider.id === "spotify") {
+                        startSpotifyLogin(callbackUrl);
+                        return;
+                      }
+                      try {
+                        await signIn(provider.id, {
+                          callbackUrl: buildAuthCallbackUrl(
+                            callbackUrl,
+                            provider.id,
+                          ),
+                        });
+                      } finally {
+                        setSubmittingProviderId(null);
+                      }
                     }}
-                    className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition hover:opacity-90 ${providerClasses}`}
+                    disabled={submittingProviderId !== null}
+                    className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition hover:opacity-90 disabled:opacity-60 ${providerClasses}`}
                   >
-                    Sign in with {provider.name}
+                    <span className="inline-flex items-center justify-center gap-2">
+                      {submittingProviderId === provider.id ? (
+                        <div
+                          role="status"
+                          aria-label={`Authenticating with ${provider.name}`}
+                          className="h-4 w-4 animate-spin rounded-full border-2 border-[rgba(255,255,255,0.82)] border-r-transparent border-b-transparent"
+                        >
+                          <span className="sr-only">
+                            Authenticating with {provider.name}
+                          </span>
+                        </div>
+                      ) : null}
+                      <span>Sign in with {provider.name}</span>
+                    </span>
                   </button>
                 );
               })}
@@ -287,6 +351,11 @@ function SignInContent() {
               No sign-in providers are currently configured.
             </p>
           )}
+          {submittingProvider ? (
+            <p className="mt-3 text-center text-xs text-[var(--color-subtext)]">
+              Authenticating with {submittingProvider.name}...
+            </p>
+          ) : null}
         </div>
       </div>
     </div>
@@ -298,7 +367,13 @@ export default function SignInPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent" />
+          <div
+            role="status"
+            aria-label="Loading sign-in page"
+            className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent"
+          >
+            <span className="sr-only">Loading sign-in page</span>
+          </div>
         </div>
       }
     >
