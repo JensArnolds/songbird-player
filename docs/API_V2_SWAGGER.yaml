@@ -348,6 +348,10 @@ paths:
       responses:
         "302":
           description: Redirects to Spotify authorize UI
+        "429":
+          description: Too many authentication attempts. Retry after the provided delay.
+        "503":
+          description: PKCE session storage is unavailable (for example, Redis missing).
       summary: Start Spotify OAuth2 Authorization Code + PKCE flow
       tags: *a4
   /api/auth/spotify:
@@ -364,30 +368,108 @@ paths:
       responses:
         "302":
           description: Redirects to Spotify authorize UI
+        "429":
+          description: Too many authentication attempts. Retry after the provided delay.
+        "503":
+          description: PKCE session storage is unavailable (for example, Redis missing).
       summary: Start Spotify OAuth2 Authorization Code + PKCE flow
       tags: *a4
   /auth/spotify/callback:
     get:
       operationId: AuthController_handleSpotifyCallback[0]
-      parameters: []
+      parameters:
+        - name: code
+          required: false
+          in: query
+          description: Spotify authorization code. Present on successful consent.
+          schema:
+            type: string
+        - name: state
+          required: false
+          in: query
+          description: Opaque state value used for CSRF protection and PKCE session lookup.
+          schema:
+            type: string
+        - name: error
+          required: false
+          in: query
+          description: OAuth error code (for example `access_denied`).
+          schema:
+            type: string
+        - name: error_description
+          required: false
+          in: query
+          description: Provider-supplied OAuth error details.
+          schema:
+            type: string
       responses:
         "200":
           description: Returns auth payload or redirects to frontend_redirect_uri
+        "302":
+          description: Redirects to frontend callback URL with token hash payload.
+        "401":
+          description: Invalid or expired OAuth state/session.
+        "403":
+          description: User denied Spotify consent (`access_denied`).
+        "429":
+          description: Too many authentication attempts. Retry after the provided delay.
+        "503":
+          description: PKCE session storage is unavailable (for example, Redis missing).
       summary: Handle Spotify callback, exchange code for tokens, and issue app JWT
       tags: *a4
   /api/auth/spotify/callback:
     get:
       operationId: AuthController_handleSpotifyCallback[1]
-      parameters: []
+      parameters:
+        - name: code
+          required: false
+          in: query
+          description: Spotify authorization code. Present on successful consent.
+          schema:
+            type: string
+        - name: state
+          required: false
+          in: query
+          description: Opaque state value used for CSRF protection and PKCE session lookup.
+          schema:
+            type: string
+        - name: error
+          required: false
+          in: query
+          description: OAuth error code (for example `access_denied`).
+          schema:
+            type: string
+        - name: error_description
+          required: false
+          in: query
+          description: Provider-supplied OAuth error details.
+          schema:
+            type: string
       responses:
         "200":
           description: Returns auth payload or redirects to frontend_redirect_uri
+        "302":
+          description: Redirects to frontend callback URL with token hash payload.
+        "401":
+          description: Invalid or expired OAuth state/session.
+        "403":
+          description: User denied Spotify consent (`access_denied`).
+        "429":
+          description: Too many authentication attempts. Retry after the provided delay.
+        "503":
+          description: PKCE session storage is unavailable (for example, Redis missing).
       summary: Handle Spotify callback, exchange code for tokens, and issue app JWT
       tags: *a4
   /auth/spotify/refresh:
     post:
       operationId: AuthController_refreshSpotifySession[0]
-      parameters: []
+      parameters:
+        - name: X-CSRF-Token
+          required: false
+          in: header
+          description: Required for browser cookie flows (`sb_csrf_token` cookie value).
+          schema:
+            type: string
       requestBody:
         required: false
         content:
@@ -397,12 +479,22 @@ paths:
       responses:
         "200":
           description: Session refreshed successfully
+        "401":
+          description: Missing/invalid refresh credentials or CSRF token.
+        "429":
+          description: Too many refresh attempts. Retry after the provided delay.
       summary: Refresh app JWT and refresh Spotify access token if needed
       tags: *a4
   /api/auth/spotify/refresh:
     post:
       operationId: AuthController_refreshSpotifySession[1]
-      parameters: []
+      parameters:
+        - name: X-CSRF-Token
+          required: false
+          in: header
+          description: Required for browser cookie flows (`sb_csrf_token` cookie value).
+          schema:
+            type: string
       requestBody:
         required: false
         content:
@@ -412,6 +504,10 @@ paths:
       responses:
         "200":
           description: Session refreshed successfully
+        "401":
+          description: Missing/invalid refresh credentials or CSRF token.
+        "429":
+          description: Too many refresh attempts. Retry after the provided delay.
       summary: Refresh app JWT and refresh Spotify access token if needed
       tags: *a4
   /auth/me:
@@ -421,6 +517,8 @@ paths:
       responses:
         "200":
           description: Return current user info
+        "401":
+          description: Missing, expired, or invalid bearer token.
       security:
         - bearer: []
       summary: Get current user info
@@ -432,6 +530,8 @@ paths:
       responses:
         "200":
           description: Return current user info
+        "401":
+          description: Missing, expired, or invalid bearer token.
       security:
         - bearer: []
       summary: Get current user info
@@ -2606,6 +2706,12 @@ servers:
     description: Local development
 components:
   securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: JWT Bearer token for protected endpoints
+      in: header
     JWT-auth:
       scheme: bearer
       bearerFormat: JWT
