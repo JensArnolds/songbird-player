@@ -24,15 +24,14 @@ export function LoadingSpinner({
   label = "Loading...",
 }: LoadingSpinnerProps) {
   return (
-    <div
-      className={cn(
-        "inline-block animate-spin rounded-full border-t-transparent border-r-transparent border-b-[var(--color-accent)] border-l-transparent",
-        sizeClasses[size],
-        className,
-      )}
-      role="status"
-      aria-label={label}
-    >
+    <div role="status" aria-label={label} className="inline-block">
+      <div
+        className={cn(
+          "animate-spin rounded-full border-t-transparent border-r-transparent border-b-[var(--color-accent)] border-l-transparent",
+          sizeClasses[size],
+          className,
+        )}
+      />
       <span className="sr-only">{label}</span>
     </div>
   );
