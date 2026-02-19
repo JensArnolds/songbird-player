@@ -1,5 +1,3 @@
-# File: docs/API_V2_SWAGGER.yaml
-
 openapi: 3.0.0
 paths:
   /:
@@ -277,7 +275,7 @@ paths:
       tags: *a3
   /auth/register:
     post:
-      operationId: AuthController_register
+      operationId: AuthController_register[0]
       parameters: []
       requestBody:
         required: true
@@ -291,9 +289,24 @@ paths:
       summary: Register a new user
       tags: &a4
         - auth
+  /api/auth/register:
+    post:
+      operationId: AuthController_register[1]
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterDto"
+      responses:
+        "201":
+          description: The user has been successfully created.
+      summary: Register a new user
+      tags: *a4
   /auth/login:
     post:
-      operationId: AuthController_login
+      operationId: AuthController_login[0]
       parameters: []
       requestBody:
         required: true
@@ -306,9 +319,115 @@ paths:
           description: User successfully logged in.
       summary: Log in a user
       tags: *a4
+  /api/auth/login:
+    post:
+      operationId: AuthController_login[1]
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginDto"
+      responses:
+        "200":
+          description: User successfully logged in.
+      summary: Log in a user
+      tags: *a4
+  /auth/spotify:
+    get:
+      operationId: AuthController_startSpotifyLogin[0]
+      parameters:
+        - name: frontend_redirect_uri
+          required: false
+          in: query
+          description: Optional frontend URL to redirect to after successful callback.
+            Must match AUTH_FRONTEND_ORIGINS.
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirects to Spotify authorize UI
+      summary: Start Spotify OAuth2 Authorization Code + PKCE flow
+      tags: *a4
+  /api/auth/spotify:
+    get:
+      operationId: AuthController_startSpotifyLogin[1]
+      parameters:
+        - name: frontend_redirect_uri
+          required: false
+          in: query
+          description: Optional frontend URL to redirect to after successful callback.
+            Must match AUTH_FRONTEND_ORIGINS.
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirects to Spotify authorize UI
+      summary: Start Spotify OAuth2 Authorization Code + PKCE flow
+      tags: *a4
+  /auth/spotify/callback:
+    get:
+      operationId: AuthController_handleSpotifyCallback[0]
+      parameters: []
+      responses:
+        "200":
+          description: Returns auth payload or redirects to frontend_redirect_uri
+      summary: Handle Spotify callback, exchange code for tokens, and issue app JWT
+      tags: *a4
+  /api/auth/spotify/callback:
+    get:
+      operationId: AuthController_handleSpotifyCallback[1]
+      parameters: []
+      responses:
+        "200":
+          description: Returns auth payload or redirects to frontend_redirect_uri
+      summary: Handle Spotify callback, exchange code for tokens, and issue app JWT
+      tags: *a4
+  /auth/spotify/refresh:
+    post:
+      operationId: AuthController_refreshSpotifySession[0]
+      parameters: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpotifyRefreshDto"
+      responses:
+        "200":
+          description: Session refreshed successfully
+      summary: Refresh app JWT and refresh Spotify access token if needed
+      tags: *a4
+  /api/auth/spotify/refresh:
+    post:
+      operationId: AuthController_refreshSpotifySession[1]
+      parameters: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpotifyRefreshDto"
+      responses:
+        "200":
+          description: Session refreshed successfully
+      summary: Refresh app JWT and refresh Spotify access token if needed
+      tags: *a4
   /auth/me:
     get:
-      operationId: AuthController_getProfile
+      operationId: AuthController_getProfile[0]
+      parameters: []
+      responses:
+        "200":
+          description: Return current user info
+      security:
+        - bearer: []
+      summary: Get current user info
+      tags: *a4
+  /api/auth/me:
+    get:
+      operationId: AuthController_getProfile[1]
       parameters: []
       responses:
         "200":
@@ -319,7 +438,18 @@ paths:
       tags: *a4
   /auth/refresh:
     get:
-      operationId: AuthController_refresh
+      operationId: AuthController_refresh[0]
+      parameters: []
+      responses:
+        "200":
+          description: Token refreshed successfully.
+      security:
+        - bearer: []
+      summary: Refresh the current JWT token
+      tags: *a4
+  /api/auth/refresh:
+    get:
+      operationId: AuthController_refresh[1]
       parameters: []
       responses:
         "200":
@@ -2470,7 +2600,7 @@ info:
   contact: {}
 tags: []
 servers:
-  - url: https://www.darkfloor.one
+  - url: https://eternalapi.halflight.eu
     description: Production (HTTPS)
   - url: http://localhost:3333
     description: Local development
@@ -3022,6 +3152,13 @@ components:
       required:
         - email
         - password
+    SpotifyRefreshDto:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: Fallback app refresh token for non-cookie clients. Browser clients
+            should use HTTP-only cookie.
     FindTrackIdResponseDto:
       type: object
       properties:

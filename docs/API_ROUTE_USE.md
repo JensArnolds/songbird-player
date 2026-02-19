@@ -33,6 +33,10 @@ Upstream OpenAPI reference for the `API_V2_URL` service: `docs/API_V2_SWAGGER.js
 | `/api/v2/health/ready` | GET | `src/app/api/v2/health/ready/route.ts` | Proxies Bluesix V2 readiness endpoint `/health/ready` (DB/cache/external dependency checks). | `API_V2_URL` |
 | `/api/v2/auth/me` | GET | `src/app/api/v2/auth/me/route.ts` | Proxies upstream session/user identity endpoint `/auth/me`. | `API_V2_URL` |
 | `/api/v2/auth/refresh` | GET | `src/app/api/v2/auth/refresh/route.ts` | Proxies upstream token/session refresh endpoint `/auth/refresh`. | `API_V2_URL` |
+| `/api/auth/spotify` | GET | `src/app/api/auth/spotify/route.ts` | Proxies Spotify OAuth initiation endpoint `/api/auth/spotify` (supports `frontend_redirect_uri`). | `API_V2_URL` |
+| `/api/auth/spotify/callback` | GET | `src/app/api/auth/spotify/callback/route.ts` | Proxies Spotify OAuth callback endpoint `/api/auth/spotify/callback` and forwards redirect/cookies. | `API_V2_URL` |
+| `/api/auth/spotify/refresh` | POST | `src/app/api/auth/spotify/refresh/route.ts` | Proxies app-token refresh endpoint `/api/auth/spotify/refresh`; forwards `X-CSRF-Token` and cookies. | `API_V2_URL` |
+| `/api/auth/me` | GET | `src/app/api/auth/me/route.ts` | Proxies bearer-authenticated profile endpoint `/api/auth/me`. | `API_V2_URL` |
 | `/api/v2/config/public` | GET | `src/app/api/v2/config/public/route.ts` | Proxies upstream non-secret runtime flags endpoint `/config/public`. | `API_V2_URL` |
 | `/api/v2/rate-limits` | GET | `src/app/api/v2/rate-limits/route.ts` | Proxies upstream rate-limit policy/status endpoint `/rate-limits`. | `API_V2_URL` |
 | `/api/v2/docs/openapi` | GET | `src/app/api/v2/docs/openapi/route.ts` | Proxies upstream OpenAPI alias endpoint `/docs/openapi`. | `API_V2_URL` |
