@@ -3,6 +3,7 @@
 import { GuestModal } from "@/components/GuestModal";
 import {
   SPOTIFY_AUTH_STATE_EVENT,
+  getInMemoryAccessToken,
   restoreSpotifySession,
   type SpotifyAuthStateEventDetail,
 } from "@/services/spotifyAuthClient";
@@ -63,11 +64,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setSpotifyResolved(true);
     };
 
-    void syncSpotifySession();
     window.addEventListener(
       SPOTIFY_AUTH_STATE_EVENT,
       onSpotifyState as EventListener,
     );
+    void syncSpotifySession();
 
     return () => {
       cancelled = true;
@@ -86,9 +87,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   const sessionUser = getSessionUser(sessionResult);
   const status = getSessionStatus(sessionResult);
+  const hasInMemorySpotifyAccessToken = Boolean(getInMemoryAccessToken());
   const isAuthenticated =
-    Boolean(sessionUser) || spotifyAuthenticated || guestModeEnabled;
-  const isLoading = status === "loading" || (!sessionUser && !spotifyResolved);
+    Boolean(sessionUser) ||
+    spotifyAuthenticated ||
+    hasInMemorySpotifyAccessToken ||
+    guestModeEnabled;
+  const isLoading =
+    status === "loading" ||
+    (!sessionUser && !spotifyResolved && !hasInMemorySpotifyAccessToken);
 
   if (isLoading) {
     return (

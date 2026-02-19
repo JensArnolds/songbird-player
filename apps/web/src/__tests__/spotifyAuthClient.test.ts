@@ -6,6 +6,7 @@ import {
   getInMemoryAccessToken,
   handleSpotifyCallbackHash,
   refreshAccessToken,
+  restoreSpotifySession,
   resolveFrontendRedirectPath,
 } from "@/services/spotifyAuthClient";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,6 +16,7 @@ describe("spotifyAuthClient", () => {
     clearInMemoryAccessToken();
     vi.restoreAllMocks();
     window.history.replaceState({}, "", "/");
+    window.sessionStorage.clear();
   });
 
   it("builds login URL with frontend callback URI", () => {
@@ -155,5 +157,42 @@ describe("spotifyAuthClient", () => {
     const refreshHeaders = new Headers(refreshInit.headers);
     expect(refreshHeaders.get("accept")).toBe("application/json");
     expect(refreshHeaders.get("x-csrf-token")).toBe("csrf-refresh-token");
+  });
+
+  it("restores spotify session from sessionStorage without csrf cookie", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/auth/spotify/callback?next=%2Flibrary#access_token=app-token-2&token_type=Bearer&expires_in=3600",
+    );
+
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ id: "user-2" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    await handleSpotifyCallbackHash();
+    expect(getInMemoryAccessToken()).toBe("app-token-2");
+
+    clearInMemoryAccessToken();
+    expect(getInMemoryAccessToken()).toBeNull();
+
+    window.sessionStorage.setItem(
+      "sb_spotify_auth_state_v1",
+      JSON.stringify({
+        accessToken: "app-token-2",
+        tokenType: "Bearer",
+        expiresAtMs: Date.now() + 3_600_000,
+        spotifyAccessToken: null,
+        spotifyTokenType: "Bearer",
+        spotifyExpiresAtMs: null,
+      }),
+    );
+
+    const restored = await restoreSpotifySession();
+    expect(restored).toBe(true);
+    expect(getInMemoryAccessToken()).toBe("app-token-2");
   });
 });

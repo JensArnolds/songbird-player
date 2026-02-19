@@ -2,22 +2,12 @@
 
 import { startSpotifyLogin } from "@/services/spotifyAuthClient";
 import { Music2 } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useMemo } from "react";
 
 interface GuestModalProps {
   onContinueAsGuest?: () => void;
 }
 
 export function GuestModal({ onContinueAsGuest }: GuestModalProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const callbackPath = useMemo(() => {
-    const query = searchParams.toString();
-    return query ? `${pathname}?${query}` : pathname;
-  }, [pathname, searchParams]);
-
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(43,48,160,0.22),_transparent_48%),linear-gradient(180deg,#12162d_0%,#06070f_65%,#030308_100%)]" />
@@ -36,7 +26,7 @@ export function GuestModal({ onContinueAsGuest }: GuestModalProps) {
 
         <button
           type="button"
-          onClick={() => startSpotifyLogin(callbackPath)}
+          onClick={() => startSpotifyLogin("/library")}
           className="mt-7 w-full rounded-2xl bg-[#1DB954] px-5 py-3.5 text-sm font-semibold text-white transition hover:brightness-110 active:brightness-95"
         >
           Sign in with Spotify

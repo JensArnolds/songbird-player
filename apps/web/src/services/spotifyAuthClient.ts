@@ -8,6 +8,7 @@ const SPOTIFY_REFRESH_ENDPOINT = "/api/auth/spotify/refresh";
 const FRONTEND_SPOTIFY_CALLBACK_PATH = "/auth/spotify/callback";
 const CSRF_COOKIE_NAME = "sb_csrf_token";
 const EXPIRY_SKEW_MS = 15_000;
+const TOKEN_STATE_STORAGE_KEY = "sb_spotify_auth_state_v1";
 
 type TokenState = {
   accessToken: string | null;
@@ -25,6 +26,15 @@ type HashTokenPayload = {
   spotifyAccessToken: string | null;
   spotifyTokenType: string;
   spotifyExpiresIn: number | null;
+};
+
+type PersistedTokenState = {
+  accessToken: string;
+  tokenType: string;
+  expiresAtMs: number | null;
+  spotifyAccessToken: string | null;
+  spotifyTokenType: string;
+  spotifyExpiresAtMs: number | null;
 };
 
 type CallbackResult = {
@@ -55,6 +65,126 @@ const tokenState: TokenState = {
 };
 
 let refreshPromise: Promise<string> | null = null;
+
+function dispatchSpotifyAuthState(authenticated: boolean): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent<SpotifyAuthStateEventDetail>(SPOTIFY_AUTH_STATE_EVENT, {
+      detail: { authenticated },
+    }),
+  );
+}
+
+function isTokenUsable(expiresAtMs: number | null): boolean {
+  return expiresAtMs === null || expiresAtMs - EXPIRY_SKEW_MS > Date.now();
+}
+
+function persistTokenStateToStorage(): void {
+  if (typeof window === "undefined") return;
+
+  if (!tokenState.accessToken) {
+    window.sessionStorage.removeItem(TOKEN_STATE_STORAGE_KEY);
+    return;
+  }
+
+  const serialized: PersistedTokenState = {
+    accessToken: tokenState.accessToken,
+    tokenType: tokenState.tokenType,
+    expiresAtMs: tokenState.expiresAtMs,
+    spotifyAccessToken: tokenState.spotifyAccessToken,
+    spotifyTokenType: tokenState.spotifyTokenType,
+    spotifyExpiresAtMs: tokenState.spotifyExpiresAtMs,
+  };
+
+  window.sessionStorage.setItem(
+    TOKEN_STATE_STORAGE_KEY,
+    JSON.stringify(serialized),
+  );
+}
+
+function applyTokenState(nextState: TokenState): void {
+  tokenState.accessToken = nextState.accessToken;
+  tokenState.tokenType = nextState.tokenType;
+  tokenState.expiresAtMs = nextState.expiresAtMs;
+  tokenState.spotifyAccessToken = nextState.spotifyAccessToken;
+  tokenState.spotifyTokenType = nextState.spotifyTokenType;
+  tokenState.spotifyExpiresAtMs = nextState.spotifyExpiresAtMs;
+  persistTokenStateToStorage();
+  dispatchSpotifyAuthState(Boolean(nextState.accessToken));
+}
+
+function buildTokenStateFromHashPayload(payload: HashTokenPayload): TokenState {
+  return {
+    accessToken: payload.accessToken,
+    tokenType: payload.tokenType || "Bearer",
+    expiresAtMs: resolveExpiresAt(payload.expiresIn),
+    spotifyAccessToken: payload.spotifyAccessToken,
+    spotifyTokenType: payload.spotifyTokenType || "Bearer",
+    spotifyExpiresAtMs: resolveExpiresAt(payload.spotifyExpiresIn),
+  };
+}
+
+function parsePersistedTokenState(raw: unknown): TokenState | null {
+  if (!raw || typeof raw !== "object") return null;
+  const record = raw as Record<string, unknown>;
+
+  const accessToken = record.accessToken;
+  if (typeof accessToken !== "string" || accessToken.length === 0) {
+    return null;
+  }
+
+  const tokenType =
+    typeof record.tokenType === "string" && record.tokenType.length > 0
+      ? record.tokenType
+      : "Bearer";
+  const expiresAtMs =
+    typeof record.expiresAtMs === "number" && Number.isFinite(record.expiresAtMs)
+      ? record.expiresAtMs
+      : null;
+  const spotifyAccessToken =
+    typeof record.spotifyAccessToken === "string"
+      ? record.spotifyAccessToken
+      : null;
+  const spotifyTokenType =
+    typeof record.spotifyTokenType === "string" && record.spotifyTokenType.length > 0
+      ? record.spotifyTokenType
+      : "Bearer";
+  const spotifyExpiresAtMs =
+    typeof record.spotifyExpiresAtMs === "number" &&
+    Number.isFinite(record.spotifyExpiresAtMs)
+      ? record.spotifyExpiresAtMs
+      : null;
+
+  return {
+    accessToken,
+    tokenType,
+    expiresAtMs,
+    spotifyAccessToken,
+    spotifyTokenType,
+    spotifyExpiresAtMs,
+  };
+}
+
+function hydrateTokenStateFromStorage(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const raw = window.sessionStorage.getItem(TOKEN_STATE_STORAGE_KEY);
+  if (!raw) return false;
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    const restored = parsePersistedTokenState(parsed);
+    if (!restored || !isTokenUsable(restored.expiresAtMs)) {
+      window.sessionStorage.removeItem(TOKEN_STATE_STORAGE_KEY);
+      return false;
+    }
+    applyTokenState(restored);
+    return true;
+  } catch {
+    window.sessionStorage.removeItem(TOKEN_STATE_STORAGE_KEY);
+    return false;
+  }
+}
 
 export class SpotifyAuthClientError extends Error {
   readonly status: number | null;
@@ -125,20 +255,7 @@ function readCookieValue(cookieHeader: string, cookieName: string): string | nul
 }
 
 function setTokenState(payload: HashTokenPayload): void {
-  tokenState.accessToken = payload.accessToken;
-  tokenState.tokenType = payload.tokenType || "Bearer";
-  tokenState.expiresAtMs = resolveExpiresAt(payload.expiresIn);
-  tokenState.spotifyAccessToken = payload.spotifyAccessToken;
-  tokenState.spotifyTokenType = payload.spotifyTokenType || "Bearer";
-  tokenState.spotifyExpiresAtMs = resolveExpiresAt(payload.spotifyExpiresIn);
-
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent<SpotifyAuthStateEventDetail>(SPOTIFY_AUTH_STATE_EVENT, {
-        detail: { authenticated: true },
-      }),
-    );
-  }
+  applyTokenState(buildTokenStateFromHashPayload(payload));
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {
@@ -246,20 +363,14 @@ export function getInMemoryAccessToken(): string | null {
 }
 
 export function clearInMemoryAccessToken(): void {
-  tokenState.accessToken = null;
-  tokenState.tokenType = "Bearer";
-  tokenState.expiresAtMs = null;
-  tokenState.spotifyAccessToken = null;
-  tokenState.spotifyTokenType = "Bearer";
-  tokenState.spotifyExpiresAtMs = null;
-
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent<SpotifyAuthStateEventDetail>(SPOTIFY_AUTH_STATE_EVENT, {
-        detail: { authenticated: false },
-      }),
-    );
-  }
+  applyTokenState({
+    accessToken: null,
+    tokenType: "Bearer",
+    expiresAtMs: null,
+    spotifyAccessToken: null,
+    spotifyTokenType: "Bearer",
+    spotifyExpiresAtMs: null,
+  });
 }
 
 function notifyAuthRequired(reason: AuthRequiredReason): void {
@@ -380,10 +491,11 @@ export async function refreshAccessToken(
 }
 
 export async function ensureAccessToken(): Promise<string | null> {
-  if (
-    tokenState.accessToken &&
-    (tokenState.expiresAtMs === null || tokenState.expiresAtMs - EXPIRY_SKEW_MS > Date.now())
-  ) {
+  if (tokenState.accessToken && isTokenUsable(tokenState.expiresAtMs)) {
+    return tokenState.accessToken;
+  }
+
+  if (!tokenState.accessToken && hydrateTokenStateFromStorage()) {
     return tokenState.accessToken;
   }
 
@@ -430,7 +542,11 @@ export async function handleSpotifyCallbackHash(): Promise<CallbackResult> {
 }
 
 export async function restoreSpotifySession(): Promise<boolean> {
-  if (tokenState.accessToken) {
+  if (tokenState.accessToken && isTokenUsable(tokenState.expiresAtMs)) {
+    return true;
+  }
+
+  if (hydrateTokenStateFromStorage()) {
     return true;
   }
 
