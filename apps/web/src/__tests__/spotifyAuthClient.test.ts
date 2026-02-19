@@ -25,9 +25,11 @@ describe("spotifyAuthClient", () => {
     const parsed = new URL(loginUrl, window.location.origin);
     const frontendRedirect = parsed.searchParams.get("frontend_redirect_uri");
 
+    expect(parsed.origin).toBe("https://www.darkfloor.one");
     expect(parsed.pathname).toBe("/api/auth/spotify");
     expect(frontendRedirect).toContain("/auth/spotify/callback");
     expect(frontendRedirect).toContain("next=%2Fplaylists%3Ftab%3Dmine");
+    expect(frontendRedirect).toContain("trace=");
   });
 
   it("sanitizes redirect destinations to same-origin paths", () => {
@@ -85,7 +87,7 @@ describe("spotifyAuthClient", () => {
     window.history.replaceState(
       {},
       "",
-      "/auth/spotify/callback?next=%2Flibrary#access_token=app-token-1&token_type=Bearer&expires_in=3600",
+      "/auth/spotify/callback?next=%2Flibrary#access_token=app-token-1&token_type=Bearer&expires_in=3600&spotify_access_token=spotify-token-1&spotify_token_type=Bearer&spotify_expires_in=3600",
     );
 
     const authRequiredListener = vi.fn();
@@ -149,7 +151,9 @@ describe("spotifyAuthClient", () => {
       throw new Error("Expected refresh request");
     }
 
-    expect(refreshFetchCall[0]).toBe("/api/auth/spotify/refresh");
+    expect(refreshFetchCall[0]).toBe(
+      "https://www.darkfloor.one/api/auth/spotify/refresh",
+    );
     const refreshInit = refreshFetchCall[1] ?? {};
     expect(refreshInit.method).toBe("POST");
     expect(refreshInit.credentials).toBe("include");
@@ -163,7 +167,7 @@ describe("spotifyAuthClient", () => {
     window.history.replaceState(
       {},
       "",
-      "/auth/spotify/callback?next=%2Flibrary#access_token=app-token-2&token_type=Bearer&expires_in=3600",
+      "/auth/spotify/callback?next=%2Flibrary#access_token=app-token-2&token_type=Bearer&expires_in=3600&spotify_access_token=spotify-token-2&spotify_token_type=Bearer&spotify_expires_in=3600",
     );
 
     vi.spyOn(global, "fetch").mockResolvedValue(
@@ -194,5 +198,33 @@ describe("spotifyAuthClient", () => {
     const restored = await restoreSpotifySession();
     expect(restored).toBe(true);
     expect(getInMemoryAccessToken()).toBe("app-token-2");
+  });
+
+  it("rejects callback when required token hash keys are missing", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/auth/spotify/callback?next=%2Flibrary&trace=trace-missing#access_token=token-only",
+    );
+
+    try {
+      await handleSpotifyCallbackHash();
+      throw new Error("Expected callback hash validation to fail");
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      const typedError = error as {
+        status?: number;
+        debugInfo?: {
+          traceId?: string | null;
+          authorizationHeaderSent?: boolean;
+          authMeStatus?: number | null;
+        } | null;
+      };
+
+      expect(typedError.status).toBe(401);
+      expect(typedError.debugInfo?.traceId).toBe("trace-missing");
+      expect(typedError.debugInfo?.authorizationHeaderSent).toBe(false);
+      expect(typedError.debugInfo?.authMeStatus).toBeNull();
+    }
   });
 });

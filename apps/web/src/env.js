@@ -46,6 +46,7 @@ export const env = createEnv({
       .string()
       .optional()
       .transform((val) => val === "true"),
+    NEXT_PUBLIC_AUTH_DEBUG: z.string().optional(),
     NEXT_PUBLIC_AUTH_DEBUG_OAUTH: z
       .string()
       .optional()
@@ -76,6 +77,7 @@ export const env = createEnv({
     NEXT_PUBLIC_AUTH_API_ORIGIN: process.env.NEXT_PUBLIC_AUTH_API_ORIGIN,
     NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED:
       process.env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED,
+    NEXT_PUBLIC_AUTH_DEBUG: process.env.NEXT_PUBLIC_AUTH_DEBUG,
     NEXT_PUBLIC_AUTH_DEBUG_OAUTH:
       process.env.NEXT_PUBLIC_AUTH_DEBUG_OAUTH,
     BLUESIX_API_KEY: process.env.BLUESIX_API_KEY,

@@ -51,7 +51,12 @@ function sanitize(
 }
 
 export function isClientAuthDebugEnabled(): boolean {
+  const explicitAuthDebug = process.env.NEXT_PUBLIC_AUTH_DEBUG;
+  const authDebugEnabled =
+    explicitAuthDebug === "1" || explicitAuthDebug === "true";
+
   return (
+    authDebugEnabled ||
     process.env.NEXT_PUBLIC_AUTH_DEBUG_OAUTH === "true" ||
     process.env.NODE_ENV === "development"
   );
