@@ -7,7 +7,7 @@ import {
 import { resolvePostAuthPath } from "@/utils/authRedirect";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 const AUTH_CALLBACK_TIMEOUT_MS = 20_000;
 const OAUTH_PROVIDER_FALLBACK_NAMES: Record<string, string> = {
@@ -15,7 +15,28 @@ const OAUTH_PROVIDER_FALLBACK_NAMES: Record<string, string> = {
   spotify: "Spotify",
 };
 
-export default function AuthCallbackPage() {
+function AuthCallbackFallback() {
+  return (
+    <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4">
+      <div className="surface-panel w-full p-8 text-center">
+        <div className="flex flex-col items-center justify-center">
+          <div
+            role="status"
+            aria-label="Loading authentication callback"
+            className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--color-accent)] border-t-transparent"
+          >
+            <span className="sr-only">Loading authentication callback</span>
+          </div>
+          <p className="mt-4 text-sm text-[var(--color-subtext)]">
+            Preparing authentication callback...
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { status } = useSession();
@@ -98,5 +119,13 @@ export default function AuthCallbackPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<AuthCallbackFallback />}>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

@@ -7,7 +7,7 @@ import {
   startSpotifyLogin,
 } from "@/services/spotifyAuthClient";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 type CallbackState = "pending" | "error";
 
@@ -32,7 +32,26 @@ function getErrorMessage(error: unknown): string {
   return "Authentication failed. Please try again.";
 }
 
-export default function SpotifyAuthCallbackPage() {
+function SpotifyAuthCallbackFallback() {
+  return (
+    <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4">
+      <div className="surface-panel w-full p-8 text-center">
+        <div
+          role="status"
+          aria-label="Loading Spotify authentication callback"
+          className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[var(--color-accent)] border-t-transparent"
+        >
+          <span className="sr-only">Loading Spotify authentication callback</span>
+        </div>
+        <p className="mt-4 text-sm text-[var(--color-subtext)]">
+          Preparing Spotify authentication callback...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SpotifyAuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [state, setState] = useState<CallbackState>("pending");
@@ -126,5 +145,13 @@ export default function SpotifyAuthCallbackPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SpotifyAuthCallbackPage() {
+  return (
+    <Suspense fallback={<SpotifyAuthCallbackFallback />}>
+      <SpotifyAuthCallbackContent />
+    </Suspense>
   );
 }
