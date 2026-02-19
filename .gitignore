@@ -91,9 +91,6 @@ CLAUDE.md
 REPOSITORY_ANALYSIS.md
 .github/docs/*
 
-
-.claude/
-.cursor/
 .annot8_backup.json
 
 .tmp/
