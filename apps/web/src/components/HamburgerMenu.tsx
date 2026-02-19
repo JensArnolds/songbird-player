@@ -8,6 +8,7 @@ import { useMenu } from "@/contexts/MenuContext";
 import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
+import emilyLogo from "../../public/emily-the-strange.png";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     ChevronRight,
@@ -163,7 +164,7 @@ export default function HamburgerMenu() {
             <div className="border-b border-[var(--color-border)] p-6">
               <div className="flex items-center gap-3">
                 <Image
-                  src="/emily-the-strange.png"
+                  src={emilyLogo}
                   alt="Starchild Music"
                   width={40}
                   height={40}

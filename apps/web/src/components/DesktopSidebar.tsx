@@ -8,6 +8,7 @@ import { CreatePlaylistModal } from "@/components/CreatePlaylistModal";
 import { api } from "@starchild/api-client/trpc/react";
 import { localStorage } from "@/services/storage";
 import { useAuthModal } from "@/contexts/AuthModalContext";
+import emilyLogo from "../../public/emily-the-strange.png";
 import {
   ChevronLeft,
   ChevronRight,
@@ -290,7 +291,7 @@ export function DesktopSidebar() {
               className={`flex items-center ${collapsed ? "justify-center" : "justify-start"} rounded-xl px-2 py-1.5`}
             >
               <Image
-                src="/emily-the-strange.png"
+                src={emilyLogo}
                 alt="Starchild"
                 width={36}
                 height={36}

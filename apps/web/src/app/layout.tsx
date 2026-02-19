@@ -35,6 +35,7 @@ import { TrackContextMenuProvider } from "@/contexts/TrackContextMenuContext";
 import { TRPCReactProvider } from "@starchild/api-client/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { RegisterServiceWorker } from "./register-sw";
+import emilyLogo from "../../public/emily-the-strange.png";
 
 const appSans = localFont({
   src: [
@@ -64,9 +65,8 @@ export const metadata: Metadata = {
     "Modern music streaming and discovery platform with advanced audio features and visual patterns",
   applicationName: "Starchild Music",
   icons: [
-    { rel: "icon", url: "/emily-the-strange.png", type: "image/png" },
-    { rel: "apple-touch-icon", url: "/emily-the-strange.png", type: "image/png" },
-    { rel: "icon", url: "/favicon.ico" },
+    { rel: "icon", url: emilyLogo.src, type: "image/png" },
+    { rel: "apple-touch-icon", url: emilyLogo.src, type: "image/png" },
   ],
   manifest: "/manifest.json",
   openGraph: {
