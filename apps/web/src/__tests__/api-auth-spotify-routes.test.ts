@@ -242,4 +242,32 @@ describe("Spotify auth proxy routes", () => {
 
     expect(callbackUrl.searchParams.get("next")).toBe("/playlists");
   });
+
+  it("forwards trace query param through legacy /api/auth/signin/spotify shim", async () => {
+    const legacySignInRoute = await loadGetRoute(
+      "@/app/api/auth/signin/spotify/route",
+    );
+
+    const response = await legacySignInRoute.GET(
+      makeRequest(
+        "/api/auth/signin/spotify?callbackUrl=%2Flibrary&trace=trace-browser-1",
+      ),
+    );
+
+    expect(response.status).toBe(302);
+
+    const location = response.headers.get("location");
+    expect(location).toBeTruthy();
+    const redirectUrl = new URL(location ?? "http://localhost:3222/");
+    const frontendRedirectUri = redirectUrl.searchParams.get(
+      "frontend_redirect_uri",
+    );
+    expect(frontendRedirectUri).toBeTruthy();
+
+    const callbackUrl = new URL(
+      frontendRedirectUri ?? "http://localhost:3222/auth/spotify/callback",
+    );
+    expect(callbackUrl.searchParams.get("next")).toBe("/library");
+    expect(callbackUrl.searchParams.get("trace")).toBe("trace-browser-1");
+  });
 });

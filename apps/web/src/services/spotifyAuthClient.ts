@@ -1,4 +1,7 @@
-import { logAuthClientDebug } from "@/utils/authDebugClient";
+import {
+  isClientAuthDebugEnabled,
+  logAuthClientDebug,
+} from "@/utils/authDebugClient";
 
 const DEFAULT_AUTH_API_ORIGIN = "https://www.darkfloor.one";
 const configuredAuthApiOrigin =
@@ -8,6 +11,7 @@ const AUTH_ME_ENDPOINT = `${configuredAuthApiOrigin}/api/auth/me`;
 const SPOTIFY_LOGIN_ENDPOINT = `${configuredAuthApiOrigin}/api/auth/spotify`;
 const SPOTIFY_REFRESH_ENDPOINT =
   `${configuredAuthApiOrigin}/api/auth/spotify/refresh`;
+const SPOTIFY_BROWSER_SIGNIN_PATH = "/api/auth/signin/spotify";
 const FRONTEND_SPOTIFY_CALLBACK_PATH = "/auth/spotify/callback";
 const DEFAULT_POST_AUTH_PATH = "/library";
 const FRONTEND_CALLBACK_TRACE_PARAM = "trace";
@@ -109,6 +113,16 @@ const tokenState: TokenState = {
 };
 
 let refreshPromise: Promise<string> | null = null;
+
+function logSpotifyBrowserDebug(message: string, details?: unknown): void {
+  if (typeof window === "undefined") return;
+  if (!isClientAuthDebugEnabled()) return;
+  if (details === undefined) {
+    console.log(`[Spotify Browser Login] ${message}`);
+    return;
+  }
+  console.log(`[Spotify Browser Login] ${message}`, details);
+}
 
 function createDefaultHashKeyPresence(present = false): HashTokenPresence {
   return {
@@ -540,6 +554,12 @@ export function buildSpotifyFrontendCallbackUrl(
   if (traceId) {
     callbackUrl.searchParams.set(FRONTEND_CALLBACK_TRACE_PARAM, traceId);
   }
+  logSpotifyBrowserDebug("Built frontend Spotify callback URL", {
+    requestedNextPath: nextPath,
+    safeNextPath: safeNext,
+    traceId,
+    callbackUrl: callbackUrl.toString(),
+  });
   return callbackUrl.toString();
 }
 
@@ -552,24 +572,67 @@ export function buildSpotifyLoginUrl(nextPath: string, traceId?: string): string
   const params = new URLSearchParams({
     frontend_redirect_uri: frontendRedirectUri,
   });
-  return `${SPOTIFY_LOGIN_ENDPOINT}?${params.toString()}`;
+  const loginUrl = `${SPOTIFY_LOGIN_ENDPOINT}?${params.toString()}`;
+  logSpotifyBrowserDebug("Built direct Spotify OAuth URL", {
+    requestedNextPath: nextPath,
+    traceId: effectiveTraceId,
+    frontendRedirectUri,
+    loginUrl,
+  });
+  return loginUrl;
+}
+
+export function buildSpotifyBrowserSignInUrl(
+  nextPath: string,
+  traceId?: string,
+): string {
+  if (typeof window === "undefined") {
+    throw new Error("buildSpotifyBrowserSignInUrl must run in the browser");
+  }
+
+  const effectiveTraceId = traceId ?? generateTraceId();
+  const safeNext = resolvePostAuthPath(
+    toSameOriginPath(nextPath, window.location.origin),
+  );
+  const signInUrl = new URL(SPOTIFY_BROWSER_SIGNIN_PATH, window.location.origin);
+  signInUrl.searchParams.set("callbackUrl", safeNext);
+  signInUrl.searchParams.set(FRONTEND_CALLBACK_TRACE_PARAM, effectiveTraceId);
+
+  logSpotifyBrowserDebug("Built browser Spotify sign-in shim URL", {
+    requestedNextPath: nextPath,
+    safeNextPath: safeNext,
+    traceId: effectiveTraceId,
+    signInUrl: signInUrl.toString(),
+  });
+
+  return signInUrl.toString();
 }
 
 export function startSpotifyLogin(nextPath: string): void {
   if (typeof window === "undefined") return;
 
+  const safeNextPath = resolveFrontendRedirectPath(nextPath);
   const traceId = generateTraceId();
   persistTraceId(traceId);
-  const loginUrl = buildSpotifyLoginUrl(nextPath, traceId);
+  const browserSignInUrl = buildSpotifyBrowserSignInUrl(safeNextPath, traceId);
+  const directLoginUrl = buildSpotifyLoginUrl(safeNextPath, traceId);
 
   logAuthClientDebug("Spotify login initiated", {
     traceId,
     nextPath,
-    loginUrl,
+    safeNextPath,
+    browserSignInUrl,
+    directLoginUrl,
     authApiOrigin: configuredAuthApiOrigin,
+    currentUrl: window.location.href,
   });
 
-  window.location.assign(loginUrl);
+  logSpotifyBrowserDebug("Navigating browser to Spotify sign-in shim", {
+    traceId,
+    from: window.location.href,
+    to: browserSignInUrl,
+  });
+  window.location.assign(browserSignInUrl);
 }
 
 export function getInMemoryAccessToken(): string | null {

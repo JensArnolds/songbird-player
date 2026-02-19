@@ -1,5 +1,6 @@
 import {
   AUTH_REQUIRED_EVENT,
+  buildSpotifyBrowserSignInUrl,
   buildSpotifyLoginUrl,
   clearInMemoryAccessToken,
   getCsrfTokenFromCookies,
@@ -31,6 +32,17 @@ describe("spotifyAuthClient", () => {
     expect(frontendRedirect).toContain("/auth/spotify/callback");
     expect(frontendRedirect).toContain("next=%2Fplaylists%3Ftab%3Dmine");
     expect(frontendRedirect).toContain("trace=");
+  });
+
+  it("builds browser sign-in shim URL with callback and trace", () => {
+    window.history.replaceState({}, "", "/signin");
+    const signInUrl = buildSpotifyBrowserSignInUrl("/playlists?tab=mine");
+    const parsed = new URL(signInUrl, window.location.origin);
+
+    expect(parsed.origin).toBe(window.location.origin);
+    expect(parsed.pathname).toBe("/api/auth/signin/spotify");
+    expect(parsed.searchParams.get("callbackUrl")).toBe("/playlists?tab=mine");
+    expect(parsed.searchParams.get("trace")).toBeTruthy();
   });
 
   it("normalizes root post-auth destinations to /library", () => {

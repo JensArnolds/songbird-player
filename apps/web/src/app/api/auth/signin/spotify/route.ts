@@ -4,6 +4,8 @@ const CANONICAL_SPOTIFY_AUTH_PATH = "/api/auth/spotify";
 const FRONTEND_SPOTIFY_CALLBACK_PATH = "/auth/spotify/callback";
 const LEGACY_AUTH_CALLBACK_PATH = "/auth/callback";
 const DEFAULT_POST_AUTH_PATH = "/library";
+const TRACE_QUERY_PARAM = "trace";
+const MAX_TRACE_LENGTH = 128;
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -45,6 +47,7 @@ function resolveNextPath(
 function buildSpotifyStartUrl(
   requestUrl: URL,
   callbackUrl: string | null | undefined,
+  traceId: string | null | undefined,
 ): URL {
   const nextPath = resolveNextPath(callbackUrl, requestUrl.origin);
   const frontendRedirectUri = new URL(
@@ -52,6 +55,9 @@ function buildSpotifyStartUrl(
     requestUrl.origin,
   );
   frontendRedirectUri.searchParams.set("next", nextPath);
+  if (traceId) {
+    frontendRedirectUri.searchParams.set(TRACE_QUERY_PARAM, traceId);
+  }
 
   const spotifyStartUrl = new URL(CANONICAL_SPOTIFY_AUTH_PATH, requestUrl.origin);
   spotifyStartUrl.searchParams.set(
@@ -85,14 +91,27 @@ async function readCallbackUrlFromRequest(
   }
 }
 
+function normalizeTraceId(traceId: string | null | undefined): string | null {
+  if (!traceId) return null;
+  const trimmed = traceId.trim();
+  if (!trimmed) return null;
+  return trimmed.slice(0, MAX_TRACE_LENGTH);
+}
+
 export async function GET(request: NextRequest) {
   const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
-  const location = buildSpotifyStartUrl(request.nextUrl, callbackUrl);
+  const traceId = normalizeTraceId(
+    request.nextUrl.searchParams.get(TRACE_QUERY_PARAM),
+  );
+  const location = buildSpotifyStartUrl(request.nextUrl, callbackUrl, traceId);
   return NextResponse.redirect(location, 302);
 }
 
 export async function POST(request: NextRequest) {
   const callbackUrl = await readCallbackUrlFromRequest(request);
-  const location = buildSpotifyStartUrl(request.nextUrl, callbackUrl);
+  const traceId = normalizeTraceId(
+    request.nextUrl.searchParams.get(TRACE_QUERY_PARAM),
+  );
+  const location = buildSpotifyStartUrl(request.nextUrl, callbackUrl, traceId);
   return NextResponse.redirect(location, 303);
 }
