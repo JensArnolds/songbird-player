@@ -3,7 +3,10 @@
 import { GuestModal } from "@/components/GuestModal";
 import {
   SPOTIFY_AUTH_STATE_EVENT,
+  buildSpotifyFrontendCallbackUrl,
   getInMemoryAccessToken,
+  hasSpotifyTokenHashFragment,
+  resolveFrontendRedirectPath,
   restoreSpotifySession,
   type SpotifyAuthStateEventDetail,
 } from "@/services/spotifyAuthClient";
@@ -52,6 +55,30 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    const isBypassPath = BYPASS_PATH_PREFIXES.some((prefix) =>
+      window.location.pathname.startsWith(prefix),
+    );
+    const hasAuthHash = hasSpotifyTokenHashFragment(window.location.hash);
+    if (!isBypassPath && hasAuthHash) {
+      const nextFromQuery = new URLSearchParams(window.location.search).get(
+        "next",
+      );
+      const fallbackNextPath =
+        nextFromQuery && nextFromQuery.trim().length > 0
+          ? resolveFrontendRedirectPath(nextFromQuery)
+          : window.location.pathname === "/"
+            ? "/library"
+            : resolveFrontendRedirectPath(
+                `${window.location.pathname}${window.location.search}`,
+              );
+      const callbackUrl = new URL(
+        buildSpotifyFrontendCallbackUrl(fallbackNextPath),
+      );
+      callbackUrl.hash = window.location.hash;
+      window.location.replace(callbackUrl.toString());
+      return;
+    }
 
     let cancelled = false;
 

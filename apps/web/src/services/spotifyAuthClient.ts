@@ -15,7 +15,7 @@ const EXPIRY_SKEW_MS = 15_000;
 const TOKEN_STATE_STORAGE_KEY = "sb_spotify_auth_state_v1";
 const LOGIN_TRACE_STORAGE_KEY = "sb_spotify_auth_trace_v1";
 
-const REQUIRED_HASH_TOKEN_KEYS = [
+const HASH_TOKEN_KEYS = [
   "access_token",
   "token_type",
   "expires_in",
@@ -24,9 +24,16 @@ const REQUIRED_HASH_TOKEN_KEYS = [
   "spotify_expires_in",
 ] as const;
 
+const REQUIRED_HASH_TOKEN_KEYS = [
+  "access_token",
+  "token_type",
+  "expires_in",
+] as const;
+
+type HashTokenKey = (typeof HASH_TOKEN_KEYS)[number];
 type RequiredHashTokenKey = (typeof REQUIRED_HASH_TOKEN_KEYS)[number];
 
-type HashTokenPresence = Record<RequiredHashTokenKey, boolean>;
+type HashTokenPresence = Record<HashTokenKey, boolean>;
 
 type TokenState = {
   accessToken: string | null;
@@ -370,7 +377,7 @@ function parseHashTokens(hash: string): HashTokenParseResult {
   const params = new URLSearchParams(fragment);
   const keyPresence = createDefaultHashKeyPresence(false);
 
-  for (const key of REQUIRED_HASH_TOKEN_KEYS) {
+  for (const key of HASH_TOKEN_KEYS) {
     const value = params.get(key);
     keyPresence[key] = typeof value === "string" && value.trim().length > 0;
   }
@@ -385,18 +392,39 @@ function parseHashTokens(hash: string): HashTokenParseResult {
     };
   }
 
+  const spotifyAccessTokenRaw = params.get("spotify_access_token");
+
   return {
     payload: {
       accessToken: params.get("access_token") ?? "",
       tokenType: params.get("token_type") ?? "Bearer",
       expiresIn: parseExpiresIn(params.get("expires_in")),
-      spotifyAccessToken: params.get("spotify_access_token"),
+      spotifyAccessToken:
+        typeof spotifyAccessTokenRaw === "string" &&
+        spotifyAccessTokenRaw.trim().length > 0
+          ? spotifyAccessTokenRaw
+          : null,
       spotifyTokenType: params.get("spotify_token_type") ?? "Bearer",
       spotifyExpiresIn: parseExpiresIn(params.get("spotify_expires_in")),
     },
     keyPresence,
     missingKeys,
   };
+}
+
+export function hasSpotifyTokenHashFragment(hash: string): boolean {
+  const fragment = hash.startsWith("#") ? hash.slice(1) : hash;
+  if (!fragment) return false;
+
+  const params = new URLSearchParams(fragment);
+  const appAccessToken = params.get("access_token");
+  const spotifyAccessToken = params.get("spotify_access_token");
+
+  return (
+    (typeof appAccessToken === "string" && appAccessToken.trim().length > 0) ||
+    (typeof spotifyAccessToken === "string" &&
+      spotifyAccessToken.trim().length > 0)
+  );
 }
 
 function readCookieValue(cookieHeader: string, cookieName: string): string | null {

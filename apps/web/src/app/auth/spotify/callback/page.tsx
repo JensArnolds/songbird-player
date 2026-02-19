@@ -167,9 +167,6 @@ function SpotifyAuthCallbackContent() {
             "access_token",
             "token_type",
             "expires_in",
-            "spotify_access_token",
-            "spotify_token_type",
-            "spotify_expires_in",
           ],
           authorizationHeaderSent: false,
           authMeStatus: null,
@@ -241,7 +238,9 @@ function SpotifyAuthCallbackContent() {
         <p className="text-sm text-[var(--color-subtext)]">
           {errorMessage ?? "Authentication failed."}
         </p>
-        {showDebugPanel ? <SpotifyAuthDebugPanel debugInfo={debugInfo} /> : null}
+        {showDebugPanel ? (
+          <SpotifyAuthDebugPanel debugInfo={debugInfo} />
+        ) : null}
         <div className="mt-4 flex flex-col gap-2">
           <button
             type="button"

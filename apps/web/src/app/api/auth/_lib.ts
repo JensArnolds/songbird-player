@@ -29,6 +29,7 @@ type ProxyAuthOptions = {
   request: NextRequest | Request;
   method?: string;
   followRedirects?: boolean;
+  upstreamHeaders?: HeadersInit;
 };
 
 function getApiBaseUrl(): string | null {
@@ -120,6 +121,12 @@ export async function proxyAuthRequest(options: ProxyAuthOptions): Promise<NextR
 
   const method = options.method ?? options.request.method ?? "GET";
   const headers = getForwardHeaders(options.request);
+  if (options.upstreamHeaders) {
+    const extraHeaders = new Headers(options.upstreamHeaders);
+    extraHeaders.forEach((value, key) => {
+      headers.set(key.toLowerCase(), value);
+    });
+  }
   let body: string | undefined;
 
   if (method !== "GET" && method !== "HEAD") {

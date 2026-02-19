@@ -1,8 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import SpotifyAuthCallbackPage from "@/app/auth/spotify/callback/page";
 
 const navigationState = vi.hoisted(() => ({
   replace: vi.fn(),
+  router: { replace: vi.fn() },
   searchParams: new URLSearchParams("next=%2Flibrary"),
 }));
 
@@ -30,7 +32,7 @@ const authState = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: navigationState.replace }),
+  useRouter: () => navigationState.router,
   useSearchParams: () => ({
     get: (key: string) => navigationState.searchParams.get(key),
   }),
@@ -45,15 +47,15 @@ vi.mock("@/services/spotifyAuthClient", () => {
   };
 });
 
-async function renderPage() {
-  const pageModule = await import("@/app/auth/spotify/callback/page");
-  render(<pageModule.default />);
+function renderPage() {
+  render(<SpotifyAuthCallbackPage />);
 }
 
 describe("SpotifyAuthCallbackPage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     navigationState.replace.mockClear();
+    navigationState.router.replace = navigationState.replace;
     navigationState.searchParams = new URLSearchParams("next=%2Flibrary");
     authState.handleSpotifyCallbackHash.mockReset();
     authState.handleSpotifyCallbackHash.mockResolvedValue({
@@ -65,7 +67,7 @@ describe("SpotifyAuthCallbackPage", () => {
   });
 
   it("redirects to next path when callback handling succeeds", async () => {
-    await renderPage();
+    renderPage();
 
     await waitFor(() => {
       expect(authState.handleSpotifyCallbackHash).toHaveBeenCalledTimes(1);
@@ -78,7 +80,7 @@ describe("SpotifyAuthCallbackPage", () => {
       "next=%2Flibrary&error=access_denied",
     );
 
-    await renderPage();
+    renderPage();
 
     expect(
       await screen.findByText(
@@ -114,10 +116,10 @@ describe("SpotifyAuthCallbackPage", () => {
       }),
     );
 
-    await renderPage();
+    renderPage();
 
     expect(await screen.findByText("OAuth Debug Panel")).toBeInTheDocument();
-    expect(screen.getByText(/trace-123/)).toBeInTheDocument();
+    expect(screen.getAllByText(/trace-123/).length).toBeGreaterThan(0);
     expect(screen.getByText(/401/)).toBeInTheDocument();
   });
 });

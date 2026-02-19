@@ -5,6 +5,7 @@ import {
   getCsrfTokenFromCookies,
   getInMemoryAccessToken,
   handleSpotifyCallbackHash,
+  hasSpotifyTokenHashFragment,
   refreshAccessToken,
   restoreSpotifySession,
   resolveFrontendRedirectPath,
@@ -44,6 +45,12 @@ describe("spotifyAuthClient", () => {
     expect(token).toBe("csrf-123");
   });
 
+  it("detects token hashes used for callback recovery", () => {
+    expect(hasSpotifyTokenHashFragment("#access_token=abc")).toBe(true);
+    expect(hasSpotifyTokenHashFragment("#spotify_access_token=abc")).toBe(true);
+    expect(hasSpotifyTokenHashFragment("#state=xyz")).toBe(false);
+  });
+
   it("handles callback hash and validates /api/auth/me", async () => {
     window.history.replaceState(
       {},
@@ -80,6 +87,25 @@ describe("spotifyAuthClient", () => {
     const callbackHeaders = new Headers(callbackInit.headers);
     expect(callbackHeaders.get("accept")).toBe("application/json");
     expect(callbackHeaders.get("authorization")).toBe("Bearer app-token-1");
+  });
+
+  it("accepts callback hash when Spotify token fields are absent", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/auth/spotify/callback?next=%2Flibrary#access_token=app-token-optional&token_type=Bearer&expires_in=3600",
+    );
+
+    vi.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ id: "user-optional" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const result = await handleSpotifyCallbackHash();
+    expect(result.accessToken).toBe("app-token-optional");
+    expect(getInMemoryAccessToken()).toBe("app-token-optional");
   });
 
   it("emits auth-required event and clears token on refresh 401", async () => {

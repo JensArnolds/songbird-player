@@ -22,6 +22,7 @@ export const env = createEnv({
       .string()
       .optional()
       .transform((val) => val === "true"),
+    AUTH_DEBUG_TOKEN: z.string().optional(),
     SPOTIFY_CLIENT_ID: z.string().optional(),
     SPOTIFY_CLIENT_SECRET: z.string().optional(),
     NEXTAUTH_URL: z.string().url().optional(),
@@ -60,6 +61,7 @@ export const env = createEnv({
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     AUTH_SPOTIFY_ENABLED: process.env.AUTH_SPOTIFY_ENABLED,
     AUTH_DEBUG_OAUTH: process.env.AUTH_DEBUG_OAUTH,
+    AUTH_DEBUG_TOKEN: process.env.AUTH_DEBUG_TOKEN,
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,

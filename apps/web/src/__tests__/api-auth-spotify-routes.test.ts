@@ -29,6 +29,7 @@ describe("Spotify auth proxy routes", () => {
     vi.doMock("@/env", () => ({
       env: {
         API_V2_URL: "https://api.example.com/",
+        AUTH_DEBUG_TOKEN: "debug-token-123",
       },
     }));
 
@@ -58,6 +59,7 @@ describe("Spotify auth proxy routes", () => {
       "@/app/api/auth/spotify/refresh/route",
     );
     const meRoute = await loadGetRoute("@/app/api/auth/me/route");
+    const debugRoute = await loadGetRoute("@/app/api/auth/spotify/debug/route");
 
     await spotifyRoute.GET(
       makeRequest("/api/auth/spotify?frontend_redirect_uri=http%3A%2F%2Flocalhost%3A3222%2Fauth%2Fspotify%2Fcallback"),
@@ -72,6 +74,7 @@ describe("Spotify auth proxy routes", () => {
       }),
     );
     await meRoute.GET(makeRequest("/api/auth/me"));
+    await debugRoute.GET(makeRequest("/api/auth/spotify/debug?trace_id=trace-1"));
 
     const paths = capturedRequests.map((request) => new URL(request.url).pathname);
     expect(paths).toEqual([
@@ -79,13 +82,36 @@ describe("Spotify auth proxy routes", () => {
       "/api/auth/spotify/callback",
       "/api/auth/spotify/refresh",
       "/api/auth/me",
+      "/api/auth/spotify/debug",
     ]);
     expect(capturedRequests.map((request) => request.redirect)).toEqual([
       "manual",
       "manual",
       "follow",
       "follow",
+      "follow",
     ]);
+  });
+
+  it("returns 503 when AUTH_DEBUG_TOKEN is missing for debug proxy route", async () => {
+    vi.resetModules();
+    vi.doMock("@/env", () => ({
+      env: {
+        API_V2_URL: "https://api.example.com/",
+        AUTH_DEBUG_TOKEN: undefined,
+      },
+    }));
+
+    const fetchMock = vi.spyOn(global, "fetch");
+    const debugRoute = await loadGetRoute("@/app/api/auth/spotify/debug/route");
+    const response = await debugRoute.GET(
+      makeRequest("/api/auth/spotify/debug?trace_id=trace-1"),
+    );
+    const body = (await response.json()) as { error?: string };
+
+    expect(response.status).toBe(503);
+    expect(body.error).toMatch(/AUTH_DEBUG_TOKEN/i);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("forwards redirect location and set-cookie headers", async () => {
