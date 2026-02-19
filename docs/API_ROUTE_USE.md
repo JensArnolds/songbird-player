@@ -64,3 +64,13 @@ For upstream endpoint names/parameters, use `docs/API_V2_SWAGGER.json` as the so
 ## OG preview query encoding
 
 The upstream preview endpoint (`/api/preview?q=...`) may reject unencoded special characters before they reach the handler. When constructing URLs, always URL-encode the query (e.g. `encodeURIComponent`).
+
+## Spotify OAuth (cross-origin) insights
+
+When frontend and auth API run on different origins (for example `darkfloor.org` frontend and `darkfloor.one` API), use these guardrails:
+
+1. **Prefer canonical auth routes**: use `GET /api/auth/spotify`, `GET /api/auth/spotify/callback`, `POST /api/auth/spotify/refresh`, and `GET /api/auth/me`.
+2. **Allow callback frontend origin in backend config**: backend must include the frontend origin in `AUTH_FRONTEND_ORIGINS` when using `frontend_redirect_uri` in production.
+3. **Avoid browser-visible redirect chains for auth hydration**: either follow redirects server-side in proxy handlers or fetch the auth API origin directly from callback logic.
+4. **Keep CSP aligned with effective request origin(s)**: `connect-src` must include every host used for auth/profile/refresh calls, including canonical host variants.
+5. **Refresh requires cookie + CSRF pairing**: send `credentials: 'include'` and `X-CSRF-Token` (`sb_csrf_token`) for `POST /api/auth/spotify/refresh`.

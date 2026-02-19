@@ -9,5 +9,6 @@ export async function POST(request: NextRequest) {
     pathname: "/api/auth/spotify/refresh",
     request,
     method: "POST",
+    followRedirects: true,
   });
 }

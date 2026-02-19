@@ -41,6 +41,7 @@ export const env = createEnv({
     NEXT_PUBLIC_NEXTAUTH_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_VERCEL_URL: z.string().url().optional(),
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER: z.string().url().optional(),
+    NEXT_PUBLIC_AUTH_API_ORIGIN: z.string().url().optional(),
     NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED: z
       .string()
       .optional()
@@ -72,6 +73,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_NEXTAUTH_VERCEL_URL,
     NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER:
       process.env.NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER,
+    NEXT_PUBLIC_AUTH_API_ORIGIN: process.env.NEXT_PUBLIC_AUTH_API_ORIGIN,
     NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED:
       process.env.NEXT_PUBLIC_AUTH_SPOTIFY_ENABLED,
     NEXT_PUBLIC_AUTH_DEBUG_OAUTH:

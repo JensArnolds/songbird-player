@@ -5,6 +5,23 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-19
+
+### Added
+
+- **Configurable browser auth API origin for split-domain deployments**: Added `NEXT_PUBLIC_AUTH_API_ORIGIN` to client env validation/templates so Spotify callback profile hydration can target a dedicated auth/API origin when frontend and API are on different hosts. Locations: `apps/web/src/env.js`, `.env.example`, `apps/web/src/services/spotifyAuthClient.ts`.
+- **Auth regression tests for redirect mode and re-auth behavior**: Added coverage validating proxy redirect policy (`manual` vs `follow`), direct callback profile fetch target, and auth-required signaling on refresh `401`. Locations: `apps/web/src/__tests__/api-auth-spotify-routes.test.ts`, `apps/web/src/__tests__/spotifyAuthClient.test.ts`.
+
+### Changed
+
+- **Spotify callback profile hydration now uses explicit auth API origin**: Callback hash handling keeps in-memory token flow but now requests `GET {auth-origin}/api/auth/me` with bearer auth and `credentials: include`, avoiding fragile browser-visible redirect chains. Location: `apps/web/src/services/spotifyAuthClient.ts`.
+- **Auth proxy redirect strategy is route-aware**: Shared auth proxy now supports configurable redirect behavior; `/api/auth/me` and `/api/auth/spotify/refresh` follow upstream redirects server-side while OAuth initiation/callback retain manual redirect passthrough semantics. Locations: `apps/web/src/app/api/auth/_lib.ts`, `apps/web/src/app/api/auth/me/route.ts`, `apps/web/src/app/api/auth/spotify/refresh/route.ts`.
+- **Session recovery UX now opens sign-in CTA on auth loss**: Refresh failures due to missing CSRF cookie or upstream `401` clear in-memory token state and dispatch an auth-required event consumed by the auth modal provider. Locations: `apps/web/src/services/spotifyAuthClient.ts`, `apps/web/src/contexts/AuthModalContext.tsx`.
+
+### Fixed
+
+- **Post-Spotify callback failure on `darkfloor.org`**: Eliminated CSP-blocked auth bootstrap paths by expanding `connect-src` to include `https://www.darkfloor.one` and `https://darkfloor.one`, while retaining websocket entries. Location: `apps/web/src/proxy.ts`.
+
 ## [1.0.5] - 2026-02-19
 
 ### Added

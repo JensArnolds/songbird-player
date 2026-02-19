@@ -28,6 +28,7 @@ type ProxyAuthOptions = {
   pathname: string;
   request: NextRequest | Request;
   method?: string;
+  followRedirects?: boolean;
 };
 
 function getApiBaseUrl(): string | null {
@@ -136,7 +137,7 @@ export async function proxyAuthRequest(options: ProxyAuthOptions): Promise<NextR
       method,
       headers,
       ...(body ? { body } : {}),
-      redirect: "manual",
+      redirect: options.followRedirects ? "follow" : "manual",
       cache: "no-store",
       signal: AbortSignal.timeout(AUTH_PROXY_TIMEOUT_MS),
     });

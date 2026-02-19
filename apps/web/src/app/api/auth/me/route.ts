@@ -9,5 +9,6 @@ export async function GET(request: NextRequest) {
     pathname: "/api/auth/me",
     request,
     method: "GET",
+    followRedirects: true,
   });
 }

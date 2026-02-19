@@ -1,4 +1,8 @@
-const AUTH_ME_ENDPOINT = "/api/auth/me";
+const DEFAULT_AUTH_API_ORIGIN = "https://www.darkfloor.one";
+const configuredAuthApiOrigin =
+  process.env.NEXT_PUBLIC_AUTH_API_ORIGIN?.replace(/\/+$/, "") ??
+  DEFAULT_AUTH_API_ORIGIN;
+const AUTH_ME_ENDPOINT = `${configuredAuthApiOrigin}/api/auth/me`;
 const SPOTIFY_LOGIN_ENDPOINT = "/api/auth/spotify";
 const SPOTIFY_REFRESH_ENDPOINT = "/api/auth/spotify/refresh";
 const FRONTEND_SPOTIFY_CALLBACK_PATH = "/auth/spotify/callback";
@@ -27,6 +31,14 @@ type CallbackResult = {
   accessToken: string;
   profile: unknown;
 };
+
+export type AuthRequiredReason = "missing_csrf_token" | "unauthorized";
+export type AuthRequiredEventDetail = {
+  callbackUrl: string;
+  reason: AuthRequiredReason;
+};
+
+export const AUTH_REQUIRED_EVENT = "starchild:auth-required";
 
 const tokenState: TokenState = {
   accessToken: null,
@@ -229,6 +241,29 @@ export function clearInMemoryAccessToken(): void {
   tokenState.spotifyExpiresAtMs = null;
 }
 
+function notifyAuthRequired(reason: AuthRequiredReason): void {
+  if (typeof window === "undefined") return;
+  const currentPathWithSearch = `${window.location.pathname}${window.location.search}`;
+  const callbackUrl = window.location.pathname.startsWith(
+    FRONTEND_SPOTIFY_CALLBACK_PATH,
+  )
+    ? resolveFrontendRedirectPath(
+        new URLSearchParams(window.location.search).get("next"),
+      )
+    : resolveFrontendRedirectPath(currentPathWithSearch);
+
+  window.dispatchEvent(
+    new CustomEvent<AuthRequiredEventDetail>(AUTH_REQUIRED_EVENT, {
+      detail: { callbackUrl, reason },
+    }),
+  );
+}
+
+function handleUnauthorized(reason: AuthRequiredReason): void {
+  clearInMemoryAccessToken();
+  notifyAuthRequired(reason);
+}
+
 export function getCsrfTokenFromCookies(cookieHeader?: string): string | null {
   if (typeof window === "undefined" && !cookieHeader) return null;
   const source = cookieHeader ?? document.cookie;
@@ -260,6 +295,7 @@ export async function getCurrentUser(accessToken: string): Promise<unknown> {
 export async function refreshAccessToken(): Promise<string> {
   const csrfToken = getCsrfTokenFromCookies();
   if (!csrfToken) {
+    handleUnauthorized("missing_csrf_token");
     throw new SpotifyAuthClientError(
       `${CSRF_COOKIE_NAME} cookie is missing`,
       401,
@@ -278,6 +314,9 @@ export async function refreshAccessToken(): Promise<string> {
 
   const body = await parseResponseBody(response);
   if (!response.ok) {
+    if (response.status === 401) {
+      handleUnauthorized("unauthorized");
+    }
     const message =
       getMessageFromBody(body) ??
       `POST ${SPOTIFY_REFRESH_ENDPOINT} failed with status ${response.status}`;
@@ -312,11 +351,9 @@ export async function ensureAccessToken(): Promise<string | null> {
     return tokenState.accessToken;
   }
 
-  if (!refreshPromise) {
-    refreshPromise = refreshAccessToken().finally(() => {
-      refreshPromise = null;
-    });
-  }
+  refreshPromise ??= refreshAccessToken().finally(() => {
+    refreshPromise = null;
+  });
 
   try {
     return await refreshPromise;
@@ -370,7 +407,7 @@ export async function authFetch(
   };
 
   let token = await ensureAccessToken();
-  let response = await sendRequest(token);
+  const response = await sendRequest(token);
 
   if (response.status !== 401) {
     return response;
@@ -381,7 +418,12 @@ export async function authFetch(
     return response;
   }
 
-  return sendRequest(token);
+  const retriedResponse = await sendRequest(token);
+  if (retriedResponse.status === 401) {
+    handleUnauthorized("unauthorized");
+  }
+
+  return retriedResponse;
 }
 
 export const login = startSpotifyLogin;

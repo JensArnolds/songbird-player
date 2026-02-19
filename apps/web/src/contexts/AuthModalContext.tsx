@@ -4,9 +4,14 @@
 
 import { AuthModal } from "@/components/AuthModal";
 import {
+  AUTH_REQUIRED_EVENT,
+  type AuthRequiredEventDetail,
+} from "@/services/spotifyAuthClient";
+import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -60,6 +65,27 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
   const closeAuthModal = useCallback(() => {
     setIsOpen(false);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const onAuthRequired = (event: Event) => {
+      const detail = (event as CustomEvent<AuthRequiredEventDetail>).detail;
+      openAuthModal({
+        callbackUrl: detail?.callbackUrl ?? fallbackCallbackUrl,
+        title: "Sign in to continue",
+        message: "Your Spotify session expired. Sign in again to continue.",
+      });
+    };
+
+    window.addEventListener(AUTH_REQUIRED_EVENT, onAuthRequired as EventListener);
+    return () => {
+      window.removeEventListener(
+        AUTH_REQUIRED_EVENT,
+        onAuthRequired as EventListener,
+      );
+    };
+  }, [fallbackCallbackUrl, openAuthModal]);
 
   const value = useMemo<AuthModalContextType>(
     () => ({

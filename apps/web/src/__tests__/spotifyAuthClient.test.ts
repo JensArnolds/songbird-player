@@ -1,4 +1,5 @@
 import {
+  AUTH_REQUIRED_EVENT,
   buildSpotifyLoginUrl,
   clearInMemoryAccessToken,
   getCsrfTokenFromCookies,
@@ -58,16 +59,68 @@ describe("spotifyAuthClient", () => {
     expect(result.accessToken).toBe("app-token-1");
     expect(getInMemoryAccessToken()).toBe("app-token-1");
     expect(window.location.hash).toBe("");
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/auth/me",
-      expect.objectContaining({
-        method: "GET",
-        credentials: "include",
-        headers: expect.objectContaining({
-          Accept: "application/json",
-          Authorization: "Bearer app-token-1",
+
+    const callbackFetchCall = fetchMock.mock.calls[0] as
+      | [RequestInfo | URL, RequestInit | undefined]
+      | undefined;
+    expect(callbackFetchCall).toBeDefined();
+    if (!callbackFetchCall) {
+      throw new Error("Expected callback /api/auth/me request");
+    }
+
+    expect(callbackFetchCall[0]).toBe("https://www.darkfloor.one/api/auth/me");
+    const callbackInit = callbackFetchCall[1] ?? {};
+    expect(callbackInit.method).toBe("GET");
+    expect(callbackInit.credentials).toBe("include");
+
+    const callbackHeaders = new Headers(callbackInit.headers);
+    expect(callbackHeaders.get("accept")).toBe("application/json");
+    expect(callbackHeaders.get("authorization")).toBe("Bearer app-token-1");
+  });
+
+  it("emits auth-required event and clears token on refresh 401", async () => {
+    document.cookie = "sb_csrf_token=csrf-refresh-token; path=/";
+    window.history.replaceState(
+      {},
+      "",
+      "/auth/spotify/callback?next=%2Flibrary#access_token=app-token-1&token_type=Bearer&expires_in=3600",
+    );
+
+    const authRequiredListener = vi.fn();
+    window.addEventListener(AUTH_REQUIRED_EVENT, authRequiredListener as EventListener);
+
+    const fetchMock = vi.spyOn(global, "fetch");
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ id: "user-1" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
         }),
-      }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: "Unauthorized" }), {
+          status: 401,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+
+    await handleSpotifyCallbackHash();
+    expect(getInMemoryAccessToken()).toBe("app-token-1");
+
+    await expect(refreshAccessToken()).rejects.toBeInstanceOf(Error);
+    expect(getInMemoryAccessToken()).toBeNull();
+    expect(authRequiredListener).toHaveBeenCalledTimes(1);
+
+    const authRequiredEvent = authRequiredListener.mock.calls[0]?.[0] as CustomEvent<{
+      callbackUrl: string;
+      reason: string;
+    }>;
+    expect(authRequiredEvent.detail.callbackUrl).toBe("/library");
+    expect(authRequiredEvent.detail.reason).toBe("unauthorized");
+
+    window.removeEventListener(
+      AUTH_REQUIRED_EVENT,
+      authRequiredListener as EventListener,
     );
   });
 
@@ -85,16 +138,22 @@ describe("spotifyAuthClient", () => {
 
     expect(refreshed).toBe("new-access-token");
     expect(getInMemoryAccessToken()).toBe("new-access-token");
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/auth/spotify/refresh",
-      expect.objectContaining({
-        method: "POST",
-        credentials: "include",
-        headers: expect.objectContaining({
-          Accept: "application/json",
-          "X-CSRF-Token": "csrf-refresh-token",
-        }),
-      }),
-    );
+
+    const refreshFetchCall = fetchMock.mock.calls[0] as
+      | [RequestInfo | URL, RequestInit | undefined]
+      | undefined;
+    expect(refreshFetchCall).toBeDefined();
+    if (!refreshFetchCall) {
+      throw new Error("Expected refresh request");
+    }
+
+    expect(refreshFetchCall[0]).toBe("/api/auth/spotify/refresh");
+    const refreshInit = refreshFetchCall[1] ?? {};
+    expect(refreshInit.method).toBe("POST");
+    expect(refreshInit.credentials).toBe("include");
+
+    const refreshHeaders = new Headers(refreshInit.headers);
+    expect(refreshHeaders.get("accept")).toBe("application/json");
+    expect(refreshHeaders.get("x-csrf-token")).toBe("csrf-refresh-token");
   });
 });

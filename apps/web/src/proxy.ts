@@ -77,6 +77,16 @@ export function proxy(request: NextRequest) {
     const apiWsDomain = apiDomain
       ? apiDomain.replace(/^https?:\/\//, "wss://*.")
       : "";
+    const connectSrcAllowlist = [
+      "'self'",
+      apiDomain,
+      "https://api.starchildmusic.com",
+      "https://www.darkfloor.one",
+      "https://darkfloor.one",
+      apiWsDomain,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     const cspHeader = `
       default-src 'self';
@@ -84,7 +94,7 @@ export function proxy(request: NextRequest) {
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https://cdn-images.dzcdn.net https://api.deezer.com https://cdn.discordapp.com https://media.discordapp.net https://discord.com https://discordapp.com;
       font-src 'self' data:;
-      connect-src 'self' ${apiDomain} https://api.starchildmusic.com ${apiWsDomain};
+      connect-src ${connectSrcAllowlist};
       media-src 'self' ${apiDomain} blob:;
       worker-src 'self' blob:;
       frame-ancestors 'self';

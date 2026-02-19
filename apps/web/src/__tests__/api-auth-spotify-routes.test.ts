@@ -32,15 +32,18 @@ describe("Spotify auth proxy routes", () => {
       },
     }));
 
-    const capturedUrls: string[] = [];
-    vi.spyOn(global, "fetch").mockImplementation(async (input) => {
+    const capturedRequests: Array<{
+      url: string;
+      redirect: RequestRedirect | undefined;
+    }> = [];
+    vi.spyOn(global, "fetch").mockImplementation(async (input, init) => {
       const url =
         typeof input === "string"
           ? input
           : input instanceof URL
             ? input.toString()
             : input.url;
-      capturedUrls.push(url);
+      capturedRequests.push({ url, redirect: init?.redirect });
       return new Response(JSON.stringify({ ok: true }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -70,12 +73,18 @@ describe("Spotify auth proxy routes", () => {
     );
     await meRoute.GET(makeRequest("/api/auth/me"));
 
-    const paths = capturedUrls.map((url) => new URL(url).pathname);
+    const paths = capturedRequests.map((request) => new URL(request.url).pathname);
     expect(paths).toEqual([
       "/api/auth/spotify",
       "/api/auth/spotify/callback",
       "/api/auth/spotify/refresh",
       "/api/auth/me",
+    ]);
+    expect(capturedRequests.map((request) => request.redirect)).toEqual([
+      "manual",
+      "manual",
+      "follow",
+      "follow",
     ]);
   });
 
