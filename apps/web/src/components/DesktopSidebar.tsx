@@ -317,17 +317,6 @@ export function DesktopSidebar() {
                 </div>
               )}
             </div>
-            {!session && !collapsed && (
-              <button
-                type="button"
-                onClick={() => {
-                  openAuthModal({ callbackUrl: "/" });
-                }}
-                className="electron-no-drag mt-3 w-full rounded-full bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-strong))] px-4 py-2 text-sm font-semibold text-[var(--color-on-accent)] shadow-[var(--accent-btn-shadow)] transition hover:scale-[1.01] active:scale-[0.99]"
-              >
-                Sign in to unlock your library
-              </button>
-            )}
           </div>
 
           {!collapsed && (
@@ -495,30 +484,14 @@ export function DesktopSidebar() {
                     <div className="text-xs font-semibold tracking-[0.16em] text-[var(--color-muted)] uppercase">
                       Your Library
                     </div>
-                    <div className="mt-2 text-[var(--color-subtext)]">
-                      I know we&apos;re being pedantic at this point. It&apos;s
-                      purely optional.
+                    <div className="mt-2 text-[var(--color-muted)]">
+                      Your playlists will appear here.
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        openAuthModal({ callbackUrl: "/playlists" });
-                      }}
-                      className="electron-no-drag mt-3 w-full rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm font-semibold text-[var(--color-text)] hover:border-[rgba(244,178,102,0.35)] hover:bg-[rgba(244,178,102,0.1)]"
-                    >
-                      Sign in to view playlists
-                    </button>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      openAuthModal({ callbackUrl: "/playlists" });
-                    }}
-                    className="electron-no-drag flex h-10 w-full items-center justify-center rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] text-xs font-semibold text-[var(--color-text)]"
-                  >
-                    Sign in
-                  </button>
+                  <div className="flex h-10 w-full items-center justify-center text-xs text-[var(--color-muted)]">
+                    —
+                  </div>
                 )}
               </div>
             )}

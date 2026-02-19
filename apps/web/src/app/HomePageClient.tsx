@@ -1424,30 +1424,6 @@ export default function HomePageClient({ apiHostname }: HomePageClientProps) {
                     </motion.div>
                   )}
 
-                  {!session && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...springPresets.gentle, delay: 0.2 }}
-                      className="mt-4 max-w-md rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 md:mt-3 md:px-4 md:py-3"
-                    >
-                      <p className="mb-2 text-sm font-semibold text-[var(--color-text)] md:mb-1.5 md:text-xs">
-                        Sign in is optional, but it unlocks a few features you
-                        may like:
-                      </p>
-                      <ul className="space-y-1.5 text-xs text-[var(--color-subtext)] md:space-y-1">
-                        <li className="flex items-start">
-                          <span>
-                            Your privacy stays fully protected; optional sign-in
-                            unlocks custom playlists, a public profile, and your
-                            personal music identity—with more features on the
-                            way
-                          </span>
-                        </li>
-                      </ul>
-                    </motion.div>
-                  )}
-
                   {isMobile && (
                     <motion.button
                       onClick={handleShufflePlay}

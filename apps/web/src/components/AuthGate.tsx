@@ -12,7 +12,8 @@ import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 const BYPASS_PATH_PREFIXES = ["/auth/spotify/callback", "/auth/callback"];
-const GUEST_MODE_STORAGE_KEY = "sb_guest_mode_enabled";
+const GUEST_MODAL_DISMISSED_STORAGE_KEY = "sb_guest_modal_dismissed";
+const LEGACY_GUEST_MODE_STORAGE_KEY = "sb_guest_mode_enabled";
 
 function getSessionStatus(
   sessionResult: unknown,
@@ -41,9 +42,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const sessionResult = useSession() as unknown;
   const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
   const [spotifyResolved, setSpotifyResolved] = useState(false);
-  const [guestModeEnabled, setGuestModeEnabled] = useState(() => {
+  const [guestModalDismissed, setGuestModalDismissed] = useState(() => {
     if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(GUEST_MODE_STORAGE_KEY) === "true";
+    return (
+      window.localStorage.getItem(GUEST_MODAL_DISMISSED_STORAGE_KEY) === "true" ||
+      window.localStorage.getItem(LEGACY_GUEST_MODE_STORAGE_KEY) === "true"
+    );
   });
 
   useEffect(() => {
@@ -89,40 +93,31 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const status = getSessionStatus(sessionResult);
   const hasInMemorySpotifyAccessToken = Boolean(getInMemoryAccessToken());
   const isAuthenticated =
-    Boolean(sessionUser) ||
-    spotifyAuthenticated ||
-    hasInMemorySpotifyAccessToken ||
-    guestModeEnabled;
+    Boolean(sessionUser) || spotifyAuthenticated || hasInMemorySpotifyAccessToken;
   const isLoading =
     status === "loading" ||
     (!sessionUser && !spotifyResolved && !hasInMemorySpotifyAccessToken);
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div
-          role="status"
-          aria-label="Loading session"
-          className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--color-accent)] border-t-transparent"
-        >
-          <span className="sr-only">Loading session</span>
-        </div>
-      </div>
-    );
-  }
+  const showGuestModal =
+    !isLoading && !isAuthenticated && !guestModalDismissed && pathname === "/";
 
-  if (!isAuthenticated) {
-    return (
-      <GuestModal
-        onContinueAsGuest={() => {
-          if (typeof window !== "undefined") {
-            window.localStorage.setItem(GUEST_MODE_STORAGE_KEY, "true");
-          }
-          setGuestModeEnabled(true);
-        }}
-      />
-    );
-  }
-
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {showGuestModal ? (
+        <GuestModal
+          onContinueAsGuest={() => {
+            if (typeof window !== "undefined") {
+              window.localStorage.setItem(
+                GUEST_MODAL_DISMISSED_STORAGE_KEY,
+                "true",
+              );
+              window.localStorage.setItem(LEGACY_GUEST_MODE_STORAGE_KEY, "true");
+            }
+            setGuestModalDismissed(true);
+          }}
+        />
+      ) : null}
+    </>
+  );
 }
