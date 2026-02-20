@@ -9,12 +9,15 @@ import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { api } from "@starchild/api-client/trpc/react";
 import { Clock, Heart } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 type TabType = "favorites" | "history";
 
 export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<TabType>("favorites");
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
 
   const player = useGlobalPlayer();
   const utils = api.useUtils();
@@ -22,13 +25,13 @@ export default function LibraryPage() {
   const { data: favorites, isLoading: favoritesLoading } =
     api.music.getFavorites.useQuery(
       { limit: 100, offset: 0 },
-      { enabled: activeTab === "favorites" },
+      { enabled: activeTab === "favorites" && isAuthenticated },
     );
 
   const { data: history, isLoading: historyLoading } =
     api.music.getHistory.useQuery(
       { limit: 100, offset: 0 },
-      { enabled: activeTab === "history" },
+      { enabled: activeTab === "history" && isAuthenticated },
     );
 
   const removeFavorite = api.music.removeFavorite.useMutation({
@@ -82,8 +85,23 @@ export default function LibraryPage() {
         </button>
       </div>
 
+      {!isAuthenticated ? (
+        <div className="fade-in">
+          <EmptyState
+            icon={<Heart className="h-12 w-12 md:h-16 md:w-16" />}
+            title="Sign in to view your library"
+            description="Favorites and listening history are available after login."
+            action={
+              <Link href="/signin" className="btn-primary touch-target-lg">
+                Sign in
+              </Link>
+            }
+          />
+        </div>
+      ) : null}
+
       {}
-      {activeTab === "favorites" && (
+      {isAuthenticated && activeTab === "favorites" && (
         <div className="fade-in">
           {favoritesLoading ? (
             <LoadingState message="Loading your favorites..." />
@@ -118,7 +136,7 @@ export default function LibraryPage() {
         </div>
       )}
 
-      {activeTab === "history" && (
+      {isAuthenticated && activeTab === "history" && (
         <div className="fade-in">
           {historyLoading ? (
             <LoadingState message="Loading your history..." />
