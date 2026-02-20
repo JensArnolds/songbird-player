@@ -10,6 +10,7 @@ import {
   refreshAccessToken,
   restoreSpotifySession,
   resolveFrontendRedirectPath,
+  startSpotifyLogin,
 } from "@/services/spotifyAuthClient";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -43,6 +44,26 @@ describe("spotifyAuthClient", () => {
     expect(parsed.pathname).toBe("/api/auth/signin/spotify");
     expect(parsed.searchParams.get("callbackUrl")).toBe("/playlists?tab=mine");
     expect(parsed.searchParams.get("trace")).toBeTruthy();
+  });
+
+  it("starts Spotify login on canonical auth origin", () => {
+    window.history.replaceState({}, "", "/signin");
+    const navigateSpy = vi.fn<(url: string) => void>();
+
+    startSpotifyLogin("/playlists?tab=mine", navigateSpy);
+
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
+    const navigatedUrl = navigateSpy.mock.calls[0]?.[0];
+    expect(typeof navigatedUrl).toBe("string");
+
+    const parsed = new URL(String(navigatedUrl), window.location.origin);
+    expect(parsed.origin).toBe("https://www.darkfloor.one");
+    expect(parsed.pathname).toBe("/api/auth/spotify");
+
+    const frontendRedirect = parsed.searchParams.get("frontend_redirect_uri");
+    expect(frontendRedirect).toContain("/auth/spotify/callback");
+    expect(frontendRedirect).toContain("next=%2Fplaylists%3Ftab%3Dmine");
+    expect(frontendRedirect).toContain("trace=");
   });
 
   it("normalizes root post-auth destinations to /library", () => {

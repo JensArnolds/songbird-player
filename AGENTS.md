@@ -1,58 +1,115 @@
-# Agent Guide (bluesix-library / Starchild Music)
+# Agent Guide (songbird-player / Starchild Monorepo)
 
-This repository is a **Next.js (App Router) + tRPC + Drizzle/Postgres** app with an **Electron** desktop wrapper.
+This file is the primary project context for coding agents in this repository.
+Always read this file before making changes.
 
-## First files to read
+## Read Order
 
-- `CONTEXT.md` (short orientation + key paths)
-- `README.md` (feature overview + setup)
-- `docs/README.md` (documentation index)
-- `docs/architecture.md` (system architecture + data flows)
-- `docs/API_ROUTE_USE.md` (Next.js API proxy routes and backends)
-- `docs/API_V2_SWAGGER.yaml` (upstream OpenAPI spec for the service configured as `API_V2_URL` — not this repo’s API)
+1. `AGENTS.md` (this file)
+2. `CONTEXT.md`
+3. `README.md`
+4. `docs/README.md`
+5. `docs/architecture.md`
+6. `docs/API_ROUTE_USE.md`
+7. `docs/API_V2_SWAGGER.yaml` (upstream API contract, not this repo API surface)
 
-## Quick commands
+## High-Level Architecture
 
-- Install deps: `npm ci`
-- Dev (custom server, loads **only** `.env`): `npm run dev`
-- Dev (Next.js only): `npm run dev:next`
-- Build: `npm run build`
-- Start (prod custom server): `npm run start`
-- Lint + types: `npm run check`
-- Tests: `npm run test`
-- Format: `npm run format:write`
-- Electron dev: `npm run electron:dev`
+This is a Turborepo-style monorepo with multiple app runtimes and shared packages.
 
-Default local URL: `http://localhost:3222`
+- Apps:
+  - `apps/web`: Primary Next.js App Router product (tRPC + NextAuth + Drizzle/Postgres).
+  - `apps/desktop`: Electron wrapper and packaging scripts.
+  - `apps/mobile`: Scaffolded mobile shell (currently minimal wiring).
+- Shared packages:
+  - `packages/api-client`, `packages/auth`, `packages/config`, `packages/types`
+  - `packages/player-core`, `packages/player-react`, `packages/audio-adapters`
+  - `packages/ui`, `packages/visualizers`
+- Infra/runtime config:
+  - Root scripts and build config in `package.json`, `turbo.json`, `vercel.json`, `Dockerfile`, `ecosystem*.cjs`
+  - SQL migrations in `apps/web/drizzle`
 
-## Environment variables
+Note on NestJS APIs:
+- This repo does not host in-repo NestJS modules; it integrates with upstream services (documented by `docs/API_V2_SWAGGER.yaml`) via Next.js proxy routes.
 
-- Add/change variables in **both**:
+## Where Core Logic Lives
+
+- Auth/session:
+  - NextAuth server config: `apps/web/src/server/auth/*`
+  - NextAuth route handler: `apps/web/src/app/api/auth/[...nextauth]/route.ts`
+  - Upstream auth proxy helpers/routes: `apps/web/src/app/api/auth/*`
+- Playback:
+  - Main player context/hook: `packages/player-react/src/AudioPlayerContext.tsx`, `packages/player-react/src/useAudioPlayer.ts`
+  - Core player/domain logic: `packages/player-core/src/*`
+  - Audio adapters: `packages/audio-adapters/src/*`
+- Streaming:
+  - Stream proxy endpoint: `apps/web/src/app/api/stream/route.ts`
+  - Client stream URL helpers: `packages/api-client/src/rest.ts`
+  - V2 proxy utilities: `apps/web/src/app/api/v2/_lib.ts`
+- tRPC/data:
+  - tRPC base/context/procedures: `apps/web/src/server/api/trpc.ts`
+  - Router composition: `apps/web/src/server/api/root.ts`
+  - Domain routers: `apps/web/src/server/api/routers/*`
+- Database:
+  - Drizzle schema: `apps/web/src/server/db/schema.ts`
+  - DB runtime/pool: `apps/web/src/server/db/index.ts`
+  - Migrations: `apps/web/drizzle/*`
+- Shared types/utilities/config:
+  - Types: `packages/types/src/*`
+  - Config/constants/storage keys: `packages/config/src/*`
+  - Auth helpers: `packages/auth/src/*`
+  - App-local utils: `apps/web/src/utils/*`
+
+## Routing, tRPC, and API Module Conventions
+
+- Next.js routing:
+  - App pages/layouts: `apps/web/src/app/**/page.tsx`, `layout.tsx`
+  - API route handlers: `apps/web/src/app/api/**/route.ts`
+- tRPC:
+  - Use `createTRPCRouter`, `publicProcedure`, `protectedProcedure` from `apps/web/src/server/api/trpc.ts`
+  - Register new routers in `apps/web/src/server/api/root.ts`
+  - Keep business logic in routers/services, not in React components
+- API modules:
+  - Prefer tRPC for first-party app data
+  - Keep `apps/web/src/app/api/*` focused on proxying/upstream integration and transport concerns
+  - Reuse existing proxy helpers (`_lib.ts`) when possible
+
+## Environment and Config Rules
+
+- Use `apps/web/src/env.js` for server env access and validation.
+- Do not introduce new direct `process.env` usage in app/server code when `env` is available.
+- When adding/changing env vars, update both:
   - `.env.example`
-  - `src/env.js` (Zod validation via `@t3-oss/env-nextjs`)
-- Runtime DB code requires `DATABASE_URL` (`src/server/db/index.ts` throws if missing).
-- The custom server (`scripts/server.js`) loads env files differently:
-  - `NODE_ENV=development`: loads **only** `.env` (override enabled)
-  - production: loads `.env.local`, then `.env.production`, then `.env` (no override)
+  - `apps/web/src/env.js`
+- Dev server env loading behavior is defined in `apps/web/scripts/server.js`.
 
-## Project layout (high-signal)
+## Navigation and Indexing Expectations
 
-- UI / routes: `src/app/*`
-- API proxies (Bluesix V2): `src/app/api/*/route.ts(x)`
-- tRPC: `src/server/api/*` + `src/app/api/trpc/[trpc]/route.ts`
-- Auth (NextAuth): `src/server/auth/*` + `src/app/api/auth/[...nextauth]/route.ts`
-- DB (Drizzle + pg Pool): `src/server/db/*` + `drizzle/` migrations
-- Player: `src/contexts/AudioPlayerContext.tsx`, `src/hooks/useAudioPlayer.ts`
-- Electron: `apps/desktop/electron/*` (compat wrappers remain under `electron/*`)
+- Work with whole-repo context, not single-file context.
+- Prefer cross-file navigation and existing definitions over duplicating logic.
+- Before editing for multi-module tasks, identify key files and each file’s role.
+- Search for existing patterns first (routers, mutations, proxy handlers, error handling, logging) and follow them.
 
-## Working conventions for this repo
+## Repo-Specific Patterns to Reuse
 
-- Prefer **tRPC** for app data; keep `src/app/api/*` focused on proxying external services.
-- Keep changes minimal and consistent with existing TypeScript + ESM patterns (`package.json` has `"type": "module"`).
-- When adding env usage in server code, route it through `env` (`src/env.js`) instead of `process.env` directly.
+- Type-safe boundary-first coding with shared types from `@starchild/types`.
+- Existing tRPC procedure style for auth gating and error formatting.
+- Existing API error/logging style in route handlers (structured logs, no secret leakage).
+- Existing DB conflict handling patterns in routers (retry/sync where sequence drift is known).
+- Existing UI/provider patterns in `packages/player-react` and `apps/web/src/contexts/*`.
+- For Spotify OAuth in cross-origin setups (`NEXT_PUBLIC_AUTH_API_ORIGIN` differs from frontend origin), initiate browser login on the canonical auth API origin (`${NEXT_PUBLIC_AUTH_API_ORIGIN}/api/auth/spotify?...`) so PKCE/session cookies are issued on the callback origin.
 
----
+## Change Behavior for Future Tasks
 
-## Codex skills (optional)
+- Before implementation, summarize:
+  - Files to touch
+  - Existing patterns being followed
+- Keep changes minimal and localized.
+- Avoid global architectural/config changes unless explicitly requested.
+- Add concise comments only where logic is non-obvious.
+- Validate with targeted checks/tests relevant to edited modules.
 
-If the user asks for a skill by name (e.g. `skill-installer`) or the task clearly matches a skill description, open that skill’s `SKILL.md` from the local skills directory and follow its workflow for the turn.
+## Maintenance Rule
+
+- Treat `AGENTS.md` as the single source of truth for repository workflows.
+- Update this file whenever new architectural details or working conventions are discovered.
