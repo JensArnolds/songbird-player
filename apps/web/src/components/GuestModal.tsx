@@ -2,14 +2,24 @@
 
 "use client";
 
-import { STORAGE_KEYS } from "@starchild/config/storage";
-import { getGenres, type GenreListItem } from "@starchild/api-client/rest";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { cn } from "@/lib/utils";
 import { localStorage as appStorage } from "@/services/storage";
 import { startSpotifyLogin } from "@/services/spotifyAuthClient";
 import { buildAuthCallbackUrl } from "@/utils/authRedirect";
 import { parsePreferredGenreId } from "@/utils/genre";
 import { settingsStorage } from "@/utils/settingsStorage";
-import { Music2 } from "lucide-react";
+import { getGenres, type GenreListItem } from "@starchild/api-client/rest";
+import { STORAGE_KEYS } from "@starchild/config/storage";
+import { Music2, X } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -19,26 +29,51 @@ interface GuestModalProps {
 }
 
 type SimilarityPreference = "strict" | "balanced" | "diverse";
+type MoodPresetId = "chill" | "focus" | "hype" | "discover";
 
-function readBooleanFromLocalStorageKey(key: string, fallback: boolean): boolean {
-  if (typeof window === "undefined") return fallback;
+type MoodPreset = {
+  id: MoodPresetId;
+  label: string;
+  hint: string;
+  similarity: SimilarityPreference;
+  autoQueue: boolean;
+  smartMix: boolean;
+};
 
-  const raw = window.localStorage.getItem(key);
-  if (raw === null) return fallback;
-
-  if (raw === "true") return true;
-  if (raw === "false") return false;
-
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (parsed === true) return true;
-    if (parsed === false) return false;
-  } catch {
-
-  }
-
-  return fallback;
-}
+const MOOD_PRESETS: MoodPreset[] = [
+  {
+    id: "chill",
+    label: "Chill",
+    hint: "Smooth + relaxed",
+    similarity: "diverse",
+    autoQueue: false,
+    smartMix: true,
+  },
+  {
+    id: "focus",
+    label: "Focus",
+    hint: "Tighter matches",
+    similarity: "strict",
+    autoQueue: false,
+    smartMix: true,
+  },
+  {
+    id: "hype",
+    label: "Hype",
+    hint: "Faster queue flow",
+    similarity: "balanced",
+    autoQueue: true,
+    smartMix: true,
+  },
+  {
+    id: "discover",
+    label: "Discover",
+    hint: "Broader variety",
+    similarity: "diverse",
+    autoQueue: true,
+    smartMix: false,
+  },
+];
 
 function applyThemeClass(): void {
   if (typeof document === "undefined") return;
@@ -47,53 +82,26 @@ function applyThemeClass(): void {
   html.classList.remove("theme-light");
 }
 
-function PreferenceToggle({
-  label,
-  description,
-  checked,
-  onClick,
-}: {
-  label: string;
-  description: string;
-  checked: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={checked}
-      className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
-        checked
-          ? "border-[#1DB954]/50 bg-[#1DB954]/12"
-          : "border-white/12 bg-white/[0.04] hover:border-white/28 hover:bg-white/[0.08]"
-      }`}
-    >
-      <div>
-        <p className="text-sm font-medium text-white">{label}</p>
-        <p className="mt-0.5 text-xs text-white/65">{description}</p>
-      </div>
-      <div
-        className={`h-5 w-9 shrink-0 rounded-full border p-0.5 transition ${
-          checked
-            ? "border-[#1DB954] bg-[#1DB954]/20"
-            : "border-white/25 bg-white/10"
-        }`}
-      >
-        <div
-          className={`h-3.5 w-3.5 rounded-full transition ${
-            checked ? "translate-x-3.5 bg-[#1DB954]" : "translate-x-0 bg-white/80"
-          }`}
-        />
-      </div>
-    </button>
+function resolveInitialMood(
+  similarityPreference: SimilarityPreference,
+  autoQueueEnabled: boolean,
+  smartMixEnabled: boolean,
+): MoodPresetId {
+  const match = MOOD_PRESETS.find(
+    (preset) =>
+      preset.similarity === similarityPreference &&
+      preset.autoQueue === autoQueueEnabled &&
+      preset.smartMix === smartMixEnabled,
   );
+  return match?.id ?? "chill";
 }
 
 export function GuestModal({
   onContinueAsGuest,
   callbackUrl = "/library",
 }: GuestModalProps) {
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const [isOpen, setIsOpen] = useState(true);
   const [genres, setGenres] = useState<GenreListItem[]>([]);
   const [genresLoading, setGenresLoading] = useState(true);
   const [preferredGenreId, setPreferredGenreId] = useState<number | null>(() =>
@@ -107,24 +115,18 @@ export function GuestModal({
   const [preferredGenreName, setPreferredGenreName] = useState<string>(() =>
     appStorage.getOrDefault<string>(STORAGE_KEYS.PREFERRED_GENRE_NAME, ""),
   );
-  const [visualizerEnabled, setVisualizerEnabled] = useState<boolean>(() =>
-    readBooleanFromLocalStorageKey(STORAGE_KEYS.VISUALIZER_ENABLED, true),
-  );
-  const [equalizerEnabled, setEqualizerEnabled] = useState<boolean>(() =>
-    readBooleanFromLocalStorageKey(STORAGE_KEYS.EQUALIZER_ENABLED, false),
-  );
-  const [autoQueueEnabled, setAutoQueueEnabled] = useState<boolean>(() =>
-    settingsStorage.getSetting("autoQueueEnabled", false),
-  );
-  const [smartMixEnabled, setSmartMixEnabled] = useState<boolean>(() =>
-    settingsStorage.getSetting("smartMixEnabled", true),
-  );
-  const [similarityPreference, setSimilarityPreference] =
-    useState<SimilarityPreference>(() =>
+  const [selectedMoodId, setSelectedMoodId] = useState<MoodPresetId>(() =>
+    resolveInitialMood(
       settingsStorage.getSetting("similarityPreference", "balanced"),
-    );
+      settingsStorage.getSetting("autoQueueEnabled", false),
+      settingsStorage.getSetting("smartMixEnabled", true),
+    ),
+  );
 
-  const featuredGenres = useMemo(() => genres.slice(0, 12), [genres]);
+  const selectedMood = useMemo(
+    () => MOOD_PRESETS.find((preset) => preset.id === selectedMoodId) ?? null,
+    [selectedMoodId],
+  );
 
   useEffect(() => {
     settingsStorage.set("theme", "dark");
@@ -134,7 +136,7 @@ export function GuestModal({
   useEffect(() => {
     let isMounted = true;
 
-    void getGenres(120)
+    void getGenres(80)
       .then((items) => {
         if (!isMounted) return;
         const normalized = items
@@ -156,254 +158,199 @@ export function GuestModal({
     };
   }, []);
 
-  const setGenrePreference = (genre: GenreListItem | null) => {
+  const setGenrePreference = (genre: GenreListItem | null): void => {
     if (!genre) {
       setPreferredGenreId(null);
       setPreferredGenreName("");
-      void appStorage.remove(STORAGE_KEYS.PREFERRED_GENRE_ID);
-      void appStorage.remove(STORAGE_KEYS.PREFERRED_GENRE_NAME);
+      appStorage.remove(STORAGE_KEYS.PREFERRED_GENRE_ID);
+      appStorage.remove(STORAGE_KEYS.PREFERRED_GENRE_NAME);
       return;
     }
 
     setPreferredGenreId(genre.id);
     setPreferredGenreName(genre.name);
-    void appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_ID, genre.id);
-    void appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_NAME, genre.name);
+    appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_ID, genre.id);
+    appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_NAME, genre.name);
   };
 
-  const enforceDarkTheme = () => {
-    settingsStorage.set("theme", "dark");
-    applyThemeClass();
-  };
-
-  const updateVisualizerEnabled = (next: boolean) => {
-    setVisualizerEnabled(next);
-    void appStorage.set(STORAGE_KEYS.VISUALIZER_ENABLED, next);
-  };
-
-  const updateEqualizerEnabled = (next: boolean) => {
-    setEqualizerEnabled(next);
-    void appStorage.set(STORAGE_KEYS.EQUALIZER_ENABLED, next);
-    settingsStorage.set("equalizerEnabled", next);
-  };
-
-  const updateAutoQueueEnabled = (next: boolean) => {
-    setAutoQueueEnabled(next);
-    settingsStorage.set("autoQueueEnabled", next);
-  };
-
-  const updateSmartMixEnabled = (next: boolean) => {
-    setSmartMixEnabled(next);
-    settingsStorage.set("smartMixEnabled", next);
-  };
-
-  const updateSimilarityPreference = (next: SimilarityPreference) => {
-    setSimilarityPreference(next);
-    settingsStorage.set("similarityPreference", next);
-  };
-
-  const resetTuningDefaults = () => {
-    setGenrePreference(null);
-    enforceDarkTheme();
-    updateVisualizerEnabled(true);
-    updateEqualizerEnabled(false);
-    updateAutoQueueEnabled(false);
-    updateSmartMixEnabled(true);
-    updateSimilarityPreference("balanced");
+  const applyMoodPreset = (preset: MoodPreset): void => {
+    setSelectedMoodId(preset.id);
+    settingsStorage.set("similarityPreference", preset.similarity);
+    settingsStorage.set("autoQueueEnabled", preset.autoQueue);
+    settingsStorage.set("smartMixEnabled", preset.smartMix);
   };
 
   return (
-    <section className="fixed inset-0 z-[230] flex items-center justify-center px-4 py-10">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(43,48,160,0.22),_transparent_48%),linear-gradient(180deg,rgba(18,22,45,0.7)_0%,rgba(6,7,15,0.76)_65%,rgba(3,3,8,0.78)_100%)] backdrop-blur-[2px]" />
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#1DB954]/12 blur-3xl" />
-
-      <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-[#0F1528]/88 p-8 shadow-[0_28px_80px_rgba(0,0,0,0.55)] backdrop-blur">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#1DB954]/30 bg-[#1DB954]/12">
-          <Music2 className="h-7 w-7 text-[#1DB954]" />
-        </div>
-        <h1 className="mt-5 text-center text-3xl font-bold tracking-tight text-white">
-          Tune the start page and optionally sign in
-        </h1>
-        <p className="mt-3 text-center text-sm leading-relaxed text-white/72">
-          Save local tuning defaults now. Your genre and playback preferences stay
-          on this browser.
-        </p>
-
-        <section className="mt-5 rounded-2xl border border-white/12 bg-white/[0.03] p-4">
-          <p className="text-[11px] font-semibold tracking-[0.14em] text-white/70 uppercase">
-            Tune Start Page
-          </p>
-
-          {genresLoading ? (
-            <div className="mt-3 flex items-center justify-center py-2">
-              <div
-                role="status"
-                aria-label="Loading genres"
-                className="h-5 w-5 animate-spin rounded-full border-2 border-[#1DB954] border-t-transparent"
-              >
-                <span className="sr-only">Loading genres</span>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) {
+          onContinueAsGuest?.();
+        }
+      }}
+    >
+      <DialogContent
+        className={cn(
+          "max-h-[90vh] overflow-hidden border-white/12 bg-[#0F1528]/95 p-0 text-white shadow-[0_30px_90px_rgba(0,0,0,0.6)] focus:outline-none",
+          isMobile
+            ? "top-auto right-0 bottom-0 left-0 w-full max-w-none translate-x-0 translate-y-0 rounded-t-3xl rounded-b-none border-b-0 data-[state=closed]:translate-y-full data-[state=open]:translate-y-0"
+            : "w-[min(40rem,calc(100%-2rem))] rounded-3xl data-[state=closed]:translate-y-3 data-[state=closed]:scale-[0.98] data-[state=open]:translate-y-0 data-[state=open]:scale-100",
+        )}
+      >
+        <div className="flex max-h-[90vh] flex-col overscroll-none">
+          <DialogHeader className="border-b border-white/12 px-4 py-4 sm:px-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#1DB954]/35 bg-[#1DB954]/12">
+                  <Music2 className="h-5 w-5 text-[#1DB954]" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base text-white sm:text-lg">
+                    Tune the start page and optionally sign in
+                  </DialogTitle>
+                  <DialogDescription className="mt-1 text-sm text-white/72">
+                    Save local tuning defaults now. You can still skip and start
+                    listening immediately.
+                  </DialogDescription>
+                </div>
               </div>
+
+              <DialogClose asChild>
+                <button
+                  type="button"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/[0.03] text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white"
+                  aria-label="Close and skip sign-in"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </DialogClose>
             </div>
-          ) : genres.length > 0 ? (
-            <>
-              <label
-                htmlFor="guest-preferred-genre"
-                className="mt-3 block text-xs font-medium text-white/80"
-              >
-                Preferred genre
-              </label>
-              <select
-                id="guest-preferred-genre"
-                value={preferredGenreId?.toString() ?? ""}
-                onChange={(event) => {
-                  const nextValue = event.target.value.trim();
-                  if (!nextValue) {
-                    setGenrePreference(null);
-                    return;
-                  }
-                  const genreId = Number.parseInt(nextValue, 10);
-                  if (!Number.isFinite(genreId)) {
-                    setGenrePreference(null);
-                    return;
-                  }
-                  const selectedGenre =
-                    genres.find((genre) => genre.id === genreId) ?? null;
-                  setGenrePreference(selectedGenre);
-                }}
-                className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2 text-sm text-white focus:border-[#1DB954]/60 focus:outline-none"
-              >
-                <option value="">No preference</option>
-                {genres.map((genre) => (
-                  <option key={genre.id} value={genre.id.toString()}>
-                    {genre.name}
+          </DialogHeader>
+
+          <div className="flex-1 touch-pan-y space-y-3 overflow-y-auto overscroll-contain px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] text-sm sm:px-5">
+            <section className="space-y-3 rounded-2xl border border-white/12 bg-white/[0.03] p-3">
+              <p className="text-xs font-semibold tracking-[0.14em] text-white/72 uppercase">
+                Tune Start Page
+              </p>
+
+              <div className="space-y-1">
+                <label
+                  htmlFor="guest-preferred-genre"
+                  className="text-xs font-medium text-white/80"
+                >
+                  Genre
+                </label>
+                <select
+                  id="guest-preferred-genre"
+                  value={preferredGenreId?.toString() ?? ""}
+                  onChange={(event) => {
+                    const nextValue = event.target.value.trim();
+                    if (!nextValue) {
+                      setGenrePreference(null);
+                      return;
+                    }
+
+                    const genreId = Number.parseInt(nextValue, 10);
+                    if (!Number.isFinite(genreId)) {
+                      setGenrePreference(null);
+                      return;
+                    }
+
+                    const selectedGenre =
+                      genres.find((genre) => genre.id === genreId) ?? null;
+                    setGenrePreference(selectedGenre);
+                  }}
+                  disabled={genresLoading || genres.length === 0}
+                  className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 text-sm text-white transition-colors outline-none focus:border-[#1DB954]/70 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <option value="">
+                    {genresLoading
+                      ? "Loading genres..."
+                      : genres.length > 0
+                        ? "No preference"
+                        : "Genres unavailable"}
                   </option>
-                ))}
-              </select>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                {featuredGenres.map((genre) => {
-                  const isSelected = preferredGenreId === genre.id;
-                  return (
-                    <button
-                      key={genre.id}
-                      type="button"
-                      onClick={() => setGenrePreference(genre)}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                        isSelected
-                          ? "border-[#f4b266] bg-[#f4b266]/15 text-[#f4b266]"
-                          : "border-white/20 bg-white/[0.04] text-white/75 hover:border-white/35 hover:text-white"
-                      }`}
-                    >
+                  {genres.map((genre) => (
+                    <option key={genre.id} value={genre.id.toString()}>
                       {genre.name}
-                    </button>
-                  );
-                })}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </>
-          ) : (
-            <p className="mt-2 text-xs text-white/70">
-              Genre presets are not available right now.
-            </p>
-          )}
 
-          <p className="mt-2 text-xs text-white/60">
-            {preferredGenreName
-              ? `Selected: ${preferredGenreName}`
-              : "No genre selected."}
-          </p>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-white/80">Mood</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {MOOD_PRESETS.map((preset) => {
+                    const selected = selectedMoodId === preset.id;
 
-          <div className="mt-4 grid gap-2">
-            <PreferenceToggle
-              label="Visualizer background"
-              description="Animated background while music plays."
-              checked={visualizerEnabled}
-              onClick={() => updateVisualizerEnabled(!visualizerEnabled)}
-            />
-            <PreferenceToggle
-              label="Equalizer by default"
-              description="Enable your EQ profile for local playback."
-              checked={equalizerEnabled}
-              onClick={() => updateEqualizerEnabled(!equalizerEnabled)}
-            />
-            <PreferenceToggle
-              label="Auto queue"
-              description="Keep queue filled with related tracks."
-              checked={autoQueueEnabled}
-              onClick={() => updateAutoQueueEnabled(!autoQueueEnabled)}
-            />
-            <PreferenceToggle
-              label="Smart mix"
-              description="Improve recommendations from your play patterns."
-              checked={smartMixEnabled}
-              onClick={() => updateSmartMixEnabled(!smartMixEnabled)}
-            />
-          </div>
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => applyMoodPreset(preset)}
+                        className={cn(
+                          "h-12 rounded-xl border px-2 text-left transition-all duration-200 ease-out",
+                          selected
+                            ? "border-[#1DB954]/70 bg-[#1DB954]/18 text-white"
+                            : "border-white/15 bg-white/[0.03] text-white/82 hover:border-white/30 hover:bg-white/[0.08]",
+                        )}
+                      >
+                        <p className="text-sm leading-tight font-medium">
+                          {preset.label}
+                        </p>
+                        <p className="text-[11px] text-white/65">
+                          {preset.hint}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          <div className="mt-3">
-            <p className="text-xs font-medium text-white/80">Mix similarity</p>
-            <div className="mt-1.5 grid grid-cols-3 gap-1.5">
-              {(["strict", "balanced", "diverse"] as const).map((option) => {
-                const selected = similarityPreference === option;
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => updateSimilarityPreference(option)}
-                    className={`rounded-lg border px-2 py-1.5 text-xs font-medium capitalize transition ${
-                      selected
-                        ? "border-[#1DB954]/50 bg-[#1DB954]/14 text-[#84e3a2]"
-                        : "border-white/18 bg-white/[0.03] text-white/75 hover:text-white"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                );
-              })}
+              <p className="text-xs text-white/65">
+                {preferredGenreName
+                  ? `Genre: ${preferredGenreName}`
+                  : "Genre: none selected"}{" "}
+                · Mood: {selectedMood?.label ?? "Chill"}
+              </p>
+            </section>
+
+            <div className="space-y-2 pb-1">
+              <button
+                type="button"
+                onClick={() =>
+                  void signIn("discord", {
+                    callbackUrl: buildAuthCallbackUrl(callbackUrl, "discord"),
+                  })
+                }
+                className="h-12 w-full rounded-xl bg-[linear-gradient(135deg,#5865F2,#7480ff)] px-4 text-sm font-semibold text-white transition duration-200 ease-out hover:brightness-110 active:brightness-95"
+              >
+                Sign in to sync preferences
+              </button>
+
+              <button
+                type="button"
+                onClick={() => startSpotifyLogin(callbackUrl)}
+                className="h-12 w-full rounded-xl border border-[#1DB954]/40 bg-[#1DB954]/15 px-4 text-sm font-semibold text-white transition duration-200 ease-out hover:bg-[#1DB954]/20"
+              >
+                Use Spotify instead
+              </button>
+
+              <DialogClose asChild>
+                <button
+                  type="button"
+                  className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.04] px-4 text-sm font-semibold text-white/92 transition duration-200 ease-out hover:border-white/30 hover:bg-white/[0.1]"
+                >
+                  Skip for now
+                </button>
+              </DialogClose>
             </div>
           </div>
-
-          <div className="mt-3">
-            <p className="text-xs font-medium text-white/80">Theme</p>
-            <div className="mt-1.5 rounded-lg border border-[#f4b266]/55 bg-[#f4b266]/14 px-2 py-1.5 text-xs font-medium text-[#f4b266]">
-              Dark (forced)
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={resetTuningDefaults}
-            className="mt-3 text-xs font-medium text-white/60 underline decoration-white/25 underline-offset-2 transition hover:text-white"
-          >
-            Reset local tuning defaults
-          </button>
-        </section>
-
-        <button
-          type="button"
-          onClick={() =>
-            void signIn("discord", {
-              callbackUrl: buildAuthCallbackUrl(callbackUrl, "discord"),
-            })
-          }
-          className="mt-7 w-full rounded-2xl bg-[linear-gradient(135deg,#5865F2,#7480ff)] px-5 py-3.5 text-sm font-semibold text-white transition hover:brightness-110 active:brightness-95"
-        >
-          Sign in with Discord
-        </button>
-        <button
-          type="button"
-          onClick={() => startSpotifyLogin(callbackUrl)}
-          className="mt-3 w-full rounded-2xl bg-[#1DB954] px-5 py-3.5 text-sm font-semibold text-white transition hover:brightness-110 active:brightness-95"
-        >
-          Sign in with Spotify
-        </button>
-        <button
-          type="button"
-          onClick={() => onContinueAsGuest?.()}
-          className="mt-3 w-full rounded-2xl border border-white/18 bg-white/6 px-5 py-3.5 text-sm font-semibold text-white/90 transition hover:border-white/30 hover:bg-white/10"
-        >
-          No Sign in, just tune
-        </button>
-      </div>
-    </section>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
