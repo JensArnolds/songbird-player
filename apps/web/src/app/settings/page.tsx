@@ -108,17 +108,11 @@ export default function SettingsPage() {
   const handleSelect = (key: string, value: string) => {
     hapticToggle();
     if (key === "theme") {
-      const themeValue = value as "light" | "dark";
+      const themeValue: "dark" = "dark";
       settingsStorage.set("theme", themeValue);
       const html = document.documentElement;
-      const useLight = themeValue === "light" && !isMobile;
-      if (useLight) {
-        html.classList.add("theme-light");
-        html.classList.remove("theme-dark");
-      } else {
-        html.classList.add("theme-dark");
-        html.classList.remove("theme-light");
-      }
+      html.classList.add("theme-dark");
+      html.classList.remove("theme-light");
       if (session) {
         utils.music.getUserPreferences.setData(undefined, (prev) =>
           prev ? { ...prev, theme: themeValue } : prev
@@ -322,15 +316,10 @@ export default function SettingsPage() {
       {
         id: "theme",
         label: "Theme",
-        description: effectiveTheme === "light" ? "Light" : "Dark",
+        description: "Dark (forced)",
         type: "select",
-        value: effectiveTheme,
-        options: isMobile
-          ? [{ label: "Dark", value: "dark" }]
-          : [
-              { label: "Dark", value: "dark" },
-              { label: "Light", value: "light" },
-            ],
+        value: "dark",
+        options: [{ label: "Dark", value: "dark" }],
         onChange: (value) => handleSelect("theme", value as string),
       },
       {

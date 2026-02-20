@@ -5,14 +5,13 @@
 import { api } from "@starchild/api-client/trpc/react";
 import { settingsStorage } from "@/utils/settingsStorage";
 import { useSession } from "next-auth/react";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect } from "react";
 
 interface ThemeContextValue {
   theme: "light" | "dark";
 }
 
 const ThemeContext = createContext<ThemeContextValue>({ theme: "dark" });
-const MOBILE_MAX_WIDTH = 768;
 
 export function useTheme() {
   return useContext(ThemeContext);
@@ -20,18 +19,6 @@ export function useTheme() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`).matches;
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const m = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH}px)`);
-    const handler = () => setIsMobile(m.matches);
-    m.addEventListener("change", handler);
-    return () => m.removeEventListener("change", handler);
-  }, []);
 
   const { data: preferences } = api.music.getUserPreferences.useQuery(
     undefined,
@@ -42,27 +29,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     },
   );
 
-  const localTheme = settingsStorage.getSetting("theme", "dark");
-  const theme = session
-    ? preferences?.theme === "light"
-      ? "light"
-      : "dark"
-    : localTheme;
-
-  const effectiveTheme = isMobile ? "dark" : theme;
+  const effectiveTheme: "dark" = "dark";
 
   useEffect(() => {
     const htmlElement = document.documentElement;
-    const useLight = effectiveTheme === "light";
+    htmlElement.classList.add("theme-dark");
+    htmlElement.classList.remove("theme-light");
 
-    if (useLight) {
-      htmlElement.classList.add("theme-light");
-      htmlElement.classList.remove("theme-dark");
-    } else {
-      htmlElement.classList.add("theme-dark");
-      htmlElement.classList.remove("theme-light");
+    const localTheme = settingsStorage.getSetting("theme", "dark");
+    if (localTheme !== "dark") {
+      settingsStorage.set("theme", "dark");
     }
-  }, [effectiveTheme]);
+  }, [session?.user?.id, preferences?.theme]);
 
   return (
     <ThemeContext.Provider value={{ theme: effectiveTheme }}>

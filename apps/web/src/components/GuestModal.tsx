@@ -16,7 +16,6 @@ interface GuestModalProps {
   callbackUrl?: string;
 }
 
-type ThemePreference = "dark" | "light";
 type SimilarityPreference = "strict" | "balanced" | "diverse";
 
 function readBooleanFromLocalStorageKey(key: string, fallback: boolean): boolean {
@@ -39,19 +38,11 @@ function readBooleanFromLocalStorageKey(key: string, fallback: boolean): boolean
   return fallback;
 }
 
-function applyThemeClass(theme: ThemePreference): void {
+function applyThemeClass(): void {
   if (typeof document === "undefined") return;
   const html = document.documentElement;
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
-  const useLight = theme === "light" && !isMobile;
-
-  if (useLight) {
-    html.classList.add("theme-light");
-    html.classList.remove("theme-dark");
-  } else {
-    html.classList.add("theme-dark");
-    html.classList.remove("theme-light");
-  }
+  html.classList.add("theme-dark");
+  html.classList.remove("theme-light");
 }
 
 function PreferenceToggle({
@@ -114,9 +105,6 @@ export function GuestModal({
   const [preferredGenreName, setPreferredGenreName] = useState<string>(() =>
     appStorage.getOrDefault<string>(STORAGE_KEYS.PREFERRED_GENRE_NAME, ""),
   );
-  const [theme, setTheme] = useState<ThemePreference>(() =>
-    settingsStorage.getSetting("theme", "dark"),
-  );
   const [visualizerEnabled, setVisualizerEnabled] = useState<boolean>(() =>
     readBooleanFromLocalStorageKey(STORAGE_KEYS.VISUALIZER_ENABLED, true),
   );
@@ -135,6 +123,11 @@ export function GuestModal({
     );
 
   const featuredGenres = useMemo(() => genres.slice(0, 12), [genres]);
+
+  useEffect(() => {
+    settingsStorage.set("theme", "dark");
+    applyThemeClass();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -176,10 +169,9 @@ export function GuestModal({
     void appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_NAME, genre.name);
   };
 
-  const handleThemeChange = (nextTheme: ThemePreference) => {
-    setTheme(nextTheme);
-    settingsStorage.set("theme", nextTheme);
-    applyThemeClass(nextTheme);
+  const enforceDarkTheme = () => {
+    settingsStorage.set("theme", "dark");
+    applyThemeClass();
   };
 
   const updateVisualizerEnabled = (next: boolean) => {
@@ -210,7 +202,7 @@ export function GuestModal({
 
   const resetTuningDefaults = () => {
     setGenrePreference(null);
-    handleThemeChange("dark");
+    enforceDarkTheme();
     updateVisualizerEnabled(true);
     updateEqualizerEnabled(false);
     updateAutoQueueEnabled(false);
@@ -370,24 +362,8 @@ export function GuestModal({
 
           <div className="mt-3">
             <p className="text-xs font-medium text-white/80">Theme</p>
-            <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-              {(["dark", "light"] as const).map((nextTheme) => {
-                const selected = theme === nextTheme;
-                return (
-                  <button
-                    key={nextTheme}
-                    type="button"
-                    onClick={() => handleThemeChange(nextTheme)}
-                    className={`rounded-lg border px-2 py-1.5 text-xs font-medium capitalize transition ${
-                      selected
-                        ? "border-[#f4b266]/55 bg-[#f4b266]/14 text-[#f4b266]"
-                        : "border-white/18 bg-white/[0.03] text-white/75 hover:text-white"
-                    }`}
-                  >
-                    {nextTheme}
-                  </button>
-                );
-              })}
+            <div className="mt-1.5 rounded-lg border border-[#f4b266]/55 bg-[#f4b266]/14 px-2 py-1.5 text-xs font-medium text-[#f4b266]">
+              Dark (forced)
             </div>
           </div>
 

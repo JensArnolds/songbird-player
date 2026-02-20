@@ -1796,6 +1796,29 @@ export const musicRouter = createTRPCRouter({
       prefs = newPrefs;
     }
 
+    if (!prefs) {
+      throw new Error("Failed to load user preferences");
+    }
+
+    if (prefs.theme === "light") {
+      const [migratedPrefs] = await ctx.db
+        .update(userPreferences)
+        .set({ theme: "dark" })
+        .where(eq(userPreferences.userId, ctx.session.user.id))
+        .returning();
+
+      if (migratedPrefs) {
+        return migratedPrefs;
+      }
+
+      const refreshedPrefs = await ctx.db.query.userPreferences.findFirst({
+        where: eq(userPreferences.userId, ctx.session.user.id),
+      });
+      if (refreshedPrefs) {
+        return refreshedPrefs;
+      }
+    }
+
     return prefs;
   }),
 
@@ -1825,6 +1848,11 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const normalizedInput = {
+        ...input,
+        ...(input.theme !== undefined ? { theme: "dark" as const } : {}),
+      };
+
       const existing = await ctx.db.query.userPreferences.findFirst({
         where: eq(userPreferences.userId, ctx.session.user.id),
       });
@@ -1832,12 +1860,12 @@ export const musicRouter = createTRPCRouter({
       if (!existing) {
         await ctx.db.insert(userPreferences).values({
           userId: ctx.session.user.id,
-          ...input,
+          ...normalizedInput,
         });
       } else {
         await ctx.db
           .update(userPreferences)
-          .set(input)
+          .set(normalizedInput)
           .where(eq(userPreferences.userId, ctx.session.user.id));
       }
 
