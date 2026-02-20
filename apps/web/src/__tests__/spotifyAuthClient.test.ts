@@ -18,6 +18,11 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("spotifyAuthClient", () => {
+  const expectedAuthOrigin = () => window.location.origin;
+  const expectedAuthMeEndpoint = () => `${window.location.origin}/api/auth/me`;
+  const expectedRefreshEndpoint = () =>
+    `${window.location.origin}/api/auth/spotify/refresh`;
+
   beforeEach(() => {
     clearInMemoryAccessToken();
     vi.restoreAllMocks();
@@ -32,7 +37,7 @@ describe("spotifyAuthClient", () => {
     const parsed = new URL(loginUrl, window.location.origin);
     const frontendRedirect = parsed.searchParams.get("frontend_redirect_uri");
 
-    expect(parsed.origin).toBe("https://www.darkfloor.one");
+    expect(parsed.origin).toBe(expectedAuthOrigin());
     expect(parsed.pathname).toBe("/api/auth/spotify");
     expect(frontendRedirect).toContain("/auth/spotify/callback");
     expect(frontendRedirect).toContain("next=%2Fplaylists%3Ftab%3Dmine");
@@ -50,6 +55,23 @@ describe("spotifyAuthClient", () => {
     expect(parsed.searchParams.get("trace")).toBeTruthy();
   });
 
+  it("prefers configured auth API origin when env override is provided", () => {
+    const previous = process.env.NEXT_PUBLIC_AUTH_API_ORIGIN;
+    process.env.NEXT_PUBLIC_AUTH_API_ORIGIN = "https://auth.example.com/";
+
+    try {
+      const loginUrl = buildSpotifyLoginUrl("/playlists?tab=mine");
+      const parsed = new URL(loginUrl, window.location.origin);
+      expect(parsed.origin).toBe("https://auth.example.com");
+    } finally {
+      if (previous === undefined) {
+        delete process.env.NEXT_PUBLIC_AUTH_API_ORIGIN;
+      } else {
+        process.env.NEXT_PUBLIC_AUTH_API_ORIGIN = previous;
+      }
+    }
+  });
+
   it("starts Spotify login on canonical auth origin", () => {
     window.history.replaceState({}, "", "/signin");
     const navigateSpy = vi.fn<(url: string) => void>();
@@ -61,7 +83,7 @@ describe("spotifyAuthClient", () => {
     expect(typeof navigatedUrl).toBe("string");
 
     const parsed = new URL(String(navigatedUrl), window.location.origin);
-    expect(parsed.origin).toBe("https://www.darkfloor.one");
+    expect(parsed.origin).toBe(expectedAuthOrigin());
     expect(parsed.pathname).toBe("/api/auth/spotify");
 
     const frontendRedirect = parsed.searchParams.get("frontend_redirect_uri");
@@ -92,9 +114,7 @@ describe("spotifyAuthClient", () => {
   });
 
   it("extracts csrf token from cookies", () => {
-    const token = getCsrfTokenFromCookies(
-      "a=1; sb_csrf_token=csrf-123; b=2",
-    );
+    const token = getCsrfTokenFromCookies("a=1; sb_csrf_token=csrf-123; b=2");
     expect(token).toBe("csrf-123");
   });
 
@@ -116,9 +136,15 @@ describe("spotifyAuthClient", () => {
     clearSpotifyBrowserSessionArtifacts();
 
     expect(getInMemoryAccessToken()).toBeNull();
-    expect(window.sessionStorage.getItem("sb_spotify_auth_state_v1")).toBeNull();
-    expect(window.sessionStorage.getItem("sb_spotify_auth_trace_v1")).toBeNull();
-    expect(window.localStorage.getItem("sb_spotify_logout_marker_v1")).not.toBeNull();
+    expect(
+      window.sessionStorage.getItem("sb_spotify_auth_state_v1"),
+    ).toBeNull();
+    expect(
+      window.sessionStorage.getItem("sb_spotify_auth_trace_v1"),
+    ).toBeNull();
+    expect(
+      window.localStorage.getItem("sb_spotify_logout_marker_v1"),
+    ).not.toBeNull();
   });
 
   it("prevents silent refresh after explicit sign-out marker is set", async () => {
@@ -133,12 +159,16 @@ describe("spotifyAuthClient", () => {
 
   it("clears logout marker when login is started again", () => {
     clearSpotifyBrowserSessionArtifacts();
-    expect(window.localStorage.getItem("sb_spotify_logout_marker_v1")).not.toBeNull();
+    expect(
+      window.localStorage.getItem("sb_spotify_logout_marker_v1"),
+    ).not.toBeNull();
 
     const navigateSpy = vi.fn<(url: string) => void>();
     startSpotifyLogin("/library", navigateSpy);
 
-    expect(window.localStorage.getItem("sb_spotify_logout_marker_v1")).toBeNull();
+    expect(
+      window.localStorage.getItem("sb_spotify_logout_marker_v1"),
+    ).toBeNull();
   });
 
   it("detects token hashes used for callback recovery", () => {
@@ -175,7 +205,7 @@ describe("spotifyAuthClient", () => {
       throw new Error("Expected callback /api/auth/me request");
     }
 
-    expect(callbackFetchCall[0]).toBe("https://www.darkfloor.one/api/auth/me");
+    expect(callbackFetchCall[0]).toBe(expectedAuthMeEndpoint());
     const callbackInit = callbackFetchCall[1] ?? {};
     expect(callbackInit.method).toBe("GET");
     expect(callbackInit.credentials).toBe("include");
@@ -213,7 +243,10 @@ describe("spotifyAuthClient", () => {
     );
 
     const authRequiredListener = vi.fn();
-    window.addEventListener(AUTH_REQUIRED_EVENT, authRequiredListener as EventListener);
+    window.addEventListener(
+      AUTH_REQUIRED_EVENT,
+      authRequiredListener as EventListener,
+    );
 
     const fetchMock = vi.spyOn(global, "fetch");
     fetchMock
@@ -237,7 +270,8 @@ describe("spotifyAuthClient", () => {
     expect(getInMemoryAccessToken()).toBeNull();
     expect(authRequiredListener).toHaveBeenCalledTimes(1);
 
-    const authRequiredEvent = authRequiredListener.mock.calls[0]?.[0] as CustomEvent<{
+    const authRequiredEvent = authRequiredListener.mock
+      .calls[0]?.[0] as CustomEvent<{
       callbackUrl: string;
       reason: string;
     }>;
@@ -273,9 +307,7 @@ describe("spotifyAuthClient", () => {
       throw new Error("Expected refresh request");
     }
 
-    expect(refreshFetchCall[0]).toBe(
-      "https://www.darkfloor.one/api/auth/spotify/refresh",
-    );
+    expect(refreshFetchCall[0]).toBe(expectedRefreshEndpoint());
     const refreshInit = refreshFetchCall[1] ?? {};
     expect(refreshInit.method).toBe("POST");
     expect(refreshInit.credentials).toBe("include");

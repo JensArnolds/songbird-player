@@ -134,6 +134,22 @@ export function GuestModal({
   }, []);
 
   useEffect(() => {
+    if (typeof document === "undefined" || !isOpen) return;
+
+    const { body, documentElement } = document;
+    const previousBodyOverflow = body.style.overflow;
+    const previousHtmlOverflow = documentElement.style.overflow;
+
+    body.style.overflow = "hidden";
+    documentElement.style.overflow = "hidden";
+
+    return () => {
+      body.style.overflow = previousBodyOverflow;
+      documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     let isMounted = true;
 
     void getGenres(80)
@@ -194,22 +210,29 @@ export function GuestModal({
         className={cn(
           "max-h-[90vh] overflow-hidden border-white/12 bg-[#0F1528]/95 p-0 text-white shadow-[0_30px_90px_rgba(0,0,0,0.6)] focus:outline-none",
           isMobile
-            ? "top-auto right-0 bottom-0 left-0 w-full max-w-none translate-x-0 translate-y-0 rounded-t-3xl rounded-b-none border-b-0 data-[state=closed]:translate-y-full data-[state=open]:translate-y-0"
+            ? "!top-auto !right-0 !bottom-0 !left-0 !m-0 !h-[90vh] !w-full !max-w-full !translate-x-0 !translate-y-0 rounded-t-3xl rounded-b-none border-b-0 data-[state=closed]:!translate-y-full data-[state=open]:!translate-y-0"
             : "w-[min(40rem,calc(100%-2rem))] rounded-3xl data-[state=closed]:translate-y-3 data-[state=closed]:scale-[0.98] data-[state=open]:translate-y-0 data-[state=open]:scale-100",
         )}
+        style={isMobile ? { height: "90dvh", maxHeight: "90dvh" } : undefined}
       >
-        <div className="flex max-h-[90vh] flex-col overscroll-none">
-          <DialogHeader className="border-b border-white/12 px-4 py-4 sm:px-5">
+        <div className="flex max-h-full min-h-0 flex-col overscroll-none">
+          {isMobile ? (
+            <div className="flex justify-center pt-2 pb-1">
+              <div className="h-1 w-10 rounded-full bg-white/30" />
+            </div>
+          ) : null}
+
+          <DialogHeader className="border-b border-white/12 px-3 py-3 sm:px-5 sm:py-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#1DB954]/35 bg-[#1DB954]/12">
+                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#1DB954]/35 bg-[#1DB954]/12 sm:h-11 sm:w-11">
                   <Music2 className="h-5 w-5 text-[#1DB954]" />
                 </div>
                 <div>
-                  <DialogTitle className="text-base text-white sm:text-lg">
+                  <DialogTitle className="text-[15px] leading-5 text-white sm:text-lg sm:leading-6">
                     Tune the start page and optionally sign in
                   </DialogTitle>
-                  <DialogDescription className="mt-1 text-sm text-white/72">
+                  <DialogDescription className="mt-1 text-xs leading-relaxed text-white/72 sm:text-sm">
                     Save local tuning defaults now. You can still skip and start
                     listening immediately.
                   </DialogDescription>
@@ -219,7 +242,7 @@ export function GuestModal({
               <DialogClose asChild>
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/[0.03] text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/[0.03] text-white/80 transition-colors hover:bg-white/[0.08] hover:text-white sm:h-10 sm:w-10"
                   aria-label="Close and skip sign-in"
                 >
                   <X className="h-4 w-4" />
@@ -228,8 +251,14 @@ export function GuestModal({
             </div>
           </DialogHeader>
 
-          <div className="flex-1 touch-pan-y space-y-3 overflow-y-auto overscroll-contain px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] text-sm sm:px-5">
-            <section className="space-y-3 rounded-2xl border border-white/12 bg-white/[0.03] p-3">
+          <div
+            className={cn(
+              "min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain",
+              "space-y-3 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]",
+              "text-sm sm:px-5",
+            )}
+          >
+            <section className="space-y-3 rounded-2xl border border-white/12 bg-white/[0.03] p-2.5 sm:p-3">
               <p className="text-xs font-semibold tracking-[0.14em] text-white/72 uppercase">
                 Tune Start Page
               </p>
@@ -298,7 +327,7 @@ export function GuestModal({
                             : "border-white/15 bg-white/[0.03] text-white/82 hover:border-white/30 hover:bg-white/[0.08]",
                         )}
                       >
-                        <p className="text-sm leading-tight font-medium">
+                        <p className="text-[13px] leading-tight font-medium sm:text-sm">
                           {preset.label}
                         </p>
                         <p className="text-[11px] text-white/65">
@@ -326,7 +355,7 @@ export function GuestModal({
                     callbackUrl: buildAuthCallbackUrl(callbackUrl, "discord"),
                   })
                 }
-                className="h-12 w-full rounded-xl bg-[linear-gradient(135deg,#5865F2,#7480ff)] px-4 text-sm font-semibold text-white transition duration-200 ease-out hover:brightness-110 active:brightness-95"
+                className="h-12 w-full rounded-xl bg-[linear-gradient(135deg,#5865F2,#7480ff)] px-4 text-[13px] font-semibold text-white transition duration-200 ease-out hover:brightness-110 active:brightness-95 sm:text-sm"
               >
                 Sign in to sync preferences
               </button>
@@ -334,7 +363,7 @@ export function GuestModal({
               <button
                 type="button"
                 onClick={() => startSpotifyLogin(callbackUrl)}
-                className="h-12 w-full rounded-xl border border-[#1DB954]/40 bg-[#1DB954]/15 px-4 text-sm font-semibold text-white transition duration-200 ease-out hover:bg-[#1DB954]/20"
+                className="h-12 w-full rounded-xl border border-[#1DB954]/40 bg-[#1DB954]/15 px-4 text-[13px] font-semibold text-white transition duration-200 ease-out hover:bg-[#1DB954]/20 sm:text-sm"
               >
                 Use Spotify instead
               </button>
@@ -342,7 +371,7 @@ export function GuestModal({
               <DialogClose asChild>
                 <button
                   type="button"
-                  className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.04] px-4 text-sm font-semibold text-white/92 transition duration-200 ease-out hover:border-white/30 hover:bg-white/[0.1]"
+                  className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.04] px-4 text-[13px] font-semibold text-white/92 transition duration-200 ease-out hover:border-white/30 hover:bg-white/[0.1] sm:text-sm"
                 >
                   Skip for now
                 </button>
