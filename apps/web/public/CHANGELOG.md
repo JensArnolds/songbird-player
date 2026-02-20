@@ -5,6 +5,19 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-02-20
+
+### Added
+
+- **Library overflow action menu**: Added a compact `More` menu in the Library header that groups tertiary actions (`Save as Playlist`, `Build Smart Queue`, and history cleanup actions) with keyboard-close support (`Escape`). Location: `apps/web/src/app/library/page.tsx`.
+- **Library section grouping cues**: Added explicit section labeling and track count context above grid content, plus a direct `Playlists` navigation shortcut in the library header. Location: `apps/web/src/app/library/page.tsx`.
+
+### Changed
+
+- **Library header hierarchy redesign**: Reorganized `/library` controls around clear priority: section tabs, integrated search, and a prominent mobile-first `Play All` CTA, with secondary controls kept compact. Location: `apps/web/src/app/library/page.tsx`.
+- **Library card interaction model**: Updated cards to a tighter layout with hover/focus overlay actions (`Play`, `Favorite`, context menu), stronger visual grouping, and consistent 200ms transitions for desktop and keyboard users. Location: `apps/web/src/app/library/page.tsx`.
+- **Responsive grid density**: Tightened card spacing and updated breakpoints to keep mobile single-column readability while scaling to `2/3/4` columns on larger screens. Location: `apps/web/src/app/library/page.tsx`.
+
 ## [1.1.3] - 2026-02-20
 
 ### Added
