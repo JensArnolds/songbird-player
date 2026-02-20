@@ -30,6 +30,9 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    SONGBIRD_API_URL: z.string().url().optional(),
+    SONGBIRD_API_HEALTH_URI: z.string().optional(),
+    UNIVERSAL_KEY: z.string().optional(),
     BLUESIX_API_KEY: z.string().optional(),
     API_V2_URL: z.string().url().optional(),
     ELECTRON_BUILD: z
@@ -64,8 +67,20 @@ export const env = createEnv({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
+    SONGBIRD_API_URL:
+      process.env.SONGBIRD_API_URL ??
+      process.env.API_V2_URL ??
+      process.env.V2_API_URL ??
+      process.env.NEXT_PUBLIC_V2_API_URL,
+    SONGBIRD_API_HEALTH_URI:
+      process.env.SONGBIRD_API_HEALTH_URI ??
+      process.env.API_V2_HEALTH_URL ??
+      "/api/health",
+    UNIVERSAL_KEY:
+      process.env.UNIVERSAL_KEY ?? process.env.BLUESIX_API_KEY,
     API_V2_URL:
       process.env.API_V2_URL ??
+      process.env.SONGBIRD_API_URL ??
       process.env.V2_API_URL ??
       process.env.NEXT_PUBLIC_V2_API_URL,
     NEXT_PUBLIC_AUTH_API_ORIGIN: process.env.NEXT_PUBLIC_AUTH_API_ORIGIN,
@@ -74,7 +89,8 @@ export const env = createEnv({
     NEXT_PUBLIC_AUTH_DEBUG: process.env.NEXT_PUBLIC_AUTH_DEBUG,
     NEXT_PUBLIC_AUTH_DEBUG_OAUTH:
       process.env.NEXT_PUBLIC_AUTH_DEBUG_OAUTH,
-    BLUESIX_API_KEY: process.env.BLUESIX_API_KEY,
+    BLUESIX_API_KEY:
+      process.env.BLUESIX_API_KEY ?? process.env.UNIVERSAL_KEY,
     ELECTRON_BUILD: process.env.ELECTRON_BUILD,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

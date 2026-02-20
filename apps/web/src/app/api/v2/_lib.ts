@@ -81,8 +81,9 @@ function getForwardHeaders(request?: NextRequest | Request): Headers {
     }
   }
 
-  if (env.BLUESIX_API_KEY && !headers.has("x-api-key")) {
-    headers.set("x-api-key", env.BLUESIX_API_KEY);
+  const backendApiKey = env.BLUESIX_API_KEY ?? env.UNIVERSAL_KEY;
+  if (backendApiKey && !headers.has("x-api-key")) {
+    headers.set("x-api-key", backendApiKey);
   }
 
   return headers;

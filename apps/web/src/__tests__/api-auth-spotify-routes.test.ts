@@ -36,6 +36,7 @@ describe("Spotify auth proxy routes", () => {
     const capturedRequests: Array<{
       url: string;
       redirect: RequestRedirect | undefined;
+      headers: Headers;
     }> = [];
     vi.spyOn(global, "fetch").mockImplementation(async (input, init) => {
       const url =
@@ -44,7 +45,11 @@ describe("Spotify auth proxy routes", () => {
           : input instanceof URL
             ? input.toString()
             : input.url;
-      capturedRequests.push({ url, redirect: init?.redirect });
+      capturedRequests.push({
+        url,
+        redirect: init?.redirect,
+        headers: new Headers(init?.headers),
+      });
       return new Response(JSON.stringify({ ok: true }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -73,7 +78,11 @@ describe("Spotify auth proxy routes", () => {
         headers: { "x-csrf-token": "csrf-token" },
       }),
     );
-    await meRoute.GET(makeRequest("/api/auth/me"));
+    await meRoute.GET(
+      makeRequest("/api/auth/me", {
+        headers: { authorization: "Bearer app-jwt-token" },
+      }),
+    );
     await debugRoute.GET(makeRequest("/api/auth/spotify/debug?trace_id=trace-1"));
 
     const paths = capturedRequests.map((request) => new URL(request.url).pathname);
@@ -91,6 +100,9 @@ describe("Spotify auth proxy routes", () => {
       "follow",
       "follow",
     ]);
+    expect(capturedRequests[3]?.headers.get("authorization")).toBe(
+      "Bearer app-jwt-token",
+    );
   });
 
   it("returns 503 when AUTH_DEBUG_TOKEN is missing for debug proxy route", async () => {

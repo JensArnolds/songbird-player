@@ -5,6 +5,25 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-02-20
+
+### Added
+
+- **Server-only Songbird token exchange helper**: Added a server-only helper that exchanges `UNIVERSAL_KEY` via `POST /api/auth/token`, caches the bearer token in memory until `expiresAt - 30s`, and throws typed errors with status/message/details on token failures. Location: `apps/web/src/lib/server/songbird-token.ts`.
+- **Internal Songbird proxy routes with retry + normalized errors**: Added `GET /api/songbird/auth-me` and `GET /api/songbird/cache-stats` routes that obtain server bearer tokens, retry once on upstream `401` with forced token refresh, and return UI-safe failures in `{ ok: false, status, message, details? }` format. Locations: `apps/web/src/app/api/songbird/_lib.ts`, `apps/web/src/app/api/songbird/auth-me/route.ts`, `apps/web/src/app/api/songbird/cache-stats/route.ts`.
+- **Client Songbird hooks and verification pages**: Added `useSongbirdAuthMe()` and `useSongbirdCacheStats()` plus simple pages to render each endpoint through internal Next.js routes only. Locations: `apps/web/src/hooks/useSongbirdResource.ts`, `apps/web/src/hooks/useSongbirdAuthMe.ts`, `apps/web/src/hooks/useSongbirdCacheStats.ts`, `apps/web/src/app/songbird/auth-me/page.tsx`, `apps/web/src/app/songbird/cache-stats/page.tsx`.
+- **Songbird regression coverage**: Added tests for token caching/error typing, proxy `401` refresh behavior, normalized route failures, and page-level internal-route fetch behavior. Locations: `apps/web/src/__tests__/songbird-token.test.ts`, `apps/web/src/__tests__/api-songbird-routes.test.ts`, `apps/web/src/__tests__/songbird-pages.test.tsx`.
+
+### Changed
+
+- **Env naming migration toward Songbird terminology**: Added canonical `SONGBIRD_API_URL` and `SONGBIRD_API_HEALTH_URI` in env validation/runtime wiring, while keeping compatibility fallbacks from legacy aliases where needed. Location: `apps/web/src/env.js`.
+- **Health upstream path is now configurable and slash-agnostic**: `/api/v2/health` now composes its upstream path from `SONGBIRD_API_HEALTH_URI` (with `API_V2_HEALTH_URL` fallback) and supports either leading/trailing slash styles in env values. Location: `apps/web/src/app/api/v2/health/route.ts`.
+- **Environment templates/startup diagnostics updated**: Updated `.env` templates to expose `SONGBIRD_API_URL` and `SONGBIRD_API_HEALTH_URI`, and updated startup banner output to prefer Songbird naming. Locations: `.env.example`, `apps/web/scripts/server.js`, `apps/web/src/test/setup.ts`.
+
+### Security
+
+- **`UNIVERSAL_KEY` kept server-side only by design**: Token issuance and bearer acquisition remain isolated to server-only code paths and are not referenced by client hooks/components.
+
 ## [1.1.0] - 2026-02-19
 
 ### Added

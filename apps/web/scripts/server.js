@@ -167,10 +167,12 @@ function printStartupBanner() {
     );
   }
 
-  if (process.env.API_V2_URL) {
+  const songbirdApiUrl =
+    process.env.SONGBIRD_API_URL ?? process.env.API_V2_URL;
+  if (songbirdApiUrl) {
     console.log(chalk.bold("  API Configuration:"));
     console.log(
-      `    ${chalk.gray("•")} API V2 URL:      ${chalk.white(process.env.API_V2_URL)}`,
+      `    ${chalk.gray("•")} Songbird API URL:${chalk.white(songbirdApiUrl)}`,
     );
     console.log("");
   }

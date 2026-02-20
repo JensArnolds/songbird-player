@@ -102,12 +102,20 @@ describe("API V2 proxy routes", () => {
     await statusRoute.GET(makeRequest("/api/v2/status?x=1"));
     await versionRoute.GET(makeRequest("/api/v2/version"));
     await readyRoute.GET(makeRequest("/api/v2/health/ready"));
-    await authMeRoute.GET(makeRequest("/api/v2/auth/me"));
+    await authMeRoute.GET(
+      makeRequest("/api/v2/auth/me", {
+        headers: { authorization: "Bearer app-jwt-token" },
+      }),
+    );
     await authRefreshRoute.GET(makeRequest("/api/v2/auth/refresh"));
     await configPublicRoute.GET(makeRequest("/api/v2/config/public"));
     await rateLimitsRoute.GET(makeRequest("/api/v2/rate-limits"));
     await openApiRoute.GET(makeRequest("/api/v2/docs/openapi"));
-    await cacheStatsRoute.GET(makeRequest("/api/v2/cache/stats"));
+    await cacheStatsRoute.GET(
+      makeRequest("/api/v2/cache/stats", {
+        headers: { authorization: "Bearer app-jwt-token" },
+      }),
+    );
     await cacheClearRoute.POST(
       makeRequest("/api/v2/cache/clear", {
         method: "POST",
@@ -145,6 +153,13 @@ describe("API V2 proxy routes", () => {
     expect(capturedCalls[9]!.method).toBe("POST");
     expect(capturedCalls[9]!.body).toBe(JSON.stringify({ scope: "all" }));
     expect(capturedCalls[0]!.headers.get("x-api-key")).toBe("test-api-key");
+    expect(capturedCalls[0]!.headers.get("authorization")).toBeNull();
+    expect(capturedCalls[3]!.headers.get("authorization")).toBe(
+      "Bearer app-jwt-token",
+    );
+    expect(capturedCalls[8]!.headers.get("authorization")).toBe(
+      "Bearer app-jwt-token",
+    );
   });
 
   it("returns 500 when API_V2_URL is not configured", async () => {

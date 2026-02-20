@@ -3,6 +3,7 @@
 "use client";
 
 import { useToast } from "@/contexts/ToastContext";
+import { ensureAccessToken } from "@/services/spotifyAuthClient";
 import { api } from "@starchild/api-client/trpc/react";
 import {
   Activity,
@@ -60,6 +61,8 @@ const API_DIAGNOSTIC_TARGETS: ApiDiagnosticTarget[] = [
   { key: "authMe", label: "Auth Session", path: "/api/v2/auth/me" },
 ];
 
+const API_DIAGNOSTIC_AUTH_KEYS = new Set(["cache", "authMe"]);
+
 function toPreviewText(rawText: string): string {
   if (!rawText.trim()) return "(empty)";
 
@@ -84,11 +87,18 @@ function getResultState(
 
 async function probeApiTarget(
   target: ApiDiagnosticTarget,
+  accessToken: string | null,
 ): Promise<ApiDiagnosticResult> {
   try {
+    const headers = new Headers();
+    if (accessToken && API_DIAGNOSTIC_AUTH_KEYS.has(target.key)) {
+      headers.set("authorization", `Bearer ${accessToken}`);
+    }
+
     const response = await fetch(target.path, {
       cache: "no-store",
       credentials: "same-origin",
+      headers,
     });
     const rawText = await response.text().catch(() => "");
 
@@ -197,8 +207,11 @@ export default function AdminPage() {
   const refreshDiagnostics = useCallback(async () => {
     setIsDiagnosticsLoading(true);
     try {
+      const accessToken = await ensureAccessToken();
       const results = await Promise.all(
-        API_DIAGNOSTIC_TARGETS.map((target) => probeApiTarget(target)),
+        API_DIAGNOSTIC_TARGETS.map((target) =>
+          probeApiTarget(target, accessToken),
+        ),
       );
       setDiagnosticResults(results);
     } finally {
@@ -209,9 +222,13 @@ export default function AdminPage() {
   const handleRefreshUpstreamAuth = useCallback(async () => {
     setIsRefreshingUpstreamAuth(true);
     try {
+      const accessToken = await ensureAccessToken();
       const response = await fetch("/api/v2/auth/refresh", {
         cache: "no-store",
         credentials: "same-origin",
+        headers: accessToken
+          ? { authorization: `Bearer ${accessToken}` }
+          : undefined,
       });
       const payloadText = await response.text().catch(() => "");
       if (!response.ok) {
@@ -243,10 +260,14 @@ export default function AdminPage() {
 
     setIsClearingCache(true);
     try {
+      const accessToken = await ensureAccessToken();
       const response = await fetch("/api/v2/cache/clear", {
         method: "POST",
         cache: "no-store",
         credentials: "same-origin",
+        headers: accessToken
+          ? { authorization: `Bearer ${accessToken}` }
+          : undefined,
       });
       const payloadText = await response.text().catch(() => "");
       if (!response.ok) {

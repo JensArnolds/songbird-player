@@ -11,6 +11,7 @@ Upstream OpenAPI reference (not this repo’s API): `docs/API_V2_SWAGGER.yaml` (
 **Configured by:**
 
 - `API_V2_URL` (server-side base URL)
+- `UNIVERSAL_KEY` (optional server-side universal key for service-level integrations)
 - `BLUESIX_API_KEY` (server-side key)
 - Health checks use internal app routes (`/api/v2/status`, `/api/v2/health`, `/api/health`) and do not require a dedicated env variable.
 

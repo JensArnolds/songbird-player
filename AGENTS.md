@@ -84,6 +84,7 @@ Note on NestJS APIs:
 - URL env conventions:
   - Use `NEXTAUTH_URL` as the single app/auth base URL env (do not add `NEXT_PUBLIC_NEXTAUTH_*` variants).
   - `API_V2_HEALTH_URL` is deprecated; health checks use route paths (`/api/v2/status`, `/api/v2/health`, `/api/health`).
+  - For protected upstream V2/auth proxy calls, forward caller-provided app JWT bearer tokens (`Authorization`) instead of injecting a static key.
 - Dev server env loading behavior is defined in `apps/web/scripts/server.js`.
 
 ## Navigation and Indexing Expectations
