@@ -12,7 +12,7 @@ Upstream OpenAPI reference (not this repo’s API): `docs/API_V2_SWAGGER.yaml` (
 
 - `API_V2_URL` (server-side base URL)
 - `BLUESIX_API_KEY` (server-side key)
-- `API_V2_HEALTH_URL` (public URL used for the UI health indicator)
+- Health checks use internal app routes (`/api/v2/status`, `/api/v2/health`, `/api/health`) and do not require a dedicated env variable.
 
 **Used by:**
 
@@ -44,7 +44,7 @@ Upstream OpenAPI reference (not this repo’s API): `docs/API_V2_SWAGGER.yaml` (
 - `AUTH_SECRET`
 - `AUTH_DISCORD_ID`
 - `AUTH_DISCORD_SECRET`
-- `NEXTAUTH_URL` (and the `NEXT_PUBLIC_*` URL vars used for the app’s URL wiring)
+- `NEXTAUTH_URL` (single canonical app/auth base URL env)
 
 **Used by:**
 

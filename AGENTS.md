@@ -81,6 +81,9 @@ Note on NestJS APIs:
 - When adding/changing env vars, update both:
   - `.env.example`
   - `apps/web/src/env.js`
+- URL env conventions:
+  - Use `NEXTAUTH_URL` as the single app/auth base URL env (do not add `NEXT_PUBLIC_NEXTAUTH_*` variants).
+  - `API_V2_HEALTH_URL` is deprecated; health checks use route paths (`/api/v2/status`, `/api/v2/health`, `/api/health`).
 - Dev server env loading behavior is defined in `apps/web/scripts/server.js`.
 
 ## Navigation and Indexing Expectations

@@ -3,24 +3,30 @@
 import { env } from "@/env";
 import { headers } from "next/headers";
 
+const LOCAL_FALLBACK_BASE_URL = "http://127.0.0.1:3222";
+
+function normalizeOrigin(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
 export function getBaseUrl(): string {
+  if (typeof window !== "undefined") return window.location.origin;
 
-  if (env.NEXT_PUBLIC_NEXTAUTH_URL) {
-    return env.NEXT_PUBLIC_NEXTAUTH_URL;
+  const configuredUrl = normalizeOrigin(env.NEXTAUTH_URL);
+  if (configuredUrl) return configuredUrl;
+
+  const vercelHost = process.env.VERCEL_URL;
+  if (vercelHost && vercelHost.trim().length > 0) {
+    return `https://${vercelHost}`;
   }
 
-  if (typeof window === "undefined") {
-    try {
-
-      if (env.NEXTAUTH_URL) {
-        return env.NEXTAUTH_URL;
-      }
-    } catch {
-
-    }
-  }
-
-  return "https://starchildmusic.com";
+  return LOCAL_FALLBACK_BASE_URL;
 }
 
 export async function getRequestBaseUrl(): Promise<string> {

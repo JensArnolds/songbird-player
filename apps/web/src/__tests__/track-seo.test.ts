@@ -25,7 +25,6 @@ describe("track SEO metadata", () => {
       env: {
         API_V2_URL: "https://api.starchildmusic.com/",
         BLUESIX_API_KEY: "test-key",
-        NEXT_PUBLIC_NEXTAUTH_URL: "https://starchildmusic.com",
         NEXTAUTH_URL: "https://starchildmusic.com",
       },
     }));
@@ -76,7 +75,6 @@ describe("track SEO metadata", () => {
       env: {
         API_V2_URL: "https://darkfloor.one/",
         BLUESIX_API_KEY: "test-key",
-        NEXT_PUBLIC_NEXTAUTH_URL: "https://starchildmusic.com",
         NEXTAUTH_URL: "https://starchildmusic.com",
       },
     }));
