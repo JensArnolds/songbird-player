@@ -6,6 +6,7 @@ import { APP_VERSION } from "@/config/version";
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import { CreatePlaylistModal } from "@/components/CreatePlaylistModal";
 import { api } from "@starchild/api-client/trpc/react";
+import { appSignOut } from "@/services/authSignOut";
 import { localStorage } from "@/services/storage";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import emilyLogo from "../../public/emily-the-strange.png";
@@ -21,7 +22,7 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -509,7 +510,7 @@ export function DesktopSidebar() {
               {session ? (
                 <button
                   className="electron-no-drag flex w-full items-center justify-center gap-2 rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm font-semibold text-[var(--color-subtext)] transition hover:border-[rgba(255,255,255,0.24)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-                  onClick={() => void signOut({ callbackUrl: "/" })}
+                  onClick={() => void appSignOut({ callbackUrl: "/" })}
                 >
                   <LogOut className="h-4 w-4" />
                   Sign out
@@ -521,7 +522,7 @@ export function DesktopSidebar() {
             <div className="mt-auto px-2 pb-[calc(env(safe-area-inset-bottom)+var(--electron-sidebar-bottom-padding))]">
               <button
                 className="electron-no-drag flex h-9 w-full items-center justify-center rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.06)] text-[var(--color-subtext)] transition hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-                onClick={() => void signOut({ callbackUrl: "/" })}
+                onClick={() => void appSignOut({ callbackUrl: "/" })}
                 title="Sign out"
                 aria-label="Sign out"
               >

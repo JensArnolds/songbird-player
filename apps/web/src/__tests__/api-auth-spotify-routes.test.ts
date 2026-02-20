@@ -26,6 +26,9 @@ describe("Spotify auth proxy routes", () => {
 
   it("proxies canonical auth routes through API_V2_URL", async () => {
     vi.resetModules();
+    vi.doMock("@/server/auth", () => ({
+      auth: vi.fn(async () => ({ user: { id: "admin-1", admin: true } })),
+    }));
     vi.doMock("@/env", () => ({
       env: {
         API_V2_URL: "https://api.example.com/",
@@ -107,6 +110,9 @@ describe("Spotify auth proxy routes", () => {
 
   it("returns 503 when AUTH_DEBUG_TOKEN is missing for debug proxy route", async () => {
     vi.resetModules();
+    vi.doMock("@/server/auth", () => ({
+      auth: vi.fn(async () => ({ user: { id: "admin-1", admin: true } })),
+    }));
     vi.doMock("@/env", () => ({
       env: {
         API_V2_URL: "https://api.example.com/",
@@ -123,6 +129,30 @@ describe("Spotify auth proxy routes", () => {
 
     expect(response.status).toBe(503);
     expect(body.error).toMatch(/AUTH_DEBUG_TOKEN/i);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks debug proxy route for non-admin sessions", async () => {
+    vi.resetModules();
+    vi.doMock("@/server/auth", () => ({
+      auth: vi.fn(async () => ({ user: { id: "user-1", admin: false } })),
+    }));
+    vi.doMock("@/env", () => ({
+      env: {
+        API_V2_URL: "https://api.example.com/",
+        AUTH_DEBUG_TOKEN: "debug-token-123",
+      },
+    }));
+
+    const fetchMock = vi.spyOn(global, "fetch");
+    const debugRoute = await loadGetRoute("@/app/api/auth/spotify/debug/route");
+    const response = await debugRoute.GET(
+      makeRequest("/api/auth/spotify/debug?trace_id=trace-1"),
+    );
+    const body = (await response.json()) as { error?: string };
+
+    expect(response.status).toBe(403);
+    expect(body.error).toMatch(/admin/i);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

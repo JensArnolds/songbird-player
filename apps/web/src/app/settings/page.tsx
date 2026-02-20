@@ -6,6 +6,7 @@ import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/contexts/ToastContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { appSignOut } from "@/services/authSignOut";
 import { api } from "@starchild/api-client/trpc/react";
 import type { SettingsKey } from "@starchild/types/settings";
 import { hapticLight, hapticToggle } from "@/utils/haptics";
@@ -21,7 +22,7 @@ import {
     User,
     Volume2,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -137,7 +138,7 @@ export default function SettingsPage() {
 
   const handleSignOut = () => {
     hapticLight();
-    void signOut({ callbackUrl: "/" });
+    void appSignOut({ callbackUrl: "/" });
   };
 
   if (!session) {

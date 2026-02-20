@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import { auth } from "@/server/auth";
 import { proxyAuthRequest } from "../../_lib";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -6,6 +7,14 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.admin) {
+    return NextResponse.json(
+      { ok: false, error: "Admin access required." },
+      { status: 403 },
+    );
+  }
+
   if (!env.AUTH_DEBUG_TOKEN) {
     return NextResponse.json(
       {

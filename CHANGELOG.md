@@ -5,6 +5,23 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-02-20
+
+### Added
+
+- **OAuth diagnostics dump surfaces**: Added protected OAuth dump API routes and admin rendering for verbose Spotify/Discord auth traces (`fetch` timeline + auth logs) with refresh/clear controls. Locations: `apps/web/src/app/api/auth/oauth/fetch-dump/route.ts`, `apps/web/src/app/api/admin/auth/fetch-dump/route.ts`, `apps/web/src/app/admin/page.tsx`, `packages/auth/src/logging.ts`.
+- **Sign-out helper for unified auth cleanup**: Added browser sign-out helper that clears Spotify auth artifacts before executing NextAuth sign-out. Location: `apps/web/src/services/authSignOut.ts`.
+
+### Changed
+
+- **Spotify OAuth logout behavior hardened**: UI sign-out actions now use the shared helper so in-memory/session Spotify token state and trace artifacts are cleared on logout. Locations: `apps/web/src/services/spotifyAuthClient.ts`, `apps/web/src/components/HamburgerMenu.tsx`, `apps/web/src/components/DesktopSidebar.tsx`, `apps/web/src/app/settings/page.tsx`.
+- **OAuth debug tracing coverage expanded**: Added/updated test coverage for protected dump routes, Spotify proxy behavior, and provider configuration hardening. Locations: `apps/web/src/__tests__/api-auth-fetch-dump-routes.test.ts`, `apps/web/src/__tests__/api-auth-spotify-routes.test.ts`, `apps/web/src/__tests__/spotifyAuthClient.test.ts`, `apps/web/src/__tests__/spotify-provider.test.ts`.
+
+### Security
+
+- **Spotify debug proxy now requires admin session**: `GET /api/auth/spotify/debug` no longer proxies backend dumps for unauthenticated/non-admin callers. Location: `apps/web/src/app/api/auth/spotify/debug/route.ts`.
+- **Explicit CSRF+PKCE checks on NextAuth Spotify provider**: Added explicit `checks: ["pkce", "state"]` to Spotify provider configuration for defense-in-depth. Location: `packages/auth/src/spotifyProvider.ts`.
+
 ## [1.1.1] - 2026-02-20
 
 ### Added

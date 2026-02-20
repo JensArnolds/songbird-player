@@ -16,9 +16,12 @@ const FRONTEND_SPOTIFY_CALLBACK_PATH = "/auth/spotify/callback";
 const DEFAULT_POST_AUTH_PATH = "/library";
 const FRONTEND_CALLBACK_TRACE_PARAM = "trace";
 const CSRF_COOKIE_NAME = "sb_csrf_token";
+const APP_REFRESH_COOKIE_NAME = "sb_app_refresh_token";
+const OAUTH_SESSION_COOKIE_NAME = "sb_spotify_oauth_sid";
 const EXPIRY_SKEW_MS = 15_000;
 const TOKEN_STATE_STORAGE_KEY = "sb_spotify_auth_state_v1";
 const LOGIN_TRACE_STORAGE_KEY = "sb_spotify_auth_trace_v1";
+const LOGOUT_MARKER_STORAGE_KEY = "sb_spotify_logout_marker_v1";
 
 const HASH_TOKEN_KEYS = [
   "access_token",
@@ -197,6 +200,21 @@ function readStoredTraceId(): string | null {
 function clearStoredTraceId(): void {
   if (typeof window === "undefined") return;
   window.sessionStorage.removeItem(LOGIN_TRACE_STORAGE_KEY);
+}
+
+function markSpotifyLoggedOut(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(LOGOUT_MARKER_STORAGE_KEY, Date.now().toString());
+}
+
+function clearSpotifyLoggedOutMarker(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(LOGOUT_MARKER_STORAGE_KEY);
+}
+
+function isSpotifyMarkedLoggedOut(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(LOGOUT_MARKER_STORAGE_KEY) !== null;
 }
 
 function getTraceIdFromCallbackUrl(): string | null {
@@ -614,6 +632,8 @@ export function startSpotifyLogin(
 ): void {
   if (typeof window === "undefined") return;
 
+  clearSpotifyLoggedOutMarker();
+
   const safeNextPath = resolveFrontendRedirectPath(nextPath);
   const traceId = generateTraceId();
   persistTraceId(traceId);
@@ -669,6 +689,31 @@ export function clearInMemoryAccessToken(): void {
     spotifyTokenType: "Bearer",
     spotifyExpiresAtMs: null,
   });
+}
+
+function clearCookie(name: string): void {
+  if (typeof document === "undefined") return;
+
+  const encodedName = encodeURIComponent(name);
+  const baseCookie = `${encodedName}=; Max-Age=0; Path=/`;
+
+  document.cookie = baseCookie;
+  document.cookie = `${baseCookie}; SameSite=Lax`;
+  document.cookie = `${baseCookie}; SameSite=None; Secure`;
+}
+
+export function clearSpotifyBrowserSessionArtifacts(): void {
+  markSpotifyLoggedOut();
+  clearInMemoryAccessToken();
+  clearStoredTraceId();
+
+  if (typeof window === "undefined") return;
+
+  window.sessionStorage.removeItem(TOKEN_STATE_STORAGE_KEY);
+
+  clearCookie(CSRF_COOKIE_NAME);
+  clearCookie(APP_REFRESH_COOKIE_NAME);
+  clearCookie(OAUTH_SESSION_COOKIE_NAME);
 }
 
 function notifyAuthRequired(reason: AuthRequiredReason): void {
@@ -765,6 +810,11 @@ type RefreshAccessTokenOptions = {
 export async function refreshAccessToken(
   options: RefreshAccessTokenOptions = {},
 ): Promise<string> {
+  if (isSpotifyMarkedLoggedOut()) {
+    clearInMemoryAccessToken();
+    throw new SpotifyAuthClientError("Spotify session is signed out", 401);
+  }
+
   const notifyOnUnauthorized = options.notifyOnUnauthorized ?? true;
   const csrfToken = getCsrfTokenFromCookies();
   if (!csrfToken) {
@@ -839,6 +889,11 @@ export async function refreshAccessToken(
 }
 
 export async function ensureAccessToken(): Promise<string | null> {
+  if (isSpotifyMarkedLoggedOut()) {
+    clearInMemoryAccessToken();
+    return null;
+  }
+
   if (tokenState.accessToken && isTokenUsable(tokenState.expiresAtMs)) {
     return tokenState.accessToken;
   }
@@ -893,6 +948,7 @@ export async function handleSpotifyCallbackHash(): Promise<CallbackResult> {
     missingHashKeys: parsed.missingKeys,
   });
 
+  clearSpotifyLoggedOutMarker();
   setTokenState(parsed.payload);
 
   const cleanUrl = `${window.location.pathname}${window.location.search}`;
@@ -918,6 +974,11 @@ export async function handleSpotifyCallbackHash(): Promise<CallbackResult> {
 }
 
 export async function restoreSpotifySession(): Promise<boolean> {
+  if (isSpotifyMarkedLoggedOut()) {
+    clearInMemoryAccessToken();
+    return false;
+  }
+
   if (tokenState.accessToken && isTokenUsable(tokenState.expiresAtMs)) {
     return true;
   }

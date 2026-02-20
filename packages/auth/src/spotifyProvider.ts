@@ -38,6 +38,7 @@ export function createSpotifyProvider(config: SpotifyProviderConfig) {
   return SpotifyProvider({
     clientId,
     clientSecret,
+    checks: ["pkce", "state"],
     authorization: {
       params: {
         scope: "user-read-email user-read-private",

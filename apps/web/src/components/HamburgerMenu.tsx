@@ -5,6 +5,7 @@
 import { APP_VERSION } from "@/config/version";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useMenu } from "@/contexts/MenuContext";
+import { appSignOut } from "@/services/authSignOut";
 import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
@@ -22,7 +23,7 @@ import {
     Shield,
     User,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -48,7 +49,7 @@ export default function HamburgerMenu() {
   const handleSignOut = () => {
     hapticMedium();
     closeMenu();
-    void signOut({ callbackUrl: "/" });
+    void appSignOut({ callbackUrl: "/" });
   };
 
   const menuItems: MenuItem[] = [

@@ -3,6 +3,7 @@ import {
   buildSpotifyBrowserSignInUrl,
   buildSpotifyLoginUrl,
   clearInMemoryAccessToken,
+  clearSpotifyBrowserSessionArtifacts,
   getCsrfTokenFromCookies,
   getInMemoryAccessToken,
   handleSpotifyCallbackHash,
@@ -20,6 +21,7 @@ describe("spotifyAuthClient", () => {
     vi.restoreAllMocks();
     window.history.replaceState({}, "", "/");
     window.sessionStorage.clear();
+    window.localStorage.clear();
   });
 
   it("builds login URL with frontend callback URI", () => {
@@ -92,6 +94,49 @@ describe("spotifyAuthClient", () => {
       "a=1; sb_csrf_token=csrf-123; b=2",
     );
     expect(token).toBe("csrf-123");
+  });
+
+  it("clears in-memory/session auth state and trace artifacts", () => {
+    window.sessionStorage.setItem(
+      "sb_spotify_auth_state_v1",
+      JSON.stringify({
+        accessToken: "token-1",
+        tokenType: "Bearer",
+        expiresAtMs: Date.now() + 60_000,
+        spotifyAccessToken: null,
+        spotifyTokenType: "Bearer",
+        spotifyExpiresAtMs: null,
+      }),
+    );
+    window.sessionStorage.setItem("sb_spotify_auth_trace_v1", "trace-1");
+    document.cookie = "sb_csrf_token=csrf-1; path=/";
+
+    clearSpotifyBrowserSessionArtifacts();
+
+    expect(getInMemoryAccessToken()).toBeNull();
+    expect(window.sessionStorage.getItem("sb_spotify_auth_state_v1")).toBeNull();
+    expect(window.sessionStorage.getItem("sb_spotify_auth_trace_v1")).toBeNull();
+    expect(window.localStorage.getItem("sb_spotify_logout_marker_v1")).not.toBeNull();
+  });
+
+  it("prevents silent refresh after explicit sign-out marker is set", async () => {
+    clearSpotifyBrowserSessionArtifacts();
+    const fetchMock = vi.spyOn(global, "fetch");
+
+    const token = await restoreSpotifySession();
+
+    expect(token).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("clears logout marker when login is started again", () => {
+    clearSpotifyBrowserSessionArtifacts();
+    expect(window.localStorage.getItem("sb_spotify_logout_marker_v1")).not.toBeNull();
+
+    const navigateSpy = vi.fn<(url: string) => void>();
+    startSpotifyLogin("/library", navigateSpy);
+
+    expect(window.localStorage.getItem("sb_spotify_logout_marker_v1")).toBeNull();
   });
 
   it("detects token hashes used for callback recovery", () => {
