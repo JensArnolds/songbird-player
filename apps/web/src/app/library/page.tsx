@@ -7,7 +7,8 @@ import EnhancedTrackCard from "@/components/EnhancedTrackCard";
 import { LoadingState } from "@starchild/ui/LoadingSpinner";
 import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { api } from "@starchild/api-client/trpc/react";
-import { Clock, Heart } from "lucide-react";
+import { hapticLight } from "@/utils/haptics";
+import { Clock, Heart, Play } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -45,6 +46,27 @@ export default function LibraryPage() {
       await utils.music.getHistory.invalidate();
     },
   });
+
+  const favoriteTracks = favorites?.map((item) => item.track) ?? [];
+  const historyTracks = history?.map((item) => item.track) ?? [];
+  const activeTracks =
+    activeTab === "favorites" ? favoriteTracks : historyTracks;
+  const activeTabLoading =
+    activeTab === "favorites" ? favoritesLoading : historyLoading;
+
+  const handlePlayAll = (): void => {
+    if (activeTracks.length === 0) return;
+
+    hapticLight();
+    const [first, ...rest] = activeTracks;
+    if (!first) return;
+
+    player.clearQueue();
+    player.playTrack(first);
+    if (rest.length > 0) {
+      player.addToQueue(rest, false);
+    }
+  };
 
   return (
     <div className="container mx-auto flex min-h-screen flex-col px-3 py-4 md:px-6 md:py-8">
@@ -84,6 +106,18 @@ export default function LibraryPage() {
           )}
         </button>
       </div>
+
+      {isAuthenticated && !activeTabLoading && activeTracks.length > 0 && (
+        <div className="mb-6 flex justify-end md:mb-8">
+          <button
+            onClick={handlePlayAll}
+            className="btn-primary touch-target-lg inline-flex items-center gap-2"
+          >
+            <Play className="h-4 w-4 md:h-5 md:w-5" />
+            <span>Play All</span>
+          </button>
+        </div>
+      )}
 
       {!isAuthenticated ? (
         <div className="fade-in">

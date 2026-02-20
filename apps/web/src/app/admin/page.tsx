@@ -26,7 +26,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type ApiDiagnosticTarget = {
   key: string;
@@ -72,6 +72,21 @@ type OAuthDumpResponse = {
   error?: string;
 };
 
+type UpstreamOAuthDumpResult = {
+  status: number;
+  fetchedAt: string;
+  traceId: string | null;
+  limit: number;
+  payload: unknown;
+};
+
+type UpstreamOAuthDumpEntry = {
+  timestamp: string | null;
+  level: string | null;
+  title: string;
+  details: unknown;
+};
+
 const API_DIAGNOSTIC_TARGETS: ApiDiagnosticTarget[] = [
   { key: "status", label: "Liveness", path: "/api/v2/status" },
   { key: "version", label: "Version", path: "/api/v2/version" },
@@ -88,6 +103,119 @@ const API_DIAGNOSTIC_TARGETS: ApiDiagnosticTarget[] = [
 ];
 
 const API_DIAGNOSTIC_AUTH_KEYS = new Set(["cache", "authMe"]);
+
+function readFirstString(
+  record: Record<string, unknown>,
+  keys: string[],
+): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function extractUpstreamOAuthDumpEntries(
+  payload: unknown,
+): UpstreamOAuthDumpEntry[] {
+  if (!payload || typeof payload !== "object") return [];
+
+  const root = payload as Record<string, unknown>;
+  const candidateCollections = [
+    "events",
+    "entries",
+    "logs",
+    "records",
+    "items",
+    "data",
+  ];
+
+  for (const candidateKey of candidateCollections) {
+    const candidateValue = root[candidateKey];
+    if (!Array.isArray(candidateValue)) continue;
+
+    return candidateValue
+      .map((entry, index) => {
+        if (!entry || typeof entry !== "object") {
+          return {
+            timestamp: null,
+            level: null,
+            title: `${candidateKey}[${index}]`,
+            details: entry,
+          };
+        }
+
+        const typedEntry = entry as Record<string, unknown>;
+        const timestamp = readFirstString(typedEntry, [
+          "timestamp",
+          "time",
+          "createdAt",
+          "occurredAt",
+        ]);
+        const level = readFirstString(typedEntry, [
+          "level",
+          "phase",
+          "type",
+          "severity",
+        ]);
+        const title =
+          readFirstString(typedEntry, [
+            "message",
+            "label",
+            "event",
+            "action",
+            "route",
+            "path",
+            "url",
+          ]) ?? `${candidateKey}[${index}]`;
+
+        return {
+          timestamp,
+          level,
+          title,
+          details: typedEntry,
+        };
+      })
+      .slice(-400);
+  }
+
+  return [];
+}
+
+function parseBoundedInt(
+  value: string,
+  fallback: number,
+  minimum: number,
+  maximum: number,
+): number {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(maximum, Math.max(minimum, parsed));
+}
+
+function getErrorMessageFromPayload(payload: unknown): string | null {
+  if (typeof payload === "string" && payload.trim().length > 0) {
+    return payload;
+  }
+
+  if (!payload || typeof payload !== "object") return null;
+  const record = payload as Record<string, unknown>;
+
+  const message =
+    (typeof record.message === "string" && record.message.trim().length > 0
+      ? record.message
+      : null) ??
+    (typeof record.error === "string" && record.error.trim().length > 0
+      ? record.error
+      : null) ??
+    (typeof record.detail === "string" && record.detail.trim().length > 0
+      ? record.detail
+      : null);
+
+  return message;
+}
 
 function toPreviewText(rawText: string): string {
   if (!rawText.trim()) return "(empty)";
@@ -225,6 +353,15 @@ export default function AdminPage() {
     useState(false);
   const [oauthDump, setOauthDump] = useState<OAuthDumpResponse | null>(null);
   const [isOAuthDumpLoading, setIsOAuthDumpLoading] = useState(false);
+  const [upstreamOAuthDump, setUpstreamOAuthDump] =
+    useState<UpstreamOAuthDumpResult | null>(null);
+  const [isUpstreamOAuthDumpLoading, setIsUpstreamOAuthDumpLoading] =
+    useState(false);
+  const [upstreamOAuthTraceIdInput, setUpstreamOAuthTraceIdInput] =
+    useState("");
+  const [upstreamOAuthLimitInput, setUpstreamOAuthLimitInput] = useState("200");
+  const upstreamOAuthTraceIdRef = useRef(upstreamOAuthTraceIdInput);
+  const upstreamOAuthLimitRef = useRef(upstreamOAuthLimitInput);
 
   const handleToggleAdmin = (userId: string, admin: boolean) => {
     updateAdmin.mutate({ userId, admin: !admin });
@@ -341,10 +478,13 @@ export default function AdminPage() {
           params.set("clear", "1");
         }
 
-        const response = await fetch(`/api/admin/auth/fetch-dump?${params.toString()}`, {
-          cache: "no-store",
-          credentials: "same-origin",
-        });
+        const response = await fetch(
+          `/api/admin/auth/fetch-dump?${params.toString()}`,
+          {
+            cache: "no-store",
+            credentials: "same-origin",
+          },
+        );
         const payload = (await response.json()) as OAuthDumpResponse;
         if (!response.ok || !payload.ok) {
           showToast(
@@ -367,19 +507,105 @@ export default function AdminPage() {
   );
 
   useEffect(() => {
+    upstreamOAuthTraceIdRef.current = upstreamOAuthTraceIdInput;
+  }, [upstreamOAuthTraceIdInput]);
+
+  useEffect(() => {
+    upstreamOAuthLimitRef.current = upstreamOAuthLimitInput;
+  }, [upstreamOAuthLimitInput]);
+
+  const refreshUpstreamOAuthDump = useCallback(async () => {
+    setIsUpstreamOAuthDumpLoading(true);
+    try {
+      const traceId = upstreamOAuthTraceIdRef.current.trim();
+      const normalizedLimit = parseBoundedInt(
+        upstreamOAuthLimitRef.current,
+        200,
+        1,
+        2000,
+      );
+      if (String(normalizedLimit) !== upstreamOAuthLimitRef.current) {
+        setUpstreamOAuthLimitInput(String(normalizedLimit));
+      }
+
+      const params = new URLSearchParams({ limit: String(normalizedLimit) });
+      if (traceId.length > 0) {
+        params.set("trace_id", traceId);
+      }
+
+      const response = await fetch(
+        `/api/auth/spotify/debug?${params.toString()}`,
+        {
+          cache: "no-store",
+          credentials: "same-origin",
+        },
+      );
+
+      const rawPayload = await response.text().catch(() => "");
+      let parsedPayload: unknown = rawPayload;
+      if (rawPayload.trim().length === 0) {
+        parsedPayload = {};
+      } else {
+        try {
+          parsedPayload = JSON.parse(rawPayload) as unknown;
+        } catch {
+          parsedPayload = rawPayload;
+        }
+      }
+
+      setUpstreamOAuthDump({
+        status: response.status,
+        fetchedAt: new Date().toISOString(),
+        traceId: traceId.length > 0 ? traceId : null,
+        limit: normalizedLimit,
+        payload: parsedPayload,
+      });
+
+      if (!response.ok) {
+        showToast(
+          getErrorMessageFromPayload(parsedPayload) ??
+            `Upstream OAuth debug request failed (${response.status})`,
+          "error",
+        );
+      }
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch upstream OAuth debug dump",
+        "error",
+      );
+    } finally {
+      setIsUpstreamOAuthDumpLoading(false);
+    }
+  }, [showToast]);
+
+  const upstreamOAuthEntries = useMemo(
+    () => extractUpstreamOAuthDumpEntries(upstreamOAuthDump?.payload),
+    [upstreamOAuthDump?.payload],
+  );
+
+  useEffect(() => {
     if (!isAuthorized) return;
 
     void refreshDiagnostics();
     void refreshOAuthDump();
+    void refreshUpstreamOAuthDump();
     const intervalId = window.setInterval(() => {
       void refreshDiagnostics();
       void refreshOAuthDump();
+      void refreshUpstreamOAuthDump();
     }, 60_000);
 
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [isAuthorized, refreshDiagnostics, refreshOAuthDump]);
+  }, [
+    isAuthorized,
+    refreshDiagnostics,
+    refreshOAuthDump,
+    refreshUpstreamOAuthDump,
+  ]);
 
   if (status === "loading") {
     return (
@@ -744,6 +970,148 @@ export default function AdminPage() {
         ) : (
           <div className="rounded-2xl border border-dashed border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-subtext)]">
             OAuth dump not loaded yet.
+          </div>
+        )}
+      </div>
+
+      <div className="mb-8 rounded-3xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)]/90 via-[var(--color-surface-2)]/85 to-[rgba(88,198,177,0.1)] p-6 shadow-[var(--shadow-lg)]">
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="flex items-center gap-2 text-sm tracking-[0.14em] text-[var(--color-subtext)] uppercase">
+              <FileText className="h-4 w-4 text-[var(--color-accent)]" />
+              Upstream OAuth2 Dump
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-subtext)]">
+              Proxied from <code>/api/auth/spotify/debug</code> using
+              server-side
+              <code> AUTH_DEBUG_TOKEN</code>.
+            </p>
+          </div>
+          <button
+            onClick={() => void refreshUpstreamOAuthDump()}
+            disabled={isUpstreamOAuthDumpLoading}
+            className="inline-flex items-center gap-2 self-start rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
+          >
+            {isUpstreamOAuthDumpLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="h-4 w-4" />
+            )}
+            Refresh upstream dump
+          </button>
+        </div>
+
+        <div className="mb-3 grid gap-2 md:grid-cols-[1fr_120px]">
+          <label className="text-xs text-[var(--color-subtext)]">
+            Trace ID (optional)
+            <input
+              value={upstreamOAuthTraceIdInput}
+              onChange={(event) =>
+                setUpstreamOAuthTraceIdInput(event.target.value)
+              }
+              placeholder="trace-id-from-callback"
+              className="mt-1 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
+            />
+          </label>
+          <label className="text-xs text-[var(--color-subtext)]">
+            Limit
+            <input
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={upstreamOAuthLimitInput}
+              onChange={(event) =>
+                setUpstreamOAuthLimitInput(event.target.value)
+              }
+              placeholder="200"
+              className="mt-1 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
+            />
+          </label>
+        </div>
+
+        {upstreamOAuthDump ? (
+          <>
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-[var(--color-subtext)]">
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                status:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {upstreamOAuthDump.status}
+                </strong>
+              </span>
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                trace:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {upstreamOAuthDump.traceId ?? "(none)"}
+                </strong>
+              </span>
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                limit:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {upstreamOAuthDump.limit}
+                </strong>
+              </span>
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                entries:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {upstreamOAuthEntries.length}
+                </strong>
+              </span>
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                updated:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {upstreamOAuthDump.fetchedAt}
+                </strong>
+              </span>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/80 p-3">
+                <p className="mb-2 text-sm font-semibold text-[var(--color-text)]">
+                  Parsed events
+                </p>
+                <div className="max-h-80 space-y-2 overflow-auto pr-1">
+                  {upstreamOAuthEntries.length === 0 ? (
+                    <p className="text-xs text-[var(--color-subtext)]">
+                      No list-like event collection detected in response.
+                    </p>
+                  ) : (
+                    upstreamOAuthEntries.map((entry, index) => (
+                      <div
+                        key={`${entry.timestamp ?? "no-ts"}-${entry.title}-${index}`}
+                        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)]/70 p-2"
+                      >
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <span className="truncate text-xs font-semibold text-[var(--color-text)]">
+                            {entry.title}
+                          </span>
+                          <span className="rounded-full bg-[var(--color-surface)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-subtext)] uppercase">
+                            {entry.level ?? "event"}
+                          </span>
+                        </div>
+                        <p className="mb-1 text-[10px] text-[var(--color-muted)]">
+                          {entry.timestamp ?? "timestamp unavailable"}
+                        </p>
+                        <pre className="max-h-36 overflow-auto rounded-lg bg-[var(--color-surface)]/70 p-2 text-[10px] leading-relaxed text-[var(--color-subtext)]">
+                          {toJsonPreview(entry.details)}
+                        </pre>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/80 p-3">
+                <p className="mb-2 text-sm font-semibold text-[var(--color-text)]">
+                  Raw response
+                </p>
+                <pre className="max-h-80 overflow-auto rounded-lg bg-[var(--color-surface-2)]/70 p-2 text-[10px] leading-relaxed text-[var(--color-subtext)]">
+                  {toJsonPreview(upstreamOAuthDump.payload)}
+                </pre>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-subtext)]">
+            Upstream OAuth debug dump not loaded yet.
           </div>
         )}
       </div>
