@@ -144,6 +144,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const streamErrorRetryCountRef = useRef(0);
   const streamErrorTrackIdRef = useRef<number | null>(null);
   const maxStreamErrorRetries = 2;
+  const lastDebugTimeBucketRef = useRef<number | null>(null);
   const failedTracksRef = useRef<Set<number>>(new Set());
   const [failedTrackIds, setFailedTrackIds] = useState<Set<number>>(new Set());
   const isInitialMountRef = useRef(true);
@@ -680,11 +681,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
     const handleTimeUpdate = () => {
       const newTime = audio.currentTime;
+      const timeBucket = Math.floor(newTime);
 
-      if (
-        Math.floor(newTime) % 5 === 0 &&
-        Math.floor(newTime) !== Math.floor(currentTime)
-      ) {
+      if (timeBucket % 5 === 0 && timeBucket !== lastDebugTimeBucketRef.current) {
+        lastDebugTimeBucketRef.current = timeBucket;
         logger.debug("[useAudioPlayer] Time update:", {
           currentTime: newTime,
           paused: audio.paused,
@@ -908,7 +908,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       audio.removeEventListener("ratechange", handleRateChange);
       clearInterval(playbackRateInterval);
     };
-  }, [handleTrackEnd, currentTrack, onError, currentTime, requestAutoPlayNext]);
+  }, [handleTrackEnd, currentTrack, onError, requestAutoPlayNext]);
 
   useEffect(() => {
     if (typeof document === "undefined" || typeof window === "undefined")

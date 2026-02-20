@@ -7,6 +7,18 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+function redactKeyFromUrl(rawUrl: string): string {
+  try {
+    const safeUrl = new URL(rawUrl);
+    if (safeUrl.searchParams.has("key")) {
+      safeUrl.searchParams.set("key", "***");
+    }
+    return safeUrl.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const query = searchParams.get("q");
@@ -20,17 +32,72 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const bluesixApiUrl = env.API_V2_URL;
-    const bluesixApiKey = env.BLUESIX_API_KEY;
+    const bluesixApiUrl = env.API_V2_URL?.trim();
+    const bluesixApiKey = env.BLUESIX_API_KEY?.trim();
+    const missingEnvVars: string[] = [];
 
-    const rangeHeader = req.headers.get("Range");
-    const fetchHeaders: HeadersInit = {};
-    if (rangeHeader) {
-      fetchHeaders.Range = rangeHeader;
+    if (!bluesixApiUrl) {
+      missingEnvVars.push("API_V2_URL");
+    }
+    if (!bluesixApiKey) {
+      missingEnvVars.push("BLUESIX_API_KEY");
     }
 
+    if (missingEnvVars.length > 0) {
+      const message = `Missing required stream configuration: ${missingEnvVars.join(", ")}`;
+      console.error(`[Stream API] ${message}`);
+      return NextResponse.json(
+        {
+          error: message,
+          missing: missingEnvVars,
+        },
+        { status: 500 },
+      );
+    }
+
+    const configuredBluesixApiUrl = bluesixApiUrl!;
+    const configuredBluesixApiKey = bluesixApiKey!;
+
+    let parsedBluesixUrl: URL;
+    try {
+      parsedBluesixUrl = new URL(configuredBluesixApiUrl);
+    } catch {
+      const message = "Invalid API_V2_URL. Expected a valid absolute URL.";
+      console.error(`[Stream API] ${message}`, {
+        configuredValue: configuredBluesixApiUrl,
+      });
+      return NextResponse.json(
+        { error: message },
+        { status: 500 },
+      );
+    }
+
+    if (
+      parsedBluesixUrl.protocol !== "http:" &&
+      parsedBluesixUrl.protocol !== "https:"
+    ) {
+      const message =
+        "Invalid API_V2_URL protocol. Only http:// and https:// are supported.";
+      console.error(`[Stream API] ${message}`, {
+        protocol: parsedBluesixUrl.protocol,
+      });
+      return NextResponse.json(
+        { error: message },
+        { status: 500 },
+      );
+    }
+
+    const normalizedBluesixUrl = parsedBluesixUrl.toString().replace(/\/+$/, "");
+    console.info(
+      `[Stream API] Using API_V2_URL host: ${parsedBluesixUrl.host}`,
+    );
+
+    const rangeHeader = req.headers.get("range");
+    const effectiveRange = rangeHeader ?? "bytes=0-";
+    const fetchHeaders: HeadersInit = { Range: effectiveRange };
+
     console.log("[Stream API] Request headers:", {
-      Range: rangeHeader ?? "none",
+      Range: effectiveRange,
       "User-Agent": req.headers.get("User-Agent") ?? "unknown",
     });
 
@@ -55,19 +122,8 @@ export async function GET(req: NextRequest) {
       });
     };
 
-    if (!bluesixApiUrl || !bluesixApiKey) {
-      console.error(
-        "[Stream API] API_V2_URL or BLUESIX_API_KEY not configured",
-      );
-      return NextResponse.json(
-        { error: "V2 API not configured" },
-        { status: 500 },
-      );
-    }
-
-    const normalizedBluesixUrl = bluesixApiUrl.replace(/\/+$/, "");
-    const url = new URL("music/stream/direct", normalizedBluesixUrl);
-    url.searchParams.set("key", bluesixApiKey);
+    const url = new URL("music/stream/direct", `${normalizedBluesixUrl}/`);
+    url.searchParams.set("key", configuredBluesixApiKey);
     url.searchParams.set(
       "kbps",
       req.nextUrl.searchParams.get("kbps") ?? "320",
@@ -82,13 +138,14 @@ export async function GET(req: NextRequest) {
     }
 
     const requestUrl = url.toString();
+    const redactedRequestUrl = redactKeyFromUrl(requestUrl);
     console.log(
       "[Stream API] Fetching stream from:",
-      requestUrl.replace(bluesixApiKey, "***"),
+      redactedRequestUrl,
     );
     console.log(
       "[Stream API] Full URL (key hidden):",
-      requestUrl.replace(bluesixApiKey, "***"),
+      redactedRequestUrl,
     );
 
     let response: Response;
@@ -172,7 +229,7 @@ export async function GET(req: NextRequest) {
         "[Stream API] Response headers:",
         Object.fromEntries(response.headers.entries()),
       );
-      console.error("[Stream API] Request URL:", requestUrl.replace(bluesixApiKey, "***"));
+      console.error("[Stream API] Request URL:", redactedRequestUrl);
 
       const isUpstreamError =
         statusCode === 502 ||
@@ -196,13 +253,13 @@ export async function GET(req: NextRequest) {
           message: errorData.message ?? errorText,
           details: errorData,
           status: statusCode,
-          backendUrl: requestUrl.replace(bluesixApiKey, "***"),
+          backendUrl: redactedRequestUrl,
           type: isUpstreamError ? "upstream_error" : "stream_error",
           diagnostics: {
             trackId: id ?? null,
             query: query ?? null,
             backendBaseUrl: normalizedBluesixUrl,
-            hasApiKey: !!bluesixApiKey,
+            hasApiKey: !!configuredBluesixApiKey,
           },
         },
         { status: statusCode },

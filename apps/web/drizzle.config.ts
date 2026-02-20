@@ -1,4 +1,6 @@
 // File: apps/web/drizzle.config.ts
+// Note: drizzle-kit is run with drizzle.config.cjs to avoid ESM "require is not defined" errors.
+// This .ts file is kept for type reference; scripts use the .cjs file.
 
 import { config as dotenvConfig } from "dotenv";
 import { dirname, resolve } from "path";
