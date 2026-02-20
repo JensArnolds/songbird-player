@@ -1,5 +1,11 @@
 // File: apps/web/drizzle.config.ts
 
+// NOTE: This file mirrors the configuration from `drizzle.config.cjs`.
+// Drizzle Kit's CLI expects a CommonJS `.cjs` config file for running
+// migrations, so `drizzle.config.cjs` is the source of truth for the CLI.
+// This TypeScript file is provided for use inside the app (type safety,
+// editor tooling) and must be kept in sync with the `.cjs` configuration.
+
 import { config as dotenvConfig } from "dotenv";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
@@ -15,40 +21,33 @@ dotenvConfig({ path: resolve(repoRoot, ".env"), override: false });
 
 import drizzleEnv from "./drizzle.env";
 
-
 function getSslConfig() {
-  
   const rawUrl = process.env.DATABASE_URL?.trim();
   const databaseUrl = rawUrl && rawUrl.length > 0 ? rawUrl : undefined;
 
-  
-  const connectionString = databaseUrl ?? (drizzleEnv.DB_HOST ?? "");
+  const connectionString = databaseUrl ?? drizzleEnv.DB_HOST ?? "";
 
-  
-  const isLocalDb = connectionString.includes("localhost") ||
-                     connectionString.includes("127.0.0.1");
+  const isLocalDb =
+    connectionString.includes("localhost") ||
+    connectionString.includes("127.0.0.1");
 
   if (isLocalDb) {
     console.log("[Drizzle] Local database detected. SSL disabled.");
     return undefined;
   }
 
-  
   console.log("[Drizzle] Cloud database detected. Using standard SSL.");
   return {
     rejectUnauthorized: true,
   };
 }
 
-
-
-
 const rawUrl = process.env.DATABASE_URL?.trim();
 const databaseUrl = rawUrl && rawUrl.length > 0 ? rawUrl : undefined;
 
 if (!databaseUrl && !process.env.DB_HOST) {
   console.warn(
-    "[Drizzle] Warning: Neither DATABASE_URL nor DB_HOST is set. Database operations may fail."
+    "[Drizzle] Warning: Neither DATABASE_URL nor DB_HOST is set. Database operations may fail.",
   );
 }
 
@@ -58,13 +57,11 @@ const config = {
   dialect: "postgresql" as const,
   ...(databaseUrl
     ? {
-        
         dbCredentials: {
           url: databaseUrl,
         },
       }
     : {
-        
         dbCredentials: {
           host: drizzleEnv.DB_HOST ?? "localhost",
           port: parseInt(drizzleEnv.DB_PORT ?? "5432", 10),
