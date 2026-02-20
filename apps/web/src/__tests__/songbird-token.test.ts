@@ -1,3 +1,5 @@
+// File: apps/web/src/__tests__/songbird-token.test.ts
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));

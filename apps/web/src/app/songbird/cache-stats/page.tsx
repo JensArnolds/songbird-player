@@ -1,3 +1,5 @@
+// File: apps/web/src/app/songbird/cache-stats/page.tsx
+
 "use client";
 
 import { useSongbirdCacheStats } from "@/hooks/useSongbirdCacheStats";

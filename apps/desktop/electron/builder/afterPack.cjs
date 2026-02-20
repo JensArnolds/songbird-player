@@ -1,3 +1,5 @@
+// File: apps/desktop/electron/builder/afterPack.cjs
+
 const fs = require("fs");
 const path = require("path");
 

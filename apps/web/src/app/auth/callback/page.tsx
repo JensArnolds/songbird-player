@@ -1,3 +1,5 @@
+// File: apps/web/src/app/auth/callback/page.tsx
+
 "use client";
 
 import {

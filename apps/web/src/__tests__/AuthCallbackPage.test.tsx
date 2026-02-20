@@ -1,3 +1,5 @@
+// File: apps/web/src/__tests__/AuthCallbackPage.test.tsx
+
 import AuthCallbackPage from "@/app/auth/callback/page";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";

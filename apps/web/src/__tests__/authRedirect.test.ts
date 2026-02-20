@@ -1,3 +1,5 @@
+// File: apps/web/src/__tests__/authRedirect.test.ts
+
 import {
   buildAuthCallbackUrl,
   resolvePostAuthPath,

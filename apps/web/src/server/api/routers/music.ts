@@ -1008,7 +1008,7 @@ async function syncAutoFavorites(database: typeof db, userId: string) {
           userId,
           trackId: t.trackId,
           deezerId: getDeezerId(track as z.infer<typeof trackSchema>),
-          trackData: t.trackData,
+          trackData: track,
         };
       }),
     );
@@ -1431,10 +1431,7 @@ export const musicRouter = createTRPCRouter({
         inserted = await insertTrack();
       } catch (error) {
         if (
-          isUniqueConstraintError(
-            error,
-            "hexmusic-stream_playlist_track_pkey",
-          )
+          isUniqueConstraintError(error, "hexmusic-stream_playlist_track_pkey")
         ) {
           await syncPlaylistTrackIdSequence(ctx.db);
           inserted = await insertTrack();
@@ -1602,6 +1599,34 @@ export const musicRouter = createTRPCRouter({
         }),
       );
     }),
+
+  clearHistory: protectedProcedure.mutation(async ({ ctx }) => {
+    const removed = await ctx.db
+      .delete(listeningHistory)
+      .where(eq(listeningHistory.userId, ctx.session.user.id))
+      .returning({ id: listeningHistory.id });
+
+    return { success: true, removedCount: removed.length };
+  }),
+
+  clearNonFavoritesFromHistory: protectedProcedure.mutation(async ({ ctx }) => {
+    const removed = await ctx.db
+      .delete(listeningHistory)
+      .where(
+        and(
+          eq(listeningHistory.userId, ctx.session.user.id),
+          sql`NOT EXISTS (
+            SELECT 1
+            FROM ${favorites}
+            WHERE ${favorites.userId} = ${ctx.session.user.id}
+              AND ${favorites.trackId} = ${listeningHistory.trackId}
+          )`,
+        ),
+      )
+      .returning({ id: listeningHistory.id });
+
+    return { success: true, removedCount: removed.length };
+  }),
 
   removeFromHistory: protectedProcedure
     .input(z.object({ historyId: z.number() }))
@@ -2703,8 +2728,9 @@ export const musicRouter = createTRPCRouter({
               ? "/api/spotify/recommendations/spice-up"
               : "/api/spotify/recommendations/spice-up/unified";
 
-          const recommendationResponse =
-            await bluesix.request<SpiceUpResponse>(recommendationEndpoint, {
+          const recommendationResponse = await bluesix.request<SpiceUpResponse>(
+            recommendationEndpoint,
+            {
               method: "POST",
               body: JSON.stringify({
                 songs: seedInputs,
@@ -2723,7 +2749,8 @@ export const musicRouter = createTRPCRouter({
                   : {}),
                 ...(input.excludeExplicit ? { excludeExplicit: true } : {}),
               }),
-            });
+            },
+          );
 
           if (
             recommendationResponse.warnings &&

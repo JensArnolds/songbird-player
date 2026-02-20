@@ -1,3 +1,5 @@
+// File: apps/web/src/lib/server/songbird-token.ts
+
 import "server-only";
 
 import { env } from "@/env";

@@ -1,3 +1,5 @@
+// File: apps/desktop/electron/main.cjs
+
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
@@ -139,7 +141,9 @@ const decryptEnvPayload = (envFilePath, keyFilePath, passphrase) => {
     throw new Error(`Unsupported encrypted env version: ${String(version)}`);
   }
   if (algorithm !== ENV_PAYLOAD_ALGORITHM) {
-    throw new Error(`Unsupported encrypted env algorithm: ${String(algorithm)}`);
+    throw new Error(
+      `Unsupported encrypted env algorithm: ${String(algorithm)}`,
+    );
   }
   if (
     typeof encryptedKey !== "string" ||
@@ -249,7 +253,9 @@ try {
     path.join(path.dirname(process.execPath), "starchild-env-private.key"),
     path.join(userConfigDir, ".env.private.key"),
     path.join(userConfigDir, "starchild-env-private.key"),
-    process.platform === "linux" ? "/etc/starchild/.env.private.key" : undefined,
+    process.platform === "linux"
+      ? "/etc/starchild/.env.private.key"
+      : undefined,
     path.join(process.cwd(), ".env.private.key"),
   ].filter(Boolean);
 
@@ -350,7 +356,9 @@ try {
 
   if (!loaded) {
     if (isPackagedRuntime) {
-      bootLog("No external env file found - using system environment variables");
+      bootLog(
+        "No external env file found - using system environment variables",
+      );
       bootLog("Checked env paths:", candidateEnvPaths.join(", "));
     } else {
       bootLog("No .env.local found - using system environment variables");

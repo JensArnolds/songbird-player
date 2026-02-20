@@ -1,3 +1,5 @@
+# File: skills/starchild-api-change/agents/openai.yaml
+
 interface:
   display_name: "Starchild API Change"
   short_description: "Implement safe tRPC and API route changes for this repo"

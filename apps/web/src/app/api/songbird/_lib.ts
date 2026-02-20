@@ -1,3 +1,5 @@
+// File: apps/web/src/app/api/songbird/_lib.ts
+
 import { env } from "@/env";
 import {
   SongbirdTokenError,

@@ -1,3 +1,5 @@
+// File: apps/web/src/app/api/auth/signin/spotify/route.ts
+
 import { type NextRequest, NextResponse } from "next/server";
 
 const CANONICAL_SPOTIFY_AUTH_PATH = "/api/auth/spotify";

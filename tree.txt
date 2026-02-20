@@ -1,8 +1,9 @@
-bluesix-frontend
+songbird-frontend
 ├───.annot8_backup.json
 ├───.dockerignore
 ├───.env.example
 ├───.env.local
+├───.env.local.old
 ├───.gitignore
 ├───.markdownlint-cli2.jsonc
 ├───.pm2ignore
@@ -22,9 +23,9 @@ bluesix-frontend
 ├───LICENSE.md
 ├───Makefile
 ├───next.config.js
-├───package-lock.json
 ├───package.json
 ├───pm2-setup.sh
+├───pnpm-lock.yaml
 ├───pnpm-workspace.yaml
 ├───postcss.config.js
 ├───prettier.config.js
@@ -71,6 +72,9 @@ bluesix-frontend
 │   └───workflows/
 │       └───docker-build.yml
 ├───.tmp/
+├───.vercel/
+│   ├───project.json
+│   └───README.txt
 ├───apps/
 │   ├───README.md
 │   ├───desktop/
@@ -100,6 +104,7 @@ bluesix-frontend
 │   │   └───src/
 │   │       └───index.ts
 │   └───web/
+│       ├───drizzle.config.cjs
 │       ├───drizzle.config.ts
 │       ├───drizzle.env.ts
 │       ├───eslint.config.js
@@ -163,21 +168,21 @@ bluesix-frontend
 │       │       ├───0023_snapshot.json
 │       │       └───_journal.json
 │       ├───public/
+│       │   ├───bluesix.svg
 │       │   ├───CHANGELOG.md
 │       │   ├───emily-the-strange-raw-pink.png
 │       │   ├───emily-the-strange-raw.png
 │       │   ├───emily-the-strange.png
+│       │   ├───emily.jpg
 │       │   ├───favicon.ico
 │       │   ├───favicon.svg
 │       │   ├───icon-192.png
-│       │   ├───icon-192.png.txt
 │       │   ├───icon-512.png
 │       │   ├───icon.icns
 │       │   ├───icon.ico
 │       │   ├───icon.png
 │       │   ├───manifest.json
 │       │   ├───og-image.png
-│       │   ├───bluesix.svg
 │       │   ├───sw.js
 │       │   ├───AppIcons/
 │       │   │   ├───appstore.png
@@ -245,9 +250,14 @@ bluesix-frontend
 │           ├───global.d.ts
 │           ├───proxy.ts
 │           ├───__tests__/
+│           │   ├───api-auth-fetch-dump-routes.test.ts
+│           │   ├───api-auth-spotify-routes.test.ts
 │           │   ├───api-search-v2.test.ts
+│           │   ├───api-songbird-routes.test.ts
 │           │   ├───api-stream-v2.test.ts
 │           │   ├───api-v2-status-routes.test.ts
+│           │   ├───AuthCallbackPage.test.tsx
+│           │   ├───authRedirect.test.ts
 │           │   ├───ErrorBoundary.stability.test.tsx
 │           │   ├───health-status.test.ts
 │           │   ├───MobileFooter.test.tsx
@@ -259,6 +269,11 @@ bluesix-frontend
 │           │   ├───og-image-trackid-query.test.ts
 │           │   ├───playback-rate.stability.test.ts
 │           │   ├───player.integration.stability.test.ts
+│           │   ├───songbird-pages.test.tsx
+│           │   ├───songbird-token.test.ts
+│           │   ├───spotify-provider.test.ts
+│           │   ├───SpotifyAuthCallbackPage.test.tsx
+│           │   ├───spotifyAuthClient.test.ts
 │           │   ├───Toast.test.tsx
 │           │   ├───track-seo.test.ts
 │           │   ├───trpc.music.test.ts
@@ -280,8 +295,13 @@ bluesix-frontend
 │           │   │   └───page.tsx
 │           │   ├───album/
 │           │   │   └───[id]/
+│           │   │       ├───loading.tsx
 │           │   │       └───page.tsx
 │           │   ├───api/
+│           │   │   ├───admin/
+│           │   │   │   └───auth/
+│           │   │   │       └───fetch-dump/
+│           │   │   │           └───route.ts
 │           │   │   ├───album/
 │           │   │   │   └───[id]/
 │           │   │   │       ├───route.ts
@@ -293,8 +313,25 @@ bluesix-frontend
 │           │   │   │       └───tracks/
 │           │   │   │           └───route.ts
 │           │   │   ├───auth/
-│           │   │   │   └───[...nextauth]/
-│           │   │   │       └───route.ts
+│           │   │   │   ├───_lib.ts
+│           │   │   │   ├───[...nextauth]/
+│           │   │   │   │   └───route.ts
+│           │   │   │   ├───me/
+│           │   │   │   │   └───route.ts
+│           │   │   │   ├───oauth/
+│           │   │   │   │   └───fetch-dump/
+│           │   │   │   │       └───route.ts
+│           │   │   │   ├───signin/
+│           │   │   │   │   └───spotify/
+│           │   │   │   │       └───route.ts
+│           │   │   │   └───spotify/
+│           │   │   │       ├───route.ts
+│           │   │   │       ├───callback/
+│           │   │   │       │   └───route.ts
+│           │   │   │       ├───debug/
+│           │   │   │       │   └───route.ts
+│           │   │   │       └───refresh/
+│           │   │   │           └───route.ts
 │           │   │   ├───health/
 │           │   │   │   └───route.ts
 │           │   │   ├───music/
@@ -319,6 +356,12 @@ bluesix-frontend
 │           │   │   │   └───route.tsx
 │           │   │   ├───playlist/
 │           │   │   │   └───[id]/
+│           │   │   │       └───route.ts
+│           │   │   ├───songbird/
+│           │   │   │   ├───_lib.ts
+│           │   │   │   ├───auth-me/
+│           │   │   │   │   └───route.ts
+│           │   │   │   └───cache-stats/
 │           │   │   │       └───route.ts
 │           │   │   ├───stream/
 │           │   │   │   └───route.ts
@@ -368,7 +411,14 @@ bluesix-frontend
 │           │   │           └───route.ts
 │           │   ├───artist/
 │           │   │   └───[id]/
+│           │   │       ├───loading.tsx
 │           │   │       └───page.tsx
+│           │   ├───auth/
+│           │   │   ├───callback/
+│           │   │   │   └───page.tsx
+│           │   │   └───spotify/
+│           │   │       └───callback/
+│           │   │           └───page.tsx
 │           │   ├───discover/
 │           │   │   └───playlists/
 │           │   │       └───[id]/
@@ -388,6 +438,11 @@ bluesix-frontend
 │           │   │   └───page.tsx
 │           │   ├───signin/
 │           │   │   └───page.tsx
+│           │   ├───songbird/
+│           │   │   ├───auth-me/
+│           │   │   │   └───page.tsx
+│           │   │   └───cache-stats/
+│           │   │       └───page.tsx
 │           │   └───track/
 │           │       └───[id]/
 │           │           ├───page.tsx
@@ -395,6 +450,7 @@ bluesix-frontend
 │           ├───components/
 │           │   ├───AddToPlaylistModal.tsx
 │           │   ├───AnimatedList.tsx
+│           │   ├───AuthGate.tsx
 │           │   ├───AuthModal.tsx
 │           │   ├───AutoQueueBadge.tsx
 │           │   ├───BottomSheet.tsx
@@ -415,6 +471,7 @@ bluesix-frontend
 │           │   ├───ErrorBoundary.tsx
 │           │   ├───FloatingActionButton.tsx
 │           │   ├───FlowFieldBackground.tsx
+│           │   ├───GuestModal.tsx
 │           │   ├───HamburgerMenu.tsx
 │           │   ├───Header.tsx
 │           │   ├───HomeFeedRow.tsx
@@ -447,6 +504,8 @@ bluesix-frontend
 │           │   ├───SwipeableTrackItem.tsx
 │           │   ├───TrackCard.tsx
 │           │   ├───TrackContextMenu.tsx
+│           │   ├───TrackListSection.tsx
+│           │   ├───TrackPlayButtons.tsx
 │           │   ├───UIWrapper.tsx
 │           │   ├───WelcomeHero.tsx
 │           │   └───visualizers/
@@ -476,10 +535,15 @@ bluesix-frontend
 │           │   ├───useMediaQuery.ts
 │           │   ├───usePullToRefresh.ts
 │           │   ├───useSearchSuggestions.ts
+│           │   ├───useSongbirdAuthMe.ts
+│           │   ├───useSongbirdCacheStats.ts
+│           │   ├───useSongbirdResource.ts
 │           │   ├───useSwipeGesture.ts
 │           │   └───useWebShare.ts
 │           ├───lib/
-│           │   └───utils.ts
+│           │   ├───utils.ts
+│           │   └───server/
+│           │       └───songbird-token.ts
 │           ├───server/
 │           │   ├───api/
 │           │   │   ├───root.ts
@@ -499,8 +563,10 @@ bluesix-frontend
 │           │   └───services/
 │           │       └───recommendations.ts
 │           ├───services/
-│           │   ├───smartQueue.ts
+│           │   ├───authSignOut.ts
 │           │   ├───bluesix.ts
+│           │   ├───smartQueue.ts
+│           │   ├───spotifyAuthClient.ts
 │           │   └───storage.ts
 │           ├───styles/
 │           │   └───globals.css
@@ -508,11 +574,13 @@ bluesix-frontend
 │           │   └───setup.ts
 │           ├───trpc/
 │           ├───types/
-│           │   └───api-client-router.d.ts
+│           │   ├───api-client-router.d.ts
+│           │   └───static-images.d.ts
 │           └───utils/
 │               ├───audioAnalysis.ts
 │               ├───authDebugClient.ts
 │               ├───authProvidersFallback.ts
+│               ├───authRedirect.ts
 │               ├───colorExtractor.ts
 │               ├───electronStorage.ts
 │               ├───errorHandling.ts
@@ -537,7 +605,6 @@ bluesix-frontend
 │   ├───API_V2_SWAGGER.json
 │   ├───API_V2_SWAGGER.yaml
 │   ├───architecture.md
-│   ├───BUILD_LINUX_ON_WINDOWS.md
 │   ├───README.md
 │   └───monorepo/
 │       └───MIGRATION_PLAN.md
@@ -3657,5 +3724,12 @@ bluesix-frontend
 │   │   └───package-lock.json
 │   └───windows/
 │       └───setup-codesign.ps1
+├───skills/
+│   └───starchild-api-change/
+│       ├───SKILL.md
+│       ├───agents/
+│       │   └───openai.yaml
+│       └───references/
+│           └───path-and-checks.md
 └───test-output/
     └───real-urls/

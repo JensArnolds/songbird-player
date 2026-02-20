@@ -1,3 +1,5 @@
+// File: apps/web/src/utils/authRedirect.ts
+
 const AUTH_CALLBACK_ROUTE = "/auth/callback";
 
 function normalizeRequestedPath(callbackUrl: string): string {

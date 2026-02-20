@@ -1,3 +1,5 @@
+// File: apps/web/src/services/authSignOut.ts
+
 "use client";
 
 import { signOut } from "next-auth/react";

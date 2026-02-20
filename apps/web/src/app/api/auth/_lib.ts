@@ -1,3 +1,5 @@
+// File: apps/web/src/app/api/auth/_lib.ts
+
 import { env } from "@/env";
 import { type NextRequest, NextResponse } from "next/server";
 import {

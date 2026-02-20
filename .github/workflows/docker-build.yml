@@ -1,5 +1,4 @@
 # File: .github/workflows/docker-build.yml
-
 # SECURITY NOTICE:
 # - This workflow DOES pass secrets as Docker build-args (required for build process)
 # - WARNING: Secrets are visible in Docker layer metadata (docker history command)

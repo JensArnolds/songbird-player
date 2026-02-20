@@ -1,3 +1,5 @@
+// File: apps/web/src/components/GuestModal.tsx
+
 "use client";
 
 import { STORAGE_KEYS } from "@starchild/config/storage";

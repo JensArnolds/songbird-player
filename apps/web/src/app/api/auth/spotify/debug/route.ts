@@ -1,3 +1,5 @@
+// File: apps/web/src/app/api/auth/spotify/debug/route.ts
+
 import { env } from "@/env";
 import { auth } from "@/server/auth";
 import { proxyAuthRequest } from "../../_lib";

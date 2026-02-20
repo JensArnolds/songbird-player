@@ -1,3 +1,5 @@
+// File: apps/web/src/__tests__/spotify-provider.test.ts
+
 import { createSpotifyProvider } from "@starchild/auth";
 import { describe, expect, it } from "vitest";
 

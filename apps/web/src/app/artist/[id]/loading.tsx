@@ -1,3 +1,5 @@
+// File: apps/web/src/app/artist/[id]/loading.tsx
+
 export default function ArtistLoading() {
   return (
     <div className="container mx-auto px-3 py-4 md:px-6 md:py-8">

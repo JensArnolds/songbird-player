@@ -1,3 +1,5 @@
+// File: apps/web/src/__tests__/songbird-pages.test.tsx
+
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

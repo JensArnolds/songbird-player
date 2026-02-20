@@ -1,3 +1,5 @@
+// File: apps/web/src/components/AuthGate.tsx
+
 "use client";
 
 import { GuestModal } from "@/components/GuestModal";

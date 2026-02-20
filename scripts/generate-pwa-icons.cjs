@@ -1,3 +1,5 @@
+// File: scripts/generate-pwa-icons.cjs
+
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');

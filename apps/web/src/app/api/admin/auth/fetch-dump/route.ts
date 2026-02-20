@@ -1,3 +1,5 @@
+// File: apps/web/src/app/api/admin/auth/fetch-dump/route.ts
+
 import { auth } from "@/server/auth";
 import {
   clearAuthFetchDump,

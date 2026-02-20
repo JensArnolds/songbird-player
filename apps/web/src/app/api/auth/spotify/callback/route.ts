@@ -1,3 +1,5 @@
+// File: apps/web/src/app/api/auth/spotify/callback/route.ts
+
 import { proxyAuthRequest } from "../../_lib";
 import { type NextRequest } from "next/server";
 

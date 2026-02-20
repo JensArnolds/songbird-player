@@ -1,3 +1,5 @@
+// File: apps/web/src/hooks/useSongbirdResource.ts
+
 "use client";
 
 import { useCallback, useEffect, useState } from "react";

@@ -1,3 +1,4 @@
+// File: apps/web/drizzle.config.cjs
 // Drizzle config in CJS so drizzle-kit can load it without ESM "require is not defined" errors.
 // Keep in sync with drizzle.config.ts (used for type hints; this file is what drizzle-kit uses).
 

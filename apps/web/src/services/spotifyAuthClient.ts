@@ -1,3 +1,5 @@
+// File: apps/web/src/services/spotifyAuthClient.ts
+
 import {
   isClientAuthDebugEnabled,
   logAuthClientDebug,

@@ -1,3 +1,5 @@
+// File: apps/web/src/hooks/useSongbirdAuthMe.ts
+
 "use client";
 
 import { useSongbirdResource } from "./useSongbirdResource";

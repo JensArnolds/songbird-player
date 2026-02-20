@@ -18,7 +18,9 @@ import {
   ListPlus,
   Play,
   RotateCcw,
+  Save,
   Shuffle,
+  Sparkles,
   Square,
   Trash2,
   X,
@@ -45,6 +47,8 @@ type RemovalUndoState = {
 };
 
 const UNDO_TIMEOUT_MS = 8000;
+const SMART_SEED_LIMIT = 5;
+const SMART_QUEUE_LIMIT = 40;
 const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
   { value: "newest", label: "Newest" },
   { value: "oldest", label: "Oldest" },
@@ -66,6 +70,28 @@ function shuffleTracks(tracks: Track[]): Track[] {
 
 function createTrackSearchText(track: Track): string {
   return `${track.title} ${track.artist.name} ${track.album.title}`.toLowerCase();
+}
+
+function dedupeTracksById(tracks: Track[]): Track[] {
+  const seenTrackIds = new Set<number>();
+  const uniqueTracks: Track[] = [];
+
+  for (const track of tracks) {
+    if (seenTrackIds.has(track.id)) {
+      continue;
+    }
+
+    seenTrackIds.add(track.id);
+    uniqueTracks.push(track);
+  }
+
+  return uniqueTracks;
+}
+
+function buildLibraryPlaylistName(tab: TabType): string {
+  const date = new Date().toISOString().slice(0, 10);
+  const section = tab === "favorites" ? "Favorites" : "History";
+  return `Library ${section} ${date}`;
 }
 
 function getEntryTimestamp(entry: LibraryEntry): number {
@@ -149,6 +175,12 @@ export default function LibraryPage() {
   const removeFavorite = api.music.removeFavorite.useMutation();
   const addToHistory = api.music.addToHistory.useMutation();
   const removeFromHistory = api.music.removeFromHistory.useMutation();
+  const clearHistory = api.music.clearHistory.useMutation();
+  const clearNonFavoritesFromHistory =
+    api.music.clearNonFavoritesFromHistory.useMutation();
+  const createPlaylist = api.music.createPlaylist.useMutation();
+  const addToPlaylist = api.music.addToPlaylist.useMutation();
+  const generateSmartMix = api.music.generateSmartMix.useMutation();
 
   const favoriteEntries = (favorites ?? []) as LibraryEntry[];
   const historyEntries = (history ?? []) as LibraryEntry[];
@@ -298,6 +330,187 @@ export default function LibraryPage() {
     if (selectedTracks.length === 0) return;
     hapticLight();
     player.addToPlayNext(selectedTracks);
+  };
+
+  const handleSaveTabAsPlaylist = async (): Promise<void> => {
+    if (isListActionPending) {
+      return;
+    }
+
+    const sourceTracks = dedupeTracksById(
+      selectedTracks.length > 0 ? selectedTracks : visibleTracks,
+    );
+
+    if (sourceTracks.length === 0) {
+      showToast("No tracks available to save as a playlist", "info");
+      return;
+    }
+
+    setIsListActionPending(true);
+
+    try {
+      const sourceLabel =
+        selectedTracks.length > 0
+          ? "selected tracks"
+          : hasSearchFilter
+            ? "filtered tab"
+            : "library tab";
+
+      const playlist = await createPlaylist.mutateAsync({
+        name: buildLibraryPlaylistName(activeTab),
+        description: `Generated from your ${sourceLabel}`,
+        isPublic: false,
+      });
+
+      if (!playlist) {
+        throw new Error("Playlist creation failed");
+      }
+
+      const results = await Promise.all(
+        sourceTracks.map((track) =>
+          addToPlaylist.mutateAsync({
+            playlistId: playlist.id,
+            track,
+          }),
+        ),
+      );
+
+      const addedCount = results.reduce(
+        (count, result) => (result.alreadyExists ? count : count + 1),
+        0,
+      );
+      await utils.music.getPlaylists.invalidate();
+
+      showToast(
+        `Saved ${addedCount} track${addedCount === 1 ? "" : "s"} to "${playlist.name}"`,
+        "success",
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      showToast(`Failed to save playlist: ${message}`, "error");
+    } finally {
+      setIsListActionPending(false);
+    }
+  };
+
+  const handleSmartQueueFromLibrary = async (): Promise<void> => {
+    if (isListActionPending) {
+      return;
+    }
+
+    const sourceTracks = dedupeTracksById(
+      selectedTracks.length > 0 ? selectedTracks : visibleTracks,
+    );
+
+    if (sourceTracks.length === 0) {
+      showToast("No tracks available to build smart queue", "info");
+      return;
+    }
+
+    const seedTracks = sourceTracks.slice(0, SMART_SEED_LIMIT);
+    const seedTrackIds = seedTracks.map((track) => track.id);
+
+    setIsListActionPending(true);
+
+    try {
+      const mix = await generateSmartMix.mutateAsync({
+        seedTrackIds,
+        limit: SMART_QUEUE_LIMIT,
+        diversity: "balanced",
+        recommendationSource: "unified",
+      });
+
+      const seedTrackIdSet = new Set(seedTrackIds);
+      const recommendedTracks = dedupeTracksById(mix.tracks).filter(
+        (track) => !seedTrackIdSet.has(track.id),
+      );
+
+      const queueTracks = [...seedTracks, ...recommendedTracks];
+      playTrackList(queueTracks);
+
+      showToast(
+        `Smart queue ready: ${seedTracks.length} seeds + ${recommendedTracks.length} recommendations`,
+        "success",
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      showToast(`Failed to build smart queue: ${message}`, "error");
+    } finally {
+      setIsListActionPending(false);
+    }
+  };
+
+  const handleClearHistory = async (): Promise<void> => {
+    if (isListActionPending || activeTab !== "history") {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Clear your full listening history? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    setIsListActionPending(true);
+
+    try {
+      const result = await clearHistory.mutateAsync();
+      await utils.music.getHistory.invalidate();
+      clearSelection();
+
+      if (removalUndo) {
+        window.clearTimeout(removalUndo.timerId);
+        setRemovalUndo(null);
+      }
+
+      showToast(
+        `Cleared ${result.removedCount} history entr${
+          result.removedCount === 1 ? "y" : "ies"
+        }`,
+        "success",
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      showToast(`Failed to clear history: ${message}`, "error");
+    } finally {
+      setIsListActionPending(false);
+    }
+  };
+
+  const handleClearNonFavoritesHistory = async (): Promise<void> => {
+    if (isListActionPending || activeTab !== "history") {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Remove all non-favorite tracks from history? Favorite history entries will be kept.",
+      )
+    ) {
+      return;
+    }
+
+    setIsListActionPending(true);
+
+    try {
+      const result = await clearNonFavoritesFromHistory.mutateAsync();
+      await utils.music.getHistory.invalidate();
+      clearSelection();
+
+      showToast(
+        `Removed ${result.removedCount} non-favorite history ${
+          result.removedCount === 1 ? "entry" : "entries"
+        }`,
+        "success",
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      showToast(`Failed to clear non-favorites: ${message}`, "error");
+    } finally {
+      setIsListActionPending(false);
+    }
   };
 
   const handleRemoveEntries = async (
@@ -515,6 +728,53 @@ export default function LibraryPage() {
               <ListPlus className="h-4 w-4 md:h-5 md:w-5" />
               <span>Queue All Next</span>
             </button>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              onClick={() => {
+                void handleSaveTabAsPlaylist();
+              }}
+              className="btn-secondary touch-target inline-flex items-center gap-1.5 px-2 py-1.5 text-xs"
+              disabled={isActionDisabled}
+            >
+              <Save className="h-3.5 w-3.5" />
+              <span>Save As Playlist</span>
+            </button>
+            <button
+              onClick={() => {
+                void handleSmartQueueFromLibrary();
+              }}
+              className="btn-secondary touch-target inline-flex items-center gap-1.5 px-2 py-1.5 text-xs"
+              disabled={isActionDisabled}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Smart Queue</span>
+            </button>
+            {activeTab === "history" ? (
+              <>
+                <button
+                  onClick={() => {
+                    void handleClearNonFavoritesHistory();
+                  }}
+                  className="touch-target inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2 py-1.5 text-xs font-medium text-[var(--color-subtext)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={isActionDisabled}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Clear Non-Favorites</span>
+                </button>
+                <button
+                  onClick={() => {
+                    void handleClearHistory();
+                  }}
+                  className="touch-target inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-2 py-1.5 text-xs font-medium text-[var(--color-danger)] transition hover:bg-[var(--color-danger)]/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={isActionDisabled}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Clear History</span>
+                </button>
+              </>
+            ) : null}
           </div>
 
           {isSelectionMode ? (

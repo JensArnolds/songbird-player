@@ -5,6 +5,19 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-02-20
+
+### Added
+
+- **Library conversion actions**: Added `Save As Playlist` and `Smart Queue` actions to the Library action bar, with selected tracks prioritized and visible filtered tracks used as fallback scope. Location: `apps/web/src/app/library/page.tsx`.
+- **History cleanup mutations**: Added typed tRPC mutations for `clearHistory` and `clearNonFavoritesFromHistory` so the UI can execute one-click history cleanup safely server-side. Location: `apps/web/src/server/api/routers/music.ts`.
+
+### Changed
+
+- **Library convenience controls expanded**: Added sort controls (`Newest`, `Oldest`, `Artist`, `Album`, `Duration`) and selection-aware bulk actions (`Play Selected`, `Queue Selected`, `Remove Selected`) to speed up collection management. Location: `apps/web/src/app/library/page.tsx`.
+- **History management UX**: Added explicit History-only actions for `Clear Non-Favorites` and `Clear History`, both with confirm prompts and post-action feedback.
+- **Removal rollback flow**: Library remove operations now include timed undo restoration for favorites and history removals, preserving track context for fast recovery after bulk actions.
+
 ## [1.1.2] - 2026-02-20
 
 ### Added

@@ -1,3 +1,5 @@
+// File: apps/web/src/__tests__/spotifyAuthClient.test.ts
+
 import {
   AUTH_REQUIRED_EVENT,
   buildSpotifyBrowserSignInUrl,
