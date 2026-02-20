@@ -5,10 +5,14 @@ import { type NextRequest } from "next/server";
 import { handlers } from "@/server/auth";
 import {
   hashForLog,
+  isOAuthVerboseDebugEnabled,
   logAuthDebug,
   logAuthError,
+  recordAuthFetchDumpEvent,
   summarizeUrlForLog,
-} from "@starchild/auth/logging";
+} from "@starchild/auth";
+
+const oauthVerboseDebugEnabled = isOAuthVerboseDebugEnabled();
 
 function parseAuthRoute(pathname: string): {
   action: string | null;
@@ -24,6 +28,22 @@ function parseAuthRoute(pathname: string): {
     action: segments[authIndex + 1] ?? null,
     provider: segments[authIndex + 2] ?? null,
   };
+}
+
+function summarizeQueryEntries(url: URL): Array<{
+  key: string;
+  valueLength: number;
+  valueHash: string | null;
+}> {
+  const out: Array<{ key: string; valueLength: number; valueHash: string | null }> = [];
+  for (const [key, value] of url.searchParams.entries()) {
+    out.push({
+      key,
+      valueLength: value.length,
+      valueHash: hashForLog(value),
+    });
+  }
+  return out;
 }
 
 function resolveRequestOrigin(request: Request): string | null {
@@ -131,12 +151,43 @@ function logAuthRequest(request: Request): void {
       cookieCount: cookieKeys.length,
       cookieKeys,
     });
+
+    if (
+      oauthVerboseDebugEnabled &&
+      (route.provider === "spotify" || route.provider === "discord")
+    ) {
+      logAuthDebug("Incoming OAuth request (verbose)", {
+        provider: route.provider,
+        action: route.action,
+        queryEntries: summarizeQueryEntries(url),
+        referer: summarizeUrlForLog(request.headers.get("referer")),
+        origin: summarizeUrlForLog(request.headers.get("origin")),
+        secFetchMode: request.headers.get("sec-fetch-mode"),
+        secFetchSite: request.headers.get("sec-fetch-site"),
+        userAgent: request.headers.get("user-agent"),
+      });
+    }
+
+    if (route.provider === "spotify" || route.provider === "discord") {
+      recordAuthFetchDumpEvent({
+        label: `/api/auth/${route.provider}/${route.action ?? "unknown"}`,
+        phase: "request",
+        details: {
+          method: request.method,
+          action: route.action,
+          provider: route.provider,
+          url: summarizeUrlForLog(request.url),
+          queryKeys: Array.from(url.searchParams.keys()),
+          cookieCount: cookieKeys.length,
+        },
+      });
+    }
   } catch (error) {
     logAuthError("Failed to log incoming auth request details", { error });
   }
 }
 
-function logAuthResponse(response: Response): void {
+function logAuthResponse(request: Request, response: Response): void {
   try {
     const setCookie = response.headers.get("set-cookie");
     const setCookieNames = redactSetCookieHeader(setCookie);
@@ -157,6 +208,38 @@ function logAuthResponse(response: Response): void {
       hasPkceCookie,
       hasStateCookie,
     });
+
+    const url = new URL(request.url);
+    const route = parseAuthRoute(url.pathname);
+
+    if (
+      oauthVerboseDebugEnabled &&
+      (route.provider === "spotify" || route.provider === "discord")
+    ) {
+      logAuthDebug("Outgoing OAuth response (verbose)", {
+        provider: route.provider,
+        action: route.action,
+        status: response.status,
+        redirectedTo: summarizeUrlForLog(location),
+        setCookieNames,
+      });
+    }
+
+    if (route.provider === "spotify" || route.provider === "discord") {
+      recordAuthFetchDumpEvent({
+        label: `/api/auth/${route.provider}/${route.action ?? "unknown"}`,
+        phase: "response",
+        details: {
+          provider: route.provider,
+          action: route.action,
+          status: response.status,
+          location: summarizeUrlForLog(location),
+          setCookieNames,
+          hasPkceCookie,
+          hasStateCookie,
+        },
+      });
+    }
   } catch (error) {
     logAuthError("Failed to log outgoing auth response details", { error });
   }
@@ -170,9 +253,17 @@ export async function GET(
   logAuthRequest(request);
   try {
     const response = await handlers.GET(request);
-    logAuthResponse(response);
+    logAuthResponse(request, response);
     return response;
   } catch (error) {
+    const route = parseAuthRoute(new URL(request.url).pathname);
+    if (route.provider === "spotify" || route.provider === "discord") {
+      recordAuthFetchDumpEvent({
+        label: `/api/auth/${route.provider}/${route.action ?? "unknown"}`,
+        phase: "error",
+        details: { method: "GET", provider: route.provider, action: route.action, error },
+      });
+    }
     logAuthError("GET auth handler threw", { url: request.url, error });
     throw error;
   }
@@ -186,9 +277,17 @@ export async function POST(
   logAuthRequest(request);
   try {
     const response = await handlers.POST(request);
-    logAuthResponse(response);
+    logAuthResponse(request, response);
     return response;
   } catch (error) {
+    const route = parseAuthRoute(new URL(request.url).pathname);
+    if (route.provider === "spotify" || route.provider === "discord") {
+      recordAuthFetchDumpEvent({
+        label: `/api/auth/${route.provider}/${route.action ?? "unknown"}`,
+        phase: "error",
+        details: { method: "POST", provider: route.provider, action: route.action, error },
+      });
+    }
     logAuthError("POST auth handler threw", { url: request.url, error });
     throw error;
   }

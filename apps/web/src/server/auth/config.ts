@@ -16,12 +16,13 @@ import {
 import {
   hashForLog,
   isAuthDebugEnabled,
+  isOAuthVerboseDebugEnabled,
   logAuthDebug,
   logAuthError,
   logAuthInfo,
   logAuthWarn,
   summarizeUrlForLog,
-} from "@starchild/auth/logging";
+} from "@starchild/auth";
 import { createSpotifyProvider } from "@starchild/auth/spotifyProvider";
 
 declare module "next-auth" {
@@ -43,9 +44,11 @@ declare module "next-auth" {
 }
 
 const authDebugEnabled = isAuthDebugEnabled();
+const oauthVerboseDebugEnabled = isOAuthVerboseDebugEnabled();
 
 logAuthInfo("NextAuth config bootstrap", {
   authDebugEnabled,
+  oauthVerboseDebugEnabled,
   nodeEnv: process.env.NODE_ENV,
   electronBuild: env.ELECTRON_BUILD,
   hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
@@ -140,6 +143,52 @@ export const authConfig = {
           hasProfile: Boolean(profile),
           profileKeys: profile ? Object.keys(profile) : [],
         });
+
+        if (
+          oauthVerboseDebugEnabled &&
+          (account?.provider === "spotify" || account?.provider === "discord")
+        ) {
+          const provider = account.provider;
+          const typedAccount = account as {
+            access_token?: string;
+            refresh_token?: string;
+            id_token?: string;
+            expires_at?: number;
+            scope?: string;
+            token_type?: string;
+            session_state?: string;
+          };
+          const typedProfile = profile as
+            | {
+                id?: string;
+                sub?: string;
+                username?: string;
+                global_name?: string;
+                email?: string;
+                image_url?: string;
+              }
+            | undefined;
+
+          logAuthDebug("OAuth provider payload snapshot", {
+            provider,
+            userId: user?.id ?? null,
+            providerAccountHash: hashForLog(account?.providerAccountId),
+            scope: typedAccount?.scope ?? null,
+            tokenType: typedAccount?.token_type ?? null,
+            accessTokenLength: typedAccount?.access_token?.length ?? 0,
+            refreshTokenLength: typedAccount?.refresh_token?.length ?? 0,
+            hasIdToken: Boolean(typedAccount?.id_token),
+            idTokenLength: typedAccount?.id_token?.length ?? 0,
+            expiresAt: typedAccount?.expires_at ?? null,
+            sessionStateHash: hashForLog(typedAccount?.session_state),
+            profileIdHash: hashForLog(typedProfile?.id ?? typedProfile?.sub),
+            profileUsername: typedProfile?.username ?? null,
+            profileGlobalName: typedProfile?.global_name ?? null,
+            hasProfileEmail: Boolean(typedProfile?.email),
+            profileImageUrl: summarizeUrlForLog(typedProfile?.image_url),
+            profileKeys: typedProfile ? Object.keys(typedProfile) : [],
+          });
+        }
 
         if (user?.id) {
           const userId = user.id;
@@ -322,6 +371,25 @@ export const authConfig = {
         isNewUser: Boolean(isNewUser),
         hasProfile: Boolean(profile),
       });
+
+      if (
+        oauthVerboseDebugEnabled &&
+        (account?.provider === "spotify" || account?.provider === "discord")
+      ) {
+        logAuthDebug("event.signIn verbose provider details", {
+          userId: user?.id ?? null,
+          provider: account?.provider ?? null,
+          accountKeys: account ? Object.keys(account) : [],
+          profileKeys: profile && typeof profile === "object" ? Object.keys(profile) : [],
+          hasProfileEmail:
+            Boolean(
+              profile &&
+                typeof profile === "object" &&
+                "email" in profile &&
+                (profile as { email?: unknown }).email,
+            ),
+        });
+      }
     },
     async signOut(message) {
       logAuthInfo("event.signOut", {
@@ -349,6 +417,21 @@ export const authConfig = {
         providerType: account.type,
         providerAccountHash: hashForLog(account.providerAccountId),
       });
+
+      if (
+        oauthVerboseDebugEnabled &&
+        (account.provider === "spotify" || account.provider === "discord")
+      ) {
+        logAuthDebug("event.linkAccount verbose provider details", {
+          userId: user?.id ?? null,
+          provider: account.provider,
+          accountKeys: Object.keys(account),
+          scope: account.scope ?? null,
+          expiresAt:
+            typeof account.expires_at === "number" ? account.expires_at : null,
+          tokenType: account.token_type ?? null,
+        });
+      }
     },
     async session(message) {
       logAuthDebug("event.session", {

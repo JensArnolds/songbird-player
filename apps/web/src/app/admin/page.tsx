@@ -46,6 +46,32 @@ type ApiDiagnosticResult = {
   error?: string;
 };
 
+type OAuthDumpFetchEntry = {
+  timestamp: string;
+  label: string;
+  phase: "request" | "response" | "error";
+  details?: unknown;
+};
+
+type OAuthDumpLogEntry = {
+  timestamp: string;
+  level: "debug" | "info" | "warn" | "error";
+  message: string;
+  details?: unknown;
+};
+
+type OAuthDumpResponse = {
+  ok: boolean;
+  source?: string;
+  oauthVerboseDebugEnabled?: boolean;
+  fetchedAt?: string;
+  fetchDumpCount?: number;
+  authLogCount?: number;
+  fetchDump?: OAuthDumpFetchEntry[];
+  authLogs?: OAuthDumpLogEntry[];
+  error?: string;
+};
+
 const API_DIAGNOSTIC_TARGETS: ApiDiagnosticTarget[] = [
   { key: "status", label: "Liveness", path: "/api/v2/status" },
   { key: "version", label: "Version", path: "/api/v2/version" },
@@ -73,6 +99,16 @@ function toPreviewText(rawText: string): string {
     return pretty.length > 600 ? `${pretty.slice(0, 600)}\n...` : pretty;
   } catch {
     return rawText.length > 600 ? `${rawText.slice(0, 600)}\n...` : rawText;
+  }
+}
+
+function toJsonPreview(value: unknown): string {
+  try {
+    const pretty = JSON.stringify(value, null, 2) ?? "";
+    if (!pretty.trim()) return "(empty)";
+    return pretty.length > 1200 ? `${pretty.slice(0, 1200)}\n...` : pretty;
+  } catch {
+    return "(unserializable)";
   }
 }
 
@@ -187,6 +223,8 @@ export default function AdminPage() {
   const [isClearingCache, setIsClearingCache] = useState(false);
   const [isRefreshingUpstreamAuth, setIsRefreshingUpstreamAuth] =
     useState(false);
+  const [oauthDump, setOauthDump] = useState<OAuthDumpResponse | null>(null);
+  const [isOAuthDumpLoading, setIsOAuthDumpLoading] = useState(false);
 
   const handleToggleAdmin = (userId: string, admin: boolean) => {
     updateAdmin.mutate({ userId, admin: !admin });
@@ -291,18 +329,57 @@ export default function AdminPage() {
     }
   }, [refreshDiagnostics, showToast]);
 
+  const refreshOAuthDump = useCallback(
+    async (clear = false) => {
+      setIsOAuthDumpLoading(true);
+      try {
+        const params = new URLSearchParams({
+          fetchLimit: "240",
+          logLimit: "240",
+        });
+        if (clear) {
+          params.set("clear", "1");
+        }
+
+        const response = await fetch(`/api/admin/auth/fetch-dump?${params.toString()}`, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const payload = (await response.json()) as OAuthDumpResponse;
+        if (!response.ok || !payload.ok) {
+          showToast(
+            payload.error ?? `OAuth dump request failed (${response.status})`,
+            "error",
+          );
+          return;
+        }
+        setOauthDump(payload);
+      } catch (error) {
+        showToast(
+          error instanceof Error ? error.message : "Failed to fetch OAuth dump",
+          "error",
+        );
+      } finally {
+        setIsOAuthDumpLoading(false);
+      }
+    },
+    [showToast],
+  );
+
   useEffect(() => {
     if (!isAuthorized) return;
 
     void refreshDiagnostics();
+    void refreshOAuthDump();
     const intervalId = window.setInterval(() => {
       void refreshDiagnostics();
+      void refreshOAuthDump();
     }, 60_000);
 
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [isAuthorized, refreshDiagnostics]);
+  }, [isAuthorized, refreshDiagnostics, refreshOAuthDump]);
 
   if (status === "loading") {
     return (
@@ -505,6 +582,168 @@ export default function AdminPage() {
                 </pre>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-8 rounded-3xl border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-surface)]/90 via-[var(--color-surface-2)]/85 to-[rgba(141,173,255,0.08)] p-6 shadow-[var(--shadow-lg)]">
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="flex items-center gap-2 text-sm tracking-[0.14em] text-[var(--color-subtext)] uppercase">
+              <FileText className="h-4 w-4 text-[var(--color-accent)]" />
+              OAuth Fetch Dump
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-subtext)]">
+              Verbose Spotify/Discord OAuth trace buffer rendered from server
+              memory.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => void refreshOAuthDump()}
+              disabled={isOAuthDumpLoading}
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] disabled:opacity-50"
+            >
+              {isOAuthDumpLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCcw className="h-4 w-4" />
+              )}
+              Refresh dump
+            </button>
+            <button
+              onClick={() => void refreshOAuthDump(true)}
+              disabled={isOAuthDumpLoading}
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-danger)]/60 bg-[rgba(242,139,130,0.08)] px-3 py-2 text-sm font-semibold text-[var(--color-danger)] transition hover:bg-[rgba(242,139,130,0.14)] disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" />
+              Clear + refresh
+            </button>
+          </div>
+        </div>
+
+        {oauthDump ? (
+          <>
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-[var(--color-subtext)]">
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                verbose oauth debug:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {oauthDump.oauthVerboseDebugEnabled ? "enabled" : "disabled"}
+                </strong>
+              </span>
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                fetch entries:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {oauthDump.fetchDumpCount ?? oauthDump.fetchDump?.length ?? 0}
+                </strong>
+              </span>
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                auth logs:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {oauthDump.authLogCount ?? oauthDump.authLogs?.length ?? 0}
+                </strong>
+              </span>
+              <span className="rounded-full border border-[var(--color-border)] px-2 py-1">
+                updated:{" "}
+                <strong className="text-[var(--color-text)]">
+                  {oauthDump.fetchedAt ?? "n/a"}
+                </strong>
+              </span>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/80 p-3">
+                <p className="mb-2 text-sm font-semibold text-[var(--color-text)]">
+                  Fetch events
+                </p>
+                <div className="max-h-80 space-y-2 overflow-auto pr-1">
+                  {(oauthDump.fetchDump ?? []).length === 0 ? (
+                    <p className="text-xs text-[var(--color-subtext)]">
+                      No fetch entries captured yet.
+                    </p>
+                  ) : (
+                    (oauthDump.fetchDump ?? []).map((entry, index) => (
+                      <div
+                        key={`${entry.timestamp}-${entry.label}-${index}`}
+                        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)]/70 p-2"
+                      >
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <span className="truncate text-xs font-semibold text-[var(--color-text)]">
+                            {entry.label}
+                          </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                              entry.phase === "response"
+                                ? "bg-[rgba(88,198,177,0.18)] text-[var(--color-success)]"
+                                : entry.phase === "request"
+                                  ? "bg-[rgba(121,195,238,0.18)] text-[var(--color-accent)]"
+                                  : "bg-[rgba(242,139,130,0.18)] text-[var(--color-danger)]"
+                            }`}
+                          >
+                            {entry.phase}
+                          </span>
+                        </div>
+                        <p className="mb-1 text-[10px] text-[var(--color-muted)]">
+                          {entry.timestamp}
+                        </p>
+                        <pre className="max-h-36 overflow-auto rounded-lg bg-[var(--color-surface)]/70 p-2 text-[10px] leading-relaxed text-[var(--color-subtext)]">
+                          {toJsonPreview(entry.details ?? {})}
+                        </pre>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/80 p-3">
+                <p className="mb-2 text-sm font-semibold text-[var(--color-text)]">
+                  Auth logs
+                </p>
+                <div className="max-h-80 space-y-2 overflow-auto pr-1">
+                  {(oauthDump.authLogs ?? []).length === 0 ? (
+                    <p className="text-xs text-[var(--color-subtext)]">
+                      No auth log entries captured yet.
+                    </p>
+                  ) : (
+                    (oauthDump.authLogs ?? []).map((entry, index) => (
+                      <div
+                        key={`${entry.timestamp}-${entry.level}-${index}`}
+                        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)]/70 p-2"
+                      >
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <span className="truncate text-xs font-semibold text-[var(--color-text)]">
+                            {entry.message}
+                          </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                              entry.level === "error"
+                                ? "bg-[rgba(242,139,130,0.18)] text-[var(--color-danger)]"
+                                : entry.level === "warn"
+                                  ? "bg-[rgba(242,199,97,0.18)] text-[var(--color-warning)]"
+                                  : entry.level === "info"
+                                    ? "bg-[rgba(121,195,238,0.18)] text-[var(--color-accent)]"
+                                    : "bg-[var(--color-surface)] text-[var(--color-subtext)]"
+                            }`}
+                          >
+                            {entry.level}
+                          </span>
+                        </div>
+                        <p className="mb-1 text-[10px] text-[var(--color-muted)]">
+                          {entry.timestamp}
+                        </p>
+                        <pre className="max-h-36 overflow-auto rounded-lg bg-[var(--color-surface)]/70 p-2 text-[10px] leading-relaxed text-[var(--color-subtext)]">
+                          {toJsonPreview(entry.details ?? {})}
+                        </pre>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-subtext)]">
+            OAuth dump not loaded yet.
           </div>
         )}
       </div>

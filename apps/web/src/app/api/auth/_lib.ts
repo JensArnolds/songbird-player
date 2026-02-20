@@ -1,5 +1,10 @@
 import { env } from "@/env";
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  logAuthDebug,
+  recordAuthFetchDumpEvent,
+  summarizeUrlForLog,
+} from "@starchild/auth";
 
 const AUTH_PROXY_TIMEOUT_MS = 10_000;
 const REQUEST_HEADER_ALLOWLIST = new Set([
@@ -31,6 +36,26 @@ type ProxyAuthOptions = {
   followRedirects?: boolean;
   upstreamHeaders?: HeadersInit;
 };
+
+function summarizeHeaderKeys(headers: Headers): string[] {
+  return Array.from(headers.keys()).sort();
+}
+
+function summarizeSetCookieNames(headers: Headers): string[] {
+  const raw = headers.get("set-cookie");
+  if (!raw) return [];
+
+  return raw
+    .split(/,(?=\s*[^;,=\s]+=)/g)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((cookie) => {
+      const [firstPart] = cookie.split(";");
+      const [name] = (firstPart ?? "").split("=");
+      return (name ?? "").trim();
+    })
+    .filter(Boolean);
+}
 
 function getApiBaseUrl(): string | null {
   if (!env.API_V2_URL) return null;
@@ -139,6 +164,23 @@ export async function proxyAuthRequest(options: ProxyAuthOptions): Promise<NextR
     headers.delete("content-type");
   }
 
+  const requestUrl = getRequestUrl(options.request);
+  const requestStart = Date.now();
+
+  recordAuthFetchDumpEvent({
+    label: options.pathname,
+    phase: "request",
+    details: {
+      method,
+      followRedirects: Boolean(options.followRedirects),
+      incomingUrl: summarizeUrlForLog(requestUrl.toString()),
+      upstreamUrl: summarizeUrlForLog(upstreamUrl),
+      hasBody: Boolean(body),
+      bodyLength: body?.length ?? 0,
+      headerKeys: summarizeHeaderKeys(headers),
+    },
+  });
+
   try {
     const upstreamResponse = await fetch(upstreamUrl, {
       method,
@@ -149,6 +191,29 @@ export async function proxyAuthRequest(options: ProxyAuthOptions): Promise<NextR
       signal: AbortSignal.timeout(AUTH_PROXY_TIMEOUT_MS),
     });
 
+    const elapsedMs = Date.now() - requestStart;
+    recordAuthFetchDumpEvent({
+      label: options.pathname,
+      phase: "response",
+      details: {
+        method,
+        status: upstreamResponse.status,
+        elapsedMs,
+        redirected: upstreamResponse.redirected,
+        responseUrl: summarizeUrlForLog(upstreamResponse.url),
+        location: summarizeUrlForLog(upstreamResponse.headers.get("location")),
+        setCookieNames: summarizeSetCookieNames(upstreamResponse.headers),
+        responseHeaderKeys: summarizeHeaderKeys(upstreamResponse.headers),
+      },
+    });
+    logAuthDebug("OAuth proxy upstream response", {
+      pathname: options.pathname,
+      method,
+      status: upstreamResponse.status,
+      elapsedMs,
+      redirected: upstreamResponse.redirected,
+    });
+
     const payload = await upstreamResponse.arrayBuffer();
 
     return new NextResponse(payload, {
@@ -156,6 +221,18 @@ export async function proxyAuthRequest(options: ProxyAuthOptions): Promise<NextR
       headers: mapResponseHeaders(upstreamResponse),
     });
   } catch (error) {
+    const elapsedMs = Date.now() - requestStart;
+    recordAuthFetchDumpEvent({
+      label: options.pathname,
+      phase: "error",
+      details: {
+        method,
+        elapsedMs,
+        upstreamUrl: summarizeUrlForLog(upstreamUrl),
+        error,
+      },
+    });
+
     return NextResponse.json(
       {
         ok: false,

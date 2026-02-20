@@ -9,6 +9,34 @@ const MAX_STRING_LENGTH = 180;
 const MAX_DEPTH = 4;
 
 type LogLevel = "debug" | "info" | "warn" | "error";
+type AuthFetchPhase = "request" | "response" | "error";
+
+export type AuthLogDumpEntry = {
+  timestamp: string;
+  level: LogLevel;
+  message: string;
+  details?: unknown;
+};
+
+export type AuthFetchDumpEntry = {
+  timestamp: string;
+  label: string;
+  phase: AuthFetchPhase;
+  details?: unknown;
+};
+
+const MAX_AUTH_LOG_DUMP_ENTRIES = 400;
+const MAX_AUTH_FETCH_DUMP_ENTRIES = 600;
+const authLogDump: AuthLogDumpEntry[] = [];
+const authFetchDump: AuthFetchDumpEntry[] = [];
+
+function pushBounded<T>(target: T[], entry: T, maxItems: number): void {
+  target.push(entry);
+  if (target.length <= maxItems) return;
+
+  const overflow = target.length - maxItems;
+  target.splice(0, overflow);
+}
 
 function truncate(value: string): string {
   if (value.length <= MAX_STRING_LENGTH) return value;
@@ -114,6 +142,17 @@ function emit(level: LogLevel, message: string, details?: unknown): void {
       ? undefined
       : sanitize(details, 0, new WeakSet<object>());
 
+  pushBounded(
+    authLogDump,
+    {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      ...(payload === undefined ? {} : { details: payload }),
+    },
+    MAX_AUTH_LOG_DUMP_ENTRIES,
+  );
+
   if (level === "error") {
     console.error(prefix, payload);
     return;
@@ -135,8 +174,16 @@ function emit(level: LogLevel, message: string, details?: unknown): void {
 export function isAuthDebugEnabled(): boolean {
   return (
     process.env.AUTH_DEBUG_OAUTH === "true" ||
+    process.env.NEXT_PUBLIC_AUTH_DEBUG_OAUTH === "true" ||
     process.env.NODE_ENV === "development" ||
     process.env.ELECTRON_BUILD === "true"
+  );
+}
+
+export function isOAuthVerboseDebugEnabled(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_AUTH_DEBUG_OAUTH === "true" ||
+    process.env.AUTH_DEBUG_OAUTH === "true"
   );
 }
 
@@ -187,4 +234,46 @@ export function logAuthWarn(message: string, details?: unknown): void {
 
 export function logAuthError(message: string, details?: unknown): void {
   emit("error", message, details);
+}
+
+export function recordAuthFetchDumpEvent(input: {
+  label: string;
+  phase: AuthFetchPhase;
+  details?: unknown;
+}): void {
+  if (!isAuthDebugEnabled()) return;
+
+  const payload =
+    input.details === undefined
+      ? undefined
+      : sanitize(input.details, 0, new WeakSet<object>());
+
+  pushBounded(
+    authFetchDump,
+    {
+      timestamp: new Date().toISOString(),
+      label: input.label,
+      phase: input.phase,
+      ...(payload === undefined ? {} : { details: payload }),
+    },
+    MAX_AUTH_FETCH_DUMP_ENTRIES,
+  );
+}
+
+export function getAuthFetchDump(limit?: number): AuthFetchDumpEntry[] {
+  const cappedLimit = Math.max(1, Math.min(limit ?? 200, 2000));
+  return authFetchDump.slice(-cappedLimit);
+}
+
+export function clearAuthFetchDump(): void {
+  authFetchDump.length = 0;
+}
+
+export function getAuthLogDump(limit?: number): AuthLogDumpEntry[] {
+  const cappedLimit = Math.max(1, Math.min(limit ?? 200, 2000));
+  return authLogDump.slice(-cappedLimit);
+}
+
+export function clearAuthLogDump(): void {
+  authLogDump.length = 0;
 }
