@@ -89,10 +89,63 @@ describe("Stream API (V2-only)", () => {
     } as NextRequest;
 
     const res = await GET(req);
-    const body = (await res.json()) as { error?: string };
+    const body = (await res.json()) as { error?: string; missing?: string[] };
 
     expect(res.status).toBe(500);
-    expect(body.error).toBe("V2 API not configured");
+    expect(body.error).toContain("Missing required stream configuration");
+    expect(body.missing).toEqual(["API_V2_URL", "BLUESIX_API_KEY"]);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("streams by id and defaults Range to bytes=0- when header is missing", async () => {
+    vi.resetModules();
+    vi.doMock("@/env", () => ({
+      env: {
+        API_V2_URL: "https://darkfloor.one/",
+        BLUESIX_API_KEY: "test-key",
+      },
+    }));
+
+    const streamBody = new Uint8Array([7, 8, 9]);
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(streamBody, {
+        status: 200,
+        headers: {
+          "content-type": "audio/mpeg",
+          "accept-ranges": "bytes",
+          "content-length": "3",
+        },
+      }),
+    );
+    global.fetch = fetchMock;
+    const hostLog = vi.spyOn(console, "info").mockImplementation(() => {
+      return;
+    });
+
+    const { GET } = await import("@/app/api/stream/route");
+
+    const req = {
+      nextUrl: new URL("http://localhost:3000/api/stream?id=2665275062"),
+      headers: {
+        get: (name: string) => {
+          const key = name.toLowerCase();
+          if (key === "user-agent") return "vitest";
+          return null;
+        },
+      },
+    } as NextRequest;
+
+    const res = await GET(req);
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const calledUrl = new URL(fetchMock.mock.calls[0]?.[0] as string);
+    expect(calledUrl.searchParams.get("id")).toBe("2665275062");
+    const options = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
+    const headers = (options?.headers ?? {}) as Record<string, string>;
+    expect(headers.Range).toBe("bytes=0-");
+    expect(hostLog).toHaveBeenCalledWith(
+      "[Stream API] Using API_V2_URL host: darkfloor.one",
+    );
   });
 });

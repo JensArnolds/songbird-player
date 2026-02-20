@@ -145,6 +145,18 @@ async function syncPlaylistTrackIdSequence(database: typeof db): Promise<void> {
   `);
 }
 
+async function syncListeningHistoryIdSequence(
+  database: typeof db,
+): Promise<void> {
+  await database.execute(sql`
+    SELECT setval(
+      pg_get_serial_sequence('"hexmusic-stream_listening_history"', 'id'),
+      COALESCE((SELECT MAX("id") FROM "hexmusic-stream_listening_history"), 0) + 1,
+      false
+    )
+  `);
+}
+
 function normalizeDeezerId(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -1531,13 +1543,32 @@ export const musicRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.insert(listeningHistory).values({
+      const historyEntry = {
         userId: ctx.session.user.id,
         trackId: input.track.id,
         deezerId: getDeezerId(input.track),
         trackData: input.track,
         duration: input.duration,
-      });
+      };
+
+      const insertHistory = async () =>
+        ctx.db.insert(listeningHistory).values(historyEntry);
+
+      try {
+        await insertHistory();
+      } catch (error) {
+        if (
+          isUniqueConstraintError(
+            error,
+            "hexmusic-stream_listening_history_pkey",
+          )
+        ) {
+          await syncListeningHistoryIdSequence(ctx.db);
+          await insertHistory();
+        } else {
+          throw error;
+        }
+      }
 
       return { success: true };
     }),

@@ -421,28 +421,40 @@ export function AudioPlayerProvider({
     [normalizedSmartQueueSettings, utils],
   );
 
-  const initialQueueState =
-    session &&
-    dbQueueState?.queuedTracks &&
-    dbQueueState.queuedTracks.length > 0
-      ? {
-          queuedTracks: (dbQueueState.queuedTracks as StoredQueuedTrack[]).map(
-            (qt) => ({
-              ...qt,
-              addedAt: new Date(qt.addedAt),
-            }),
-          ) as QueuedTrack[],
-          smartQueueState: {
-            ...dbQueueState.smartQueueState,
-            lastRefreshedAt: dbQueueState.smartQueueState.lastRefreshedAt
-              ? new Date(dbQueueState.smartQueueState.lastRefreshedAt)
-              : null,
-          } as SmartQueueState,
-          history: (dbQueueState.history || []) as Track[],
-          isShuffled: dbQueueState.isShuffled ?? false,
-          repeatMode: coerceRepeatMode(dbQueueState.repeatMode),
-        }
-      : undefined;
+  const initialQueueState = useMemo(() => {
+    if (!session?.user?.id || !dbQueueState?.queuedTracks) {
+      return undefined;
+    }
+
+    if (dbQueueState.queuedTracks.length === 0) {
+      return undefined;
+    }
+
+    return {
+      queuedTracks: (dbQueueState.queuedTracks as StoredQueuedTrack[]).map(
+        (qt) => ({
+          ...qt,
+          addedAt: new Date(qt.addedAt),
+        }),
+      ) as QueuedTrack[],
+      smartQueueState: {
+        ...dbQueueState.smartQueueState,
+        lastRefreshedAt: dbQueueState.smartQueueState.lastRefreshedAt
+          ? new Date(dbQueueState.smartQueueState.lastRefreshedAt)
+          : null,
+      } as SmartQueueState,
+      history: (dbQueueState.history || []) as Track[],
+      isShuffled: dbQueueState.isShuffled ?? false,
+      repeatMode: coerceRepeatMode(dbQueueState.repeatMode),
+    };
+  }, [
+    session?.user?.id,
+    dbQueueState?.queuedTracks,
+    dbQueueState?.smartQueueState,
+    dbQueueState?.history,
+    dbQueueState?.isShuffled,
+    dbQueueState?.repeatMode,
+  ]);
 
   const player = useAudioPlayer({
     initialQueueState: initialQueueState,
