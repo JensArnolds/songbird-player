@@ -199,7 +199,7 @@ export function GuestModal({
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => {
+      onOpenChange={(open: boolean) => {
         setIsOpen(open);
         if (!open) {
           onContinueAsGuest?.();
