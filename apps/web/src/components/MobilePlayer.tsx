@@ -2,7 +2,7 @@
 
 "use client";
 
-import { LoadingSpinner } from "@starchild/ui/LoadingSpinner";
+import { LoadingSpinner } from "@starchild/ui";
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import { useGlobalPlayer } from "@starchild/player-react/AudioPlayerContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -25,10 +25,15 @@ import { getCoverImage } from "@/utils/images";
 import { settingsStorage } from "@/utils/settingsStorage";
 import { springPresets } from "@/utils/spring-animations";
 import { formatDuration, formatTime } from "@/utils/time";
+import { MobilePlayerFooterActions } from "./MobilePlayerFooterActions";
+import { getMobilePlayerDragDecision } from "./mobilePlayerDrag";
 import {
+    animate,
     AnimatePresence,
     motion,
+    useDragControls,
     useMotionValue,
+    useReducedMotion,
     useTransform,
     type PanInfo,
 } from "framer-motion";
@@ -36,9 +41,6 @@ import {
     ArrowUp,
     ChevronDown,
     GripVertical,
-    Heart,
-    ListMusic,
-    ListPlus,
     Pause,
     Play,
     Repeat,
@@ -516,6 +518,9 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const [queueScrollbarVisible, setQueueScrollbarVisible] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const artworkRef = useRef<HTMLDivElement>(null);
+  const expandedContentScrollRef = useRef<HTMLDivElement>(null);
+  const expandedPanelRef = useRef<HTMLDivElement>(null);
+  const expandedPanelHeightRef = useRef(0);
   const paletteRequestRef = useRef(0);
   const lastPaletteCoverRef = useRef<string | null>(null);
   const queueScrollRef = useRef<HTMLDivElement>(null);
@@ -568,6 +573,8 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   const dragY = useMotionValue(0);
   const opacity = useTransform(dragY, [0, 100], [1, 0.7]);
   const artworkScale = useTransform(dragY, [0, 100], [1, 0.9]);
+  const dragControls = useDragControls();
+  const shouldReduceMotion = useReducedMotion();
 
   const seekX = useMotionValue(0);
   const queueThumbY = useMotionValue(0);
@@ -975,6 +982,35 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     };
   }, [isExpanded]);
 
+  useEffect(() => {
+    if (!isExpanded) {
+      expandedPanelHeightRef.current = 0;
+      return;
+    }
+
+    const panel = expandedPanelRef.current;
+    if (!panel) return;
+
+    const updateHeight = () => {
+      expandedPanelHeightRef.current = panel.getBoundingClientRect().height;
+    };
+
+    updateHeight();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      updateHeight();
+    });
+    observer.observe(panel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isExpanded]);
+
   // Extract color palette from album cover - intentional async effect
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: async color extraction */
   useEffect(() => {
@@ -1144,21 +1180,80 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     [isSeeking, seekTime, onSeek, seekX],
   );
 
+  const closeExpandedPlayer = useCallback(() => {
+    hapticLight();
+    setShowPlaylistSelector(false);
+    if (onClose) {
+      onClose();
+      return;
+    }
+    setIsExpanded(false);
+  }, [onClose]);
+
+  const isDragExemptTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest("[data-drag-exempt='true']") ??
+      target.closest("button") ??
+      target.closest("input") ??
+      target.closest("select") ??
+      target.closest("textarea") ??
+      target.closest("a") ??
+      target.closest("[role='slider']"),
+    );
+  };
+
+  const handleExpandedPointerDownCapture = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    if (isDragExemptTarget(event.target)) {
+      return;
+    }
+
+    const scrollContainer = expandedContentScrollRef.current;
+    if (
+      scrollContainer &&
+      event.target instanceof Node &&
+      scrollContainer.contains(event.target) &&
+      scrollContainer.scrollTop > 0
+    ) {
+      return;
+    }
+
+    dragControls.start(event);
+  };
+
   const handleExpandedDragEnd = (
     _: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo,
   ) => {
-    const offset = info.offset.y;
-    const velocity = info.velocity.y;
+    const measuredPanelHeight =
+      expandedPanelHeightRef.current > 0 ? expandedPanelHeightRef.current : undefined;
+    const panelHeightFromRef = expandedPanelRef.current?.getBoundingClientRect().height;
+    const panelHeight =
+      measuredPanelHeight ??
+      panelHeightFromRef ??
+      (typeof window !== "undefined" ? window.innerHeight : 0);
+    const dragDecision = getMobilePlayerDragDecision(info.offset.y, panelHeight);
 
-    if (offset > 100 || velocity > 500) {
-      hapticLight();
-      if (onClose) {
-        onClose();
-      } else {
-        setIsExpanded(false);
-      }
+    if (dragDecision === "dismiss") {
+      closeExpandedPlayer();
+      return;
     }
+
+    if (shouldReduceMotion) {
+      dragY.set(0);
+      return;
+    }
+
+    void animate(dragY, 0, springPresets.snappy);
   };
 
 
@@ -1329,27 +1424,28 @@ export default function MobilePlayer(props: MobilePlayerProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="theme-chrome-backdrop fixed inset-0 z-[98]"
-              onClick={() => {
-                hapticLight();
-                if (onClose) {
-                  onClose();
-                } else {
-                  setIsExpanded(false);
-                }
-              }}
+              onClick={closeExpandedPlayer}
             />
 
             {}
             <motion.div
+              ref={expandedPanelRef}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={{ top: 0, bottom: 0.2 }}
+              dragConstraints={{
+                top: 0,
+                bottom: typeof window !== "undefined" ? window.innerHeight : 1024,
+              }}
+              dragElastic={0}
+              dragMomentum={false}
+              dragListener={false}
+              dragControls={dragControls}
+              onPointerDownCapture={handleExpandedPointerDownCapture}
               onDragEnd={handleExpandedDragEnd}
               style={{ y: dragY, opacity }}
-              transition={springPresets.gentle}
+              transition={shouldReduceMotion ? { duration: 0 } : springPresets.gentle}
               className="fixed inset-0 z-[99] flex flex-col overflow-hidden pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+20px)]"
             >
               {}
@@ -1367,30 +1463,29 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                 <div className="mobile-player-header flex items-center justify-between px-6 pt-1">
                   <motion.button
-                    onClick={() => {
-                      hapticLight();
-                      if (onClose) {
-                        onClose();
-                      } else {
-                        setIsExpanded(false);
-                      }
-                    }}
+                    onClick={closeExpandedPlayer}
                     whileTap={{ scale: 0.9 }}
                     className="touch-target rounded-full p-2 text-[var(--color-subtext)]"
                     aria-label="Collapse player"
+                    data-drag-exempt="true"
                   >
                     <ChevronDown className="h-6 w-6" />
                   </motion.button>
                   <div className="w-12" />
                 </div>
 
-                <div className="flex flex-1 flex-col px-6 pb-3 pt-2">
-                  <div className="mobile-player-body flex min-h-0 flex-1 flex-col items-center justify-start gap-4">
+                <div className="flex min-h-0 flex-1 flex-col px-6 pt-2">
+                  <div
+                    ref={expandedContentScrollRef}
+                    className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain"
+                  >
+                    <div className="mobile-player-body flex min-h-0 flex-1 flex-col items-center justify-start gap-4">
                     <motion.div
                       ref={artworkRef}
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       style={{ scale: artworkScale }}
+                      data-drag-exempt="true"
                       drag="x"
                       dragConstraints={{ left: 0, right: 0 }}
                       dragElastic={0.1}
@@ -1558,7 +1653,7 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </div>
                       </div>
 
-                      <div className="mobile-player-controls mobile-player-content mt-0.5 w-full pb-[calc(env(safe-area-inset-bottom)+4px)]">
+                      <div className="mobile-player-controls mobile-player-content mt-0.5 w-full pb-1">
                     <div 
                       className="rounded-[20px] px-3 py-1.5 backdrop-blur-xl"
                       style={{
@@ -1887,18 +1982,31 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                         </motion.button>
                       </div>
 
-                      <div
-                        className="h-[2px] w-full bg-gradient-to-r from-transparent to-transparent my-2"
-                        style={{
-                          background: `linear-gradient(to right, transparent, ${secondaryRgba}, transparent)`,
-                          boxShadow: `0 0 8px ${secondaryRgba}`,
-                        }}
-                      />
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
 
-                      <div className="flex items-center justify-center gap-4 px-1 pb-1">
-                        <motion.button
-                          onClick={() => {
+                <div
+                      className="mobile-player-content w-full pb-[calc(env(safe-area-inset-bottom)+4px)] pt-2"
+                      data-drag-exempt="true"
+                >
+                  <div
+                        className="rounded-[16px] px-2 py-1.5 backdrop-blur-xl"
+                        style={{
+                          border: `1px solid ${primaryRgbaBorder}`,
+                          background: `linear-gradient(145deg, ${primaryRgbaLight}, ${secondaryRgbaLight}, ${accentRgbaLight})`,
+                          boxShadow: `0 10px 26px ${primaryRgbaShadow}, 0 0 16px ${primaryRgbaShadow}`,
+                        }}
+                        data-drag-exempt="true"
+                  >
+                    <MobilePlayerFooterActions
+                          queueLength={queue.length}
+                          showQueuePanel={showQueuePanel}
+                          onToggleQueuePanel={() => {
                             hapticMedium();
+                            setShowPlaylistSelector(false);
                             setShowQueuePanel((prev) => {
                               const next = !prev;
                               if (!next) {
@@ -1907,171 +2015,40 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                               return next;
                             });
                           }}
-                          whileTap={{ scale: 0.9 }}
-                          className={`touch-target relative ${
-                            showQueuePanel
-                              ? "text-[var(--color-accent)]"
-                              : "text-[var(--color-subtext)]"
-                          }`}
-                          aria-label="Show queue"
-                        >
-                          <ListMusic className="h-5 w-5" />
-                          {queue.length > 0 && (
-                            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-[var(--color-on-accent)]">
-                              {queue.length > 9 ? "9+" : queue.length}
-                            </span>
-                          )}
-                        </motion.button>
-
-                        <div className="relative">
-                          <motion.button
-                            onClick={() => {
-                              if (!isAuthenticated) {
-                                hapticMedium();
-                                return;
-                              }
-                              hapticLight();
-                              setShowPlaylistSelector(!showPlaylistSelector);
-                            }}
-                            whileTap={{ scale: 0.9 }}
-                            className={`touch-target ${
-                              !isAuthenticated ? "opacity-50" : ""
-                            } ${
-                              showPlaylistSelector
-                                ? "text-[var(--color-accent)]"
-                                : "text-[var(--color-subtext)]"
-                            }`}
-                            title={
-                              isAuthenticated
-                                ? "Add to playlist"
-                                : "Sign in to add to playlists"
+                          isAuthenticated={isAuthenticated}
+                          showPlaylistSelector={showPlaylistSelector}
+                          onTogglePlaylistSelector={() => {
+                            if (!isAuthenticated) {
+                              hapticMedium();
+                              return;
                             }
-                            aria-label={
-                              isAuthenticated
-                                ? "Add to playlist"
-                                : "Sign in to add to playlists"
+                            hapticLight();
+                            setShowPlaylistSelector((prev) => !prev);
+                          }}
+                          onClosePlaylistSelector={() => setShowPlaylistSelector(false)}
+                          playlists={playlists}
+                          onAddToPlaylist={(playlistId) => {
+                            if (currentTrack) {
+                              addToPlaylist.mutate({
+                                playlistId,
+                                track: currentTrack,
+                              });
                             }
-                          >
-                            <ListPlus className="h-5 w-5" />
-                          </motion.button>
-
-                          <AnimatePresence>
-                            {showPlaylistSelector && isAuthenticated && (
-                              <>
-                                <div
-                                  className="fixed inset-0 z-10"
-                                  onClick={() =>
-                                    setShowPlaylistSelector(false)
-                                  }
-                                />
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                  transition={springPresets.snappy}
-                                  className="theme-panel absolute bottom-full right-0 z-20 mb-2 w-64 max-h-72 overflow-y-auto rounded-xl border shadow-xl backdrop-blur-xl"
-                                >
-                                  <div className="border-b border-[rgba(255,255,255,0.08)] p-3">
-                                    <h3 className="text-sm font-semibold text-[var(--color-text)]">
-                                      Add to Playlist
-                                    </h3>
-                                  </div>
-                                  <div className="py-2">
-                                    {playlists && playlists.length > 0 ? (
-                                      playlists.map((playlist) => (
-                                        <button
-                                          key={playlist.id}
-                                          onClick={() => {
-                                            if (currentTrack) {
-                                              addToPlaylist.mutate({
-                                                playlistId: playlist.id,
-                                                track: currentTrack,
-                                              });
-                                            }
-                                          }}
-                                          disabled={addToPlaylist.isPending}
-                                          className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-[rgba(244,178,102,0.1)] disabled:opacity-50"
-                                        >
-                                          <div className="flex items-center justify-between">
-                                            <div className="min-w-0 flex-1">
-                                              <p className="truncate font-medium text-[var(--color-text)]">
-                                                {playlist.name}
-                                              </p>
-                                              <p className="text-xs text-[var(--color-subtext)]">
-                                                {playlist.trackCount ?? 0}{" "}
-                                                {playlist.trackCount === 1
-                                                  ? "track"
-                                                  : "tracks"}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </button>
-                                      ))
-                                    ) : (
-                                      <div className="px-4 py-6 text-center">
-                                        <p className="text-sm text-[var(--color-subtext)]">
-                                          No playlists yet
-                                        </p>
-                                        <p className="mt-1 text-xs text-[var(--color-muted)]">
-                                          Create one from the Playlists page
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </motion.div>
-                              </>
-                            )}
-                          </AnimatePresence>
-                        </div>
-
-                        <motion.button
-                          onClick={toggleFavorite}
-                          disabled={
+                          }}
+                          isAddingToPlaylist={addToPlaylist.isPending}
+                          favoriteIsActive={Boolean(favoriteData?.isFavorite)}
+                          favoriteDisabled={
                             !isAuthenticated ||
                             addFavorite.isPending ||
                             removeFavorite.isPending
                           }
-                          whileTap={{ scale: 0.9 }}
-                          className={`touch-target transition-all ${
-                            favoriteData?.isFavorite
-                              ? "text-red-500"
-                              : "text-[var(--color-subtext)]"
-                          } ${
-                            !isAuthenticated ||
-                            addFavorite.isPending ||
-                            removeFavorite.isPending
-                              ? "opacity-50"
-                              : ""
-                          }`}
-                          title={
-                            !isAuthenticated
-                              ? "Sign in to favorite tracks"
-                              : favoriteData?.isFavorite
-                                ? "Remove from favorites"
-                                : "Add to favorites"
-                          }
-                          aria-label={
-                            !isAuthenticated
-                              ? "Sign in to favorite tracks"
-                              : favoriteData?.isFavorite
-                                ? "Remove from favorites"
-                                : "Add to favorites"
-                          }
-                        >
-                          <Heart
-                            className={`h-5 w-5 transition-transform ${
-                              favoriteData?.isFavorite ? "fill-current" : ""
-                            } ${isHeartAnimating ? "scale-125" : ""}`}
-                          />
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-
-                  </div>
+                          isHeartAnimating={isHeartAnimating}
+                          onToggleFavorite={toggleFavorite}
+                    />
                   </div>
                 </div>
               </div>
+            </div>
             </motion.div>
 
             {}

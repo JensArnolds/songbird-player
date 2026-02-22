@@ -18,7 +18,7 @@ Use auth and DB paths for session, user, and persistence behavior.
 
 2. Load only high-signal context files first:
 Read `CONTEXT.md`.
-Read `docs/architecture.md`.
+Read `docs/ARCHITECTURE.md`.
 Read `docs/API_ROUTE_USE.md`.
 Read `docs/API_V2_SWAGGER.yaml` when touching V2 proxy contracts.
 

@@ -1,7 +1,7 @@
 // File: apps/web/src/__tests__/MobilePlayer.integrated-controls.test.tsx
 
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import type { Track } from "@starchild/types";
 import MobilePlayer from "@/components/MobilePlayer";
@@ -55,8 +55,8 @@ const mockSession = {
 };
 
 const mockPlaylists = [
-  { id: "playlist-1", name: "My Playlist", trackCount: 5 },
-  { id: "playlist-2", name: "Favorites", trackCount: 10 },
+  { id: 1, name: "My Playlist", trackCount: 5 },
+  { id: 2, name: "Favorites", trackCount: 10 },
 ];
 
 const globalPlayerState = vi.hoisted(() => ({
@@ -64,11 +64,11 @@ const globalPlayerState = vi.hoisted(() => ({
   addSmartTracks: vi.fn(() => Promise.resolve([])),
   refreshSmartTracks: vi.fn(() => Promise.resolve([])),
   smartQueueState: { isActive: false, isLoading: false },
-  queuedTracks: mockQueue.map((track, i) => ({
-    track,
-    queueId: `q-${i}`,
-    queueSource: "manual" as const,
-  })),
+  queuedTracks: [] as Array<{
+    track: Track;
+    queueId: string;
+    queueSource: "user" | "smart";
+  }>,
   playFromQueue: vi.fn(),
   removeFromQueue: vi.fn(),
   reorderQueue: vi.fn(),
@@ -95,6 +95,10 @@ vi.mock("next-auth/react", () => ({
 
 vi.mock("@starchild/player-react/AudioPlayerContext", () => ({
   useGlobalPlayer: () => globalPlayerState,
+}));
+
+vi.mock("@starchild/ui", () => ({
+  LoadingSpinner: () => React.createElement("div", { "data-testid": "loading-spinner" }),
 }));
 
 vi.mock("@/contexts/ToastContext", () => ({
@@ -233,6 +237,9 @@ vi.mock("framer-motion", () => {
                 drag,
                 dragConstraints,
                 dragElastic,
+                dragControls,
+                dragListener,
+                dragMomentum,
                 onDrag,
                 onDragEnd,
                 style,
@@ -248,6 +255,9 @@ vi.mock("framer-motion", () => {
               void drag;
               void dragConstraints;
               void dragElastic;
+              void dragControls;
+              void dragListener;
+              void dragMomentum;
               void onDrag;
               void onDragEnd;
               return React.createElement(componentTag, {
@@ -269,6 +279,8 @@ vi.mock("framer-motion", () => {
       React.createElement(React.Fragment, {}, children),
     useMotionValue: () => ({ get: () => 0, set: vi.fn() }),
     useTransform: () => ({ get: () => 0 }),
+    useDragControls: () => ({ start: vi.fn() }),
+    useReducedMotion: () => false,
   };
 });
 
@@ -303,6 +315,11 @@ describe("MobilePlayer - Integrated Controls", () => {
     sessionState.data = null;
     apiState.playlists = null;
     apiState.favoriteData = { isFavorite: false };
+    globalPlayerState.queuedTracks = mockQueue.map((track, i) => ({
+      track,
+      queueId: `q-${i}`,
+      queueSource: "user",
+    }));
     vi.clearAllMocks();
   });
 
@@ -320,7 +337,8 @@ describe("MobilePlayer - Integrated Controls", () => {
     it("displays queue count badge when queue has items", () => {
       render(<MobilePlayer {...defaultProps} />);
 
-      const badge = screen.getByText("2");
+      const queueButton = screen.getByLabelText("Show queue");
+      const badge = within(queueButton).getByText("2");
       expect(badge).toBeInTheDocument();
     });
 
@@ -377,13 +395,17 @@ describe("MobilePlayer - Integrated Controls", () => {
     it("changes queue button appearance when queue panel is open", async () => {
       render(<MobilePlayer {...defaultProps} />);
 
-      const queueButton = screen.getByLabelText("Show queue");
-      expect(queueButton.className).not.toContain("text-[var(--color-accent)]");
+      const getQueueButton = () => screen.getByLabelText("Show queue");
+      expect(getQueueButton().getAttribute("class") ?? "").not.toContain(
+        "text-[var(--color-accent)]",
+      );
 
-      fireEvent.click(queueButton);
+      fireEvent.click(getQueueButton());
 
       await waitFor(() => {
-        expect(queueButton.className).toContain("text-[var(--color-accent)]");
+        expect(getQueueButton().getAttribute("class") ?? "").toContain(
+          "text-[var(--color-accent)]",
+        );
       });
     });
   });
@@ -444,7 +466,7 @@ describe("MobilePlayer - Integrated Controls", () => {
       fireEvent.click(playlistOption);
 
       expect(apiState.addToPlaylistMutate).toHaveBeenCalledWith({
-        playlistId: "playlist-1",
+        playlistId: 1,
         track: mockTrack,
       });
     });
@@ -523,7 +545,7 @@ describe("MobilePlayer - Integrated Controls", () => {
       const favoriteButton = screen.getByLabelText("Remove from favorites");
       const heartIcon = favoriteButton.querySelector("svg");
 
-      expect(heartIcon?.className).toContain("fill-current");
+      expect(heartIcon?.getAttribute("class") ?? "").toContain("fill-current");
     });
 
     it("shows outlined heart icon when track is not favorited", () => {
@@ -535,19 +557,22 @@ describe("MobilePlayer - Integrated Controls", () => {
       const favoriteButton = screen.getByLabelText("Add to favorites");
       const heartIcon = favoriteButton.querySelector("svg");
 
-      expect(heartIcon?.className).not.toContain("fill-current");
+      expect(heartIcon?.getAttribute("class") ?? "").not.toContain("fill-current");
     });
   });
 
   describe("Visual Layout", () => {
-    it("renders controls within the gradient-bordered card", () => {
+    it("renders footer actions inside the pinned footer container", () => {
       render(<MobilePlayer {...defaultProps} />);
 
+      const footerActions = screen.getByTestId("mobile-player-footer-actions");
       const queueButton = screen.getByLabelText("Show queue");
-      const controlsCard = queueButton.closest('[class*="rounded"]');
 
-      expect(controlsCard).toBeInTheDocument();
-      expect(controlsCard?.className).toContain("backdrop-blur-xl");
+      expect(footerActions).toBeInTheDocument();
+      expect(footerActions.contains(queueButton)).toBe(true);
+      expect(footerActions.parentElement?.className).toContain(
+        "backdrop-blur-xl",
+      );
     });
 
     it("displays horizontal divider between main controls and action buttons", () => {
@@ -557,16 +582,15 @@ describe("MobilePlayer - Integrated Controls", () => {
       expect(dividers.length).toBeGreaterThan(0);
     });
 
-    it("positions action buttons below main playback controls", () => {
+    it("keeps footer actions separate from playback controls", () => {
       render(<MobilePlayer {...defaultProps} />);
 
       const playButton = screen.getByLabelText(/play track/i);
+      const footerActions = screen.getByTestId("mobile-player-footer-actions");
       const queueButton = screen.getByLabelText("Show queue");
 
-      const playButtonRect = playButton.getBoundingClientRect();
-      const queueButtonRect = queueButton.getBoundingClientRect();
-
-      expect(queueButtonRect.top).toBeGreaterThan(playButtonRect.top);
+      expect(footerActions.contains(queueButton)).toBe(true);
+      expect(footerActions.contains(playButton)).toBe(false);
     });
   });
 

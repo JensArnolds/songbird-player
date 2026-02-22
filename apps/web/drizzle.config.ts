@@ -1,11 +1,5 @@
 // File: apps/web/drizzle.config.ts
 
-// NOTE: This file mirrors the configuration from `drizzle.config.cjs`.
-// Drizzle Kit's CLI expects a CommonJS `.cjs` config file for running
-// migrations, so `drizzle.config.cjs` is the source of truth for the CLI.
-// This TypeScript file is provided for use inside the app (type safety,
-// editor tooling) and must be kept in sync with the `.cjs` configuration.
-
 import { config as dotenvConfig } from "dotenv";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";

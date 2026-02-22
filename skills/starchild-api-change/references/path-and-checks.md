@@ -3,7 +3,7 @@
 ## Core Files
 
 - `CONTEXT.md`
-- `docs/architecture.md`
+- `docs/ARCHITECTURE.md`
 - `docs/API_ROUTE_USE.md`
 - `docs/API_V2_SWAGGER.yaml`
 
