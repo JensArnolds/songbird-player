@@ -21,7 +21,8 @@ import { getGenres, type GenreListItem } from "@starchild/api-client/rest";
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import { ChevronDown, Music2, X } from "lucide-react";
 import { signIn } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface GuestModalProps {
   onContinueAsGuest?: () => void;
@@ -122,11 +123,130 @@ export function GuestModal({
       settingsStorage.getSetting("smartMixEnabled", true),
     ),
   );
+  const [isGenreMenuOpen, setIsGenreMenuOpen] = useState(false);
+  const [genreMenuRect, setGenreMenuRect] = useState<DOMRect | null>(null);
+  const [genreMenuDirection, setGenreMenuDirection] = useState<"down" | "up">(
+    "down",
+  );
+  const [viewportHeight, setViewportHeight] = useState<number>(0);
+  const genreTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const selectedMood = useMemo(
     () => MOOD_PRESETS.find((preset) => preset.id === selectedMoodId) ?? null,
     [selectedMoodId],
   );
+  const selectedGenre = useMemo(
+    () => genres.find((genre) => genre.id === preferredGenreId) ?? null,
+    [genres, preferredGenreId],
+  );
+  const selectedGenreLabel = useMemo(() => {
+    if (genresLoading) return "Loading genres...";
+    if (preferredGenreName.trim().length > 0) return preferredGenreName;
+    if (selectedGenre?.name) return selectedGenre.name;
+    if (genres.length > 0) return "No preference";
+    return "Genres unavailable";
+  }, [genres, genresLoading, preferredGenreName, selectedGenre]);
+  const genreSelectDisabled = genresLoading || genres.length === 0;
+  const genreSummaryLabel = selectedGenre?.name ?? preferredGenreName;
+
+  function setGenrePreference(genre: GenreListItem | null): void {
+    if (!genre) {
+      setPreferredGenreId(null);
+      setPreferredGenreName("");
+      appStorage.remove(STORAGE_KEYS.PREFERRED_GENRE_ID);
+      appStorage.remove(STORAGE_KEYS.PREFERRED_GENRE_NAME);
+      return;
+    }
+
+    setPreferredGenreId(genre.id);
+    setPreferredGenreName(genre.name);
+    appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_ID, genre.id);
+    appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_NAME, genre.name);
+  }
+
+  const genreMenuStyle = useMemo(() => {
+    if (!genreMenuRect) return undefined;
+
+    const baseStyle = {
+      position: "fixed" as const,
+      left: genreMenuRect.left,
+      width: genreMenuRect.width,
+    };
+
+    if (genreMenuDirection === "up") {
+      return {
+        ...baseStyle,
+        bottom: Math.max(viewportHeight - genreMenuRect.top + 8, 8),
+      };
+    }
+
+    return {
+      ...baseStyle,
+      top: genreMenuRect.bottom + 8,
+    };
+  }, [genreMenuDirection, genreMenuRect, viewportHeight]);
+  const genreDropdownPortal =
+    typeof document !== "undefined" && isGenreMenuOpen && genreMenuStyle
+      ? createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[240]"
+              onClick={() => setIsGenreMenuOpen(false)}
+              aria-hidden="true"
+            />
+            <div
+              id="guest-preferred-genre-listbox"
+              role="listbox"
+              className="theme-panel fixed z-[241] overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
+              style={genreMenuStyle}
+            >
+              <div className="max-h-72 overflow-y-auto py-1">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={preferredGenreId === null}
+                  onClick={() => {
+                    setGenrePreference(null);
+                    setIsGenreMenuOpen(false);
+                  }}
+                  className={cn(
+                    "w-full px-3 py-2.5 text-left text-sm transition-colors",
+                    preferredGenreId === null
+                      ? "bg-[#1DB954]/20 text-white"
+                      : "text-white/85 hover:bg-white/[0.08] hover:text-white",
+                  )}
+                >
+                  No preference
+                </button>
+                {genres.map((genre) => {
+                  const isSelected = preferredGenreId === genre.id;
+                  return (
+                    <button
+                      key={genre.id}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => {
+                        setGenrePreference(genre);
+                        setIsGenreMenuOpen(false);
+                      }}
+                      className={cn(
+                        "w-full px-3 py-2.5 text-left text-sm transition-colors",
+                        isSelected
+                          ? "bg-[#1DB954]/20 text-white"
+                          : "text-white/85 hover:bg-white/[0.08] hover:text-white",
+                      )}
+                    >
+                      {genre.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>,
+          document.body,
+        )
+      : null;
 
   useEffect(() => {
     settingsStorage.set("theme", "dark");
@@ -174,20 +294,32 @@ export function GuestModal({
     };
   }, []);
 
-  const setGenrePreference = (genre: GenreListItem | null): void => {
-    if (!genre) {
-      setPreferredGenreId(null);
-      setPreferredGenreName("");
-      appStorage.remove(STORAGE_KEYS.PREFERRED_GENRE_ID);
-      appStorage.remove(STORAGE_KEYS.PREFERRED_GENRE_NAME);
-      return;
-    }
+  useEffect(() => {
+    if (!isGenreMenuOpen || !genreTriggerRef.current) return;
 
-    setPreferredGenreId(genre.id);
-    setPreferredGenreName(genre.name);
-    appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_ID, genre.id);
-    appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_NAME, genre.name);
-  };
+    const updateRect = () => {
+      const rect = genreTriggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      setGenreMenuRect(rect);
+      setViewportHeight(window.innerHeight);
+
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      setGenreMenuDirection(
+        spaceBelow < 280 && spaceAbove > spaceBelow ? "up" : "down",
+      );
+    };
+
+    updateRect();
+    window.addEventListener("resize", updateRect);
+    window.addEventListener("scroll", updateRect, true);
+
+    return () => {
+      window.removeEventListener("resize", updateRect);
+      window.removeEventListener("scroll", updateRect, true);
+    };
+  }, [isGenreMenuOpen]);
 
   const applyMoodPreset = (preset: MoodPreset): void => {
     setSelectedMoodId(preset.id);
@@ -202,6 +334,7 @@ export function GuestModal({
       onOpenChange={(open) => {
         setIsOpen(open);
         if (!open) {
+          setIsGenreMenuOpen(false);
           onContinueAsGuest?.();
         }
       }}
@@ -264,51 +397,38 @@ export function GuestModal({
               </p>
 
               <div className="space-y-1">
-                <label
-                  htmlFor="guest-preferred-genre"
+                <p
+                  id="guest-preferred-genre-label"
                   className="text-xs font-medium text-white/80"
                 >
                   Genre
-                </label>
+                </p>
                 <div className="relative">
-                  <select
+                  <button
+                    ref={genreTriggerRef}
+                    type="button"
                     id="guest-preferred-genre"
-                    value={preferredGenreId?.toString() ?? ""}
-                    onChange={(event) => {
-                      const nextValue = event.target.value.trim();
-                      if (!nextValue) {
-                        setGenrePreference(null);
-                        return;
-                      }
-
-                      const genreId = Number.parseInt(nextValue, 10);
-                      if (!Number.isFinite(genreId)) {
-                        setGenrePreference(null);
-                        return;
-                      }
-
-                      const selectedGenre =
-                        genres.find((genre) => genre.id === genreId) ?? null;
-                      setGenrePreference(selectedGenre);
+                    aria-labelledby="guest-preferred-genre-label"
+                    aria-haspopup="listbox"
+                    aria-controls="guest-preferred-genre-listbox"
+                    aria-expanded={isGenreMenuOpen}
+                    disabled={genreSelectDisabled}
+                    onClick={() => {
+                      setIsGenreMenuOpen((prev) => !prev);
                     }}
-                    disabled={genresLoading || genres.length === 0}
-                    style={{ colorScheme: "dark" }}
-                    className="h-12 w-full appearance-none rounded-xl border border-white/15 bg-white/[0.04] px-3 pr-10 text-sm text-white transition-colors outline-none focus:border-[#1DB954]/70 disabled:cursor-not-allowed disabled:opacity-60 [&>option]:bg-[#10182c] [&>option]:text-white"
+                    className={cn(
+                      "h-12 w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 pr-10 text-left text-sm text-white transition-colors outline-none focus:border-[#1DB954]/70",
+                      genreSelectDisabled && "cursor-not-allowed opacity-60",
+                    )}
                   >
-                    <option value="">
-                      {genresLoading
-                        ? "Loading genres..."
-                        : genres.length > 0
-                          ? "No preference"
-                          : "Genres unavailable"}
-                    </option>
-                    {genres.map((genre) => (
-                      <option key={genre.id} value={genre.id.toString()}>
-                        {genre.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-white/70" />
+                    <span className="block truncate">{selectedGenreLabel}</span>
+                  </button>
+                  <ChevronDown
+                    className={cn(
+                      "pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-white/70 transition-transform",
+                      isGenreMenuOpen && "rotate-180",
+                    )}
+                  />
                 </div>
               </div>
 
@@ -344,8 +464,8 @@ export function GuestModal({
               </div>
 
               <p className="text-xs text-white/65">
-                {preferredGenreName
-                  ? `Genre: ${preferredGenreName}`
+                {genreSummaryLabel
+                  ? `Genre: ${genreSummaryLabel}`
                   : "Genre: none selected"}{" "}
                 · Mood: {selectedMood?.label ?? "Chill"}
               </p>
@@ -384,6 +504,7 @@ export function GuestModal({
           </div>
         </div>
       </DialogContent>
+      {genreDropdownPortal}
     </Dialog>
   );
 }
