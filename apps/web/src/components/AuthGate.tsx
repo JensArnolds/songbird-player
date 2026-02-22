@@ -4,6 +4,10 @@
 
 import { GuestModal } from "@/components/GuestModal";
 import {
+  GuestModalProvider,
+  type GuestModalContextValue,
+} from "@/contexts/GuestModalContext";
+import {
   SPOTIFY_AUTH_STATE_EVENT,
   buildSpotifyFrontendCallbackUrl,
   getInMemoryAccessToken,
@@ -14,7 +18,13 @@ import {
 } from "@/services/spotifyAuthClient";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 const BYPASS_PATH_PREFIXES = ["/auth/spotify/callback", "/auth/callback"];
 const GUEST_MODAL_DISMISSED_STORAGE_KEY = "sb_guest_modal_dismissed";
@@ -47,6 +57,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const sessionResult = useSession() as unknown;
   const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
   const [spotifyResolved, setSpotifyResolved] = useState(false);
+  const [manualGuestModalOpen, setManualGuestModalOpen] = useState(false);
   const [guestModalDismissed, setGuestModalDismissed] = useState(() => {
     if (typeof window === "undefined") return false;
     return (
@@ -116,7 +127,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
     () => BYPASS_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix)),
     [pathname],
   );
-  if (bypassGate) return <>{children}</>;
 
   const sessionUser = getSessionUser(sessionResult);
   const status = getSessionStatus(sessionResult);
@@ -127,26 +137,41 @@ export function AuthGate({ children }: { children: ReactNode }) {
     status === "loading" ||
     (!sessionUser && !spotifyResolved && !hasInMemorySpotifyAccessToken);
 
-  const showGuestModal =
-    !isLoading && !isAuthenticated && !guestModalDismissed && pathname === "/";
+  const openGuestModal = useCallback(() => {
+    setManualGuestModalOpen(true);
+  }, []);
+
+  const dismissGuestModal = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(GUEST_MODAL_DISMISSED_STORAGE_KEY, "true");
+      window.localStorage.setItem(LEGACY_GUEST_MODE_STORAGE_KEY, "true");
+    }
+    setGuestModalDismissed(true);
+    setManualGuestModalOpen(false);
+  }, []);
+
+  const showGuestModalFromGate =
+    !bypassGate &&
+    !isLoading &&
+    !isAuthenticated &&
+    !guestModalDismissed &&
+    pathname === "/";
+  const showGuestModal = showGuestModalFromGate || manualGuestModalOpen;
+
+  const guestModalContextValue = useMemo<GuestModalContextValue>(
+    () => ({
+      isGuestModalOpen: showGuestModal,
+      openGuestModal,
+    }),
+    [showGuestModal, openGuestModal],
+  );
 
   return (
-    <>
+    <GuestModalProvider value={guestModalContextValue}>
       {children}
       {showGuestModal ? (
-        <GuestModal
-          onContinueAsGuest={() => {
-            if (typeof window !== "undefined") {
-              window.localStorage.setItem(
-                GUEST_MODAL_DISMISSED_STORAGE_KEY,
-                "true",
-              );
-              window.localStorage.setItem(LEGACY_GUEST_MODE_STORAGE_KEY, "true");
-            }
-            setGuestModalDismissed(true);
-          }}
-        />
+        <GuestModal onContinueAsGuest={dismissGuestModal} />
       ) : null}
-    </>
+    </GuestModalProvider>
   );
 }

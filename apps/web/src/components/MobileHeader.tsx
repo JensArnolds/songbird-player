@@ -4,13 +4,14 @@
 
 import MobileSearchBar from "@/components/MobileSearchBar";
 import { useAuthModal } from "@/contexts/AuthModalContext";
+import { useGuestModal } from "@/contexts/GuestModalContext";
 import { useMenu } from "@/contexts/MenuContext";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@starchild/api-client/trpc/react";
 import { hapticLight } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
 import { motion } from "framer-motion";
-import { Library, Menu } from "lucide-react";
+import { Library, Menu, Music2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -26,6 +27,7 @@ export default function MobileHeader() {
   );
   const { data: session } = useSession();
   const { openAuthModal } = useAuthModal();
+  const { isGuestModalOpen, openGuestModal } = useGuestModal();
   const { openMenu } = useMenu();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -212,22 +214,41 @@ export default function MobileHeader() {
             autoSearchCountdown={countdown}
           />
         </div>
-        <motion.button
-          onClick={() => {
-            hapticLight();
-            if (!session) {
-              openAuthModal({ callbackUrl: "/library" });
-              return;
-            }
-            router.push("/library", { scroll: false });
-          }}
-          whileTap={{ scale: 0.94 }}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[var(--color-text)]"
-          type="button"
-          aria-label="Open library"
-        >
-          <Library className="h-4 w-4" />
-        </motion.button>
+        <div className="flex items-center gap-1.5">
+          <motion.button
+            onClick={() => {
+              hapticLight();
+              openGuestModal();
+            }}
+            whileTap={{ scale: 0.94 }}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-[var(--color-text)] ${
+              isGuestModalOpen
+                ? "border-[#1DB954]/45 bg-[#1DB954]/18"
+                : "border-white/15 bg-white/5"
+            } disabled:opacity-90`}
+            type="button"
+            aria-label="Reopen greeter modal"
+            disabled={isGuestModalOpen}
+          >
+            <Music2 className="h-4 w-4" />
+          </motion.button>
+          <motion.button
+            onClick={() => {
+              hapticLight();
+              if (!session) {
+                openAuthModal({ callbackUrl: "/library" });
+                return;
+              }
+              router.push("/library", { scroll: false });
+            }}
+            whileTap={{ scale: 0.94 }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[var(--color-text)]"
+            type="button"
+            aria-label="Open library"
+          >
+            <Library className="h-4 w-4" />
+          </motion.button>
+        </div>
       </div>
     </motion.header>
   );
