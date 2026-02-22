@@ -574,7 +574,8 @@ describe("Player Integration Stability Tests", () => {
         tracks.forEach((track) => result.current.addToQueue(track));
       });
 
-      const originalQueueLength = result.current.queue.length;
+      const originalQueue = [...result.current.queue];
+      const originalQueueLength = originalQueue.length;
 
       act(() => {
         result.current.toggleShuffle();
@@ -588,6 +589,44 @@ describe("Player Integration Stability Tests", () => {
       });
 
       expect(result.current.queue).toHaveLength(originalQueueLength);
+      expect(result.current.queue.map((track) => track.id)).toEqual(
+        originalQueue.map((track) => track.id),
+      );
+    });
+
+    it("should not duplicate tracks when shuffle is toggled rapidly", async () => {
+      const { result } = renderHook(() => useAudioPlayer());
+
+      await waitFor(() => {
+        expect(result.current.audioRef.current).not.toBeNull();
+      });
+
+      const tracks = Array.from({ length: 6 }, (_, i) =>
+        createMockTrack(i + 1),
+      );
+
+      act(() => {
+        tracks.forEach((track) => result.current.addToQueue(track));
+      });
+
+      const originalIds = result.current.queue.map((track) => track.id);
+
+      act(() => {
+        for (let i = 0; i < 7; i += 1) {
+          result.current.toggleShuffle();
+        }
+      });
+
+      expect(result.current.queue).toHaveLength(originalIds.length);
+      expect(new Set(result.current.queue.map((track) => track.id)).size).toBe(
+        originalIds.length,
+      );
+
+      act(() => {
+        result.current.toggleShuffle();
+      });
+
+      expect(result.current.queue.map((track) => track.id)).toEqual(originalIds);
     });
   });
 

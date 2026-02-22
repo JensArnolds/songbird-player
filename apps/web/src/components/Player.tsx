@@ -7,7 +7,14 @@ import { api } from "@starchild/api-client/trpc/react";
 import type { Track } from "@starchild/types";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { formatTime } from "@/utils/time";
-import { Heart, Layers, ListPlus, Maximize2, Minimize2 } from "lucide-react";
+import {
+  Heart,
+  Layers,
+  ListPlus,
+  Maximize2,
+  Minimize2,
+  Shuffle,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRef, useState } from "react";
@@ -272,13 +279,7 @@ export default function MaturePlayer({
               }`}
               title="Shuffle (S)"
             >
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <Shuffle className="h-4 w-4" />
             </button>
 
             {}

@@ -135,7 +135,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const [isShuffled, setIsShuffled] = useState(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>("none");
   const [isLoading, setIsLoading] = useState(false);
-  const [originalQueueOrder, setOriginalQueueOrder] = useState<Track[]>([]);
+  const originalQueueOrderRef = useRef<QueuedTrack[]>([]);
   const loadIdRef = useRef(0);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
@@ -1802,93 +1802,113 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     [queue, createQueuedTrack, requestAutoPlayNext],
   );
 
-  const smartShuffle = useCallback(() => {
-    setQueuedTracks((prev) => {
-      if (prev.length <= 1) return prev;
+  const shuffleUpcomingTracks = useCallback(
+    (upcomingTracks: QueuedTrack[], currentArtistId: number | null) => {
+      if (upcomingTracks.length <= 1) return upcomingTracks;
 
-      const [currentQueuedTrack, ...rest] = prev;
-      if (rest.length === 0) return prev;
+      const pool = [...upcomingTracks];
 
-      const shuffled = rest.map((qt) => qt.track);
-      const artists = new Map<number, Track[]>();
-
-      shuffled.forEach((track) => {
-        const artistId = track.artist.id;
-
-        if (!artists.has(artistId)) {
-          artists.set(artistId, []);
-        }
-
-        artists.get(artistId)!.push(track);
-      });
-
-      const result: Track[] = [];
-      const artistIds = Array.from(artists.keys());
-
-      for (let i = artistIds.length - 1; i > 0; i--) {
+      for (let i = pool.length - 1; i > 0; i -= 1) {
         const j = Math.floor(Math.random() * (i + 1));
-        [artistIds[i], artistIds[j]] = [artistIds[j]!, artistIds[i]!];
+        [pool[i], pool[j]] = [pool[j]!, pool[i]!];
       }
 
-      let lastArtistId: number | null = null;
-      const tempPool = [...shuffled];
+      const shuffled: QueuedTrack[] = [];
+      let lastArtistId = currentArtistId;
 
-      while (tempPool.length > 0) {
-        let foundDifferent = false;
+      while (pool.length > 0) {
+        const nextIndex = pool.findIndex(
+          (qt) => lastArtistId === null || qt.track.artist.id !== lastArtistId,
+        );
+        const selectedIndex = nextIndex === -1 ? 0 : nextIndex;
+        const [selected] = pool.splice(selectedIndex, 1);
 
-        for (let i = 0; i < tempPool.length; i++) {
-          const track = tempPool[i];
+        if (!selected) continue;
 
-          if (!track) continue;
+        shuffled.push(selected);
+        lastArtistId = selected.track.artist.id;
+      }
 
-          if (!lastArtistId || track.artist.id !== lastArtistId) {
-            result.push(track);
-            lastArtistId = track.artist.id;
-            tempPool.splice(i, 1);
-            foundDifferent = true;
-            break;
-          }
-        }
+      return shuffled;
+    },
+    [],
+  );
 
-        if (!foundDifferent && tempPool.length > 0) {
-          const track = tempPool.shift();
+  const restoreUpcomingOrder = useCallback(
+    (upcomingTracks: QueuedTrack[], originalUpcomingOrder: QueuedTrack[]) => {
+      if (originalUpcomingOrder.length === 0 || upcomingTracks.length <= 1) {
+        return upcomingTracks;
+      }
 
-          if (track) {
-            result.push(track);
-            lastArtistId = track.artist.id;
-          }
+      const availableByTrackId = new Map<number, QueuedTrack[]>();
+      for (const queuedTrack of upcomingTracks) {
+        const existing = availableByTrackId.get(queuedTrack.track.id);
+        if (existing) {
+          existing.push(queuedTrack);
+        } else {
+          availableByTrackId.set(queuedTrack.track.id, [queuedTrack]);
         }
       }
 
-      return [
-        currentQueuedTrack!,
-        ...result.map((t) => createQueuedTrack(t, "user")),
-      ];
-    });
-  }, [createQueuedTrack]);
+      const restored: QueuedTrack[] = [];
+      for (const originalTrack of originalUpcomingOrder) {
+        const matches = availableByTrackId.get(originalTrack.track.id);
+        const nextMatch = matches?.shift();
+        if (nextMatch) {
+          restored.push(nextMatch);
+        }
+      }
+
+      const restoredQueueIds = new Set(restored.map((qt) => qt.queueId));
+      const extras = upcomingTracks.filter(
+        (qt) => !restoredQueueIds.has(qt.queueId),
+      );
+
+      return [...restored, ...extras];
+    },
+    [],
+  );
 
   const toggleShuffle = useCallback(() => {
-    setIsShuffled((prev) => {
-      const newShuffleState = !prev;
+    setIsShuffled((previousIsShuffled) => {
+      const nextIsShuffled = !previousIsShuffled;
 
-      if (newShuffleState) {
-        const [...rest] = queue;
-        setOriginalQueueOrder(rest);
-        smartShuffle();
-      } else {
-        if (originalQueueOrder.length > 0 && queue.length > 0) {
-          const [current] = queue;
-          setQueuedTracks([
-            createQueuedTrack(current!, "user"),
-            ...originalQueueOrder.map((t) => createQueuedTrack(t, "user")),
-          ]);
-          setOriginalQueueOrder([]);
+      setQueuedTracks((previousQueue) => {
+        if (previousQueue.length <= 1) {
+          originalQueueOrderRef.current = [];
+          return previousQueue;
         }
-      }
 
-      return newShuffleState;
+        const [currentQueuedTrack, ...upcomingTracks] = previousQueue;
+        if (!currentQueuedTrack) return previousQueue;
+
+        if (nextIsShuffled) {
+          originalQueueOrderRef.current = [...upcomingTracks];
+          const shuffledUpcoming = shuffleUpcomingTracks(
+            upcomingTracks,
+            currentQueuedTrack.track.artist.id,
+          );
+          return [currentQueuedTrack, ...shuffledUpcoming];
+        }
+
+        const originalUpcomingOrder = originalQueueOrderRef.current;
+        originalQueueOrderRef.current = [];
+
+        if (originalUpcomingOrder.length === 0) {
+          return previousQueue;
+        }
+
+        const restoredUpcoming = restoreUpcomingOrder(
+          upcomingTracks,
+          originalUpcomingOrder,
+        );
+
+        return [currentQueuedTrack, ...restoredUpcoming];
+      });
+
+      return nextIsShuffled;
     });
-  }, [queue, originalQueueOrder, smartShuffle, createQueuedTrack]);
+  }, [restoreUpcomingOrder, shuffleUpcomingTracks]);
 
   const cycleRepeatMode = useCallback(() => {
     setRepeatMode((prev) => {
@@ -2332,7 +2352,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     );
     setQueuedTracks([]);
     setHistory([]);
-    setOriginalQueueOrder([]);
+    originalQueueOrderRef.current = [];
     setIsPlaying(false);
     if (audioRef.current) {
       audioRef.current.pause();

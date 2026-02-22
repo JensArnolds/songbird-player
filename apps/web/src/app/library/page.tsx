@@ -32,7 +32,14 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState, type MouseEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
 type TabType = "favorites" | "history";
 type SortOption = "newest" | "oldest" | "artist" | "album" | "duration";
@@ -63,6 +70,15 @@ type LibraryGridCardProps = {
   onToggleFavorite: () => void;
   onOpenMenu: (event: MouseEvent<HTMLButtonElement>) => void;
   onOpenMenuAtPoint: (x: number, y: number) => void;
+};
+
+type LibraryHeaderMenuAction = {
+  key: string;
+  label: string;
+  icon: ReactNode;
+  onSelect: () => void;
+  disabled?: boolean;
+  tone?: "default" | "danger";
 };
 
 const UNDO_TIMEOUT_MS = 8000;
@@ -179,6 +195,87 @@ function sortLibraryEntries(
   return copy;
 }
 
+function LibraryHeaderActionMenu({
+  actions,
+}: {
+  actions: LibraryHeaderMenuAction[];
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleOutsideClick = (event: globalThis.MouseEvent): void => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((previous) => !previous)}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] transition-all duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:outline-none"
+        aria-label="Open additional library actions"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+
+      {isOpen ? (
+        <div
+          role="menu"
+          aria-label="Library actions"
+          className="absolute top-full right-0 z-20 mt-2 w-56 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1.5 shadow-xl"
+        >
+          {actions.map((action) => (
+            <button
+              key={action.key}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setIsOpen(false);
+                action.onSelect();
+              }}
+              className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+                action.tone === "danger"
+                  ? "text-[var(--color-danger)] hover:bg-[var(--color-danger)]/12"
+                  : "text-[var(--color-subtext)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+              }`}
+              disabled={action.disabled}
+            >
+              <span className="inline-flex h-4 w-4 items-center justify-center">
+                {action.icon}
+              </span>
+              <span>{action.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function LibraryGridCard({
   entry,
   entryLabel,
@@ -199,10 +296,10 @@ function LibraryGridCard({
 
   return (
     <article
-      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-[var(--color-surface)] transition-all duration-200 ease-out focus-within:ring-2 focus-within:ring-[var(--color-accent)] ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-xl border bg-[var(--color-surface)] transition-all duration-200 ease-out focus-within:ring-2 focus-within:ring-[var(--color-accent)]/35 ${
         isSelected
-          ? "border-[var(--color-accent)] shadow-[var(--color-accent)]/20 shadow-lg"
-          : "border-[var(--color-border)] hover:-translate-y-0.5 hover:shadow-xl"
+          ? "border-[var(--color-accent)] shadow-lg shadow-[rgba(88,198,177,0.18)]"
+          : "border-[var(--color-border)] hover:-translate-y-0.5 hover:border-[var(--color-accent)]/40 hover:shadow-xl"
       }`}
       tabIndex={0}
       aria-label={`${entry.track.title} by ${entry.track.artist.name}`}
@@ -219,7 +316,7 @@ function LibraryGridCard({
         onOpenMenuAtPoint(event.clientX, event.clientY);
       }}
     >
-      <div className="relative aspect-video overflow-hidden bg-black/30">
+      <div className="relative aspect-video overflow-hidden border-b border-[var(--color-border)]/65 bg-black/30">
         <Image
           src={getCoverImage(entry.track, "medium")}
           alt={`${entry.track.album.title} cover`}
@@ -227,7 +324,8 @@ function LibraryGridCard({
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, (max-width: 1536px) 33vw, 25vw"
           className="object-cover transition-transform duration-200 ease-out group-hover:scale-[1.03]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-black/20 transition-colors duration-200 ease-out group-hover:bg-black/40 md:bg-transparent md:group-focus-within:bg-black/40 md:group-hover:bg-black/40" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
 
         {isSelectionMode ? (
           <button
@@ -236,7 +334,7 @@ function LibraryGridCard({
               event.stopPropagation();
               onToggleSelection();
             }}
-            className="absolute top-2 left-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-black/60 text-white transition-colors duration-200 ease-out hover:bg-black/75 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+            className="absolute top-2 left-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-black/65 text-white transition-colors duration-200 ease-out hover:bg-black/75 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             aria-pressed={isSelected}
             aria-label={isSelected ? "Deselect track" : "Select track"}
           >
@@ -249,8 +347,8 @@ function LibraryGridCard({
         ) : null}
 
         {!isSelectionMode ? (
-          <div className="pointer-events-none absolute inset-0 hidden items-end p-3 md:flex">
-            <div className="pointer-events-auto ml-auto flex w-full items-center gap-1.5 rounded-lg border border-white/25 bg-black/55 p-1.5 opacity-0 backdrop-blur-sm transition-all duration-200 ease-out group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 md:translate-y-2">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden p-2 md:block">
+            <div className="pointer-events-auto flex items-center gap-1 rounded-lg border border-white/20 bg-black/60 p-1 backdrop-blur-sm transition-all duration-200 ease-out md:translate-y-1.5 md:opacity-0 md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 md:group-hover:translate-y-0 md:group-hover:opacity-100">
               <button
                 type="button"
                 onClick={(event) => {
@@ -303,13 +401,9 @@ function LibraryGridCard({
         <p className="line-clamp-1 text-sm text-[var(--color-subtext)]">
           {entry.track.artist.name}
         </p>
-        <p className="line-clamp-1 text-xs text-[var(--color-muted)]">
-          {entry.track.album.title}
-        </p>
-
-        <div className="mt-auto flex items-center justify-between pt-1 text-[11px] text-[var(--color-muted)]">
+        <div className="mt-auto flex items-center justify-between gap-2 pt-1 text-[11px] text-[var(--color-muted)]">
           <span className="line-clamp-1">{entryLabel}</span>
-          <span className="tabular-nums">
+          <span className="shrink-0 tabular-nums">
             {formatDuration(entry.track.duration ?? 0)}
           </span>
         </div>
@@ -377,8 +471,8 @@ export default function LibraryPage() {
     Set<number>
   >(new Set());
 
-  const { data: session } = useSession();
-  const isAuthenticated = !!session;
+  const sessionState = useSession();
+  const isAuthenticated = sessionState.status === "authenticated";
 
   const { showToast } = useToast();
   const { openMenu } = useTrackContextMenu();
@@ -944,10 +1038,50 @@ export default function LibraryPage() {
 
   const isActionDisabled = isListActionPending || activeTabLoading;
   const hasVisibleTracks = visibleTracks.length > 0;
-  const utilityButtonClass =
-    "touch-target inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50";
-  const dangerUtilityButtonClass =
-    "touch-target inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-2.5 text-xs font-medium text-[var(--color-danger)] transition-colors duration-200 ease-out hover:bg-[var(--color-danger)]/20 disabled:cursor-not-allowed disabled:opacity-50";
+  const sectionLabel = activeTab === "favorites" ? "Favorites" : "Recent";
+  const searchPlaceholder = `Search ${sectionLabel.toLowerCase()}...`;
+  const headerMenuActions: LibraryHeaderMenuAction[] = [
+    {
+      key: "save-playlist",
+      label: "Save as Playlist",
+      icon: <Save className="h-3.5 w-3.5" />,
+      onSelect: () => {
+        void handleSaveTabAsPlaylist();
+      },
+      disabled: isActionDisabled || !hasVisibleTracks,
+    },
+    {
+      key: "smart-queue",
+      label: "Build Smart Queue",
+      icon: <Sparkles className="h-3.5 w-3.5" />,
+      onSelect: () => {
+        void handleSmartQueueFromLibrary();
+      },
+      disabled: isActionDisabled || !hasVisibleTracks,
+    },
+  ];
+
+  if (activeTab === "history") {
+    headerMenuActions.push({
+      key: "clear-non-favorites",
+      label: "Clear Non-Favorites",
+      icon: <Trash2 className="h-3.5 w-3.5" />,
+      onSelect: () => {
+        void handleClearNonFavoritesHistory();
+      },
+      disabled: isActionDisabled,
+    });
+    headerMenuActions.push({
+      key: "clear-history",
+      label: "Clear Full History",
+      icon: <Trash2 className="h-3.5 w-3.5" />,
+      onSelect: () => {
+        void handleClearHistory();
+      },
+      disabled: isActionDisabled,
+      tone: "danger",
+    });
+  }
 
   if (!isAuthenticated) {
     return (
@@ -974,169 +1108,147 @@ export default function LibraryPage() {
 
   return (
     <div className="container mx-auto flex min-h-screen flex-col px-3 py-4 md:px-6 md:py-8">
-      <header className="mb-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 md:mb-8 md:p-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-3">
-            <h1 className="text-2xl font-bold text-[var(--color-text)] md:text-3xl">
-              Your Library
-            </h1>
+      <header className="mb-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 md:mb-7 md:p-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-3">
+              <div>
+                <p className="text-[11px] font-semibold tracking-[0.18em] text-[var(--color-muted)] uppercase">
+                  Your Music
+                </p>
+                <h1 className="text-2xl font-bold text-[var(--color-text)] md:text-3xl">
+                  Your Library
+                </h1>
+              </div>
 
-            <div className="inline-flex rounded-xl border border-[var(--color-border)] bg-black/10 p-1">
-              <button
-                onClick={() => switchTab("favorites")}
-                className={`touch-target rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-200 ease-out ${
-                  activeTab === "favorites"
-                    ? "bg-[var(--color-accent)] text-black"
-                    : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
-                }`}
+              <nav
+                aria-label="Library sections"
+                className="flex flex-wrap items-center gap-2"
               >
-                Favorites
-              </button>
-              <button
-                onClick={() => switchTab("history")}
-                className={`touch-target rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-200 ease-out ${
-                  activeTab === "history"
-                    ? "bg-[var(--color-accent)] text-black"
-                    : "text-[var(--color-subtext)] hover:text-[var(--color-text)]"
-                }`}
-              >
-                Recent
-              </button>
+                <button
+                  type="button"
+                  onClick={() => switchTab("favorites")}
+                  className={`touch-target inline-flex h-9 items-center rounded-lg border px-3 text-sm font-medium transition-all duration-200 ease-out ${
+                    activeTab === "favorites"
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-black"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-subtext)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
+                  }`}
+                  aria-pressed={activeTab === "favorites"}
+                >
+                  Favorites
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchTab("history")}
+                  className={`touch-target inline-flex h-9 items-center rounded-lg border px-3 text-sm font-medium transition-all duration-200 ease-out ${
+                    activeTab === "history"
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-black"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-subtext)] hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
+                  }`}
+                  aria-pressed={activeTab === "history"}
+                >
+                  Recent
+                </button>
+                <Link
+                  href="/playlists"
+                  className="touch-target inline-flex h-9 items-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 text-sm font-medium text-[var(--color-subtext)] transition-all duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
+                >
+                  Playlists
+                </Link>
+              </nav>
+            </div>
+
+            <div className="w-full lg:max-w-[34rem]">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <label className="relative block w-full">
+                  <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[var(--color-subtext)]" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder={searchPlaceholder}
+                    className="h-11 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] py-2 pr-3 pl-9 text-sm text-[var(--color-text)] transition-colors duration-200 ease-out outline-none focus:border-[var(--color-accent)]"
+                    aria-label="Search library tracks"
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handlePlayAll}
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 text-sm font-semibold text-emerald-950 transition-all duration-200 ease-out hover:bg-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[170px]"
+                  disabled={!hasVisibleTracks || isActionDisabled}
+                >
+                  <Play className="h-4 w-4" />
+                  <span>Play All</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="w-full max-w-3xl space-y-2">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={`Search ${
-                  activeTab === "favorites" ? "favorites" : "recent tracks"
-                }...`}
-                className="h-11 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] px-3 text-sm text-[var(--color-text)] transition-colors duration-200 ease-out outline-none focus:border-[var(--color-accent)]"
-                aria-label="Search library tracks"
-              />
-
-              <button
-                onClick={handlePlayAll}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-emerald-950 transition-colors duration-200 ease-out hover:bg-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[170px]"
-                disabled={!hasVisibleTracks || isActionDisabled}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[150px]">
+              <ArrowUpDown className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-[var(--color-subtext)]" />
+              <select
+                value={sortOption}
+                onChange={(event) =>
+                  setSortOption(event.target.value as SortOption)
+                }
+                className="h-9 w-full appearance-none rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] py-1 pr-2 pl-8 text-xs text-[var(--color-text)] transition-colors duration-200 ease-out outline-none focus:border-[var(--color-accent)]"
+                aria-label="Sort library"
               >
-                <Play className="h-4 w-4" />
-                <span>Play All</span>
-              </button>
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative min-w-[150px]">
-                <ArrowUpDown className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-[var(--color-subtext)]" />
-                <select
-                  value={sortOption}
-                  onChange={(event) =>
-                    setSortOption(event.target.value as SortOption)
-                  }
-                  className="h-9 w-full appearance-none rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] py-1 pr-2 pl-8 text-xs text-[var(--color-text)] transition-colors duration-200 ease-out outline-none focus:border-[var(--color-accent)]"
-                  aria-label="Sort library"
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                onClick={handleToggleSelectionMode}
-                className="touch-target inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
-              >
-                {isSelectionMode ? (
-                  <>
-                    <X className="h-3.5 w-3.5" />
-                    <span>Done</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckSquare className="h-3.5 w-3.5" />
-                    <span>Select</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={handleShuffleAll}
-                className="touch-target inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!hasVisibleTracks || isActionDisabled}
-              >
-                <Shuffle className="h-3.5 w-3.5" />
-                <span>Shuffle</span>
-              </button>
-
-              <button
-                onClick={handleQueueAllNext}
-                className="touch-target inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!hasVisibleTracks || isActionDisabled}
-              >
-                <ListPlus className="h-3.5 w-3.5" />
-                <span>Queue Next</span>
-              </button>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => {
-                  void handleSaveTabAsPlaylist();
-                }}
-                className="touch-target inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={isActionDisabled || !hasVisibleTracks}
-              >
-                <Save className="h-3.5 w-3.5" />
-                <span>Save As Playlist</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  void handleSmartQueueFromLibrary();
-                }}
-                className="touch-target inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={isActionDisabled || !hasVisibleTracks}
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Smart Queue</span>
-              </button>
-
-              {activeTab === "history" ? (
+            <button
+              type="button"
+              onClick={handleToggleSelectionMode}
+              className="touch-target inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
+            >
+              {isSelectionMode ? (
                 <>
-                  <button
-                    onClick={() => {
-                      void handleClearNonFavoritesHistory();
-                    }}
-                    className="touch-target inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={isActionDisabled}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    <span>Clear Non-Favorites</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      void handleClearHistory();
-                    }}
-                    className="touch-target inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-2.5 text-xs font-medium text-[var(--color-danger)] transition-colors duration-200 ease-out hover:bg-[var(--color-danger)]/20 disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={isActionDisabled}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    <span>Clear History</span>
-                  </button>
+                  <X className="h-3.5 w-3.5" />
+                  <span>Done</span>
                 </>
-              ) : null}
-            </div>
+              ) : (
+                <>
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  <span>Select</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleShuffleAll}
+              className="touch-target inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!hasVisibleTracks || isActionDisabled}
+            >
+              <Shuffle className="h-3.5 w-3.5" />
+              <span>Shuffle</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleQueueAllNext}
+              className="touch-target inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!hasVisibleTracks || isActionDisabled}
+            >
+              <ListPlus className="h-3.5 w-3.5" />
+              <span>Queue Next</span>
+            </button>
+
+            <LibraryHeaderActionMenu actions={headerMenuActions} />
           </div>
         </div>
 
         <p className="mt-3 text-xs text-[var(--color-subtext)]">
-          {visibleTracks.length} of {activeTracks.length} tracks shown
+          {visibleTracks.length} of {activeTracks.length} tracks shown in{" "}
+          {sectionLabel.toLowerCase()}.
         </p>
       </header>
 
@@ -1221,6 +1333,18 @@ export default function LibraryPage() {
       ) : null}
 
       <section className="fade-in">
+        {!activeTabLoading && activeEntries.length > 0 ? (
+          <div className="mb-3 flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">
+              {sectionLabel}
+            </h2>
+            <p className="text-xs text-[var(--color-subtext)]">
+              {visibleTracks.length} track
+              {visibleTracks.length === 1 ? "" : "s"}
+            </p>
+          </div>
+        ) : null}
+
         {activeTabLoading ? (
           <LoadingState
             message={
@@ -1231,7 +1355,7 @@ export default function LibraryPage() {
           />
         ) : activeEntries.length > 0 ? (
           visibleEntries.length > 0 ? (
-            <div className="grid auto-rows-fr grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="grid auto-rows-fr grid-cols-1 gap-2 sm:grid-cols-2 md:gap-3 xl:grid-cols-3 2xl:grid-cols-4">
               {visibleEntries.map((entry, index) => {
                 const trackId = entry.track.id;
                 const isFavorite =

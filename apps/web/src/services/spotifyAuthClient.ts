@@ -6,13 +6,6 @@ import {
 } from "@/utils/authDebugClient";
 
 const DEFAULT_AUTH_API_ORIGIN = "https://www.darkfloor.one";
-const configuredAuthApiOrigin =
-  process.env.NEXT_PUBLIC_AUTH_API_ORIGIN?.replace(/\/+$/, "") ??
-  DEFAULT_AUTH_API_ORIGIN;
-const AUTH_ME_ENDPOINT = `${configuredAuthApiOrigin}/api/auth/me`;
-const SPOTIFY_LOGIN_ENDPOINT = `${configuredAuthApiOrigin}/api/auth/spotify`;
-const SPOTIFY_REFRESH_ENDPOINT =
-  `${configuredAuthApiOrigin}/api/auth/spotify/refresh`;
 const SPOTIFY_BROWSER_SIGNIN_PATH = "/api/auth/signin/spotify";
 const FRONTEND_SPOTIFY_CALLBACK_PATH = "/auth/spotify/callback";
 const DEFAULT_POST_AUTH_PATH = "/library";
@@ -129,6 +122,27 @@ function logSpotifyBrowserDebug(message: string, details?: unknown): void {
   console.log(`[Spotify Browser Login] ${message}`, details);
 }
 
+function normalizeAuthOrigin(value: string): string {
+  return value.replace(/\/+$/, "");
+}
+
+function resolveAuthApiOrigin(): string {
+  const configured = process.env.NEXT_PUBLIC_AUTH_API_ORIGIN?.trim();
+  if (configured && configured.length > 0) {
+    return normalizeAuthOrigin(configured);
+  }
+
+  if (typeof window !== "undefined") {
+    return normalizeAuthOrigin(window.location.origin);
+  }
+
+  return DEFAULT_AUTH_API_ORIGIN;
+}
+
+function buildAuthEndpoint(pathname: string): string {
+  return `${resolveAuthApiOrigin()}${pathname}`;
+}
+
 function createDefaultHashKeyPresence(present = false): HashTokenPresence {
   return {
     access_token: present,
@@ -147,6 +161,7 @@ function buildDebugInfo(overrides: {
   authorizationHeaderSent: boolean;
   authMeStatus: number | null;
   authMeBodySnippet: string | null;
+  authMeUrl: string;
   authMeRedirected: boolean | null;
   authMeFinalUrl: string | null;
 }): SpotifyCallbackDebugInfo {
@@ -157,7 +172,7 @@ function buildDebugInfo(overrides: {
     authorizationHeaderSent: overrides.authorizationHeaderSent,
     authMeStatus: overrides.authMeStatus,
     authMeBodySnippet: overrides.authMeBodySnippet,
-    authMeUrl: AUTH_ME_ENDPOINT,
+    authMeUrl: overrides.authMeUrl,
     authMeRedirected: overrides.authMeRedirected,
     authMeFinalUrl: overrides.authMeFinalUrl,
   };
@@ -306,7 +321,8 @@ function parsePersistedTokenState(raw: unknown): TokenState | null {
       ? record.tokenType
       : "Bearer";
   const expiresAtMs =
-    typeof record.expiresAtMs === "number" && Number.isFinite(record.expiresAtMs)
+    typeof record.expiresAtMs === "number" &&
+    Number.isFinite(record.expiresAtMs)
       ? record.expiresAtMs
       : null;
   const spotifyAccessToken =
@@ -314,7 +330,8 @@ function parsePersistedTokenState(raw: unknown): TokenState | null {
       ? record.spotifyAccessToken
       : null;
   const spotifyTokenType =
-    typeof record.spotifyTokenType === "string" && record.spotifyTokenType.length > 0
+    typeof record.spotifyTokenType === "string" &&
+    record.spotifyTokenType.length > 0
       ? record.spotifyTokenType
       : "Bearer";
   const spotifyExpiresAtMs =
@@ -385,13 +402,16 @@ function toSameOriginPath(pathOrUrl: string, origin: string): string {
   if (!pathOrUrl) return "/";
 
   if (pathOrUrl.startsWith("/")) {
-    return pathOrUrl.startsWith(FRONTEND_SPOTIFY_CALLBACK_PATH) ? "/" : pathOrUrl;
+    return pathOrUrl.startsWith(FRONTEND_SPOTIFY_CALLBACK_PATH)
+      ? "/"
+      : pathOrUrl;
   }
 
   try {
     const parsed = new URL(pathOrUrl);
     if (parsed.origin !== origin) return "/";
-    const sameOriginPath = `${parsed.pathname}${parsed.search}${parsed.hash}` || "/";
+    const sameOriginPath =
+      `${parsed.pathname}${parsed.search}${parsed.hash}` || "/";
     if (sameOriginPath.startsWith(FRONTEND_SPOTIFY_CALLBACK_PATH)) return "/";
     return sameOriginPath;
   } catch {
@@ -421,7 +441,9 @@ function parseHashTokens(hash: string): HashTokenParseResult {
     keyPresence[key] = typeof value === "string" && value.trim().length > 0;
   }
 
-  const missingKeys = REQUIRED_HASH_TOKEN_KEYS.filter((key) => !keyPresence[key]);
+  const missingKeys = REQUIRED_HASH_TOKEN_KEYS.filter(
+    (key) => !keyPresence[key],
+  );
 
   if (missingKeys.length > 0) {
     return {
@@ -466,7 +488,10 @@ export function hasSpotifyTokenHashFragment(hash: string): boolean {
   );
 }
 
-function readCookieValue(cookieHeader: string, cookieName: string): string | null {
+function readCookieValue(
+  cookieHeader: string,
+  cookieName: string,
+): string | null {
   const encodedName = `${encodeURIComponent(cookieName)}=`;
   const match = cookieHeader
     .split(";")
@@ -552,7 +577,9 @@ function getAccessTokenFromBody(body: unknown): {
   };
 }
 
-export function resolveFrontendRedirectPath(next: string | null | undefined): string {
+export function resolveFrontendRedirectPath(
+  next: string | null | undefined,
+): string {
   if (typeof window === "undefined") return "/";
   const sameOriginPath = toSameOriginPath(next ?? "/", window.location.origin);
   return resolvePostAuthPath(sameOriginPath);
@@ -569,7 +596,10 @@ export function buildSpotifyFrontendCallbackUrl(
   const safeNext = resolvePostAuthPath(
     toSameOriginPath(nextPath, window.location.origin),
   );
-  const callbackUrl = new URL(FRONTEND_SPOTIFY_CALLBACK_PATH, window.location.origin);
+  const callbackUrl = new URL(
+    FRONTEND_SPOTIFY_CALLBACK_PATH,
+    window.location.origin,
+  );
   callbackUrl.searchParams.set("next", safeNext);
   if (traceId) {
     callbackUrl.searchParams.set(FRONTEND_CALLBACK_TRACE_PARAM, traceId);
@@ -583,7 +613,10 @@ export function buildSpotifyFrontendCallbackUrl(
   return callbackUrl.toString();
 }
 
-export function buildSpotifyLoginUrl(nextPath: string, traceId?: string): string {
+export function buildSpotifyLoginUrl(
+  nextPath: string,
+  traceId?: string,
+): string {
   const effectiveTraceId = traceId ?? generateTraceId();
   const frontendRedirectUri = buildSpotifyFrontendCallbackUrl(
     nextPath,
@@ -592,11 +625,13 @@ export function buildSpotifyLoginUrl(nextPath: string, traceId?: string): string
   const params = new URLSearchParams({
     frontend_redirect_uri: frontendRedirectUri,
   });
-  const loginUrl = `${SPOTIFY_LOGIN_ENDPOINT}?${params.toString()}`;
+  const loginEndpoint = buildAuthEndpoint("/api/auth/spotify");
+  const loginUrl = `${loginEndpoint}?${params.toString()}`;
   logSpotifyBrowserDebug("Built direct Spotify OAuth URL", {
     requestedNextPath: nextPath,
     traceId: effectiveTraceId,
     frontendRedirectUri,
+    loginEndpoint,
     loginUrl,
   });
   return loginUrl;
@@ -614,7 +649,10 @@ export function buildSpotifyBrowserSignInUrl(
   const safeNext = resolvePostAuthPath(
     toSameOriginPath(nextPath, window.location.origin),
   );
-  const signInUrl = new URL(SPOTIFY_BROWSER_SIGNIN_PATH, window.location.origin);
+  const signInUrl = new URL(
+    SPOTIFY_BROWSER_SIGNIN_PATH,
+    window.location.origin,
+  );
   signInUrl.searchParams.set("callbackUrl", safeNext);
   signInUrl.searchParams.set(FRONTEND_CALLBACK_TRACE_PARAM, effectiveTraceId);
 
@@ -644,7 +682,7 @@ export function startSpotifyLogin(
     try {
       return new URL(directLoginUrl).origin;
     } catch {
-      return configuredAuthApiOrigin;
+      return resolveAuthApiOrigin();
     }
   })();
   const currentOrigin = window.location.origin;
@@ -658,7 +696,7 @@ export function startSpotifyLogin(
     authApiOrigin,
     currentOrigin,
     crossOriginAuthStart,
-    configuredAuthApiOrigin,
+    resolvedAuthApiOrigin: resolveAuthApiOrigin(),
     currentUrl: window.location.href,
   });
 
@@ -755,14 +793,15 @@ export async function getCurrentUser(
     missingKeys: RequiredHashTokenKey[];
   },
 ): Promise<unknown> {
+  const authMeEndpoint = buildAuthEndpoint("/api/auth/me");
   const authorizationHeaderSent = true;
   logAuthClientDebug("Fetching authenticated profile", {
     traceId: context?.traceId ?? null,
-    endpoint: AUTH_ME_ENDPOINT,
+    endpoint: authMeEndpoint,
     authorizationHeaderSent,
   });
 
-  const response = await fetch(AUTH_ME_ENDPOINT, {
+  const response = await fetch(authMeEndpoint, {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -776,7 +815,7 @@ export async function getCurrentUser(
     const body = await parseResponseBody(response);
     const message =
       getMessageFromBody(body) ??
-      `GET ${AUTH_ME_ENDPOINT} failed with status ${response.status}`;
+      `GET ${authMeEndpoint} failed with status ${response.status}`;
 
     const debugInfo = buildDebugInfo({
       traceId: context?.traceId ?? readStoredTraceId(),
@@ -786,6 +825,7 @@ export async function getCurrentUser(
       authorizationHeaderSent,
       authMeStatus: response.status,
       authMeBodySnippet: sanitizeResponseSnippet(body),
+      authMeUrl: authMeEndpoint,
       authMeRedirected: response.redirected,
       authMeFinalUrl: response.url || null,
     });
@@ -818,6 +858,7 @@ export async function refreshAccessToken(
   }
 
   const notifyOnUnauthorized = options.notifyOnUnauthorized ?? true;
+  const refreshEndpoint = buildAuthEndpoint("/api/auth/spotify/refresh");
   const csrfToken = getCsrfTokenFromCookies();
   if (!csrfToken) {
     if (notifyOnUnauthorized) {
@@ -832,11 +873,11 @@ export async function refreshAccessToken(
   }
 
   logAuthClientDebug("Refreshing Spotify app access token", {
-    endpoint: SPOTIFY_REFRESH_ENDPOINT,
+    endpoint: refreshEndpoint,
     csrfTokenPresent: true,
   });
 
-  const response = await fetch(SPOTIFY_REFRESH_ENDPOINT, {
+  const response = await fetch(refreshEndpoint, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -857,11 +898,11 @@ export async function refreshAccessToken(
     }
     const message =
       getMessageFromBody(body) ??
-      `POST ${SPOTIFY_REFRESH_ENDPOINT} failed with status ${response.status}`;
+      `POST ${refreshEndpoint} failed with status ${response.status}`;
     logAuthClientDebug("Refresh token request failed", {
       status: response.status,
       body: sanitizeResponseSnippet(body),
-      endpoint: SPOTIFY_REFRESH_ENDPOINT,
+      endpoint: refreshEndpoint,
     });
     throw new SpotifyAuthClientError(message, response.status);
   }
@@ -884,7 +925,7 @@ export async function refreshAccessToken(
   });
 
   logAuthClientDebug("Refresh token request succeeded", {
-    endpoint: SPOTIFY_REFRESH_ENDPOINT,
+    endpoint: refreshEndpoint,
   });
 
   return tokenPayload.accessToken;
@@ -917,13 +958,16 @@ export async function ensureAccessToken(): Promise<string | null> {
 
 export async function handleSpotifyCallbackHash(): Promise<CallbackResult> {
   if (typeof window === "undefined") {
-    throw new SpotifyAuthClientError("Callback handling requires browser context");
+    throw new SpotifyAuthClientError(
+      "Callback handling requires browser context",
+    );
   }
 
   const traceId = getTraceIdFromCallbackUrl();
   const parsed = parseHashTokens(window.location.hash);
 
   if (!parsed.payload) {
+    const authMeEndpoint = buildAuthEndpoint("/api/auth/me");
     const debugInfo = buildDebugInfo({
       traceId,
       requiredHashKeys: parsed.keyPresence,
@@ -931,6 +975,7 @@ export async function handleSpotifyCallbackHash(): Promise<CallbackResult> {
       authorizationHeaderSent: false,
       authMeStatus: null,
       authMeBodySnippet: null,
+      authMeUrl: authMeEndpoint,
       authMeRedirected: null,
       authMeFinalUrl: null,
     });
