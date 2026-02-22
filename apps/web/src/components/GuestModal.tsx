@@ -19,7 +19,7 @@ import { parsePreferredGenreId } from "@/utils/genre";
 import { settingsStorage } from "@/utils/settingsStorage";
 import { getGenres, type GenreListItem } from "@starchild/api-client/rest";
 import { STORAGE_KEYS } from "@starchild/config/storage";
-import { Music2, X } from "lucide-react";
+import { ChevronDown, Music2, X } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -270,42 +270,46 @@ export function GuestModal({
                 >
                   Genre
                 </label>
-                <select
-                  id="guest-preferred-genre"
-                  value={preferredGenreId?.toString() ?? ""}
-                  onChange={(event) => {
-                    const nextValue = event.target.value.trim();
-                    if (!nextValue) {
-                      setGenrePreference(null);
-                      return;
-                    }
+                <div className="relative">
+                  <select
+                    id="guest-preferred-genre"
+                    value={preferredGenreId?.toString() ?? ""}
+                    onChange={(event) => {
+                      const nextValue = event.target.value.trim();
+                      if (!nextValue) {
+                        setGenrePreference(null);
+                        return;
+                      }
 
-                    const genreId = Number.parseInt(nextValue, 10);
-                    if (!Number.isFinite(genreId)) {
-                      setGenrePreference(null);
-                      return;
-                    }
+                      const genreId = Number.parseInt(nextValue, 10);
+                      if (!Number.isFinite(genreId)) {
+                        setGenrePreference(null);
+                        return;
+                      }
 
-                    const selectedGenre =
-                      genres.find((genre) => genre.id === genreId) ?? null;
-                    setGenrePreference(selectedGenre);
-                  }}
-                  disabled={genresLoading || genres.length === 0}
-                  className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 text-sm text-white transition-colors outline-none focus:border-[#1DB954]/70 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <option value="">
-                    {genresLoading
-                      ? "Loading genres..."
-                      : genres.length > 0
-                        ? "No preference"
-                        : "Genres unavailable"}
-                  </option>
-                  {genres.map((genre) => (
-                    <option key={genre.id} value={genre.id.toString()}>
-                      {genre.name}
+                      const selectedGenre =
+                        genres.find((genre) => genre.id === genreId) ?? null;
+                      setGenrePreference(selectedGenre);
+                    }}
+                    disabled={genresLoading || genres.length === 0}
+                    style={{ colorScheme: "dark" }}
+                    className="h-12 w-full appearance-none rounded-xl border border-white/15 bg-white/[0.04] px-3 pr-10 text-sm text-white transition-colors outline-none focus:border-[#1DB954]/70 disabled:cursor-not-allowed disabled:opacity-60 [&>option]:bg-[#10182c] [&>option]:text-white"
+                  >
+                    <option value="">
+                      {genresLoading
+                        ? "Loading genres..."
+                        : genres.length > 0
+                          ? "No preference"
+                          : "Genres unavailable"}
                     </option>
-                  ))}
-                </select>
+                    {genres.map((genre) => (
+                      <option key={genre.id} value={genre.id.toString()}>
+                        {genre.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-white/70" />
+                </div>
               </div>
 
               <div className="space-y-1">
