@@ -21,8 +21,8 @@ import {
   MoreHorizontal,
   Play,
   RotateCcw,
-  Search,
   Save,
+  Search,
   Shuffle,
   Sparkles,
   Square,
@@ -289,15 +289,17 @@ function LibraryGridCard({
   onOpenMenu,
   onOpenMenuAtPoint,
 }: LibraryGridCardProps) {
-  const iconButtonClass =
-    "inline-flex h-8 w-8 items-center justify-center rounded-md text-white/90 transition-all duration-200 ease-out hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50";
+  const cardActionButtonClass =
+    "inline-flex h-8 w-8 items-center justify-center rounded-md text-white/90 transition-all duration-200 ease-out hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-50";
+  const mobileActionButtonClass =
+    "inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-subtext)] transition-all duration-200 ease-out hover:bg-white/10 hover:text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <article
       className={`group relative flex h-full flex-col overflow-hidden rounded-xl border bg-[var(--color-surface)] transition-all duration-200 ease-out focus-within:ring-2 focus-within:ring-[var(--color-accent)]/35 ${
         isSelected
           ? "border-[var(--color-accent)] shadow-lg shadow-[rgba(88,198,177,0.18)]"
-          : "border-[var(--color-border)] hover:border-[var(--color-accent)]/40 hover:shadow-xl"
+          : "border-[var(--color-border)] hover:-translate-y-0.5 hover:border-[var(--color-accent)]/40 hover:shadow-xl"
       }`}
       tabIndex={0}
       aria-label={`${entry.track.title} by ${entry.track.artist.name}`}
@@ -314,13 +316,13 @@ function LibraryGridCard({
         onOpenMenuAtPoint(event.clientX, event.clientY);
       }}
     >
-      <div className="relative aspect-video overflow-hidden border-b border-[var(--color-border)]/65">
+      <div className="relative aspect-video overflow-hidden border-b border-[var(--color-border)]/65 bg-black/30">
         <Image
           src={getCoverImage(entry.track, "medium")}
           alt={`${entry.track.album.title} cover`}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, (max-width: 1536px) 33vw, 25vw"
-          className="object-cover transition-transform duration-200 ease-out group-hover:scale-105"
+          className="object-cover transition-transform duration-200 ease-out group-hover:scale-[1.03]"
         />
         <div className="pointer-events-none absolute inset-0 bg-black/20 transition-colors duration-200 ease-out group-hover:bg-black/40 md:bg-transparent md:group-focus-within:bg-black/40 md:group-hover:bg-black/40" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
@@ -344,50 +346,52 @@ function LibraryGridCard({
           </button>
         ) : null}
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-2">
-          <div className="pointer-events-auto flex items-center gap-1 rounded-lg border border-white/20 bg-black/60 p-1 backdrop-blur-sm transition-all duration-200 ease-out md:translate-y-1.5 md:opacity-0 md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 md:group-hover:translate-y-0 md:group-hover:opacity-100">
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onPlay();
-              }}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 text-emerald-950 transition-colors duration-200 ease-out hover:bg-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:outline-none"
-              aria-label={`Play ${entry.track.title}`}
-            >
-              <Play className="h-4 w-4" />
-            </button>
+        {!isSelectionMode ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden p-2 md:block">
+            <div className="pointer-events-auto flex items-center gap-1 rounded-lg border border-white/20 bg-black/60 p-1 backdrop-blur-sm transition-all duration-200 ease-out md:translate-y-1.5 md:opacity-0 md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 md:group-hover:translate-y-0 md:group-hover:opacity-100">
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onPlay();
+                }}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 text-emerald-950 transition-colors duration-200 ease-out hover:bg-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:outline-none"
+                aria-label={`Play ${entry.track.title}`}
+              >
+                <Play className="h-4 w-4" />
+              </button>
 
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onToggleFavorite();
-              }}
-              className={iconButtonClass}
-              aria-label={
-                isFavorite
-                  ? `Remove ${entry.track.title} from favorites`
-                  : `Add ${entry.track.title} to favorites`
-              }
-              aria-pressed={isFavorite}
-              disabled={isFavoritePending}
-            >
-              <Heart
-                className={`h-4 w-4 ${isFavorite ? "fill-current text-rose-300" : ""}`}
-              />
-            </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onToggleFavorite();
+                }}
+                className={cardActionButtonClass}
+                aria-label={
+                  isFavorite
+                    ? `Remove ${entry.track.title} from favorites`
+                    : `Add ${entry.track.title} to favorites`
+                }
+                aria-pressed={isFavorite}
+                disabled={isFavoritePending}
+              >
+                <Heart
+                  className={`h-4 w-4 ${isFavorite ? "fill-current text-rose-300" : ""}`}
+                />
+              </button>
 
-            <button
-              type="button"
-              onClick={onOpenMenu}
-              className={`${iconButtonClass} ml-auto`}
-              aria-label={`Open actions for ${entry.track.title}`}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
+              <button
+                type="button"
+                onClick={onOpenMenu}
+                className={`${cardActionButtonClass} ml-auto`}
+                aria-label={`Open actions for ${entry.track.title}`}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-3">
@@ -404,6 +408,51 @@ function LibraryGridCard({
           </span>
         </div>
       </div>
+
+      {!isSelectionMode ? (
+        <div className="flex items-center gap-1 border-t border-[var(--color-border)]/60 bg-black/10 p-2 md:hidden">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onPlay();
+            }}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 text-emerald-950 transition-colors duration-200 ease-out hover:bg-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:outline-none"
+            aria-label={`Play ${entry.track.title}`}
+          >
+            <Play className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleFavorite();
+            }}
+            className={mobileActionButtonClass}
+            aria-label={
+              isFavorite
+                ? `Remove ${entry.track.title} from favorites`
+                : `Add ${entry.track.title} to favorites`
+            }
+            aria-pressed={isFavorite}
+            disabled={isFavoritePending}
+          >
+            <Heart
+              className={`h-4 w-4 ${isFavorite ? "fill-current text-rose-400" : ""}`}
+            />
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenMenu}
+            className={`${mobileActionButtonClass} ml-auto`}
+            aria-label={`Open actions for ${entry.track.title}`}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
     </article>
   );
 }
