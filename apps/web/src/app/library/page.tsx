@@ -3,6 +3,12 @@
 "use client";
 
 import { EmptyState } from "@/components/EmptyState";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/contexts/ToastContext";
 import { useTrackContextMenu } from "@/contexts/TrackContextMenuContext";
 import { hapticLight } from "@/utils/haptics";
@@ -35,7 +41,6 @@ import { useSession } from "next-auth/react";
 import {
   useEffect,
   useMemo,
-  useRef,
   useState,
   type MouseEvent,
   type ReactNode,
@@ -84,6 +89,7 @@ type LibraryHeaderMenuAction = {
 const UNDO_TIMEOUT_MS = 8000;
 const SMART_SEED_LIMIT = 5;
 const SMART_QUEUE_LIMIT = 40;
+const BULK_MUTATION_CONCURRENCY = 8;
 const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
   { value: "newest", label: "Newest" },
   { value: "oldest", label: "Oldest" },
@@ -195,84 +201,105 @@ function sortLibraryEntries(
   return copy;
 }
 
+type ConcurrentTaskResult<TItem, TValue> =
+  | { item: TItem; status: "fulfilled"; value: TValue }
+  | { item: TItem; status: "rejected"; reason: unknown };
+
+function isConcurrentTaskFulfilled<TItem, TValue>(
+  result: ConcurrentTaskResult<TItem, TValue>,
+): result is { item: TItem; status: "fulfilled"; value: TValue } {
+  return result.status === "fulfilled";
+}
+
+async function mapWithConcurrency<TItem, TValue>(
+  items: readonly TItem[],
+  task: (item: TItem) => Promise<TValue>,
+  concurrency = BULK_MUTATION_CONCURRENCY,
+): Promise<Array<ConcurrentTaskResult<TItem, TValue>>> {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const batchSize = Math.max(1, Math.min(concurrency, items.length));
+  const results: Array<ConcurrentTaskResult<TItem, TValue>> = [];
+
+  for (let start = 0; start < items.length; start += batchSize) {
+    const batch = items.slice(start, start + batchSize);
+    const settled = await Promise.allSettled(
+      batch.map(async (item) => ({ item, value: await task(item) })),
+    );
+
+    settled.forEach((result, index) => {
+      const item = batch[index];
+      if (item === undefined) {
+        return;
+      }
+
+      if (result.status === "fulfilled") {
+        results.push({
+          item,
+          status: "fulfilled",
+          value: result.value.value,
+        });
+        return;
+      }
+
+      results.push({
+        item,
+        status: "rejected",
+        reason: result.reason,
+      });
+    });
+  }
+
+  return results;
+}
+
 function LibraryHeaderActionMenu({
   actions,
 }: {
   actions: LibraryHeaderMenuAction[];
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const handleOutsideClick = (event: globalThis.MouseEvent): void => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleEscape = (event: KeyboardEvent): void => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen]);
-
   return (
-    <div className="relative" ref={menuRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen((previous) => !previous)}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] transition-all duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:outline-none"
-        aria-label="Open additional library actions"
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-      >
-        <MoreHorizontal className="h-4 w-4" />
-      </button>
-
-      {isOpen ? (
-        <div
-          role="menu"
-          aria-label="Library actions"
-          className="absolute top-full right-0 z-20 mt-2 w-56 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1.5 shadow-xl"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-subtext)] transition-all duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:outline-none"
+          aria-label="Open additional library actions"
         >
-          {actions.map((action) => (
-            <button
-              key={action.key}
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setIsOpen(false);
+          <MoreHorizontal className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="z-20 w-56 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1.5 shadow-xl"
+      >
+        {actions.map((action) => (
+          <DropdownMenuItem
+            key={action.key}
+            onSelect={() => {
+              if (!action.disabled) {
                 action.onSelect();
-              }}
-              className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/35 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
-                action.tone === "danger"
-                  ? "text-[var(--color-danger)] hover:bg-[var(--color-danger)]/12"
-                  : "text-[var(--color-subtext)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-              }`}
-              disabled={action.disabled}
-            >
-              <span className="inline-flex h-4 w-4 items-center justify-center">
-                {action.icon}
-              </span>
-              <span>{action.label}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
+              }
+            }}
+            disabled={action.disabled}
+            className={`gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors duration-200 ease-out ${
+              action.tone === "danger"
+                ? "text-[var(--color-danger)] focus:bg-[var(--color-danger)]/12"
+                : "text-[var(--color-subtext)] focus:bg-[var(--color-surface-hover)] focus:text-[var(--color-text)]"
+            }`}
+          >
+            <span className="inline-flex h-4 w-4 items-center justify-center">
+              {action.icon}
+            </span>
+            <span>{action.label}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -308,7 +335,11 @@ function LibraryGridCard({
 
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onPlay();
+          if (isSelectionMode) {
+            onToggleSelection();
+          } else {
+            onPlay();
+          }
         }
       }}
       onContextMenu={(event) => {
@@ -663,7 +694,8 @@ export default function LibraryPage() {
   };
 
   const handleSelectAllInTab = (): void => {
-    setSelectedEntryIds(new Set(activeEntries.map((entry) => entry.id)));
+    const entriesToSelect = hasSearchFilter ? visibleEntries : activeEntries;
+    setSelectedEntryIds(new Set(entriesToSelect.map((entry) => entry.id)));
   };
 
   const handlePlaySelected = (): void => {
@@ -710,26 +742,34 @@ export default function LibraryPage() {
         throw new Error("Playlist creation failed");
       }
 
-      const results = await Promise.all(
-        sourceTracks.map((track) =>
-          addToPlaylist.mutateAsync({
-            playlistId: playlist.id,
-            track,
-          }),
-        ),
+      const results = await mapWithConcurrency(sourceTracks, (track) =>
+        addToPlaylist.mutateAsync({
+          playlistId: playlist.id,
+          track,
+        }),
       );
 
-      const addedCount = results.reduce(
-        (count, result) => (result.alreadyExists ? count : count + 1),
-        0,
-      );
+      const successfulResults = results.filter(isConcurrentTaskFulfilled);
+      const failedCount = results.length - successfulResults.length;
+      const addedCount = successfulResults.reduce((count, result) => {
+        return result.value.alreadyExists ? count : count + 1;
+      }, 0);
 
       await utils.music.getPlaylists.invalidate();
 
-      showToast(
-        `Saved ${addedCount} track${addedCount === 1 ? "" : "s"} to "${playlist.name}"`,
-        "success",
-      );
+      if (failedCount > 0) {
+        showToast(
+          `Saved ${addedCount} track${addedCount === 1 ? "" : "s"} to "${
+            playlist.name
+          }" (${failedCount} failed to add)`,
+          "warning",
+        );
+      } else {
+        showToast(
+          `Saved ${addedCount} track${addedCount === 1 ? "" : "s"} to "${playlist.name}"`,
+          "success",
+        );
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       showToast(`Failed to save playlist: ${message}`, "error");
@@ -873,15 +913,28 @@ export default function LibraryPage() {
     setIsListActionPending(true);
 
     try {
+      const removalResults =
+        tabForRemoval === "favorites"
+          ? await mapWithConcurrency(entries, (entry) =>
+              removeFavorite.mutateAsync({ trackId: entry.track.id }),
+            )
+          : await mapWithConcurrency(entries, (entry) =>
+              removeFromHistory.mutateAsync({ historyId: entry.id }),
+            );
+
+      const removedEntries = removalResults
+        .filter(isConcurrentTaskFulfilled)
+        .map((result) => result.item);
+      const failedCount = removalResults.length - removedEntries.length;
+
+      if (removedEntries.length === 0) {
+        showToast("Failed to remove tracks", "error");
+        return;
+      }
+
       if (tabForRemoval === "favorites") {
-        for (const entry of entries) {
-          await removeFavorite.mutateAsync({ trackId: entry.track.id });
-        }
         await utils.music.getFavorites.invalidate();
       } else {
-        for (const entry of entries) {
-          await removeFromHistory.mutateAsync({ historyId: entry.id });
-        }
         await utils.music.getHistory.invalidate();
       }
 
@@ -889,7 +942,7 @@ export default function LibraryPage() {
         if (previous.size === 0) return previous;
 
         const next = new Set(previous);
-        entries.forEach((entry) => {
+        removedEntries.forEach((entry) => {
           next.delete(entry.id);
         });
         return next;
@@ -905,16 +958,27 @@ export default function LibraryPage() {
 
       setRemovalUndo({
         tab: tabForRemoval,
-        entries: [...entries],
+        entries: [...removedEntries],
         timerId,
       });
 
       const targetLabel =
         tabForRemoval === "favorites" ? "favorites" : "history";
-      showToast(
-        `Removed ${entries.length} track${entries.length === 1 ? "" : "s"} from ${targetLabel}`,
-        "info",
-      );
+      if (failedCount > 0) {
+        showToast(
+          `Removed ${removedEntries.length} track${
+            removedEntries.length === 1 ? "" : "s"
+          } from ${targetLabel} (${failedCount} failed to remove)`,
+          "warning",
+        );
+      } else {
+        showToast(
+          `Removed ${removedEntries.length} track${
+            removedEntries.length === 1 ? "" : "s"
+          } from ${targetLabel}`,
+          "info",
+        );
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       showToast(`Failed to remove tracks: ${message}`, "error");
@@ -932,29 +996,66 @@ export default function LibraryPage() {
       return;
     }
 
+    const pendingUndo = removalUndo;
     setIsListActionPending(true);
 
     try {
-      window.clearTimeout(removalUndo.timerId);
+      window.clearTimeout(pendingUndo.timerId);
 
-      if (removalUndo.tab === "favorites") {
-        for (const entry of removalUndo.entries) {
-          await addFavorite.mutateAsync({ track: entry.track });
+      const restoreResults =
+        pendingUndo.tab === "favorites"
+          ? await mapWithConcurrency(pendingUndo.entries, (entry) =>
+              addFavorite.mutateAsync({ track: entry.track }),
+            )
+          : await mapWithConcurrency(pendingUndo.entries, (entry) =>
+              addToHistory.mutateAsync({
+                track: entry.track,
+                duration: entry.duration ?? undefined,
+              }),
+            );
+
+      const restoredEntries = restoreResults
+        .filter(isConcurrentTaskFulfilled)
+        .map((result) => result.item);
+      const failedEntries = restoreResults
+        .filter((result) => result.status === "rejected")
+        .map((result) => result.item);
+
+      if (pendingUndo.tab === "favorites") {
+        if (restoredEntries.length > 0) {
+          await utils.music.getFavorites.invalidate();
         }
-        await utils.music.getFavorites.invalidate();
-      } else {
-        for (const entry of removalUndo.entries) {
-          await addToHistory.mutateAsync({
-            track: entry.track,
-            duration: entry.duration ?? undefined,
-          });
-        }
+      } else if (restoredEntries.length > 0) {
         await utils.music.getHistory.invalidate();
       }
 
+      if (failedEntries.length > 0) {
+        const timerId = window.setTimeout(() => {
+          setRemovalUndo(null);
+        }, UNDO_TIMEOUT_MS);
+
+        setRemovalUndo({
+          tab: pendingUndo.tab,
+          entries: failedEntries,
+          timerId,
+        });
+
+        if (restoredEntries.length > 0) {
+          showToast(
+            `Restored ${restoredEntries.length} track${
+              restoredEntries.length === 1 ? "" : "s"
+            } (${failedEntries.length} failed to restore)`,
+            "warning",
+          );
+        } else {
+          showToast("Failed to restore tracks", "error");
+        }
+        return;
+      }
+
       showToast(
-        `Restored ${removalUndo.entries.length} track${
-          removalUndo.entries.length === 1 ? "" : "s"
+        `Restored ${restoredEntries.length} track${
+          restoredEntries.length === 1 ? "" : "s"
         }`,
         "success",
       );
@@ -1038,6 +1139,10 @@ export default function LibraryPage() {
 
   const isActionDisabled = isListActionPending || activeTabLoading;
   const hasVisibleTracks = visibleTracks.length > 0;
+  const selectionScopeLabel = hasSearchFilter ? "Select Visible" : "Select All";
+  const selectableEntryCount = hasSearchFilter
+    ? visibleEntries.length
+    : activeEntries.length;
   const sectionLabel = activeTab === "favorites" ? "Favorites" : "Recent";
   const searchPlaceholder = `Search ${sectionLabel.toLowerCase()}...`;
   const headerMenuActions: LibraryHeaderMenuAction[] = [
@@ -1266,10 +1371,10 @@ export default function LibraryPage() {
               <button
                 onClick={handleSelectAllInTab}
                 className="touch-target inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2 py-1 text-xs font-medium text-[var(--color-subtext)] transition-colors duration-200 ease-out hover:border-[var(--color-accent)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={activeEntries.length === 0 || isActionDisabled}
+                disabled={selectableEntryCount === 0 || isActionDisabled}
               >
                 <CheckSquare className="h-3.5 w-3.5" />
-                <span>Select All</span>
+                <span>{selectionScopeLabel}</span>
               </button>
 
               <button

@@ -5,6 +5,18 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2026-02-22
+
+### Added
+
+- **Accessible dropdown menu primitives for keyboard-first actions**: Added a shared Radix-based dropdown menu UI primitive and migrated the Library header overflow actions to it for built-in roving focus, keyboard navigation, and escape/outside-close behavior. Locations: `apps/web/src/components/ui/dropdown-menu.tsx`, `apps/web/src/app/library/page.tsx`.
+
+### Changed
+
+- **Library bulk mutations now run with bounded concurrency**: `Save as Playlist`, bulk remove, and undo restore operations now use a shared concurrency-limited batch helper (`8` at a time) instead of sequential loops/fail-fast behavior, reducing latency on large libraries while preventing unbounded request bursts. Location: `apps/web/src/app/library/page.tsx`.
+- **Partial bulk-operation failures now preserve useful progress**: Removal/restore flows now retain successful work, show warning-level counts for failed items, and keep failed undo entries available for retry within the undo window. Location: `apps/web/src/app/library/page.tsx`.
+- **Selection affordance clarified under filters**: Selection mode now switches from `Select All` to `Select Visible` when a search filter is active, and card keyboard activation in selection mode toggles selection rather than playback. Location: `apps/web/src/app/library/page.tsx`.
+
 ## [1.1.5] - 2026-02-20
 
 ### Changed
