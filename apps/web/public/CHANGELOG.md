@@ -5,6 +5,18 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2026-02-20
+
+### Changed
+
+- **Spotify auth endpoint origin resolution now runtime-safe**: Client auth requests now resolve their base origin from `NEXT_PUBLIC_AUTH_API_ORIGIN`, then browser origin, then fallback constant before building `/api/auth/*` URLs, preventing environment mismatch during OAuth bootstrap and refresh. Locations: `apps/web/src/services/spotifyAuthClient.ts`, `apps/web/src/__tests__/spotifyAuthClient.test.ts`.
+- **Dialog primitives now clamp modal height to viewport**: Base dialog content now enforces viewport-relative `max-h` bounds and overflow clipping to reduce small-screen modal clipping/bleed. Location: `apps/web/src/components/ui/dialog.tsx`.
+- **Web viewport metadata hardened for iOS behavior**: Updated Next.js viewport export for cover-fit and keyboard resize behavior consistency on mobile Safari. Location: `apps/web/src/app/layout.tsx`.
+
+### Fixed
+
+- **Greeter modal mobile displacement regression on iPhone**: The guest tuning modal now forces mobile sheet anchoring (`!left-0`, `!right-0`, `!translate-x-0`, `!w-full`), uses `90dvh` sizing, and keeps internal scroll safe-area aware so the sheet no longer shifts off-screen on narrow iOS viewports. Location: `apps/web/src/components/GuestModal.tsx`.
+
 ## [1.1.4] - 2026-02-20
 
 ### Added
@@ -121,7 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Foreign playlist context menus**: Added context menu entry points for non-owned playlists in:
   - Home feed "Playlists for Your Taste" cards.
   - Public profile playlist cards.
-  Locations: `apps/web/src/app/HomePageClient.tsx`, `apps/web/src/app/[userhash]/page.tsx`.
+    Locations: `apps/web/src/app/HomePageClient.tsx`, `apps/web/src/app/[userhash]/page.tsx`.
 
 ### Changed
 
@@ -294,7 +306,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Environment variable cleanup (infrastructure)**: Streamlined environment variables to only essential secrets, removing redundant legacy database configuration variables. Locations: `.github/workflows/docker-build.yml`, `Dockerfile`, `.env.example`.
-  - **Removed redundant DB_* variables**: Eliminated `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` from all configurations (workflow, Dockerfile, env example). These were legacy fallbacks for drizzle-kit that are unnecessary when `DATABASE_URL` is always provided.
+  - **Removed redundant DB\_\* variables**: Eliminated `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` from all configurations (workflow, Dockerfile, env example). These were legacy fallbacks for drizzle-kit that are unnecessary when `DATABASE_URL` is always provided.
   - **Simplified Dockerfile build args**: Reduced from 17 ARG declarations to 9 essential variables (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `BLUESIX_API_KEY`, `API_V2_URL`, `NEXTAUTH_URL`, `NODE_ENV`, `SKIP_ENV_VALIDATION`).
   - **Cleaned up .env.example**: Removed all redundant variables including `NEXT_PUBLIC_NEXTAUTH_URL`, `NEXT_PUBLIC_NEXTAUTH_VERCEL_URL`, `NEXT_PUBLIC_NEXTAUTH_URL_CUSTOM_SERVER`, `DATABASE_UNPOOLED`, and `API_V2_HEALTH_URL`. Added clear section comments explaining each variable's purpose.
   - **Updated GitHub Actions workflow**: Removed 5 redundant secret references from both test and production build steps, reducing secret exposure surface and improving clarity.
@@ -497,6 +509,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 
 This release fixes a critical OAuth authentication bug that manifested as:
+
 ```
 CallbackRouteError: r_: server responded with an error in the response body
 [auth][details]: {
@@ -532,10 +545,10 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 - **First-admin authority enforcement**: Restricts demoting admin users, banning/unbanning admin users, and removing admin users to the `firstAdmin` role only (enforced server-side, mirrored in UI disabled states/tooltips). Locations: [src/server/api/routers/admin.ts](src/server/api/routers/admin.ts), [src/app/admin/page.tsx](src/app/admin/page.tsx).
 - **Docker CI env handling**: Updated Docker workflow compose validation to ignore `.env` value checks and validate compose config without secret substitution. Location: [.github/workflows/docker-build.yml](.github/workflows/docker-build.yml).
+
 ### Fixed
 
 - **MobileHeader tests**: Typed the `framer-motion` mock and navigation helpers so RTL assertions use concrete call data, eliminating `@typescript-eslint/no-unsafe-*` errors and allowing the suite to pass lint. Location: `src/__tests__/MobileHeader.test.tsx`.
-
 
 ## [0.14.7] - 2026-02-08
 
@@ -560,7 +573,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 ### Chore
 
 - **Electron build logging**: Reinstated a targeted `no-console` lint disable for the afterPack hook. Location: [electron/builder/afterPack.cjs](electron/builder/afterPack.cjs).
-- **Error boundary tests**: Removed unused variables/disable directives and tightened `onError` typing. Location: [src/__tests__/ErrorBoundary.stability.test.tsx](src/__tests__/ErrorBoundary.stability.test.tsx).
+- **Error boundary tests**: Removed unused variables/disable directives and tightened `onError` typing. Location: [src/**tests**/ErrorBoundary.stability.test.tsx](src/__tests__/ErrorBoundary.stability.test.tsx).
 
 ## [0.14.6] - 2026-02-07
 

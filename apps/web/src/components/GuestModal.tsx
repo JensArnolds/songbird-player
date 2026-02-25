@@ -21,8 +21,13 @@ import { getGenres, type GenreListItem } from "@starchild/api-client/rest";
 import { STORAGE_KEYS } from "@starchild/config/storage";
 import { ChevronDown, Music2, X } from "lucide-react";
 import { signIn } from "next-auth/react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 interface GuestModalProps {
   onContinueAsGuest?: () => void;
@@ -31,6 +36,11 @@ interface GuestModalProps {
 
 type SimilarityPreference = "strict" | "balanced" | "diverse";
 type MoodPresetId = "chill" | "focus" | "hype" | "discover";
+type GenreOption = {
+  key: string;
+  label: string;
+  genre: GenreListItem | null;
+};
 
 type MoodPreset = {
   id: MoodPresetId;
@@ -124,12 +134,10 @@ export function GuestModal({
     ),
   );
   const [isGenreMenuOpen, setIsGenreMenuOpen] = useState(false);
-  const [genreMenuRect, setGenreMenuRect] = useState<DOMRect | null>(null);
-  const [genreMenuDirection, setGenreMenuDirection] = useState<"down" | "up">(
-    "down",
-  );
-  const [viewportHeight, setViewportHeight] = useState<number>(0);
+  const [activeGenreIndex, setActiveGenreIndex] = useState<number>(0);
   const genreTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const genreMenuRef = useRef<HTMLDivElement | null>(null);
+  const genreOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selectedMood = useMemo(
     () => MOOD_PRESETS.find((preset) => preset.id === selectedMoodId) ?? null,
@@ -148,6 +156,23 @@ export function GuestModal({
   }, [genres, genresLoading, preferredGenreName, selectedGenre]);
   const genreSelectDisabled = genresLoading || genres.length === 0;
   const genreSummaryLabel = selectedGenre?.name ?? preferredGenreName;
+  const genreOptions = useMemo<GenreOption[]>(
+    () => [
+      { key: "none", label: "No preference", genre: null },
+      ...genres.map((genre) => ({
+        key: `genre-${genre.id}`,
+        label: genre.name,
+        genre,
+      })),
+    ],
+    [genres],
+  );
+  const selectedGenreIndex = useMemo(() => {
+    const index = genreOptions.findIndex((option) =>
+      option.genre ? option.genre.id === preferredGenreId : preferredGenreId === null,
+    );
+    return index >= 0 ? index : 0;
+  }, [genreOptions, preferredGenreId]);
 
   function setGenrePreference(genre: GenreListItem | null): void {
     if (!genre) {
@@ -164,89 +189,116 @@ export function GuestModal({
     appStorage.set(STORAGE_KEYS.PREFERRED_GENRE_NAME, genre.name);
   }
 
-  const genreMenuStyle = useMemo(() => {
-    if (!genreMenuRect) return undefined;
+  const closeGenreMenu = (): void => {
+    setIsGenreMenuOpen(false);
+  };
 
-    const baseStyle = {
-      position: "fixed" as const,
-      left: genreMenuRect.left,
-      width: genreMenuRect.width,
-    };
+  const openGenreMenu = (index: number = selectedGenreIndex): void => {
+    const lastIndex = Math.max(genreOptions.length - 1, 0);
+    const nextIndex = Math.min(Math.max(index, 0), lastIndex);
+    setActiveGenreIndex(nextIndex);
+    setIsGenreMenuOpen(true);
+  };
 
-    if (genreMenuDirection === "up") {
-      return {
-        ...baseStyle,
-        bottom: Math.max(viewportHeight - genreMenuRect.top + 8, 8),
-      };
+  const selectGenreFromIndex = (index: number): void => {
+    const option = genreOptions[index];
+    if (!option) return;
+    setGenrePreference(option.genre);
+    setIsGenreMenuOpen(false);
+    genreTriggerRef.current?.focus();
+  };
+
+  const moveActiveGenreIndex = (delta: 1 | -1): void => {
+    setActiveGenreIndex((current) => {
+      const count = genreOptions.length;
+      if (count === 0) return 0;
+      const nextIndex = current + delta;
+      if (nextIndex < 0) return count - 1;
+      if (nextIndex >= count) return 0;
+      return nextIndex;
+    });
+  };
+
+  const handleGenreMenuKeyDown = (
+    event: ReactKeyboardEvent<HTMLDivElement>,
+  ): void => {
+    if (!isGenreMenuOpen || genreOptions.length === 0) return;
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        moveActiveGenreIndex(1);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        moveActiveGenreIndex(-1);
+        break;
+      case "Home":
+        event.preventDefault();
+        setActiveGenreIndex(0);
+        break;
+      case "End":
+        event.preventDefault();
+        setActiveGenreIndex(genreOptions.length - 1);
+        break;
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        selectGenreFromIndex(activeGenreIndex);
+        break;
+      case "Escape":
+        event.preventDefault();
+        closeGenreMenu();
+        genreTriggerRef.current?.focus();
+        break;
+      case "Tab":
+        closeGenreMenu();
+        break;
+      default:
+        break;
     }
+  };
 
-    return {
-      ...baseStyle,
-      top: genreMenuRect.bottom + 8,
-    };
-  }, [genreMenuDirection, genreMenuRect, viewportHeight]);
-  const genreDropdownPortal =
-    typeof document !== "undefined" && isGenreMenuOpen && genreMenuStyle
-      ? createPortal(
-          <>
-            <div
-              className="fixed inset-0 z-[240]"
-              onClick={() => setIsGenreMenuOpen(false)}
-              aria-hidden="true"
-            />
-            <div
-              id="guest-preferred-genre-listbox"
-              role="listbox"
-              className="theme-panel fixed z-[241] overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
-              style={genreMenuStyle}
-            >
-              <div className="max-h-72 overflow-y-auto py-1">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={preferredGenreId === null}
-                  onClick={() => {
-                    setGenrePreference(null);
-                    setIsGenreMenuOpen(false);
-                  }}
-                  className={cn(
-                    "w-full px-3 py-2.5 text-left text-sm transition-colors",
-                    preferredGenreId === null
-                      ? "bg-[#1DB954]/20 text-white"
-                      : "text-white/85 hover:bg-white/[0.08] hover:text-white",
-                  )}
-                >
-                  No preference
-                </button>
-                {genres.map((genre) => {
-                  const isSelected = preferredGenreId === genre.id;
-                  return (
-                    <button
-                      key={genre.id}
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      onClick={() => {
-                        setGenrePreference(genre);
-                        setIsGenreMenuOpen(false);
-                      }}
-                      className={cn(
-                        "w-full px-3 py-2.5 text-left text-sm transition-colors",
-                        isSelected
-                          ? "bg-[#1DB954]/20 text-white"
-                          : "text-white/85 hover:bg-white/[0.08] hover:text-white",
-                      )}
-                    >
-                      {genre.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </>,
-          document.body,
-        )
-      : null;
+  const handleGenreTriggerKeyDown = (
+    event: ReactKeyboardEvent<HTMLButtonElement>,
+  ): void => {
+    if (genreSelectDisabled) return;
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        if (isGenreMenuOpen) {
+          moveActiveGenreIndex(1);
+        } else {
+          openGenreMenu(selectedGenreIndex);
+        }
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        if (isGenreMenuOpen) {
+          moveActiveGenreIndex(-1);
+        } else {
+          openGenreMenu(selectedGenreIndex);
+        }
+        break;
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        if (isGenreMenuOpen) {
+          closeGenreMenu();
+        } else {
+          openGenreMenu(selectedGenreIndex);
+        }
+        break;
+      case "Escape":
+        if (!isGenreMenuOpen) return;
+        event.preventDefault();
+        closeGenreMenu();
+        break;
+      default:
+        break;
+    }
+  };
 
   useEffect(() => {
     settingsStorage.set("theme", "dark");
@@ -295,31 +347,30 @@ export function GuestModal({
   }, []);
 
   useEffect(() => {
-    if (!isGenreMenuOpen || !genreTriggerRef.current) return;
+    if (!isGenreMenuOpen) return;
 
-    const updateRect = () => {
-      const rect = genreTriggerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      setGenreMenuRect(rect);
-      setViewportHeight(window.innerHeight);
-
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
-      setGenreMenuDirection(
-        spaceBelow < 280 && spaceAbove > spaceBelow ? "up" : "down",
-      );
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (genreMenuRef.current?.contains(target)) return;
+      if (genreTriggerRef.current?.contains(target)) return;
+      setIsGenreMenuOpen(false);
     };
 
-    updateRect();
-    window.addEventListener("resize", updateRect);
-    window.addEventListener("scroll", updateRect, true);
-
+    document.addEventListener("pointerdown", handlePointerDown);
     return () => {
-      window.removeEventListener("resize", updateRect);
-      window.removeEventListener("scroll", updateRect, true);
+      document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [isGenreMenuOpen]);
+
+  useEffect(() => {
+    if (!isGenreMenuOpen) return;
+
+    const activeOption = genreOptionRefs.current[activeGenreIndex];
+    if (!activeOption) return;
+    activeOption.focus({ preventScroll: true });
+    activeOption.scrollIntoView({ block: "nearest" });
+  }, [activeGenreIndex, isGenreMenuOpen]);
 
   const applyMoodPreset = (preset: MoodPreset): void => {
     setSelectedMoodId(preset.id);
@@ -414,8 +465,13 @@ export function GuestModal({
                     aria-expanded={isGenreMenuOpen}
                     disabled={genreSelectDisabled}
                     onClick={() => {
-                      setIsGenreMenuOpen((prev) => !prev);
+                      if (isGenreMenuOpen) {
+                        closeGenreMenu();
+                      } else {
+                        openGenreMenu(selectedGenreIndex);
+                      }
                     }}
+                    onKeyDown={handleGenreTriggerKeyDown}
                     className={cn(
                       "h-12 w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 pr-10 text-left text-sm text-white transition-colors outline-none focus:border-[#1DB954]/70",
                       genreSelectDisabled && "cursor-not-allowed opacity-60",
@@ -429,6 +485,61 @@ export function GuestModal({
                       isGenreMenuOpen && "rotate-180",
                     )}
                   />
+
+                  {isGenreMenuOpen ? (
+                    <div
+                      id="guest-preferred-genre-listbox"
+                      ref={genreMenuRef}
+                      role="listbox"
+                      aria-labelledby="guest-preferred-genre-label"
+                      aria-activedescendant={
+                        genreOptions[activeGenreIndex]
+                          ? `guest-preferred-genre-option-${activeGenreIndex}`
+                          : undefined
+                      }
+                      tabIndex={-1}
+                      onKeyDown={handleGenreMenuKeyDown}
+                      className="theme-panel absolute right-0 left-0 z-[25] mt-2 overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
+                    >
+                      <div className="max-h-72 overflow-y-auto py-1">
+                        {genreOptions.map((option, index) => {
+                          const isSelected = option.genre
+                            ? preferredGenreId === option.genre.id
+                            : preferredGenreId === null;
+                          const isActive = activeGenreIndex === index;
+
+                          return (
+                            <button
+                              key={option.key}
+                              id={`guest-preferred-genre-option-${index}`}
+                              ref={(element) => {
+                                genreOptionRefs.current[index] = element;
+                              }}
+                              type="button"
+                              role="option"
+                              aria-selected={isSelected}
+                              onClick={() => {
+                                selectGenreFromIndex(index);
+                              }}
+                              onMouseEnter={() => setActiveGenreIndex(index)}
+                              onFocus={() => setActiveGenreIndex(index)}
+                              className={cn(
+                                "w-full px-3 py-2.5 text-left text-sm transition-colors outline-none",
+                                isSelected
+                                  ? "bg-[#1DB954]/20 text-white"
+                                  : "text-white/85 hover:bg-white/[0.08] hover:text-white",
+                                isActive &&
+                                  !isSelected &&
+                                  "bg-white/[0.08] text-white",
+                              )}
+                            >
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -504,7 +615,6 @@ export function GuestModal({
           </div>
         </div>
       </DialogContent>
-      {genreDropdownPortal}
     </Dialog>
   );
 }
