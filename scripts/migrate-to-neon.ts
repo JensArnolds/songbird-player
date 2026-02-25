@@ -43,6 +43,216 @@ function warn(message: string) {
   console.warn(`${colors.yellow}⚠ ${message}${colors.reset}`);
 }
 
+function resolveEnvValue(
+  keys: readonly string[],
+): { key: string | null; value: string | null } {
+  for (const key of keys) {
+    const raw = process.env[key];
+    if (typeof raw !== "string") continue;
+    const value = raw.trim();
+    if (value.length === 0) continue;
+    return { key, value };
+  }
+  return { key: null, value: null };
+}
+
+type ExistingDataMode = "append" | "skip-table" | "error" | "truncate";
+type TableAction =
+  | "copy"
+  | "truncate-copy"
+  | "truncate-only"
+  | "skip-empty"
+  | "skip-existing";
+
+type TablePlan = {
+  table: string;
+  sourceCount: number;
+  targetCount: number;
+  action: TableAction;
+};
+
+type MigrationCliOptions = {
+  dryRun: boolean;
+  existingDataMode: ExistingDataMode;
+  onlyTables: Set<string> | null;
+  skipTables: Set<string>;
+  skipConfirm: boolean;
+  verify: boolean;
+  batchSize: number;
+};
+
+const DEFAULT_BATCH_SIZE = 1000;
+
+function parseCsvSet(raw: string, flagName: string): Set<string> {
+  const values = raw
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  if (values.length === 0) {
+    throw new Error(`Flag ${flagName} requires at least one table name`);
+  }
+  return new Set(values);
+}
+
+function parsePositiveInt(raw: string, flagName: string): number {
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`Flag ${flagName} must be a positive integer`);
+  }
+  return value;
+}
+
+function parseExistingDataMode(raw: string): ExistingDataMode {
+  if (
+    raw === "append" ||
+    raw === "skip-table" ||
+    raw === "error" ||
+    raw === "truncate"
+  ) {
+    return raw;
+  }
+  throw new Error(
+    `Invalid existing-data mode "${raw}". Expected one of: append, skip-table, error, truncate`,
+  );
+}
+
+function printHelp(): void {
+  console.log(`
+Usage:
+  pnpm migrate:neon -- [options]
+
+Options:
+  --dry-run                  Build migration plan and counts, but do not write data
+  --existing=<mode>          Existing data behavior: append | skip-table | error | truncate
+  --skip-existing            Alias for --existing=skip-table
+  --truncate-existing        Alias for --existing=truncate
+  --only-tables=a,b,c        Migrate only specific tables (exact names)
+  --skip-tables=a,b,c        Exclude specific tables
+  --batch-size=<n>           Insert batch size (default: ${DEFAULT_BATCH_SIZE})
+  --skip-confirm             Skip confirmation prompt
+  --no-verify                Skip post-migration row-count verification
+  -h, --help                 Show this help
+
+Examples:
+  pnpm migrate:neon -- --dry-run
+  pnpm migrate:neon -- --existing=skip-table --skip-confirm
+  pnpm migrate:neon -- --only-tables=hexmusic-stream_user,hexmusic-stream_session --existing=truncate --skip-confirm
+`);
+}
+
+function parseCliOptions(argv: readonly string[]): MigrationCliOptions {
+  const options: MigrationCliOptions = {
+    dryRun: false,
+    existingDataMode: "append",
+    onlyTables: null,
+    skipTables: new Set<string>(),
+    skipConfirm: process.env.SKIP_CONFIRM === "true",
+    verify: true,
+    batchSize: DEFAULT_BATCH_SIZE,
+  };
+
+  for (const arg of argv) {
+    if (arg === "--dry-run") {
+      options.dryRun = true;
+      continue;
+    }
+    if (arg === "--skip-existing") {
+      options.existingDataMode = "skip-table";
+      continue;
+    }
+    if (arg === "--truncate-existing") {
+      options.existingDataMode = "truncate";
+      continue;
+    }
+    if (arg === "--skip-confirm") {
+      options.skipConfirm = true;
+      continue;
+    }
+    if (arg === "--no-verify") {
+      options.verify = false;
+      continue;
+    }
+    if (arg === "-h" || arg === "--help") {
+      printHelp();
+      process.exit(0);
+    }
+
+    if (arg.startsWith("--existing=")) {
+      options.existingDataMode = parseExistingDataMode(
+        arg.slice("--existing=".length).trim(),
+      );
+      continue;
+    }
+    if (arg.startsWith("--only-tables=")) {
+      options.onlyTables = parseCsvSet(
+        arg.slice("--only-tables=".length),
+        "--only-tables",
+      );
+      continue;
+    }
+    if (arg.startsWith("--skip-tables=")) {
+      options.skipTables = parseCsvSet(
+        arg.slice("--skip-tables=".length),
+        "--skip-tables",
+      );
+      continue;
+    }
+    if (arg.startsWith("--batch-size=")) {
+      options.batchSize = parsePositiveInt(
+        arg.slice("--batch-size=".length),
+        "--batch-size",
+      );
+      continue;
+    }
+
+    throw new Error(`Unknown argument: ${arg}`);
+  }
+
+  return options;
+}
+
+function selectTableAction(
+  table: string,
+  sourceCount: number,
+  targetCount: number,
+  existingDataMode: ExistingDataMode,
+): TableAction {
+  if (existingDataMode === "error" && targetCount > 0) {
+    throw new Error(
+      `Target table "${table}" already has ${targetCount.toLocaleString()} rows (--existing=error)`,
+    );
+  }
+
+  if (existingDataMode === "skip-table" && targetCount > 0) {
+    return "skip-existing";
+  }
+
+  if (existingDataMode === "truncate") {
+    if (targetCount > 0 && sourceCount > 0) return "truncate-copy";
+    if (targetCount > 0 && sourceCount === 0) return "truncate-only";
+  }
+
+  if (sourceCount === 0) return "skip-empty";
+  return "copy";
+}
+
+function describeAction(action: TableAction): string {
+  switch (action) {
+    case "copy":
+      return "copy";
+    case "truncate-copy":
+      return "truncate+copy";
+    case "truncate-only":
+      return "truncate-only";
+    case "skip-empty":
+      return "skip-empty";
+    case "skip-existing":
+      return "skip-existing";
+    default:
+      return action;
+  }
+}
+
 function getSslConfig(connectionString: string) {
   if (connectionString.includes("neon.tech")) {
     return undefined;
@@ -182,6 +392,7 @@ async function copyTable(
   sourcePool: Pool,
   targetPool: Pool,
   tableName: string,
+  batchSize: number,
 ): Promise<number> {
   const sourceColumnsResult = await sourcePool.query(
     `
@@ -294,7 +505,6 @@ async function copyTable(
     const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
     const insertQuery = `INSERT INTO "${tableName}" (${columnList}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`;
 
-    const batchSize = 1000;
     let inserted = 0;
 
     for (let i = 0; i < sourceData.rows.length; i += batchSize) {
@@ -395,33 +605,80 @@ async function copyTable(
   }
 }
 
+async function truncateTargetTable(targetPool: Pool, tableName: string) {
+  await targetPool.query(
+    `TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE`,
+  );
+}
+
 async function main() {
+  let options: MigrationCliOptions;
+  try {
+    options = parseCliOptions(process.argv.slice(2));
+  } catch (err: any) {
+    error(`\n❌ ${err.message}\n`);
+    printHelp();
+    process.exit(1);
+  }
+
   log("\n🚀 Starting database migration to NEON Postgres\n", "bright");
+  info(
+    `Mode: ${options.dryRun ? "dry-run" : "execute"} | existing=${options.existingDataMode} | batchSize=${options.batchSize}`,
+  );
+  if (options.onlyTables) {
+    info(`Only tables: ${Array.from(options.onlyTables).join(", ")}`);
+  }
+  if (options.skipTables.size > 0) {
+    info(`Skip tables: ${Array.from(options.skipTables).join(", ")}`);
+  }
 
-  const sourceUrl =
-    process.env.OLD_DATABASE_URL ||
-    process.env.SOURCE_DATABASE_URL ||
-    process.env.DATABASE_URL;
+  const sourceCandidates = [
+    "OLD_DATABASE_URL_UNPOOLED",
+    "OLD_DATABASE_UNPOOLED",
+    "OLD_DATABASE_URL",
+    "SOURCE_DATABASE_URL_UNPOOLED",
+    "SOURCE_DATABASE_URL",
+    "DATABASE_URL_UNPOOLED",
+    "DATABASE_URL",
+  ] as const;
 
-  const targetUrl =
-    process.env.DATABASE_UNPOOLED || process.env.TARGET_DATABASE_URL;
+  const targetCandidates = [
+    "NEW_DATABASE_URL_UNPOOLED",
+    "NEW_DATABASE_UNPOOLED",
+    "NEW_DATABASE_URL",
+    "TARGET_DATABASE_URL_UNPOOLED",
+    "TARGET_DATABASE_URL",
+    "DATABASE_URL_UNPOOLED",
+    "DATABASE_UNPOOLED",
+  ] as const;
+
+  const source = resolveEnvValue(sourceCandidates);
+  const target = resolveEnvValue(targetCandidates);
+  const sourceUrl = source.value;
+  const targetUrl = target.value;
 
   if (!sourceUrl) {
     error(
-      "❌ OLD_DATABASE_URL, SOURCE_DATABASE_URL, or DATABASE_URL environment variable is required",
+      `❌ One source DB URL env var is required: ${sourceCandidates.join(", ")}`,
     );
-    error("   Recommended: Set OLD_DATABASE_URL for the source database");
+    error(
+      "   Recommended: Set OLD_DATABASE_UNPOOLED for the source database",
+    );
     process.exit(1);
   }
 
   if (!targetUrl) {
     error(
-      "❌ DATABASE_UNPOOLED or TARGET_DATABASE_URL environment variable is required",
+      `❌ One target DB URL env var is required: ${targetCandidates.join(", ")}`,
     );
-    error("   Recommended: Set DATABASE_UNPOOLED for the Neon target database");
+    error(
+      "   Recommended: Set NEW_DATABASE_URL_UNPOOLED for the Neon target database",
+    );
     process.exit(1);
   }
 
+  info(`Source env key: ${source.key ?? "unknown"}`);
+  info(`Target env key: ${target.key ?? "unknown"}`);
   info(`Source: ${sourceUrl.replace(/:[^:@]+@/, ":****@")}`);
   info(`Target: ${targetUrl.replace(/:[^:@]+@/, ":****@")}\n`);
 
@@ -449,67 +706,151 @@ async function main() {
     success("Target database connection successful\n");
 
     log("Discovering tables...", "cyan");
-    const tables = await getTablesInOrder(sourcePool);
-    success(`Found ${tables.length} tables: ${tables.join(", ")}\n`);
+    const discoveredTables = await getTablesInOrder(sourcePool);
+    const discoveredTableSet = new Set(discoveredTables);
 
-    log("Checking if schema exists on target database...", "cyan");
-    const schemaCheck = await targetPool.query(`
-      SELECT COUNT(*) as count
-      FROM information_schema.tables
-      WHERE table_schema = 'public'
-        AND table_name LIKE 'hexmusic-stream_%';
-    `);
-
-    const tableCount = parseInt(schemaCheck.rows[0]?.count || "0", 10);
-
-    if (tableCount === 0) {
-      error("\n❌ Schema not found on target database!");
-      error("   The target database appears to be empty.");
-      error(
-        "\n   Please run the following command first to create the schema:\n",
+    if (options.onlyTables) {
+      const unknownOnlyTables = Array.from(options.onlyTables).filter(
+        (table) => !discoveredTableSet.has(table),
       );
-      log(`   DATABASE_URL="${targetUrl}" npm run db:push\n`, "bright");
-      error("   Or if you prefer migrations:\n");
-      log(`   DATABASE_URL="${targetUrl}" npm run db:migrate\n`, "bright");
-      process.exit(1);
-    } else if (tableCount < tables.length) {
-      warn(
-        `⚠️  Found ${tableCount} tables on target, but source has ${tables.length} tables.`,
-      );
-      warn("   Some tables may be missing. Continuing anyway...\n");
-    } else {
-      success(
-        `Schema exists on target database (${tableCount} tables found)\n`,
-      );
-    }
-
-    log("Counting rows in source database...", "cyan");
-    const sourceCounts = new Map<string, number>();
-    for (const table of tables) {
-      const count = await getTableCount(sourcePool, table);
-      sourceCounts.set(table, count);
-      if (count > 0) {
-        info(`${table}: ${count.toLocaleString()} rows`);
+      if (unknownOnlyTables.length > 0) {
+        throw new Error(
+          `Unknown table(s) passed via --only-tables: ${unknownOnlyTables.join(", ")}`,
+        );
       }
     }
 
-    const totalRows = Array.from(sourceCounts.values()).reduce(
-      (a, b) => a + b,
-      0,
+    const unknownSkipTables = Array.from(options.skipTables).filter(
+      (table) => !discoveredTableSet.has(table),
     );
-    log(`\nTotal rows to migrate: ${totalRows.toLocaleString()}\n`, "bright");
+    if (unknownSkipTables.length > 0) {
+      warn(
+        `Ignoring unknown table(s) from --skip-tables: ${unknownSkipTables.join(", ")}`,
+      );
+    }
 
-    if (process.env.SKIP_CONFIRM !== "true") {
+    let tables = discoveredTables;
+    if (options.onlyTables) {
+      tables = tables.filter((table) => options.onlyTables?.has(table));
+    }
+    if (options.skipTables.size > 0) {
+      tables = tables.filter((table) => !options.skipTables.has(table));
+    }
+
+    if (tables.length === 0) {
+      warn("No tables selected after filters. Nothing to do.");
+      return;
+    }
+
+    success(`Selected ${tables.length} table(s): ${tables.join(", ")}\n`);
+
+    log("Checking if schema exists on target database...", "cyan");
+    const targetTablesResult = await targetPool.query(`
+      SELECT tablename
+      FROM pg_tables
+      WHERE schemaname = 'public';
+    `);
+    const targetTableSet = new Set(
+      targetTablesResult.rows.map((row: any) => row.tablename as string),
+    );
+    const missingTargetTables = tables.filter(
+      (table) => !targetTableSet.has(table),
+    );
+
+    if (missingTargetTables.length > 0) {
+      error("\n❌ Required table(s) missing on target database!");
+      error(`   Missing: ${missingTargetTables.join(", ")}`);
+      error(
+        "\n   Create the schema first (recommended in this repo):\n",
+      );
+      log(
+        `   DATABASE_URL="${targetUrl}" pnpm drizzle-kit push --config apps/web/drizzle.config.cjs\n`,
+        "bright",
+      );
+      error("   Or if you prefer migrations:\n");
+      log(
+        `   DATABASE_URL="${targetUrl}" pnpm drizzle-kit migrate --config apps/web/drizzle.config.cjs\n`,
+        "bright",
+      );
+      process.exit(1);
+    }
+
+    success(
+      `Schema exists on target database for selected tables (${tables.length} tables)\n`,
+    );
+
+    log("Building migration plan (source/target row counts)...", "cyan");
+    const tablePlans: TablePlan[] = [];
+    const actionCounts = new Map<TableAction, number>();
+    let totalSourceRows = 0;
+    let totalTargetRows = 0;
+    let plannedSourceRows = 0;
+
+    for (const table of tables) {
+      const sourceCount = await getTableCount(sourcePool, table);
+      const targetCount = await getTableCount(targetPool, table);
+      const action = selectTableAction(
+        table,
+        sourceCount,
+        targetCount,
+        options.existingDataMode,
+      );
+
+      tablePlans.push({ table, sourceCount, targetCount, action });
+      actionCounts.set(action, (actionCounts.get(action) ?? 0) + 1);
+      totalSourceRows += sourceCount;
+      totalTargetRows += targetCount;
+      if (action === "copy" || action === "truncate-copy") {
+        plannedSourceRows += sourceCount;
+      }
+
+      if (sourceCount > 0 || targetCount > 0) {
+        info(
+          `${table}: source ${sourceCount.toLocaleString()} / target ${targetCount.toLocaleString()} -> ${describeAction(action)}`,
+        );
+      }
+    }
+
+    log("\nPlan summary:", "bright");
+    const actionOrder: TableAction[] = [
+      "copy",
+      "truncate-copy",
+      "truncate-only",
+      "skip-existing",
+      "skip-empty",
+    ];
+    for (const action of actionOrder) {
+      const count = actionCounts.get(action) ?? 0;
+      if (count > 0) {
+        info(`${describeAction(action)}: ${count} table(s)`);
+      }
+    }
+    log(
+      `\nRows in selected source tables: ${totalSourceRows.toLocaleString()}`,
+      "bright",
+    );
+    log(
+      `Rows in selected target tables: ${totalTargetRows.toLocaleString()}`,
+      "bright",
+    );
+    log(
+      `Rows considered for insert: ${plannedSourceRows.toLocaleString()}\n`,
+      "bright",
+    );
+
+    if (options.dryRun) {
+      log("🧪 Dry run complete. No data was modified.\n", "green");
+      return;
+    }
+
+    if (!options.skipConfirm) {
       const rl = createInterface({
         input: process.stdin,
         output: process.stdout,
       });
 
       const answer = await new Promise<string>((resolve) => {
-        rl.question(
-          "⚠️  This will copy all data to the target database. Continue? (yes/no): ",
-          resolve,
-        );
+        rl.question("⚠️  Execute this migration plan? (yes/no): ", resolve);
       });
       rl.close();
 
@@ -522,56 +863,116 @@ async function main() {
     log("\n🔄 Starting data migration...\n", "bright");
     const startTime = Date.now();
     let totalMigrated = 0;
+    const insertedByTable = new Map<string, number>();
 
-    for (let i = 0; i < tables.length; i++) {
-      const table = tables[i];
-      if (!table) continue;
-      const sourceCount = sourceCounts.get(table) ?? 0;
+    for (let i = 0; i < tablePlans.length; i++) {
+      const plan = tablePlans[i];
+      if (!plan) continue;
+      const prefix = `[${i + 1}/${tablePlans.length}] ${plan.table}`;
 
-      if (sourceCount === 0) {
-        log(`[${i + 1}/${tables.length}] ${table}: skipping (empty)`, "yellow");
+      if (plan.action === "skip-empty") {
+        log(`${prefix}: skipping (source empty)`, "yellow");
+        insertedByTable.set(plan.table, 0);
         continue;
       }
 
+      if (plan.action === "skip-existing") {
+        log(
+          `${prefix}: skipping (target already has ${plan.targetCount.toLocaleString()} rows)`,
+          "yellow",
+        );
+        insertedByTable.set(plan.table, 0);
+        continue;
+      }
+
+      if (plan.action === "truncate-only") {
+        log(
+          `${prefix}: truncating ${plan.targetCount.toLocaleString()} existing rows (source empty)...`,
+          "cyan",
+        );
+        await truncateTargetTable(targetPool, plan.table);
+        insertedByTable.set(plan.table, 0);
+        success(`${plan.table}: truncated`);
+        continue;
+      }
+
+      if (plan.action === "truncate-copy") {
+        log(
+          `${prefix}: truncating ${plan.targetCount.toLocaleString()} existing rows...`,
+          "cyan",
+        );
+        await truncateTargetTable(targetPool, plan.table);
+      }
+
       log(
-        `[${i + 1}/${tables.length}] ${table}: migrating ${sourceCount.toLocaleString()} rows...`,
+        `${prefix}: migrating ${plan.sourceCount.toLocaleString()} rows...`,
         "cyan",
       );
 
       try {
-        const migrated = await copyTable(sourcePool, targetPool, table);
-        totalMigrated += migrated;
-        success(`${table}: migrated ${migrated.toLocaleString()} rows`);
+        const inserted = await copyTable(
+          sourcePool,
+          targetPool,
+          plan.table,
+          options.batchSize,
+        );
+        insertedByTable.set(plan.table, inserted);
+        totalMigrated += inserted;
+        success(`${plan.table}: inserted ${inserted.toLocaleString()} rows`);
       } catch (err: any) {
-        error(`${table}: failed - ${err.message}`);
+        error(`${plan.table}: failed - ${err.message}`);
         throw err;
       }
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     log(`\n✅ Migration completed successfully!`, "green");
-    log(`   Total rows migrated: ${totalMigrated.toLocaleString()}`, "green");
+    log(`   Total rows inserted: ${totalMigrated.toLocaleString()}`, "green");
     log(`   Duration: ${duration}s\n`, "green");
+
+    if (!options.verify) {
+      warn("Verification skipped (--no-verify).");
+      return;
+    }
 
     log("Verifying migration...", "cyan");
     let verified = true;
-    for (const table of tables) {
-      const sourceCount = sourceCounts.get(table) ?? 0;
-      if (sourceCount === 0) continue;
+    for (const plan of tablePlans) {
+      const targetAfter = await getTableCount(targetPool, plan.table);
+      const inserted = insertedByTable.get(plan.table) ?? 0;
+      let expected = plan.targetCount;
 
-      const targetCount = await getTableCount(targetPool, table);
-      if (sourceCount !== targetCount) {
+      switch (plan.action) {
+        case "skip-empty":
+        case "skip-existing":
+          expected = plan.targetCount;
+          break;
+        case "truncate-only":
+          expected = 0;
+          break;
+        case "truncate-copy":
+          expected = plan.sourceCount;
+          break;
+        case "copy":
+          expected =
+            plan.targetCount === 0
+              ? plan.sourceCount
+              : plan.targetCount + inserted;
+          break;
+      }
+
+      if (targetAfter !== expected) {
         error(
-          `${table}: count mismatch (source: ${sourceCount}, target: ${targetCount})`,
+          `${plan.table}: count mismatch (expected: ${expected.toLocaleString()}, actual: ${targetAfter.toLocaleString()})`,
         );
         verified = false;
       } else {
-        success(`${table}: verified (${targetCount.toLocaleString()} rows)`);
+        success(`${plan.table}: verified (${targetAfter.toLocaleString()} rows)`);
       }
     }
 
     if (verified) {
-      log("\n✅ All tables verified successfully!\n", "green");
+      log("\n✅ All selected tables verified successfully!\n", "green");
     } else {
       warn("\n⚠️  Some tables have count mismatches. Please review.\n");
     }

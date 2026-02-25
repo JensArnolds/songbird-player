@@ -11,7 +11,7 @@ This guide explains how to migrate your database from your current PostgreSQL in
 export DATABASE_URL="postgresql://neondb_owner:npg_wGoei3E1pZdX@ep-wandering-night-agpfwl6e-pooler.c-2.eu-central-1.aws.neon.tech/starchild?sslmode=require&channel_binding=require"
 
 # Push schema to NEON
-npm run db:push
+pnpm drizzle-kit push --config apps/web/drizzle.config.cjs
 ```
 
 2. **Backup your current database**: Always backup before migration!
@@ -35,26 +35,37 @@ The migration script (`migrate-to-neon.ts`) provides:
 **Usage:**
 
 ```bash
-# Set your source database (if different from DATABASE_URL)
-export SOURCE_DATABASE_URL="postgresql://user:pass@host:port/dbname"
+# Set source + target (preferred names)
+export OLD_DATABASE_UNPOOLED="postgresql://source-user:pass@source-host/db"
+export NEW_DATABASE_URL_UNPOOLED="postgresql://target-user:pass@target-host/db"
 
-# Set your target NEON database
-export TARGET_DATABASE_URL="postgresql://neondb_owner:npg_wGoei3E1pZdX@ep-wandering-night-agpfwl6e-pooler.c-2.eu-central-1.aws.neon.tech/starchild?sslmode=require&channel_binding=require"
-
-# Run migration
-npm run migrate:neon
+# Run migration with defaults (append mode + verification)
+pnpm migrate:neon
 ```
 
-Or if your current `DATABASE_URL` is the source:
+**Useful options:**
 
 ```bash
-export TARGET_DATABASE_URL="postgresql://neondb_owner:npg_wGoei3E1pZdX@ep-wandering-night-agpfwl6e-pooler.c-2.eu-central-1.aws.neon.tech/starchild?sslmode=require&channel_binding=require"
-npm run migrate:neon
+# Plan only (no writes)
+pnpm migrate:neon -- --dry-run
+
+# Skip tables that already have target rows
+pnpm migrate:neon -- --existing=skip-table --skip-confirm
+
+# Force target tables to mirror source (truncate before copy)
+pnpm migrate:neon -- --existing=truncate --skip-confirm
+
+# Restrict or exclude tables
+pnpm migrate:neon -- --only-tables=hexmusic-stream_user,hexmusic-stream_session
+pnpm migrate:neon -- --skip-tables=hexmusic-stream_search_history
+
+# Tune write batch size and skip verification if desired
+pnpm migrate:neon -- --batch-size=2000 --no-verify
 ```
 
-**Skip confirmation prompt:**
+**CLI help:**
 ```bash
-SKIP_CONFIRM=true npm run migrate:neon
+pnpm migrate:neon -- --help
 ```
 
 ### Option 2: Using pg_dump and pg_restore (Alternative)
@@ -154,4 +165,3 @@ SELECT setval('hexmusic-stream_playlist_id_seq', (SELECT MAX(id) FROM "hexmusic-
 - Sequences are automatically reset to prevent ID conflicts
 - The script uses transactions for data integrity
 - Large tables are migrated in batches of 1000 rows for better performance
-

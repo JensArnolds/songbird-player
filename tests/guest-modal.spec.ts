@@ -41,7 +41,7 @@ test.beforeEach(async ({ page }) => {
 test("genre dropdown scrolls with mouse wheel", async ({ page }) => {
   const trigger = page.locator("#guest-preferred-genre");
   const listbox = page.locator("#guest-preferred-genre-listbox");
-  const scrollContainer = listbox.locator(".max-h-72");
+  const scrollContainer = listbox.locator(".guest-modal-dropdown-scroll");
 
   await trigger.click();
   await expect(listbox).toBeVisible();
@@ -68,13 +68,13 @@ test("genre dropdown supports arrow keys and enter selection", async ({
 
   await trigger.click();
   await expect(listbox).toBeVisible();
-  await expect(listbox).toHaveAttribute(
+  await expect(trigger).toHaveAttribute(
     "aria-activedescendant",
     "guest-preferred-genre-option-0",
   );
 
   await page.keyboard.press("ArrowDown");
-  await expect(listbox).toHaveAttribute(
+  await expect(trigger).toHaveAttribute(
     "aria-activedescendant",
     "guest-preferred-genre-option-1",
   );
