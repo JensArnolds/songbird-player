@@ -33,6 +33,7 @@ export const env = createEnv({
     SONGBIRD_API_URL: z.string().url().optional(),
     SONGBIRD_API_HEALTH_URI: z.string().optional(),
     UNIVERSAL_KEY: z.string().optional(),
+    BLUESIX_API_KEY: z.string().optional(),
     API_V2_URL: z.string().url().optional(),
     ELECTRON_BUILD: z
       .string()
@@ -77,6 +78,7 @@ export const env = createEnv({
       "/api/health",
     UNIVERSAL_KEY:
       process.env.UNIVERSAL_KEY ??
+      process.env.UNIVERSAL_API_KEY ??
       process.env.BLUESIX_API_KEY ??
       process.env.SONGBIRD_API_KEY,
     API_V2_URL:
@@ -93,11 +95,8 @@ export const env = createEnv({
     BLUESIX_API_KEY:
       process.env.BLUESIX_API_KEY ??
       process.env.UNIVERSAL_KEY ??
+      process.env.UNIVERSAL_API_KEY ??
       process.env.SONGBIRD_API_KEY,
-    SONGBIRD_API_KEY:
-      process.env.SONGBIRD_API_KEY ??
-      process.env.BLUESIX_API_KEY ??
-      process.env.UNIVERSAL_KEY,
     ELECTRON_BUILD: process.env.ELECTRON_BUILD,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
