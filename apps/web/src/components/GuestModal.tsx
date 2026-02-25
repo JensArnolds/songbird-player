@@ -513,73 +513,6 @@ export function GuestModal({
     if (!isGenreMenuOpen) return;
     const listbox = genreListboxRef.current;
     if (!listbox) return;
-
-    let touchY: number | null = null;
-
-    const getWheelDelta = (event: WheelEvent): number => {
-      if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
-        return event.deltaY * 16;
-      }
-      if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
-        return event.deltaY * listbox.clientHeight;
-      }
-      return event.deltaY;
-    };
-
-    const onWheel = (event: WheelEvent) => {
-      listbox.scrollTop += getWheelDelta(event);
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      event.stopPropagation();
-    };
-
-    const onTouchStart = (event: TouchEvent) => {
-      if (event.touches.length !== 1) return;
-      touchY = event.touches[0]?.clientY ?? null;
-    };
-
-    const onTouchMove = (event: TouchEvent) => {
-      if (event.touches.length !== 1) return;
-      const currentY = event.touches[0]?.clientY;
-      if (currentY === undefined) return;
-
-      if (touchY === null) {
-        touchY = currentY;
-        return;
-      }
-
-      listbox.scrollTop += touchY - currentY;
-      touchY = currentY;
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      event.stopPropagation();
-    };
-
-    const resetTouch = () => {
-      touchY = null;
-    };
-
-    listbox.addEventListener("wheel", onWheel, { passive: false });
-    listbox.addEventListener("touchstart", onTouchStart, { passive: true });
-    listbox.addEventListener("touchmove", onTouchMove, { passive: false });
-    listbox.addEventListener("touchend", resetTouch);
-    listbox.addEventListener("touchcancel", resetTouch);
-
-    return () => {
-      listbox.removeEventListener("wheel", onWheel);
-      listbox.removeEventListener("touchstart", onTouchStart);
-      listbox.removeEventListener("touchmove", onTouchMove);
-      listbox.removeEventListener("touchend", resetTouch);
-      listbox.removeEventListener("touchcancel", resetTouch);
-    };
-  }, [isGenreMenuOpen]);
-
-  useEffect(() => {
-    if (!isGenreMenuOpen) return;
-    const listbox = genreListboxRef.current;
-    if (!listbox) return;
     const activeOption = listbox.querySelector<HTMLElement>(
       `[data-guest-genre-index="${highlightedGenreIndex}"]`,
     );
@@ -595,6 +528,7 @@ export function GuestModal({
 
   return (
     <Dialog
+      modal={false}
       open={isOpen}
       onOpenChange={(open: boolean) => {
         setIsOpen(open);
