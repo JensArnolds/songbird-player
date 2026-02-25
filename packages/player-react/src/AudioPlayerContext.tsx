@@ -100,6 +100,49 @@ const isRepeatMode = (value: unknown): value is "none" | "one" | "all" =>
 const coerceRepeatMode = (value: unknown): "none" | "one" | "all" =>
   isRepeatMode(value) ? value : "none";
 
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const candidate = (error as { message?: unknown }).message;
+    if (typeof candidate === "string" && candidate.length > 0) {
+      return candidate;
+    }
+  }
+
+  return "Unknown error";
+};
+
+const coerceDate = (value: unknown): Date | null => {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value === "string" && value.length > 0) {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  return null;
+};
+
+const normalizeSmartQueueState = (
+  state: Partial<SmartQueueState> | null | undefined,
+): SmartQueueState => ({
+  isActive: Boolean(state?.isActive),
+  lastRefreshedAt: coerceDate(state?.lastRefreshedAt),
+  seedTrackId:
+    typeof state?.seedTrackId === "number" ? state.seedTrackId : null,
+  trackCount:
+    typeof state?.trackCount === "number" && Number.isFinite(state.trackCount)
+      ? state.trackCount
+      : 0,
+  isLoading:
+    typeof state?.isLoading === "boolean" ? state.isLoading : false,
+});
+
 type ToastKind = "success" | "error" | "info" | "warning";
 
 interface AudioPlayerProviderProps {
@@ -153,6 +196,21 @@ export function AudioPlayerProvider({
     { enabled: !!session },
   );
   const resumeErrorThrottleRef = useRef(0);
+  const queuePersistenceErrorThrottleRef = useRef(0);
+  const logQueuePersistenceWarning = useCallback(
+    (operation: "save" | "clear", error: unknown) => {
+      const now = Date.now();
+      if (now - queuePersistenceErrorThrottleRef.current < 8000) return;
+      queuePersistenceErrorThrottleRef.current = now;
+
+      console.warn(
+        `[AudioPlayerContext] Failed to ${operation} queue state:`,
+        getErrorMessage(error),
+        error,
+      );
+    },
+    [],
+  );
   const handleBackgroundResumeError = useCallback(
     (reason: string, error?: unknown) => {
       const now = Date.now();
@@ -170,8 +228,16 @@ export function AudioPlayerProvider({
     [showToast],
   );
 
-  const saveQueueStateMutation = api.music.saveQueueState.useMutation();
-  const clearQueueStateMutation = api.music.clearQueueState.useMutation();
+  const saveQueueStateMutation = api.music.saveQueueState.useMutation({
+    onError: (error) => {
+      logQueuePersistenceWarning("save", error);
+    },
+  });
+  const clearQueueStateMutation = api.music.clearQueueState.useMutation({
+    onError: (error) => {
+      logQueuePersistenceWarning("clear", error);
+    },
+  });
   const { data: dbQueueState } = api.music.getQueueState.useQuery(undefined, {
     enabled: !!session,
     refetchOnWindowFocus: false,
@@ -198,18 +264,53 @@ export function AudioPlayerProvider({
 
   const utils = api.useUtils();
 
-  const hasCompleteTrackData = (track: Track | null | undefined): boolean => {
+  const hasCompleteTrackData = (
+    track: Track | null | undefined,
+  ): boolean => {
     if (!track) return false;
 
-    const { id, title, artist } = track as Partial<Track>;
+    const hasArtist =
+      typeof track.artist?.id === "number" &&
+      track.artist.id > 0 &&
+      typeof track.artist?.name === "string" &&
+      track.artist.name.length > 0 &&
+      track.artist.type === "artist";
+
+    const hasAlbum =
+      typeof track.album?.id === "number" &&
+      track.album.id > 0 &&
+      typeof track.album?.title === "string" &&
+      track.album.title.length > 0 &&
+      typeof track.album.cover === "string" &&
+      typeof track.album.cover_small === "string" &&
+      typeof track.album.cover_medium === "string" &&
+      typeof track.album.cover_big === "string" &&
+      typeof track.album.cover_xl === "string" &&
+      typeof track.album.md5_image === "string" &&
+      typeof track.album.tracklist === "string" &&
+      track.album.type === "album";
 
     return (
-      typeof id === "number" &&
-      typeof title === "string" &&
-      title.length > 0 &&
-      artist !== undefined &&
-      typeof artist?.name === "string" &&
-      artist.name.length > 0
+      typeof track.id === "number" &&
+      track.id > 0 &&
+      typeof track.readable === "boolean" &&
+      typeof track.title === "string" &&
+      track.title.length > 0 &&
+      typeof track.title_short === "string" &&
+      track.title_short.length > 0 &&
+      typeof track.link === "string" &&
+      track.link.length > 0 &&
+      typeof track.duration === "number" &&
+      track.duration > 0 &&
+      typeof track.rank === "number" &&
+      typeof track.explicit_lyrics === "boolean" &&
+      typeof track.explicit_content_lyrics === "number" &&
+      typeof track.explicit_content_cover === "number" &&
+      typeof track.preview === "string" &&
+      typeof track.md5_image === "string" &&
+      track.type === "track" &&
+      hasArtist &&
+      hasAlbum
     );
   };
 
@@ -430,6 +531,10 @@ export function AudioPlayerProvider({
       return undefined;
     }
 
+    const normalizedSmartQueueState = normalizeSmartQueueState(
+      dbQueueState.smartQueueState as Partial<SmartQueueState> | undefined,
+    );
+
     return {
       queuedTracks: (dbQueueState.queuedTracks as StoredQueuedTrack[]).map(
         (qt) => ({
@@ -437,12 +542,7 @@ export function AudioPlayerProvider({
           addedAt: new Date(qt.addedAt),
         }),
       ) as QueuedTrack[],
-      smartQueueState: {
-        ...dbQueueState.smartQueueState,
-        lastRefreshedAt: dbQueueState.smartQueueState.lastRefreshedAt
-          ? new Date(dbQueueState.smartQueueState.lastRefreshedAt)
-          : null,
-      } as SmartQueueState,
+      smartQueueState: normalizedSmartQueueState,
       history: (dbQueueState.history || []) as Track[],
       isShuffled: dbQueueState.isShuffled ?? false,
       repeatMode: coerceRepeatMode(dbQueueState.repeatMode),
@@ -471,9 +571,9 @@ export function AudioPlayerProvider({
             },
             {
               onError: (error) => {
-                console.error(
+                console.warn(
                   "[AudioPlayerContext] Failed to add track to history:",
-                  error.message,
+                  getErrorMessage(error),
                   { trackId: track.id, trackTitle: track.title },
                 );
               },
@@ -551,14 +651,19 @@ export function AudioPlayerProvider({
       const queueState = {
         version: 2 as const,
         queuedTracks: queuedTracksForSave,
-        smartQueueState: {
-          ...player.smartQueueState,
-          lastRefreshedAt: player.smartQueueState.lastRefreshedAt
-            ? player.smartQueueState.lastRefreshedAt instanceof Date
-              ? player.smartQueueState.lastRefreshedAt.toISOString()
-              : String(player.smartQueueState.lastRefreshedAt)
-            : null,
-        },
+        smartQueueState: (() => {
+          const normalizedState = normalizeSmartQueueState(
+            player.smartQueueState,
+          );
+          return {
+            isActive: normalizedState.isActive,
+            lastRefreshedAt: normalizedState.lastRefreshedAt
+              ? normalizedState.lastRefreshedAt.toISOString()
+              : null,
+            seedTrackId: normalizedState.seedTrackId,
+            trackCount: normalizedState.trackCount,
+          };
+        })(),
         history: player.history,
         currentTime: player.currentTime,
         isShuffled: player.isShuffled,
