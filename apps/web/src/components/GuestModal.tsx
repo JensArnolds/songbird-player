@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
 import { localStorage as appStorage } from "@/services/storage";
 import { startSpotifyLogin } from "@/services/spotifyAuthClient";
@@ -144,6 +145,7 @@ export function GuestModal({
   onContinueAsGuest,
   callbackUrl = "/library",
 }: GuestModalProps) {
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [isOpen, setIsOpen] = useState(true);
   const [genres, setGenres] = useState<GenreListItem[]>([]);
   const [genresLoading, setGenresLoading] = useState(true);
@@ -336,19 +338,13 @@ export function GuestModal({
     };
   }, [genreMenuDirection, genreMenuRect, viewportHeight, viewportWidth]);
 
-  const stopGenreListScrollPropagation = (
-    event: React.WheelEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
-  ) => {
-    event.stopPropagation();
-  };
-
   const activeGenreOptionId = `guest-preferred-genre-option-${highlightedGenreIndex}`;
   const genreDropdownPortal =
     typeof document !== "undefined" && isGenreMenuOpen && genreMenuStyle
       ? createPortal(
           <>
             <div
-              className="fixed inset-0 z-[240]"
+              className="fixed inset-0 z-[240] pointer-events-auto"
               onClick={closeGenreMenu}
               aria-hidden="true"
             />
@@ -356,15 +352,13 @@ export function GuestModal({
               id="guest-preferred-genre-listbox"
               role="listbox"
               aria-label="Genre options"
-              className="theme-panel fixed z-[241] overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
+              className="theme-panel pointer-events-auto fixed z-[241] overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
               style={genreMenuStyle}
             >
               <div
                 ref={genreListboxRef}
                 className="guest-modal-dropdown-scroll max-h-[min(60vh,400px)] touch-pan-y overflow-y-auto py-1"
                 style={{ maxHeight: `${genreMenuMaxHeight}px` }}
-                onWheelCapture={stopGenreListScrollPropagation}
-                onTouchMoveCapture={stopGenreListScrollPropagation}
               >
                 {genreOptions.map((option, index) => {
                   const isSelected = preferredGenreId === option.id;
@@ -519,6 +513,73 @@ export function GuestModal({
     if (!isGenreMenuOpen) return;
     const listbox = genreListboxRef.current;
     if (!listbox) return;
+
+    let touchY: number | null = null;
+
+    const getWheelDelta = (event: WheelEvent): number => {
+      if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+        return event.deltaY * 16;
+      }
+      if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+        return event.deltaY * listbox.clientHeight;
+      }
+      return event.deltaY;
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      listbox.scrollTop += getWheelDelta(event);
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      event.stopPropagation();
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      touchY = event.touches[0]?.clientY ?? null;
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      const currentY = event.touches[0]?.clientY;
+      if (currentY === undefined) return;
+
+      if (touchY === null) {
+        touchY = currentY;
+        return;
+      }
+
+      listbox.scrollTop += touchY - currentY;
+      touchY = currentY;
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      event.stopPropagation();
+    };
+
+    const resetTouch = () => {
+      touchY = null;
+    };
+
+    listbox.addEventListener("wheel", onWheel, { passive: false });
+    listbox.addEventListener("touchstart", onTouchStart, { passive: true });
+    listbox.addEventListener("touchmove", onTouchMove, { passive: false });
+    listbox.addEventListener("touchend", resetTouch);
+    listbox.addEventListener("touchcancel", resetTouch);
+
+    return () => {
+      listbox.removeEventListener("wheel", onWheel);
+      listbox.removeEventListener("touchstart", onTouchStart);
+      listbox.removeEventListener("touchmove", onTouchMove);
+      listbox.removeEventListener("touchend", resetTouch);
+      listbox.removeEventListener("touchcancel", resetTouch);
+    };
+  }, [isGenreMenuOpen]);
+
+  useEffect(() => {
+    if (!isGenreMenuOpen) return;
+    const listbox = genreListboxRef.current;
+    if (!listbox) return;
     const activeOption = listbox.querySelector<HTMLElement>(
       `[data-guest-genre-index="${highlightedGenreIndex}"]`,
     );
@@ -545,19 +606,19 @@ export function GuestModal({
     >
       <DialogContent
         className={cn(
-          "!top-0 !left-0 !m-0 !h-screen !w-screen !max-h-screen !max-w-none !translate-x-0 !translate-y-0 overflow-hidden border-0 bg-[#0F1528]/95 p-0 text-white shadow-[0_30px_90px_rgba(0,0,0,0.6)] focus:outline-none",
-          "h-[100dvh] max-h-[100dvh] rounded-none",
-          "pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]",
-          "data-[state=closed]:!translate-y-full data-[state=open]:!translate-y-0",
-          "sm:!top-1/2 sm:!left-1/2 sm:!h-auto sm:!w-[min(40rem,calc(100%-2rem))] sm:!max-h-[calc(100dvh-2rem)] sm:!max-w-[40rem] sm:!-translate-x-1/2 sm:!-translate-y-1/2",
-          "sm:rounded-3xl sm:border sm:border-white/12 sm:p-0",
-          "sm:data-[state=closed]:!translate-y-3 sm:data-[state=closed]:scale-[0.98] sm:data-[state=open]:scale-100",
+          "max-h-[90vh] overflow-hidden border-white/12 bg-[#0F1528]/95 p-0 text-white shadow-[0_30px_90px_rgba(0,0,0,0.6)] focus:outline-none",
+          isMobile
+            ? "!top-auto !right-0 !bottom-0 !left-0 !m-0 !h-[90vh] !w-full !max-w-full !translate-x-0 !translate-y-0 rounded-t-3xl rounded-b-none border-b-0 data-[state=closed]:!translate-y-full data-[state=open]:!translate-y-0"
+            : "w-[min(40rem,calc(100%-2rem))] rounded-3xl data-[state=closed]:translate-y-3 data-[state=closed]:scale-[0.98] data-[state=open]:translate-y-0 data-[state=open]:scale-100",
         )}
+        style={isMobile ? { height: "90dvh", maxHeight: "90dvh" } : undefined}
       >
         <div className="flex max-h-full min-h-0 flex-col overscroll-none">
-          <div className="flex justify-center pt-2 pb-1 sm:hidden">
-            <div className="h-1 w-10 rounded-full bg-white/30" />
-          </div>
+          {isMobile ? (
+            <div className="flex justify-center pt-2 pb-1">
+              <div className="h-1 w-10 rounded-full bg-white/30" />
+            </div>
+          ) : null}
 
           <DialogHeader className="border-b border-white/12 px-3 py-3 sm:px-5 sm:py-4">
             <div className="flex items-start justify-between gap-3">
@@ -591,7 +652,7 @@ export function GuestModal({
           <div
             className={cn(
               "guest-modal-content-scroll min-h-0 flex-1 touch-pan-y overflow-y-auto",
-              "space-y-3 px-3 pt-3 pb-4",
+              "space-y-3 px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+1rem)]",
               "text-sm sm:px-5",
             )}
           >
