@@ -152,6 +152,9 @@ function parseCliOptions(argv: readonly string[]): MigrationCliOptions {
   };
 
   for (const arg of argv) {
+    if (arg === "--") {
+      continue;
+    }
     if (arg === "--dry-run") {
       options.dryRun = true;
       continue;
