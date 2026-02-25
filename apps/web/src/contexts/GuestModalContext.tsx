@@ -1,3 +1,5 @@
+// File: apps/web/src/contexts/GuestModalContext.tsx
+
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";

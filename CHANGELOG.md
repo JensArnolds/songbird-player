@@ -5,6 +5,36 @@ All notable changes to Starchild Music will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7] - 2026-02-22
+
+### Added
+
+- **Mobile player drag-decision utility with thresholded dismiss logic**: Added reusable drag helpers that clamp upward offsets and dismiss only when downward drag reaches 50% of panel height. Locations: `apps/web/src/components/mobilePlayerDrag.ts`, `apps/web/src/__tests__/mobilePlayerDrag.test.ts`.
+- **Extracted mobile footer action component**: Added `MobilePlayerFooterActions` to encapsulate queue, playlist, and favorite controls (including playlist selector overlay) with drag-exempt annotations. Location: `apps/web/src/components/MobilePlayerFooterActions.tsx`.
+- **Dedicated setup/deployment/troubleshooting docs**: Added long-form operational guides to keep root README concise while preserving onboarding and runbook depth. Locations: `docs/SETUP.md`, `docs/DEPLOYMENT.md`, `docs/TROUBLESHOOTING.md`.
+
+### Changed
+
+- **Expanded mobile player drag behavior hardened**: Reworked expanded-sheet drag handling to use explicit drag controls, panel-height measurement (`ResizeObserver`), 50% dismiss threshold decisions, reduced-motion snap-back, and interaction guards that avoid accidental dismissal while using controls/inputs or scrolled content. Location: `apps/web/src/components/MobilePlayer.tsx`.
+- **Expanded mobile player layout restructured**: Converted the expanded sheet body to a scrollable content region with pinned footer actions; consolidated close behavior via shared callback; queue toggles now collapse playlist selector to prevent overlapping surfaces. Location: `apps/web/src/components/MobilePlayer.tsx`.
+- **Integrated mobile player tests aligned with new footer architecture**: Updated queue badge/action assertions to target extracted footer actions, updated playlist id typing to numeric IDs, and refreshed icon/class assertions for DOM attribute access. Location: `apps/web/src/__tests__/MobilePlayer.integrated-controls.test.tsx`.
+- **Vitest package alias map expanded for workspace imports**: Added direct aliases for `@starchild/ui`, `@starchild/config`, `@starchild/types`, `@starchild/player-react`, and `@starchild/api-client` in web test config. Location: `apps/web/vitest.config.ts`.
+- **Repository guidance/docs refreshed for current monorepo conventions**: Updated agent/context guidance, condensed README framing, docs index coverage, architecture references, and tree snapshot to reflect pnpm-first workflows and current file layout. Locations: `AGENTS.md`, `CONTEXT.md`, `README.md`, `docs/README.md`, `docs/ARCHITECTURE.md`, `tree.txt`.
+- **Ancillary file annotations refreshed**: Added/updated file header comments in config/type/context files. Locations: `apps/web/drizzle.config.ts`, `apps/web/src/contexts/GuestModalContext.tsx`, `ecosystem.docker.cjs`, `electron/types.d.ts`.
+- **Local test runtime artifact updated**: Vitest cache results file changed during local test execution. Location: `apps/web/node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json`.
+
+## [1.1.6] - 2026-02-22
+
+### Added
+
+- **Accessible dropdown menu primitives for keyboard-first actions**: Added a shared Radix-based dropdown menu UI primitive and migrated the Library header overflow actions to it for built-in roving focus, keyboard navigation, and escape/outside-close behavior. Locations: `apps/web/src/components/ui/dropdown-menu.tsx`, `apps/web/src/app/library/page.tsx`.
+
+### Changed
+
+- **Library bulk mutations now run with bounded concurrency**: `Save as Playlist`, bulk remove, and undo restore operations now use a shared concurrency-limited batch helper (`8` at a time) instead of sequential loops/fail-fast behavior, reducing latency on large libraries while preventing unbounded request bursts. Location: `apps/web/src/app/library/page.tsx`.
+- **Partial bulk-operation failures now preserve useful progress**: Removal/restore flows now retain successful work, show warning-level counts for failed items, and keep failed undo entries available for retry within the undo window. Location: `apps/web/src/app/library/page.tsx`.
+- **Selection affordance clarified under filters**: Selection mode now switches from `Select All` to `Select Visible` when a search filter is active, and card keyboard activation in selection mode toggles selection rather than playback. Location: `apps/web/src/app/library/page.tsx`.
+
 ## [1.1.5] - 2026-02-20
 
 ### Changed
@@ -644,7 +674,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 ### Added
 
 - **docs/ index**: New [docs/README.md](docs/README.md) lists all files under `docs/` as a single entry-point.
-- **Architecture doc**: [docs/architecture.md](docs/architecture.md) covers the full system layout (web + Electron), runtime entry-points, and sequence diagrams for search, streaming, track-metadata (V2 → Starchild fallback), and auth flows.
+- **Architecture doc**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) covers the full system layout (web + Electron), runtime entry-points, and sequence diagrams for search, streaming, track-metadata (V2 → Starchild fallback), and auth flows.
 - **API route map**: [docs/API_ROUTE_USE.md](docs/API_ROUTE_USE.md) tabulates every Next.js route handler — method, source file, upstream target, and required env vars — plus notes on the two Bluesix V2 auth styles (query-string vs header).
 - **External-API guide**: [docs/API_USE.md](docs/API_USE.md) documents each upstream service (Bluesix V2, Starchild, Last.fm), what this app uses from each, and how they're configured.
 - **Agent entry-point**: [AGENTS.md](AGENTS.md) provides a quick-start for AI coding agents — commands, env-loading rules, project layout, and working conventions.
@@ -656,7 +686,7 @@ CallbackRouteError: r_: server responded with an error in the response body
 
 ### Removed
 
-- **`REPOSITORY_OVERVIEW.md` deleted**: Content replaced by the focused docs above (`docs/architecture.md`, `docs/API_ROUTE_USE.md`, `docs/API_USE.md`, `AGENTS.md`).
+- **`REPOSITORY_OVERVIEW.md` deleted**: Content replaced by the focused docs above (`docs/ARCHITECTURE.md`, `docs/API_ROUTE_USE.md`, `docs/API_USE.md`, `AGENTS.md`).
 
 ## [0.12.9] - 2026-02-02
 

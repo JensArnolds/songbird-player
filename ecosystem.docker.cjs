@@ -1,3 +1,5 @@
+// File: ecosystem.docker.cjs
+
 /**
  * PM2 ecosystem configuration for running the app inside a Docker container.
  *

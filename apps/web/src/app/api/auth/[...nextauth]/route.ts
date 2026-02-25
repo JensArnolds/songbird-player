@@ -35,7 +35,11 @@ function summarizeQueryEntries(url: URL): Array<{
   valueLength: number;
   valueHash: string | null;
 }> {
-  const out: Array<{ key: string; valueLength: number; valueHash: string | null }> = [];
+  const out: Array<{
+    key: string;
+    valueLength: number;
+    valueHash: string | null;
+  }> = [];
   for (const [key, value] of url.searchParams.entries()) {
     out.push({
       key,
@@ -52,7 +56,8 @@ function resolveRequestOrigin(request: Request): string | null {
     const hostHeader =
       request.headers.get("x-forwarded-host") ?? request.headers.get("host");
     const protoHeader =
-      request.headers.get("x-forwarded-proto") ?? fallback.protocol.replace(":", "");
+      request.headers.get("x-forwarded-proto") ??
+      fallback.protocol.replace(":", "");
 
     if (!hostHeader) return fallback.origin;
 
@@ -111,7 +116,9 @@ function redactSetCookieHeader(setCookieHeader: string | null): string[] {
     .map((cookie) => {
       const firstPart = cookie.split(";")[0] ?? "";
       const separatorIndex = firstPart.indexOf("=");
-      return separatorIndex > 0 ? firstPart.slice(0, separatorIndex) : firstPart;
+      return separatorIndex > 0
+        ? firstPart.slice(0, separatorIndex)
+        : firstPart;
     })
     .filter(Boolean);
 }
@@ -261,7 +268,12 @@ export async function GET(
       recordAuthFetchDumpEvent({
         label: `/api/auth/${route.provider}/${route.action ?? "unknown"}`,
         phase: "error",
-        details: { method: "GET", provider: route.provider, action: route.action, error },
+        details: {
+          method: "GET",
+          provider: route.provider,
+          action: route.action,
+          error,
+        },
       });
     }
     logAuthError("GET auth handler threw", { url: request.url, error });
@@ -285,7 +297,12 @@ export async function POST(
       recordAuthFetchDumpEvent({
         label: `/api/auth/${route.provider}/${route.action ?? "unknown"}`,
         phase: "error",
-        details: { method: "POST", provider: route.provider, action: route.action, error },
+        details: {
+          method: "POST",
+          provider: route.provider,
+          action: route.action,
+          error,
+        },
       });
     }
     logAuthError("POST auth handler threw", { url: request.url, error });
